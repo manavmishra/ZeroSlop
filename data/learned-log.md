@@ -36,3 +36,6 @@ example that motivated it.
   lesson encoded: step 3 is now explicitly two passes (Strip, then Build)
   with an anti-over-cutting guard. stop-slop's 27 worst-picks confirm the
   guard: most-aggressive surface removal ≠ best writing.
+- 2026-08-03 — False positive: lexicon "harness" (w 2.5) fired on "agent
+  harness", standard technical usage in agent-tooling prose. Lowered to 1.0
+  in patterns.json per the override rules.

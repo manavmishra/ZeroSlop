@@ -121,7 +121,11 @@ def score_text(text, data, formal=False):
     emdash_penalty = max(0.0, emdash - 0.6) * 6
     emoji = len(re.findall(r"[\U0001F300-\U0001FAFF✅✨⚡\U0001F449\U0001F447\U0001F680\U0001F525]", raw))
     emoji_penalty = min(emoji * 2.0, 12)
-    bold = len(re.findall(r"\*\*[^*\n]{2,60}\*\*", raw))
+    # Bold as mid-sentence emphasis is the tell (WP:AICATCH); bold used as a
+    # label at the start of a line/list item is ordinary document formatting.
+    bold = sum(1 for m in re.finditer(r"\*\*[^*\n]{2,60}\*\*", raw)
+               if not re.match(r"[\s>*#-]*(?:\d+\.\s*)?$",
+                               raw[raw.rfind("\n", 0, m.start()) + 1:m.start()]))
     bold_penalty = min(max(0, bold - 1) * 1.5, 9)
     hashtags = len(re.findall(r"(?<!\S)#\w+", raw))
     hashtag_penalty = min(hashtags * 1.2, 8)
