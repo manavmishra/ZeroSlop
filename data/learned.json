@@ -1,0 +1,5 @@
+{
+  "_comment": "Continuous-learning overlay. Same schema as patterns.json; merged over it at runtime by slopscore.py. Add new tells here (with a dated entry in learned-log.md). To soften a base pattern that false-positives, re-add it here with the same name and a lower weight is NOT supported — instead lower it in patterns.json and log the change. Keep this file valid JSON at all times.",
+  "patterns": [],
+  "lexicon": {}
+}

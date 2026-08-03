@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace-manifest.json",
+  "name": "zero-slop",
+  "owner": {
+    "name": "Manav Mishra",
+    "url": "https://github.com/manavmishra"
+  },
+  "description": "The zero-slop skill, installable as a Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "zero-slop",
+      "source": "./",
+      "description": "Turn any draft into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics. Detect → rewrite → verify → learn.",
+      "license": "MIT",
+      "keywords": ["writing", "editing", "ai-slop", "humanize", "de-slop", "linkedin", "prose", "style", "ai-detection"]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+name: validate
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate pattern data
+        run: |
+          python3 -c "import json; json.load(open('data/patterns.json')); json.load(open('data/learned.json'))"
+      - name: Compile all regexes
+        run: |
+          python3 - <<'EOF'
+          import json, re
+          d = json.load(open("data/patterns.json"))
+          for p in d["patterns"]:
+              re.compile(p["rx"], re.I)
+          print(f"{len(d['patterns'])} patterns, {len(d['lexicon'])} lexicon terms OK")
+          EOF
+      - name: Scorer smoke test
+        run: |
+          python3 - <<'EOF'
+          import sys
+          sys.path.insert(0, "scripts")
+          import slopscore
+          data = slopscore.load_patterns()
+          slop = ("I'm beyond excited to announce our game-changing platform! "
+                  "It's not just a tool — it's a testament to our incredible "
+                  "journey. Let's dive in! Agree? 👇 #ai #growth #startup #future")
+          human = ("We raised $4.2M. It took 18 months, and for the first six "
+                   "of them the demo crashed on stage more often than it ran.")
+          s1 = slopscore.score_text(slop, data)["ai_likelihood"]
+          s2 = slopscore.score_text(human, data)["ai_likelihood"]
+          print(f"slop={s1} human={s2}")
+          assert s1 > 60, f"slop sample under-scored: {s1}"
+          assert s2 < 30, f"human sample over-scored: {s2}"
+          EOF
+      - name: SKILL.md frontmatter present
+        run: |
+          head -1 SKILL.md | grep -q '^---$'
+          grep -q '^name: zero-slop' SKILL.md
+          grep -q '^description:' SKILL.md

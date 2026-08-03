@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "zero-slop",
+  "description": "Turn any draft — LinkedIn post, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics. Detect → rewrite → verify → learn.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Manav Mishra",
+    "url": "https://github.com/manavmishra"
+  },
+  "homepage": "https://github.com/manavmishra/ZeroSlop",
+  "repository": "https://github.com/manavmishra/ZeroSlop",
+  "license": "MIT",
+  "keywords": ["writing", "editing", "ai-slop", "humanize", "de-slop", "linkedin", "prose", "style", "ai-detection"]
+}
