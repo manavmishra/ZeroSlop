@@ -78,6 +78,13 @@ Breaking it matters more than any word swap.
 - **Insider reference.** Name the specific tool, paper, failure mode.
   Explaining what an API is to engineers signals outsider; assuming shared
   knowledge signals membership.
+- **Expert authority, earned.** The target voice is a senior practitioner
+  writing for peers. Authority comes from specifics and correct technical
+  usage, never from intensity ("truly transformative") or credentials
+  waved around. An expert says the simple true thing plainly, states
+  numbers exactly, disagrees where the field is wrong, and reserves hedges
+  for the genuinely uncertain. If a sentence could appear in any
+  competent generalist's post, it isn't expert voice yet.
 
 ## L5 — Lexicon: strip the tells
 

@@ -49,6 +49,14 @@ Omit `--global` for a project-local install. Update later with
 /plugin install zero-slop@zero-slop
 ```
 
+### Codex / OpenAI-compatible agents
+
+The repo ships `.codex-plugin/plugin.json`, `agents/openai.yaml`, and
+`AGENTS.md`, so Codex-style harnesses can load it directly. The skill is
+harness-neutral: the runtime artifact is `SKILL.md`, and when `python3`
+isn't available the skill degrades gracefully to its reference lists and
+self-rubric instead of the metered gate.
+
 ### Manual (any harness)
 
 ```bash

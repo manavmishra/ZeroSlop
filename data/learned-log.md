@@ -30,3 +30,9 @@ example that motivated it.
   overcorrection.md already names, produced by this skill's own rewrite.
   Lesson: the punchy register is for hooks and landings, not analytic
   middles; those want subordinated, flowing sentences (NYT-editor cadence).
+- 2026-08-03 — Round-2 benchmark (vs stop-slop and the stacked
+  no-ai-slop→humanizer pipeline): the two-pass pipeline tied/edged the
+  single-pass loop (8.03 vs 8.00 composite; LinkedIn 11-9). Architecture
+  lesson encoded: step 3 is now explicitly two passes (Strip, then Build)
+  with an anti-over-cutting guard. stop-slop's 27 worst-picks confirm the
+  guard: most-aggressive surface removal ≠ best writing.

@@ -165,6 +165,37 @@ def score_text(text, data, formal=False):
     }
 
 
+def predict_channel(text):
+    """Optional trained channel (--predict): p(post-training register).
+
+    Reported SEPARATELY, never blended into the composite: the shipped model
+    is trained on HC3 (ChatGPT-3.5-era QA text) and measured era-fragile —
+    it scores 2026-era marketing/social slop as human. Trust it in-domain or
+    after retraining on your own corpus (scripts/train_model.py); otherwise
+    treat the pattern meter as primary. Abstains below 60 words and inside
+    its calibrated uncertainty band.
+    """
+    mpath = DATA_DIR / "model.json"
+    if not mpath.exists():
+        return {"status": "no-model"}
+    try:
+        import train_model as T
+        m = json.loads(mpath.read_text())
+        f = T.scalar_features(text)
+        f.update(T.logodds_features(text, m["tables"]))
+        if len(WORD.findall(text)) < m["meta"].get("min_tokens", 60):
+            return {"status": "abstain-short"}
+        z = [(f[k] - mu) / s for k, mu, s in zip(m["names"], m["means"], m["stds"])]
+        raw = m["b"] + sum(w * x for w, x in zip(m["w"], z))
+        p = 1 / (1 + math.exp(-(m["platt_a"] * raw + m["platt_b"])))
+        lo, hi = m["meta"].get("abstain", [0.35, 0.65])
+        return {"status": "abstain-uncertain" if lo < p < hi else "ok",
+                "p_ai_register": round(p, 3),
+                "trained_on": "HC3 (ChatGPT-3.5 era) — era-fragile; retrain for current models"}
+    except Exception as e:
+        return {"status": f"error: {e}"}
+
+
 def band(score):
     if score < 25:
         return "clean"
@@ -183,6 +214,8 @@ def main():
     text = Path(args[0]).read_text() if args else sys.stdin.read()
     data = load_patterns()
     r = score_text(text, data, formal=formal)
+    if "--predict" in sys.argv:
+        r["predictive_channel"] = predict_channel(text)
     if as_json:
         print(json.dumps(r, ensure_ascii=False, indent=1))
         return
@@ -195,6 +228,13 @@ def main():
     if r["categories"]:
         top = sorted(r["categories"].items(), key=lambda kv: -kv[1])[:8]
         print("  top categories: " + ", ".join(f"{k}({v})" for k, v in top))
+    if "predictive_channel" in r:
+        pc = r["predictive_channel"]
+        if pc.get("status") == "ok":
+            print(f"  predictive    : p(ai-register)={pc['p_ai_register']}  "
+                  f"[separate channel — {pc['trained_on']}]")
+        else:
+            print(f"  predictive    : {pc['status']}")
     if explain:
         for h in sorted(r["hits"], key=lambda h: -h["w"]):
             print(f"   [{h['w']:>4}] {h['cat']}/{h['name']}: “{h['quote']}”")

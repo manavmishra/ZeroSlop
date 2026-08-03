@@ -1,5 +1,8 @@
 ---
 name: zero-slop
+license: MIT
+metadata:
+  version: 1.1.0
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
 
@@ -57,7 +60,9 @@ python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe 
 
 Add `--formal` for research/professional genres — it zeroes the
 rhythm-uniformity and formality penalties, which would otherwise penalize a
-register that is native there.
+register that is native there. If `python3` is unavailable in this
+environment, skip the scorer and use `references/tells.md` plus the step-4
+self-rubric as the gate — never fail the task over a missing interpreter.
 
 Record the baseline: AI-likelihood (0–100), burstiness (sentence-length CV),
 tell density, and every hit. The score is a surface meter, not a verdict — a
@@ -76,10 +81,28 @@ Per paragraph, three judgments the regex cannot make:
   humor, bluntness, pet phrases, digressions). These survive too. A user
   writing sample outranks every style rule in this skill.
 
-### 3. Rewrite — the evidence ladder
+### 3. Rewrite — the evidence ladder, in two passes
 
-Work top-down; the top rungs carry the most detection signal and the most
-reader value. `references/rewrite-moves.md` expands each rung with examples.
+Run the ladder as two separate passes with different mindsets — benchmarking
+showed a strip-then-build sequence beats one do-everything rewrite, because
+each pass keeps a single focus. **Pass 1 — Strip** (subtraction only): L5
+lexicon and L6 formatting, plus scaffolding removal. Touch nothing else; you
+are deleting, not writing. **Pass 2 — Build** (on the stripped text): L1
+substance, L2 order, L3 rhythm, L4 register — now you are writing, with the
+tells already gone so nothing masks the substance judgments. The register
+you are building toward is an **expert voice**: a respected practitioner
+writing for peers — precise terms used correctly and unexplained, judgment
+stated with earned authority, the confidence to be plain. Not clean-generic,
+not casual-for-casual's-sake: the voice of someone who knows the field well
+enough to say the simple true thing.
+
+Guard against over-cutting in Pass 1: stripping is not compression. If a cut
+costs warmth, flow, or a human aside, restore the connective tissue in Pass
+2 — judges consistently mark "surface-clean but clipped" below "warm with one
+leftover tell". Density is information per word, not fewer words.
+
+Work each pass top-down; the top rungs carry the most detection signal and
+the most reader value. `references/rewrite-moves.md` expands each rung.
 
 - **L1 — Substance.** Replace generic abstraction with the specific thing:
   exact figures, named tools, the mechanism, the mistake. Commit to the claim
@@ -125,6 +148,9 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   author's material — if the draft contains none, flag per step 5 rather than
   manufacture stance
 - read-aloud pass: no sentence you'd stumble over or never say
+- expert-voice test: would a respected practitioner in this field assume a
+  peer wrote it? Terms precise, authority earned by specifics (never by
+  adjectives), nothing dumbed down, nothing hedged into mush
 
 Fail → iterate (max 3 passes). Still failing after 3 → keep the best version
 and flag it: "needs a real claim/detail, not better words."
