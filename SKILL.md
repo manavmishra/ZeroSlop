@@ -116,6 +116,10 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   writer's own voice
 - fidelity: every inventoried fact present and unchanged; nothing added the
   author didn't supply
+- source scope: every stat sits next to the source it actually came from,
+  and a setup that names N sources pays off all N ("the number in two new
+  reports is 6x" followed by only one report reads amnesiac — either scope
+  the claim to its one source or give each named source its own number)
 - self-rubric: survives a hostile editor's red pen; for opinion genres
   (LinkedIn, essays), ≥ 3 claims a reader could disagree with, drawn from the
   author's material — if the draft contains none, flag per step 5 rather than
