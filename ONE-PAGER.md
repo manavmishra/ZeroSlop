@@ -31,10 +31,10 @@ OpenAI's own telemetry, not a survey." New score: 9.5, clean. Same facts.
 Nothing invented.
 
 **The proof.** Fifty AI-typical drafts, six genres, independent blind
-judges, every rival running its own published prompt. Zero-Slop took 32 of
+judges, every skill running its own published prompt. Zero-Slop took 32 of
 50 "which would you publish" verdicts; the three best-known alternatives
 combined took 18. Its rewrites left a third of the detector residue of the
-weakest rival. The most useful result was a failure: one rewrite invented a
+lowest-scoring alternative. The most useful result was a failure: one rewrite invented a
 feeling the author never described, a blind judge caught it, and the
 fabrication became a hard rule the same day. The full harness ships in the
 repo, reproducible, with close results labeled as close.

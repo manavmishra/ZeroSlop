@@ -87,7 +87,7 @@ that runs on every future draft.
 
 We tested Zero-Slop blind against every major alternative: fifty AI-typical
 drafts across six genres, scored by independent judges on shuffled labels,
-with each rival running its own published prompt verbatim.
+with each skill running its own published prompt verbatim.
 
 | | **Zero-Slop** | blader/humanizer | petergyang/no-ai-slop | isatimur/de-slop |
 |---|---|---|---|---|
@@ -102,7 +102,7 @@ experience the author never described. A blind judge caught it and marked
 that rewrite worst on the spot. The fabrication became a hard rule the same
 day: invented feelings count as invented facts. A benchmark that can embarrass
 its own author is the only kind worth publishing, so the methodology and a
-later round against two more rivals ship in the repo, reproducible, with the
+later round against two additional peer skills ship in the repo, reproducible, with the
 close results labeled as close.
 
 ## What it refuses to do
