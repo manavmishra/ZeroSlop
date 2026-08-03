@@ -1,4 +1,6 @@
-# Zero-Slop, on one page
+# Zero-Slop
+
+**Make it read human. Prove it.** The one-pager.
 
 In 2024, researchers measured the word "meticulous" appearing in
 AI-conference peer reviews at nearly 35 times its expected rate, and the

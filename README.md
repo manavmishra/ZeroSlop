@@ -1,4 +1,7 @@
-# Zero-Slop: the AI slop remover that proves it worked
+# Zero-Slop
+
+**Make it read human. Prove it.**
+
 
 In 2024, two research teams measured something strange happening to
 scientific writing. In AI-conference peer reviews, the word "meticulous" was
@@ -17,10 +20,10 @@ AI voice is not in the machine. It is a style, taught in the final step of
 training, and it lives entirely in wording, which means a careful rewrite can
 remove it without touching a single fact.
 
-Zero-Slop is that rewrite, packaged as an agent skill with a stubborn rule:
-it has to prove it worked. Every pass ships with before-and-after scores from
-a built-in statistical detector. No other humanizer, de-slop tool, or
-AI-writing cleaner shows you the numbers.
+Zero-Slop removes that style and shows you the receipts. It is an AI slop
+remover built as an agent skill, with one stubborn rule: every rewrite ships
+with before-and-after scores from its built-in detector. No other humanizer
+or de-slop tool shows you the numbers.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
