@@ -51,3 +51,10 @@ example that motivated it.
   the verify rubric, a density-ceiling rule to the expert-voice mandate,
   and a live before/after to rewrite-moves L1. The criticized paragraph now
   fails the gate (28.2); its unpacked rewrite passes (9.5).
+- 2026-08-03 — Second followability iteration, same paragraph: the first
+  fix swapped abstraction-chains for an unexplained metaphor ("finishing
+  school") plus an inside-baseball citation list — decoding load moved,
+  not removed. Rule sharpened: a metaphor anchors only when its mapping is
+  set up first; otherwise it's compression in costume. Prefer a plain
+  comparison the reader can picture. Name-lists of papers belong in the
+  citation file, not the prose.

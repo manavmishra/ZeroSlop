@@ -37,6 +37,13 @@ and the most-probable phrasing is the generic one. Specificity is the attack.
   abstraction in something the reader can hear or picture. The scorer's
   followability channel (comma-chains, long-word ratio, 38+-word
   sentences) measures this; the read-aloud-as-an-outsider test judges it.
+  Beware the near-miss fix: swapping an abstraction-chain for an
+  unexplained metaphor ("the AI voice is in the finishing school") moves
+  the decoding load instead of removing it. A metaphor anchors only when
+  its mapping is set up first; otherwise use the plain comparison the
+  reader can picture ("take one model in two versions: raw, and after
+  assistant training — detectors read the raw one as human"). Citation
+  name-lists belong in the reference file, not the sentence.
 
 ## L2 — Order: break the template
 
