@@ -39,3 +39,7 @@ example that motivated it.
 - 2026-08-03 — False positive: lexicon "harness" (w 2.5) fired on "agent
   harness", standard technical usage in agent-tooling prose. Lowered to 1.0
   in patterns.json per the override rules.
+- 2026-08-03 — v1.1 validation: two-pass architecture wins the LinkedIn
+  pairwise blind head-to-head 15-10 vs the stacked no-ai-slop→humanizer
+  pipeline (v1.0 had lost that genre 9-11). Caveat kept honest: all 15 wins
+  narrow; the pipeline took the 4 clear-margin verdicts.
