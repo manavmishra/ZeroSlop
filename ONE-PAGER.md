@@ -1,6 +1,6 @@
-# Zero-Slop
+# Zero Slop
 
-**Make it read human. Prove it.** The one-pager.
+**Kill the AI accent. Keep every fact. Prove it with numbers.**
 
 In 2024, researchers measured the word "meticulous" appearing in
 AI-conference peer reviews at nearly 35 times its expected rate, and the

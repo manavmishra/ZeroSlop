@@ -1,6 +1,6 @@
-# Zero-Slop
+# Zero Slop
 
-**Make it read human. Prove it.**
+**Kill the AI accent. Keep every fact. Prove it with numbers.**
 
 
 In 2024, two research teams measured something strange happening to

@@ -10,9 +10,19 @@
     {
       "name": "zero-slop",
       "source": "./",
-      "description": "Turn any draft into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics. Detect → rewrite → verify → learn.",
+      "description": "Turn any draft into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics. Detect \u2192 rewrite \u2192 verify \u2192 learn.",
       "license": "MIT",
-      "keywords": ["writing", "editing", "ai-slop", "humanize", "de-slop", "linkedin", "prose", "style", "ai-detection"]
+      "keywords": [
+        "writing",
+        "editing",
+        "ai-slop",
+        "humanize",
+        "de-slop",
+        "linkedin",
+        "prose",
+        "style",
+        "ai-detection"
+      ]
     }
   ]
 }
