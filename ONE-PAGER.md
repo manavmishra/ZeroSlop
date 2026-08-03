@@ -23,12 +23,19 @@ same artifact runs in Claude Code, Codex, claude.ai, and any compatible
 harness.
 
 **A real run.** This August, a founder's LinkedIn draft opened with
-"Enterprise AI value has too often compounded inside individual workflows…"
-The scorer read 45.7 out of 100. The draft's best material, a startling
-statistic, sat buried in paragraph two. The rewrite opens: "6x. That's how
-many more messages frontier users send than the median employee, and it's
-OpenAI's own telemetry, not a survey." New score: 9.5, clean. Same facts.
-Nothing invented.
+"Enterprise AI value has too often compounded inside individual
+workflows…" and scored 45.7: suspect, despite having no emoji and no
+buzzwords. The loop's catches were judgment calls: an announcement-voice
+opener hiding the draft's best statistic in paragraph two, a "quiet part
+out loud" cliché, and a hook promising two reports while citing one. The
+rewrite opens "6x. That's how many more messages frontier users send than
+the median employee, and it's OpenAI's own telemetry, not a survey," gives
+each report its own number, and ends on the author's own landing:
+"The playbook is already inside the building. Your super-users are writing
+it daily. The work is making it everyone's." New score: 9.5, clean. Every
+figure and citation intact; the author's best lines protected, not
+polished away. The complete before-and-after, with its scorecard, is in
+the README.
 
 **The proof.** Fifty AI-typical drafts, six genres, independent blind
 judges, every skill running its own published prompt. Zero-Slop took 32 of

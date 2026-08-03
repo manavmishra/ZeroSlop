@@ -26,28 +26,60 @@ AI-writing cleaner shows you the numbers.
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-## A real run
+## A real run, start to finish
 
 This August, a founder drafted a LinkedIn post about two new enterprise-AI
-reports. It opened like a press release:
+reports. The full draft, as written:
 
-> Enterprise AI value has too often compounded inside individual workflows,
-> leaving a widening gap between the employees building leverage and the
-> organizations trying to scale it.
+> Enterprise AI value has too often compounded inside individual workflows, leaving a widening gap between the employees building leverage and the organizations trying to scale it.
+>
+> With OpenAI's State of Enterprise AI report and WRITER's 2026 adoption survey both out, that gap now has numbers. Frontier users send 6x more messages than the median employee, and that's OpenAI's own telemetry, not a survey. Super-users save 9 hours a week against 2 for everyone else. 35% of companies admit they couldn't immediately pull the plug on a rogue agent, and 36% have no formal plan for supervising agents at all. The result shows up in the ROI line: only 29% see significant returns from generative AI, and just 23% from agents, despite 5x individual gains.
+>
+> OpenAI's own conclusion says the quiet part out loud: the constraint is no longer model performance or tooling. It's organizational readiness. The individual wins are real. What's missing is the boring, unglamorous work that turns them into an operating system for the whole company.
+>
+> That work has names. Standardization, so the best prompt in the building becomes the default prompt, not a personal stash. AI fluency for the entire org, not certification theater but every function knowing how to shape its own work for a model. Skills and workflows as shared assets with owners and versions. And supervision that scales with autonomy, including the off switch.
+>
+> The playbook is already inside the building. Your super-users are writing it daily. The work is making it everyone's.
+>
+> More in both reports below. 👇
+>
+> #AgenticAI #EnterpriseAI #AIAdoption
 
-The scorer read it at 45.7 out of 100: "suspect." No emoji, no obvious
-buzzwords, and still unmistakably machine-flavored. The diagnosis was the
-interesting part. The draft's best material, a startling statistic, sat
-buried in the second paragraph while an abstraction warmed up the crowd.
-After one pass:
+No "delve," no rocket emoji in the hook, and the scorer still read it at
+45.7: "suspect." The diagnosis was the interesting part. The opener is
+announcement voice, an abstraction warming up the crowd while the draft's
+best material, a startling statistic, sits buried in paragraph two. The
+"quiet part out loud" line is a cliché doing an idea's job. And the hook
+promises "two reports" but only ever attaches the 6x to one of them, which
+reads oddly hollow without the reader knowing why.
 
-> 6x. That's how many more messages frontier users send than the median
-> employee, and it's OpenAI's own telemetry in its new State of Enterprise AI
-> report, not a survey.
+The rewrite, after the full loop:
 
-New score: 9.5, clean. Same facts, same sources, nothing invented. The
-number simply moved to the first word, where a person who cared about it
-would have put it.
+> 6x. That's how many more messages frontier users send than the median employee, and it's OpenAI's own telemetry in its new State of Enterprise AI report, not a survey.
+>
+> WRITER's 2026 adoption survey puts the same gap in hours: super-users save 9 a week, everyone else about 2. The control side is worse: 35% of companies admit they couldn't immediately pull the plug on a rogue agent, and 36% have no formal plan for supervising agents at all. The ROI line follows: only 29% see significant returns from generative AI, just 23% from agents, despite 5x individual gains.
+>
+> OpenAI's report ends on a conclusion you'd expect from a critic, not a vendor: the constraint is no longer the models or the tooling. It's whether the organization is ready to use them. The individual wins are real, and they're stuck at the individual level, waiting on the boring, unglamorous work of turning them into an operating system for the whole company.
+>
+> That work has names. Standardization, so the best prompt in the building becomes the default, not a personal stash. AI fluency for the entire org, not certification theater, every function knowing how to shape its own work for a model. Skills and workflows as shared assets, with owners and versions. Supervision that scales with autonomy, including the off switch.
+>
+> The playbook is already inside the building. Your super-users are writing it daily. The work is making it everyone's.
+
+The scorecard that shipped with it:
+
+| Metric | Before | After |
+|---|---|---|
+| AI-likelihood | 45.7 — suspect | **9.5 — clean** |
+| Weighted tells | 6 | 0 |
+| Em-dashes / emoji / hashtags | 0 / 1 / 3 | 0 / 0 / 0 |
+| Burstiness (target ≥ 0.45) | 0.65 | 0.63 |
+| Words | 254 | 235 |
+
+Every number and both report citations survived. Nothing was invented; the
+6x moved to the first word, each report got its own statistic, and the
+author's best lines ("That work has names," the closing triplet,
+"certification theater") came through untouched, because the diagnose pass
+had marked them as voice to protect.
 
 We hold this README to the same bar. Its prose scores clean on its own
 detector; score the raw file and the number jumps, because the file quotes
