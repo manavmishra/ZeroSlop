@@ -189,10 +189,27 @@ and flag it: "needs a real claim/detail, not better words."
 
 ### 5. Report
 
-Return: (a) the rewritten text; (b) before → after metrics (AI-likelihood,
-burstiness, hit count); (c) a short change log naming the patterns fixed;
-(d) flags — hollow spans, capped spans, and anything needing a real fact from
-the user. Never silently overwrite; the author decides.
+Every run ends with the rewritten text plus a **before/after scorecard** the
+user can read at a glance — this is the product's proof and it is never
+optional. Use this exact shape (a markdown table in chat contexts; the same
+fields in plain lines where tables don't render):
+
+```
+| Metric                    | Before        | After        |
+|---------------------------|---------------|--------------|
+| AI-likelihood             | 45.7 suspect  | 9.5 clean ✓  |
+| Weighted tells            | 6             | 0            |
+| Em-dashes / emoji / tags  | 0 / 1 / 3     | 0 / 0 / 0    |
+| Burstiness (≥0.45)        | 0.65          | 0.67         |
+| Followability penalty     | 4.2           | 0            |
+| Words                     | 254           | 217          |
+Gate: PASSED (LinkedIn ≤20) · facts preserved 12/12 · nothing invented
+```
+
+Follow the scorecard with: (a) a short change log naming the patterns fixed
+and the judgment calls made (including deliberate keeps); (b) flags — hollow
+spans, capped spans, and anything needing a real fact from the user. Never
+silently overwrite; the author decides.
 
 ### 6. Learn
 
