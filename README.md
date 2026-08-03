@@ -6,9 +6,10 @@ written by a sharp human, **with measurable proof**. It is the only de-slop
 skill with a statistical scorer and a quantitative pass/fail gate: every
 rewrite ships with before/after metrics.
 
-Plain Markdown + one dependency-free Python script, so it runs in any harness
-that supports skill-style instructions (Claude Code, claude.ai, Codex-style
-agents, or copy-paste).
+Built on the [Agent Skills standard](https://agentskills.io): plain Markdown
+plus one dependency-free Python script, so the same skill runs in Claude
+Code, claude.ai, Codex, OpenCode, and any spec-compatible harness — or
+copy-paste.
 
 ## Why another de-slop skill
 
@@ -145,8 +146,6 @@ references/evidence.md       the research basis (papers + detector mechanics)
 ```
 
 ## Credits
-
-Zero-slop conforms to the [Agent Skills standard](https://agentskills.io) — the same SKILL.md format runs in Claude Code, Codex, OpenCode, and any spec-compatible harness.
 
 Zero-slop is a synthesis, and stands on prior work it gratefully credits:
 [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) (MIT),
