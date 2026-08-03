@@ -1,142 +1,153 @@
 # Zero-Slop: the AI slop remover that proves it worked
 
-Turn AI-sounding drafts into writing people actually finish reading. Zero-Slop
-detects the tells of machine-written prose (the em-dash rhythm, the "delve"
-vocabulary, the announcement voice), rewrites your draft in an expert human
-register, and then shows you before/after scores from its built-in statistical
-detector. No other humanizer, de-slop tool, or AI-writing cleaner does that
-last part. The last part is the point.
+In 2024, two research teams measured something strange happening to
+scientific writing. In AI-conference peer reviews, the word "meticulous" was
+appearing at nearly 35 times its expected rate. Across fifteen million
+biomedical abstracts, the same style words were surging: "delve,"
+"showcase," "intricate." Science had not gotten more careful. Scientists had
+started writing with ChatGPT, and ChatGPT has favorite words.
 
-**One command. Any agent. Fully offline.**
+Readers learned the accent fast. On LinkedIn, an em-dash can now get you
+accused of outsourcing your thoughts. On Wikipedia, a volunteer cleanup crew
+has spent two years cataloguing the tells of machine prose, from "stands as a
+testament" to the rhythm of sentences that all run the same length. The
+strange part is what the research found underneath: strip away a model's
+assistant training and detectors read its raw output as 98 percent human. The
+AI voice is not in the machine. It is a style, taught in the final step of
+training, and it lives entirely in wording, which means a careful rewrite can
+remove it without touching a single fact.
+
+Zero-Slop is that rewrite, packaged as an agent skill with a stubborn rule:
+it has to prove it worked. Every pass ships with before-and-after scores from
+a built-in statistical detector. No other humanizer, de-slop tool, or
+AI-writing cleaner shows you the numbers.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-## The 30-second demo
+## A real run
 
-A real LinkedIn draft, before:
+This August, a founder drafted a LinkedIn post about two new enterprise-AI
+reports. It opened like a press release:
 
 > Enterprise AI value has too often compounded inside individual workflows,
 > leaving a widening gap between the employees building leverage and the
 > organizations trying to scale it.
 
-**Scored 45.7/100, "suspect."** No emoji, no obvious buzzwords, and it still
-reads like a press release wrote it. The detector flagged the stock opener;
-the judgment pass caught the buried lede.
-
-After one pass through Zero-Slop:
+The scorer read it at 45.7 out of 100: "suspect." No emoji, no obvious
+buzzwords, and still unmistakably machine-flavored. The diagnosis was the
+interesting part. The draft's best material, a startling statistic, sat
+buried in the second paragraph while an abstraction warmed up the crowd.
+After one pass:
 
 > 6x. That's how many more messages frontier users send than the median
 > employee, and it's OpenAI's own telemetry in its new State of Enterprise AI
 > report, not a survey.
 
-**Scored 9.5/100, "clean."** Same facts. Nothing invented. The number moved
-to the first word, where it belongs.
+New score: 9.5, clean. Same facts, same sources, nothing invented. The
+number simply moved to the first word, where a person who cared about it
+would have put it.
 
-(We practice what we ship. This README's prose scores 13.3/100, clean, on
-its own detector. Score the raw file and you'll get 82.9 — because the
-README quotes the tells it teaches, and a regex can't tell mention from
-use. That gap is the whole design lesson: the meter flags, judgment
-decides. Run it yourself: `python3 scripts/slopscore.py README.md`.)
+We hold this README to the same bar. Its prose scores clean on its own
+detector; score the raw file and the number jumps, because the file quotes
+the tells it teaches, and a regex cannot tell mention from use. That gap is
+the design lesson: the meter flags, judgment decides. Run it yourself with
+`python3 scripts/slopscore.py README.md`.
 
-## Why AI writing sounds like AI (the science)
+## How it works
 
-Researchers measured it. After ChatGPT launched, "meticulous" appeared 34.7x
-more often in scientific abstracts, "delve" spiked so hard it became a meme,
-and detectors like GPTZero learned to spot machine text from two features:
-predictable word choice and uniform sentence rhythm. The deeper finding: base
-models score ~98% human on commercial detectors. It's the *post-training
-polish* that gets flagged. Which means the "AI voice" lives entirely on the
-surface of the text, and a disciplined rewrite can remove it without touching
-your meaning. Fifteen papers behind this sit in
-[references/evidence.md](references/evidence.md).
+The skill runs a five-step loop, and each step exists because a measured
+finding says it should.
 
-Zero-Slop turns that research into a five-step loop:
+**Measure.** A two-hundred-line Python script (standard library, no network,
+no dependencies) scores the draft: weighted tells across sixty-plus patterns,
+sentence-rhythm variance, the overused-word lexicon, formatting noise, and a
+followability check that catches prose too dense to absorb.
 
-1. **Measure.** A stdlib-Python scorer computes weighted tell density,
-   burstiness (sentence-length variance), LLM-lexicon hits, and formatting
-   noise, then squashes them into an AI-likelihood score from 0 to 100.
-2. **Diagnose.** The judgment a regex can't make: hollow paragraphs, buried
-   hooks, the facts that must survive verbatim, the voice worth keeping.
-3. **Rewrite.** Two passes. Strip the tells. Then build toward an expert
-   voice: a practitioner writing for peers, authority earned by specifics.
-4. **Verify.** A hard gate. LinkedIn posts must score ≤20 with zero
-   em-dashes, zero emoji, zero hashtag clusters, burstiness at 0.45 or higher.
-   Fail means iterate. Still failing after three passes, it tells you the truth instead of faking it.
-5. **Learn.** Every miss becomes a new pattern in `data/learned.json`. The
-   detector you install gets sharper the more the community uses it.
+**Diagnose.** The judgments no regex can make. Which paragraphs say nothing
+and would vanish without loss. Which facts must survive verbatim. Which
+quirks are the writer's actual voice, and therefore protected.
 
-## Benchmarked, blind, reproducible
+**Rewrite.** Two passes, because testing showed one combined pass does worse.
+First strip the tells. Then build toward an expert register: a practitioner
+writing for peers, authority earned by specifics, one idea per sentence, and
+the confidence to say the simple true thing.
 
-We tested Zero-Slop against every major alternative: 50 AI-typical drafts
-across LinkedIn, blogs, newsletters, tweets, emails, and research abstracts,
-scored by independent blind judges on shuffled labels:
+**Verify.** A hard gate. A LinkedIn post must score 20 or under with zero
+em-dashes, zero emoji, zero hashtag clusters. Fail, and the loop iterates.
+Fail three times, and it says so instead of pretending.
+
+**Learn.** Every miss becomes a pattern in `data/learned.json`, with a dated
+entry in the log. The day this skill shipped, a user caught it attributing
+one report's statistic to two reports; that mistake is now a named check
+that runs on every future draft.
+
+## The benchmark
+
+We tested Zero-Slop blind against every major alternative: fifty AI-typical
+drafts across six genres, scored by independent judges on shuffled labels,
+with each rival running its own published prompt verbatim.
 
 | | **Zero-Slop** | blader/humanizer | petergyang/no-ai-slop | isatimur/de-slop |
 |---|---|---|---|---|
 | Judge composite (1–10) | **8.01** | 7.82 | 6.96 | 6.35 |
 | Human-likeness | **7.84** | 7.60 | 6.30 | 5.00 |
-| Voice / point of view | **7.54** | 6.82 | 5.42 | 4.96 |
 | "Which would you publish?" wins | **32/50** | 18/50 | 0 | 0 |
 | Detector score after rewrite (drafts start at 76) | **10.9** | 18.7 | 19.4 | 39.7 |
 
-A second round against hardikpandya/stop-slop and a stacked two-skill
-pipeline is in the changelog. Every scorecard ships with its methodology; if
-you think the judging was wrong, rerun it. The whole pipeline is reproducible.
+The most useful result was a failure. One Zero-Slop rewrite of a post about
+an AWS exam added the phrase "by test day the real thing felt familiar," an
+experience the author never described. A blind judge caught it and marked
+that rewrite worst on the spot. The fabrication became a hard rule the same
+day: invented feelings count as invented facts. A benchmark that can embarrass
+its own author is the only kind worth publishing, so the methodology and a
+later round against two more rivals ship in the repo, reproducible, with the
+close results labeled as close.
 
-## What Zero-Slop refuses to do
+## What it refuses to do
 
-The fastest way to "humanize" text is to invent a personal anecdote. That's
-not humanizing, it's lying, and it's the trap most tools fall into. Hard
-rules, enforced in the skill and checked by our judges:
+The fastest way to humanize text is to invent a personal anecdote, which is
+why most tools drift there. Zero-Slop treats that as the cardinal sin. No
+fake numbers, names, or war stories. No padding a pointless paragraph into
+confident emptiness; it gets flagged instead. No trading the AI voice for
+performed candor and forced hot takes, the louder dialect of the same
+disease. And no detector-evasion for deception: where disclosure is
+required, disclose.
 
-- **No invented facts.** No fake numbers, names, war stories, or "by test
-  day it felt familiar" interior claims. Missing a good detail? It asks you
-  for a real one.
-- **No hollow-span padding.** A paragraph with no point gets flagged, not
-  reworded into confident emptiness.
-- **No edgy-slop.** "Let's be real," forced hot takes, and staccato drama are
-  AI tells in a different costume. The over-correction catalogue is a
-  first-class part of the skill.
-- **No detector-evasion for deception.** Zero-Slop improves writing. It
-  refuses disclosure-evasion and impersonation.
+## Trust, verifiable
 
-## Trust the thing you're installing
-
-Read [SECURITY.md](SECURITY.md), then read the scorer itself (~200 lines).
-Standard library only. Zero network calls. Zero dependencies. Your drafts
-never leave your machine. Voice profiles are git-ignored so personal data
-can't ship by accident. An enterprise security review of this repo takes one
-coffee.
+Read [SECURITY.md](SECURITY.md), then read the scorer. Standard library
+only. Zero network calls. Your drafts never leave your machine, and personal
+voice profiles are git-ignored so they cannot ship by accident. An
+enterprise security review of this repo takes about one coffee.
 
 ## Install
 
-**Skills CLI (any agent, recommended):**
+Any agent, via the skills CLI:
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-**Claude Code plugin:**
+Claude Code, as a plugin:
 
 ```
 /plugin marketplace add manavmishra/ZeroSlop
 /plugin install zero-slop@zero-slop
 ```
 
-**Codex / OpenAI-compatible agents:** ships with `.codex-plugin/plugin.json`,
-`agents/openai.yaml`, and `AGENTS.md`. **Manual:** clone into your skills
-directory (name the folder `zero-slop`). **claude.ai:** upload the repo zip
-under Settings → Capabilities → Skills. Built on the
-[Agent Skills standard](https://agentskills.io), so one artifact runs
-everywhere.
+Codex and OpenAI-compatible agents load the bundled `.codex-plugin/`,
+`agents/openai.yaml`, and `AGENTS.md`. Manual installs clone the repo into a
+skills directory named `zero-slop`. On claude.ai, upload the repo zip under
+Settings → Capabilities → Skills. The whole package follows the
+[Agent Skills standard](https://agentskills.io), and when `python3` is
+missing the skill falls back to its reference lists instead of failing.
 
-Then say, in your agent of choice: *"de-slop this"*, *"humanize this
-draft"*, *"make this post not sound like AI"*, or *"score this"* for
-detect-only mode.
+Then say: "de-slop this," "humanize this draft," "make this post not sound
+like AI," or "score this" for a report without a rewrite.
 
-## Use the detector standalone
+## The scorer, standalone
 
 ```bash
 pbpaste | python3 scripts/slopscore.py --explain   # score your clipboard (macOS)
@@ -145,53 +156,46 @@ python3 scripts/slopscore.py --formal abstract.txt  # research register
 python3 scripts/slopscore.py --predict draft.md     # + trained ML channel
 ```
 
-Every hit comes back as a quote with a pattern name and weight. Calibration: raw LLM
-drafts average ~76/100; strong human writing lands 9–29.
+Every hit comes back as a quote with a pattern name and a weight. Raw LLM
+drafts average around 76. Strong human writing lands between 9 and 29.
 
-## FAQ
+## Questions people actually ask
 
-**Is this an AI detector bypass?** No. Detectors flag the post-training
-register; Zero-Slop removes that register by making the writing better: specific, rhythmic, committed. If your context requires AI
-disclosure, disclose.
+**Is this an AI detector bypass?** No. Detectors flag a writing style;
+Zero-Slop removes the style by making the writing better. If your context
+requires AI disclosure, disclose.
 
-**Why do LLMs overuse "delve" and em-dashes?** Preference tuning (RLHF)
-rewards a polished formal register; studies trace the vocabulary spike
-directly to it. Era matters: "delve" peaked in 2024, and newer models
-over-use "enhance/highlight/showcase" instead, which is why the pattern
-database is versioned and community-updated.
+**Why does ChatGPT say "delve" so much?** The best available answer:
+preference tuning. Human raters rewarded a polished formal register, and the
+vocabulary came with it. The lexicon also moves; "delve" peaked in 2024, and
+newer models lean on "enhance" and "showcase," which is why this skill's
+pattern database is versioned and community-updated rather than frozen.
 
-**Are em-dashes really an AI tell?** Density is. One em-dash doing real work
-is fine everywhere except LinkedIn, where readers now pattern-match any
-em-dash to ChatGPT. The platform modules encode exactly this kind of
-context.
+**Are em-dashes really a tell?** Density is. One dash doing real work is
+fine almost everywhere except LinkedIn, where readers have decided otherwise.
+An early version of this very README used twenty-three of them. The scorer
+caught it.
 
-**Will it flatten my voice?** A writing sample outranks every rule in the
-skill. If dashes and "honestly" are how you really write, they stay.
+**Will it flatten my voice?** A sample of your real writing outranks every
+rule in the skill. If dashes and "honestly" are how you write, they stay.
 
 **Found a tell it missed?** Open a PR adding a regex to `data/learned.json`
-with a line in `data/learned-log.md`. That's the whole contribution process.
-The taxonomy is community property.
-
-## Star this repo if…
-
-…you've ever deleted a draft because it "sounded like ChatGPT," rewritten an
-em-dash out of embarrassment, or watched a good idea die under "I'm excited
-to announce." Stars are how other people find the way out.
+and a line to the log. That is the entire contribution process. The taxonomy
+is community property.
 
 ## Credits
 
 Zero-Slop is a synthesis, and stands on prior work it gratefully credits:
 [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop),
 [blader/humanizer](https://github.com/blader/humanizer),
-[isatimur/de-slop](https://github.com/isatimur/de-slop),
-[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) (all
-MIT), Wikipedia's
-[Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing),
-Paul Graham's writing essays, and the detection literature (Kobak, Liang,
-Juzek & Ward, DetectGPT, Binoculars, GPT-who, RAID, DIPPER, Reinhart,
-Herbold, and others) cited in
-[references/evidence.md](references/evidence.md).
+[isatimur/de-slop](https://github.com/isatimur/de-slop), and
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop), all MIT;
+Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing),
+the field guide that volunteer editors built the hard way; Paul Graham's
+writing essays; and the detection literature (Kobak, Liang, Juzek & Ward,
+DetectGPT, Binoculars, GPT-who, RAID, DIPPER, Reinhart, Herbold, and others)
+cited in [references/evidence.md](references/evidence.md).
 
 ## License
 
-[MIT](LICENSE). Take it, fork it, ship it. Just keep the credits.
+[MIT](LICENSE). Take it, fork it, ship it. Keep the credits.
