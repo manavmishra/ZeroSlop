@@ -1,6 +1,7 @@
 # Zero Slop
 
-**Kill the AI accent. Keep every fact. Prove it with numbers.**
+**A linter for the AI accent.**  
+Scores your draft, strips the tells, and proves the fix with numbers.
 
 In 2024, researchers measured the word "meticulous" appearing in
 AI-conference peer reviews at nearly 35 times its expected rate, and the

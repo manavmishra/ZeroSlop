@@ -1,6 +1,7 @@
 # Zero Slop
 
-**Kill the AI accent. Keep every fact. Prove it with numbers.**
+**A linter for the AI accent.**  
+Scores your draft, strips the tells, and proves the fix with numbers.
 
 
 In 2024, two research teams measured something strange happening to
@@ -58,13 +59,15 @@ reads oddly hollow without the reader knowing why.
 
 The rewrite, after the full loop:
 
-> 6x. That's how many more messages frontier users send than the median employee, and it's OpenAI's own telemetry in its new State of Enterprise AI report, not a survey.
+> Six times. That's how much more your best people talk to models than everyone else does, and it comes from OpenAI's own telemetry in its new State of Enterprise AI report, not a survey.
 >
-> WRITER's 2026 adoption survey puts the same gap in hours: super-users save 9 a week, everyone else about 2. The control side is worse: 35% of companies admit they couldn't immediately pull the plug on a rogue agent, and 36% have no formal plan for supervising agents at all. The ROI line follows: only 29% see significant returns from generative AI, just 23% from agents, despite 5x individual gains.
+> WRITER's 2026 adoption survey measures the same gap in hours saved: nine a week for super-users, about two for everyone else.
 >
-> OpenAI's report ends on a conclusion you'd expect from a critic, not a vendor: the constraint is no longer the models or the tooling. It's whether the organization is ready to use them. The individual wins are real, and they're stuck at the individual level, waiting on the boring, unglamorous work of turning them into an operating system for the whole company.
+> Then the control numbers. 35% of companies admit they couldn't immediately pull the plug on a rogue agent. 36% have no formal plan for supervising agents at all. And after all the 5x individual-gain stories, only 29% see significant returns from generative AI. From agents, 23%.
 >
-> That work has names. Standardization, so the best prompt in the building becomes the default, not a personal stash. AI fluency for the entire org, not certification theater, every function knowing how to shape its own work for a model. Skills and workflows as shared assets, with owners and versions. Supervision that scales with autonomy, including the off switch.
+> OpenAI's own conclusion reads like something a critic would write, not a vendor: the constraint is no longer the models or the tooling, it's whether the organization is ready to use them. The individual wins are real, and they stay individual, stranded one desk at a time, until somebody does the boring work of turning them into an operating system for the whole company.
+>
+> That work has names. Standardization, so the best prompt in the building becomes the default instead of somebody's personal stash. AI fluency across every function, not certification theater. Skills and workflows treated as shared assets, with owners and versions. Supervision that scales with autonomy, including the off switch.
 >
 > The playbook is already inside the building. Your super-users are writing it daily. The work is making it everyone's.
 
@@ -75,8 +78,8 @@ The scorecard that shipped with it:
 | AI-likelihood | 45.7 — suspect | **9.5 — clean** |
 | Weighted tells | 6 | 0 |
 | Em-dashes / emoji / hashtags | 0 / 1 / 3 | 0 / 0 / 0 |
-| Burstiness (target ≥ 0.45) | 0.65 | 0.63 |
-| Words | 254 | 235 |
+| Burstiness (target ≥ 0.45) | 0.65 | 0.79 |
+| Words | 254 | 230 |
 
 Every number and both report citations survived. Nothing was invented; the
 6x moved to the first word, each report got its own statistic, and the
