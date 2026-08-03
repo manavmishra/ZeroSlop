@@ -58,3 +58,13 @@ example that motivated it.
   set up first; otherwise it's compression in costume. Prefer a plain
   comparison the reader can picture. Name-lists of papers belong in the
   citation file, not the prose.
+- 2026-08-03 — User feedback, three lessons encoded together: (1) the loop
+  description read as spec-notation (arrows, threshold dumps) rather than
+  writing — "arrow-in-prose" and "threshold-dump" added as learned scorer
+  patterns; (2) fixing one paragraph isn't the standard — a
+  whole-document-consistency check added to the verify gate (uniform
+  register, cross-references must resolve); (3) the correction must not
+  overcorrect: "everything shouldn't be prose" — the gate now reads "form
+  follows context": structured content (lists, tables, diagrams, spec
+  blocks) stays structured, and each form is held to what a skilled human
+  author would produce in that form. Step 0 gains a form inventory.

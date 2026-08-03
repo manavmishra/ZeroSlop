@@ -47,7 +47,12 @@ ordered by measured signal strength, strongest first.
 Identify: platform/genre (LinkedIn? blog? email?), audience, and what voice
 evidence exists (user's past writing in the conversation, a stored voice
 profile in `data/voices/`, or none). Skip code blocks, quotes, and legal
-boilerplate. If the genre matches any module in `references/platforms.md`
+boilerplate. Take a form inventory: decide which parts of the document are
+running text and which are legitimately structured (lists, tables, code,
+diagrams, spec blocks), then hold each part to its own standard — the goal
+is text a human would have written *in that form*, never prose-ifying
+structure or structuring prose. If the genre matches any module in
+`references/platforms.md`
 (LinkedIn, X, email, blog, newsletter, research/professional), read it —
 platform tells and overrides differ, and the research module *forbids* moves
 the general ladder prescribes.
@@ -166,6 +171,18 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   ≈ 0 — comma-chained noun-phrase lists, long-word pileups, and 38+-word
   sentences are machine-compression tells, and "technically clean but
   exhausting" fails this gate even at a low composite score
+- form follows context: not everything is prose. A checklist stays a
+  checklist, a table stays a table, a diagram or spec block keeps its
+  notation — the test is always "which form would a skilled human author
+  choose for this content, in this genre?" But running text is prose: no
+  arrow notation ("scores → 0–100"), no threshold dumps, no parameter
+  lists posing as sentences. Where the form is structured, make it a good
+  structure; where it is a sentence, make it read like a person wrote it
+- whole-document consistency: the gate applies to the entire document at
+  one register, including sections the edit didn't touch. A fixed paragraph
+  next to an unfixed one fails. Cross-references must resolve exactly — if
+  the text says "the ladder below," a section named the ladder must exist
+  below, under that name
 
 Fail → iterate (max 3 passes). Still failing after 3 → keep the best version
 and flag it: "needs a real claim/detail, not better words."
