@@ -156,25 +156,48 @@ enterprise security review of this repo takes about one coffee.
 
 ## Install
 
-Any agent, via the skills CLI:
+**Fastest (any agent, macOS/Linux/Windows):** the cross-agent skills CLI
+installs into whichever harnesses you use.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Claude Code, as a plugin:
+Target every supported harness at once with `--agent '*'`, a single one with
+`--agent claude-code` (or `codex`, `cursor`, `opencode`, `warp`), or drop
+`--global` for a project-local install your team can commit. Update later
+with `npx skills update zero-slop --global`.
+
+**Claude Code (plugin system):**
 
 ```
 /plugin marketplace add manavmishra/ZeroSlop
 /plugin install zero-slop@zero-slop
 ```
 
-Codex and OpenAI-compatible agents load the bundled `.codex-plugin/`,
-`agents/openai.yaml`, and `AGENTS.md`. Manual installs clone the repo into a
-skills directory named `zero-slop`. On claude.ai, upload the repo zip under
-Settings → Capabilities → Skills. The whole package follows the
-[Agent Skills standard](https://agentskills.io), and when `python3` is
-missing the skill falls back to its reference lists instead of failing.
+**claude.ai and Claude Desktop:** download the repo zip from GitHub and
+upload it under Settings → Capabilities → Skills.
+
+**Codex and OpenAI-compatible agents:** install via the skills CLI above, or
+point the harness at the repo — `.codex-plugin/plugin.json`,
+`agents/openai.yaml`, and `AGENTS.md` ship in the package.
+
+**Cursor, OpenCode, Warp, and other Agent-Skills harnesses:** the skills CLI
+handles each via `--agent`, or clone manually into the harness's skills
+directory:
+
+```bash
+git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
+```
+
+(Windows PowerShell: clone into `$env:USERPROFILE\.claude\skills\zero-slop`;
+the folder must be named `zero-slop`.)
+
+**Requirements:** none. The package follows the
+[Agent Skills standard](https://agentskills.io) and is plain Markdown plus
+one standard-library Python script. The scorer runs on any Python 3.8+
+(`python3` on macOS/Linux, `py -3` on Windows); when Python is missing the
+skill falls back to its reference lists instead of failing.
 
 Then say: "de-slop this," "humanize this draft," "make this post not sound
 like AI," or "score this" for a report without a rewrite.
