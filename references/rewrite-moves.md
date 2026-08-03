@@ -45,6 +45,11 @@ measure (the scorer reports it; target CV ≥ 0.45).
 
 - After a 30-word sentence, a 4-word one. On purpose.
 - One-line paragraph where the point lands. Once, maybe twice.
+- Place the punchy register where it belongs: hooks and landings. An
+  analytic middle paragraph built from stacked clipped declaratives reads
+  robotic — the staccato costume of over-correction. Middles want flowing,
+  subordinated sentences (think a good newspaper editor), saving the
+  fragment for the moment it earns.
 - Fragments, where they work. Starting with And or But is fine.
 - Vary paragraph shape: a 6-sentence paragraph next to a 1-sentence one.
 - Don't pad every claim to equal weight — humans spike information unevenly

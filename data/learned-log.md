@@ -25,3 +25,8 @@ example that motivated it.
   a source-scope check to the verify rubric in SKILL.md (judgment-level; no
   regex can see it). Voice profile updated: when citing multiple reports,
   each gets called out with its own number.
+- 2026-08-03 — User feedback (Manav): a paragraph of four consecutive
+  clipped declaratives read as robotic — the staccato over-correction
+  overcorrection.md already names, produced by this skill's own rewrite.
+  Lesson: the punchy register is for hooks and landings, not analytic
+  middles; those want subordinated, flowing sentences (NYT-editor cadence).
