@@ -136,6 +136,17 @@ def score_text(text, data, formal=False):
     formality_penalty = 0.0 if formal else (
         3.0 if contraction_rate < 0.4 and n_words > 80 else 0.0)
 
+    # 6. Followability: density without accessibility reads machine-compressed,
+    # not expert. Signals: noun-phrase chains (many commas, no verbs between),
+    # heavy polysyllabic ratio, and overlong sentences. Formal genres exempt
+    # (their register legitimately runs denser).
+    poly_ratio = sum(1 for w in words if len(w) >= 9) / n_words
+    chain_frac = sum(1 for s in sents if s.count(",") >= 4) / max(len(sents), 1)
+    overlong_frac = sum(1 for L in slens if L > 38) / max(len(slens), 1)
+    followability_penalty = 0.0 if formal else min(
+        max(0.0, poly_ratio - 0.14) * 40 + chain_frac * 9 + overlong_frac * 7,
+        12.0)
+
     # Composite: logistic squash of the summed evidence.
     evidence = (
         tell_density * 1.15
@@ -145,6 +156,7 @@ def score_text(text, data, formal=False):
         + bold_penalty
         + hashtag_penalty
         + formality_penalty
+        + followability_penalty
     )
     ai_likelihood = round(100 / (1 + math.exp(-(evidence - 9.0) / 4.0)), 1)
 
@@ -164,6 +176,10 @@ def score_text(text, data, formal=False):
         "bold_spans": bold,
         "hashtags": hashtags,
         "contraction_per_100w": round(contraction_rate, 2),
+        "followability_penalty": round(followability_penalty, 2),
+        "poly_ratio": round(poly_ratio, 3),
+        "comma_chain_frac": round(chain_frac, 3),
+        "overlong_frac": round(overlong_frac, 3),
         "categories": cats,
         "hits": hits,
     }
@@ -229,6 +245,11 @@ def main():
     print(f"  burstiness   : {r['burstiness']:.3f}  (human prose usually > 0.45)")
     print(f"  em-dash /100w: {r['emdash_per_100w']:.2f}   emoji: {r['emoji_count']}  "
           f"bold: {r['bold_spans']}  hashtags: {r['hashtags']}")
+    if r["followability_penalty"] > 2:
+        print(f"  followability : penalty {r['followability_penalty']} — "
+              f"comma-chains {r['comma_chain_frac']:.0%} of sentences, "
+              f"long-word ratio {r['poly_ratio']:.0%}, "
+              f"overlong {r['overlong_frac']:.0%} (dense ≠ expert; unpack)")
     if r["categories"]:
         top = sorted(r["categories"].items(), key=lambda kv: -kv[1])[:8]
         print("  top categories: " + ", ".join(f"{k}({v})" for k, v in top))

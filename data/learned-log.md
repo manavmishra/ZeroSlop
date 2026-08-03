@@ -43,3 +43,11 @@ example that motivated it.
   pairwise blind head-to-head 15-10 vs the stacked no-ai-slop→humanizer
   pipeline (v1.0 had lost that genre 9-11). Caveat kept honest: all 15 wins
   narrow; the pipeline took the 4 clear-margin verdicts.
+- 2026-08-03 — User feedback: skill output was "dense, hard to follow, not
+  insightful" — technically clean prose that chained five abstractions in
+  one sentence. New failure mode named: compression ≠ writing. Added a
+  followability channel to the scorer (comma-chain fraction, long-word
+  ratio, 38+-word sentences; formal genres exempt), a followability gate to
+  the verify rubric, a density-ceiling rule to the expert-voice mandate,
+  and a live before/after to rewrite-moves L1. The criticized paragraph now
+  fails the gate (28.2); its unpacked rewrite passes (9.5).

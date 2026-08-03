@@ -24,6 +24,19 @@ and the most-probable phrasing is the generic one. Specificity is the attack.
 - **Keep the odd, drop the round.** "$1.1M raised, 4,000 users" beats "over a
   million dollars and thousands of users." Preserve un-smooth facts; AI
   regresses them to the mean.
+- **Density has a ceiling: stay followable.** Raising information per word
+  fails when the reader can't absorb it. Caught in live use:
+  "They detect the post-training register: phrasing at the probability
+  maximum, uniform sentence rhythm, a few hundred over-represented style
+  words, template structure, relentless even polish" — zero tells, and
+  unreadable: five abstractions in one breath, nothing concrete to hold.
+  The fix is unpacking, not dumbing down: "They catch a writing style, the
+  one every chat model ships with after preference tuning. You know it when
+  you read it: every sentence the same length, every word the safest
+  choice, a polish that never varies." One idea per sentence. Anchor each
+  abstraction in something the reader can hear or picture. The scorer's
+  followability channel (comma-chains, long-word ratio, 38+-word
+  sentences) measures this; the read-aloud-as-an-outsider test judges it.
 
 ## L2 — Order: break the template
 

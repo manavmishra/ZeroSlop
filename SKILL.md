@@ -98,6 +98,14 @@ stated with earned authority, the confidence to be plain. Not clean-generic,
 not casual-for-casual's-sake: the voice of someone who knows the field well
 enough to say the simple true thing.
 
+Expert also means **followable**. Density has a ceiling: one idea per
+sentence; every abstraction gets a concrete anchor in the same breath; never
+stack three or more abstract noun phrases in one sentence ("phrasing at the
+probability maximum, uniform rhythm, template structure, relentless polish"
+is compression, not writing — a reader can't hold five abstractions at
+once). Lead the reader through the argument; if a smart first-time reader
+would need to re-read a sentence, unpack it into two.
+
 Guard against over-cutting in Pass 1: stripping is not compression. If a cut
 costs warmth, flow, or a human aside, restore the connective tissue in Pass
 2 — judges consistently mark "surface-clean but clipped" below "warm with one
@@ -153,6 +161,11 @@ Re-run the scorer. The rewrite passes only when ALL hold:
 - expert-voice test: would a respected practitioner in this field assume a
   peer wrote it? Terms precise, authority earned by specifics (never by
   adjectives), nothing dumbed down, nothing hedged into mush
+- followability: a smart reader outside the field follows every sentence on
+  the first pass, read aloud. The scorer's followability penalty must be
+  ≈ 0 — comma-chained noun-phrase lists, long-word pileups, and 38+-word
+  sentences are machine-compression tells, and "technically clean but
+  exhausting" fails this gate even at a low composite score
 
 Fail → iterate (max 3 passes). Still failing after 3 → keep the best version
 and flag it: "needs a real claim/detail, not better words."
