@@ -146,6 +146,8 @@ references/evidence.md       the research basis (papers + detector mechanics)
 
 ## Credits
 
+Zero-slop conforms to the [Agent Skills standard](https://agentskills.io) — the same SKILL.md format runs in Claude Code, Codex, OpenCode, and any spec-compatible harness.
+
 Zero-slop is a synthesis, and stands on prior work it gratefully credits:
 [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) (MIT),
 [blader/humanizer](https://github.com/blader/humanizer) (MIT),
