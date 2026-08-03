@@ -226,13 +226,56 @@ def band(score):
     return "slop"
 
 
+def worst_sentences(text, data, formal=False, k=3):
+    """Per-sentence scores, worst first — the heatmap behind --explain."""
+    rows = []
+    for s in sentences(strip_noise(text)):
+        r = score_text(s, data, formal=formal)
+        w = sum(h["w"] for h in r["hits"])
+        if w > 0:
+            rows.append((w, s, [h["name"] for h in r["hits"]]))
+    return sorted(rows, key=lambda x: -x[0])[:k]
+
+
+def gate_value():
+    """Return (threshold, raw_token) for --gate, consuming its argument."""
+    if "--gate" not in sys.argv:
+        return None, None
+    i = sys.argv.index("--gate")
+    try:
+        tok = sys.argv[i + 1]
+        return float(tok), tok
+    except (IndexError, ValueError):
+        return 25.0, None
+
+
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    gv, gv_tok = gate_value()
+    args = [a for a in sys.argv[1:]
+            if not a.startswith("--") and a != gv_tok]
     as_json = "--json" in sys.argv
     explain = "--explain" in sys.argv
     formal = "--formal" in sys.argv
-    text = Path(args[0]).read_text() if args else sys.stdin.read()
     data = load_patterns()
+
+    if "--batch" in sys.argv:
+        root = Path(args[0]) if args else Path(".")
+        files = sorted(p for p in root.rglob("*") if p.suffix in
+                       (".md", ".txt", ".markdown") and p.is_file())
+        rows = []
+        for p in files:
+            try:
+                r = score_text(p.read_text(), data, formal=formal)
+                rows.append((r["ai_likelihood"], p, band(r["ai_likelihood"])))
+            except Exception as e:
+                rows.append((float("nan"), p, f"error: {e}"))
+        rows.sort(key=lambda x: -(x[0] if x[0] == x[0] else -1))
+        for sc, p, b in rows:
+            print(f"{sc:6.1f}  {b:12s} {p}")
+        worst = max((sc for sc, _, _ in rows if sc == sc), default=0)
+        sys.exit(1 if gv is not None and worst > gv else 0)
+
+    text = Path(args[0]).read_text() if args else sys.stdin.read()
     r = score_text(text, data, formal=formal)
     if "--predict" in sys.argv:
         r["predictive_channel"] = predict_channel(text)
@@ -263,6 +306,15 @@ def main():
     if explain:
         for h in sorted(r["hits"], key=lambda h: -h["w"]):
             print(f"   [{h['w']:>4}] {h['cat']}/{h['name']}: “{h['quote']}”")
+        ws = worst_sentences(text, data, formal=formal)
+        if ws:
+            print("  worst sentences:")
+            for w, s, names in ws:
+                print(f"   [{w:>4.1f}] “{s[:100]}” ← {', '.join(names)}")
+    if gv is not None:
+        ok = r["ai_likelihood"] <= gv
+        print(f"  gate {gv:g}: {'PASS' if ok else 'FAIL'}")
+        sys.exit(0 if ok else 1)
 
 
 if __name__ == "__main__":

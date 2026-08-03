@@ -118,6 +118,32 @@ entry in the log. The day this skill shipped, a user caught it attributing
 one report's statistic to two reports; that mistake is now a named check
 that runs on every future draft.
 
+## The engine
+
+One diagram, no magic. Logistic regression is the MaxEnt family; the
+Bayesian lexicon is spam-filter lineage. Support-vector machines and hidden
+Markov models were evaluated and rejected: head-to-heads show no gain over
+logistic for text, and rhythm statistics already carry the sequence signal.
+
+```mermaid
+flowchart LR
+    D([Draft]) --> PM & RS & ML
+    subgraph Measure
+      PM[Pattern meter<br/>60+ weighted tells]
+      RS[Rhythm and followability<br/>statistics]
+      ML[Bayesian lexicon + MaxEnt channel<br/>optional, calibrated, abstains]
+    end
+    PM & RS --> F[Evidence fusion<br/>AI-likelihood 0-100]
+    ML -.second opinion.-> F
+    F --> J[Diagnose<br/>hollow spans, facts, voice]
+    J --> W[Two-pass rewrite<br/>strip, then build]
+    W --> G{Verify gate}
+    G -- pass --> O([Rewritten text + scorecard])
+    G -- "fail, up to 3x" --> W
+    G -- lessons --> L[(learned.json)]
+    L -.-> PM
+```
+
 ## The benchmark
 
 We tested Zero-Slop blind against every major alternative: fifty AI-typical
@@ -236,6 +262,13 @@ caught it.
 
 **Will it flatten my voice?** A sample of your real writing outranks every
 rule in the skill. If dashes and "honestly" are how you write, they stay.
+
+**Does it use MaxEnt, SVMs, or HMMs?** The optional predictive channel is
+logistic regression (the MaxEnt family) over a Bayesian log-odds lexicon and
+stylometric features, Platt-calibrated, with an abstain band. SVMs showed no
+measurable gain over logistic in head-to-heads, and HMMs added nothing the
+rhythm statistics don't already carry, so neither ships. The main gate stays
+interpretable on purpose: weighted patterns you can read.
 
 **Found a tell it missed?** Open a PR adding a regex to `data/learned.json`
 and a line to the log. That is the entire contribution process. The taxonomy
