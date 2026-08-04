@@ -243,3 +243,27 @@ M4, AuTextification) comes first, the stylometric channels are calibrated
 against it second, and only then do they join the meter. Until then the honest
 statement is that the scorer is a lexical-and-structural linter with a
 research-backed roadmap, not a stylometric classifier.
+
+## Why register repair beats detection (2025-26)
+
+Two current results reframe what a slop tool should even try to do.
+
+**Detection is losing an arms race.** Adversarial paraphrasing — an LLM
+rewriting AI text under the guidance of a detector — cuts detector true-positive
+rates by 87-99% and transfers across neural, watermark and zero-shot detectors
+(Adversarial Paraphrasing, arXiv:2506.07001; StealthRL, arXiv:2602.08934).
+Anything that competes on catching a machine is chasing a target the literature
+is actively defeating. Zero Slop does not compete there: it repairs the register
+rather than classifying authorship, which is the half that stays useful when
+detection fails.
+
+**Slop is a training-supply pollutant, not just an aesthetic one.** Model
+collapse work shows machine text re-entering training corpora degrades the next
+model, with as little as 1% synthetic data measurably harming quality
+(arXiv:2603.11784, arXiv:2510.16657). That makes de-slopping a contribution to
+the commons, not only to one post's reach — the cleaner the human writing that
+survives, the less the collapse.
+
+Together these are the argument for the product's shape: measure and rewrite the
+author's own draft, personalise to the author's own voice, and never optimise
+against a detector, because the detector is both defeatable and beside the point.

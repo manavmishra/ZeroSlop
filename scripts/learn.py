@@ -736,6 +736,38 @@ def confirm(target):
     return 0
 
 
+def build_voice(name, sample_path):
+    """Derive a personal profile from a sample of the author's real writing.
+
+    Any lexicon or rider term the author uses in their own known-human writing
+    is a term the meter should not charge them for — a writing sample outranks a
+    global rule. This reads a file (or directory) of the user's prose and writes
+    ~/.zero-slop/voices/<name>.json listing the tell-words they genuinely use.
+    Nothing is inferred about anyone else; the profile is theirs alone.
+    """
+    import slopscore
+    base = slopscore.load_patterns()
+    terms = list(base.get("lexicon", {})) + list(base.get("riders", {}))
+    src = Path(sample_path)
+    files = [src] if src.is_file() else [f for f in src.rglob("*")
+                                         if f.suffix in (".md", ".txt")]
+    blob = " ".join(f.read_text() for f in files).lower()
+    keep = sorted({term for term in terms
+                   if re.search(r"\b" + re.escape(term.lower()) + r"\b", blob)})
+    prof = {"_comment": f"Voice profile for {name}. Terms this author uses in "
+                        "their own writing, which the meter will not charge them "
+                        "for. Derived by learn.py --voice; edit freely.",
+            "keep": keep, "mute": []}
+    dest = slopscore.HOME / "voices" / f"{name}.json"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(prof, indent=1) + "\n")
+    print(f"wrote {dest}")
+    print(f"  {len(keep)} of this author's own tell-words will now be quiet for "
+          f"them: {', '.join(keep[:12])}{'...' if len(keep) > 12 else ''}")
+    print(f"  use it: python3 scripts/slopscore.py --voice {name} draft.md")
+    return 0
+
+
 def stats():
     base, learned = load(DATA / "patterns.json"), load(DATA / "learned.json")
     obs = load(OBS, {"observations": {}}).get("observations", {})
@@ -785,9 +817,17 @@ def main():
     ap.add_argument("--yes", action="store_true", help="confirm writing the export")
     ap.add_argument("--merge", metavar="FILE",
                     help="maintainer: fold a reviewed contribution in, re-gated locally")
+    ap.add_argument("--voice", metavar="NAME",
+                    help="build a personal profile from a writing sample")
+    ap.add_argument("--from", dest="sample", metavar="PATH",
+                    help="the writing sample for --voice")
     ap.add_argument("--stats", action="store_true")
     a = ap.parse_args()
 
+    if a.voice:
+        if not a.sample:
+            ap.error("--voice needs --from <file-or-dir of your writing>")
+        return build_voice(a.voice, a.sample)
     if a.stats:
         return stats()
     if a.confirm:

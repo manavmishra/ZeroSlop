@@ -37,7 +37,13 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 SHAPE_SOLO_THRESHOLD = 0.62  # calibrated, see calibrate.py --shape
 
 
-def load_patterns():
+# Where personal voice profiles live — outside the repo, since they are the
+# user's own writing. One file per author, git-ignored by construction.
+import os
+HOME = Path(os.environ.get("ZERO_SLOP_HOME", Path.home() / ".zero-slop")).expanduser()
+
+
+def load_patterns(voice=None):
     base = json.loads((DATA_DIR / "patterns.json").read_text())
     learned_path = DATA_DIR / "learned.json"
     if learned_path.exists():
@@ -71,7 +77,34 @@ def load_patterns():
             base["patterns"] = good
         except Exception:
             pass  # a malformed learned file must never break scoring
+    if voice:
+        _apply_voice(base, voice)
     return base
+
+
+def _apply_voice(base, name):
+    """Personalise the meter to one author. Their profile lists words and
+    patterns they genuinely use; each gets its weight cut or zeroed, so the
+    author's own voice stops reading as slop while every other user's meter is
+    unchanged. A writing sample outranks a global rule — that is the whole point
+    of a linter you can teach rather than one you fight."""
+    prof_path = HOME / "voices" / f"{name}.json"
+    if not prof_path.exists():
+        return
+    try:
+        prof = json.loads(prof_path.read_text())
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return
+    keep = {k.lower() for k in prof.get("keep", [])}   # words this author owns
+    for term in list(base.get("lexicon", {})):
+        if term.lower() in keep:
+            base["lexicon"][term] = 0
+    for term in list(base.get("riders", {})):
+        if term.lower() in keep:
+            base["riders"][term] = 0
+    for pat in base["patterns"]:
+        if pat["name"] in prof.get("mute", []):
+            pat["w"] = 0
 
 
 SENT_SPLIT = re.compile(r"(?<=[.!?])[\")”’]?\s+(?=[A-Z“\"(0-9])")
@@ -120,6 +153,8 @@ def score_text(text, data, formal=False):
 
     # 1. Pattern tells (regex, weighted)
     for p in data["patterns"]:
+        if not p.get("w"):
+            continue
         for m in re.finditer(p["rx"], text, re.I | (re.M if p.get("m") else 0)):
             hits.append({
                 "cat": p["cat"], "name": p["name"], "w": p["w"],
@@ -134,6 +169,8 @@ def score_text(text, data, formal=False):
     # brand with our seamless platform" fires. Sentence-scoped, not global.
     lower = text.lower()
     for term, w in data["lexicon"].items():
+        if not w:
+            continue
         for m in re.finditer(r"\b" + re.escape(term) + r"\w*", lower):
             hits.append({"cat": "lexicon", "name": term, "w": w, "quote": m.group(0)})
     riders, triggers = data.get("riders", {}), data.get("rider_triggers", [])
@@ -143,6 +180,8 @@ def score_text(text, data, formal=False):
             if not any(t in sl for t in triggers):
                 continue
             for term, w in riders.items():
+                if not w:
+                    continue
                 for m in re.finditer(r"\b" + re.escape(term) + r"\w*", sl):
                     hits.append({"cat": "rider", "name": term, "w": w,
                                  "quote": m.group(0)})
@@ -687,8 +726,19 @@ def dna(before, after, data, formal=False, width=22):
 def main():
     gv, gv_tok = gate_value()
     gen_tok = sys.argv[sys.argv.index("--genre") + 1] if "--genre" in sys.argv and len(sys.argv) > sys.argv.index("--genre") + 1 else None
-    args = [a for a in sys.argv[1:]
-            if not a.startswith("--") and a != gv_tok and a != gen_tok]
+    # Values that belong to a flag (--gate 25, --genre social, --voice manav)
+    # are not positional file arguments. Drop each flag and the token after it.
+    VALUE_FLAGS = {"--gate", "--genre", "--voice"}
+    args, skip = [], False
+    for i, a in enumerate(sys.argv[1:]):
+        if skip:
+            skip = False
+            continue
+        if a in VALUE_FLAGS:
+            skip = True
+            continue
+        if not a.startswith("--"):
+            args.append(a)
     as_json = "--json" in sys.argv
     explain = "--explain" in sys.argv
     formal = "--formal" in sys.argv
@@ -697,7 +747,11 @@ def main():
         try: genre = sys.argv[sys.argv.index("--genre") + 1]
         except IndexError: pass
     if formal: genre = "formal"
-    data = load_patterns()
+    voice = None
+    if "--voice" in sys.argv:
+        try: voice = sys.argv[sys.argv.index("--voice") + 1]
+        except IndexError: pass
+    data = load_patterns(voice=voice)
 
     if "--fidelity" in sys.argv:
         if len(args) < 2:

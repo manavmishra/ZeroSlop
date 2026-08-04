@@ -133,8 +133,18 @@ just content. The loop also runs in reverse: a pattern you overrule three times
 loses half its weight, because a meter that can only grow ends up flagging
 everything.
 
-Reflection data lives in `~/.zero-slop/`, never in the repository, and derives
-from your own drafts. Sharing what it learned upstream is one opt-in command that
+It also personalises. Build a profile from a sample of your own writing once,
+and the meter stops charging you for the tell-words you genuinely use, while
+everyone else's meter is unchanged and real slop is still caught:
+
+```bash
+python3 scripts/learn.py --voice you --from ~/my-writing/
+python3 scripts/slopscore.py --voice you draft.md
+```
+
+A writing sample outranks every global rule, because a linter you can teach is
+worth more than one you fight. Reflection data lives in `~/.zero-slop/`, never in
+the repository, and derives from your own drafts. Sharing what it learned upstream is one opt-in command that
 prints the entire payload, carrying spans and counts but no source text, before
 it writes anything.
 

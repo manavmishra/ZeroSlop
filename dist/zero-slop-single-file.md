@@ -29,7 +29,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "1.5.0"
+  version: "1.6.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
@@ -387,8 +387,20 @@ out was a tell you missed. Capture it.
   (lexicon entries override the base); for regex patterns, lower the weight
   directly in `data/patterns.json` — learned patterns append, they cannot
   override. Log either change.
-- **User voice feedback** ("I'd never say X", "keep my Y") → append to that
-  user's profile in `data/voices/<name>.md`; read it at step 0 next time.
+- **User voice feedback** ("I'd never say X", "keep my Y") → this is now a
+  built mechanism, not a note. Build the profile from a sample of their real
+  writing once:
+
+  ```
+  python3 scripts/learn.py --voice <name> --from <their-writing>
+  ```
+
+  It records every tell-word the author genuinely uses to
+  `~/.zero-slop/voices/<name>.json`, and from then on
+  `slopscore.py --voice <name>` zeroes exactly those for that author and no
+  one else. A writing sample outranks every global rule, which is the whole
+  point of a linter you can teach rather than fight. Score their drafts with
+  `--voice <name>` at step 1.
 - **Era shift** — the lexicon moves as models change (delve peaked 2023–24;
   2025+ models over-use "emphasizing/enhance/highlight/showcase"). Rather
   than guessing new weights, derive them:
@@ -1184,3 +1196,27 @@ M4, AuTextification) comes first, the stylometric channels are calibrated
 against it second, and only then do they join the meter. Until then the honest
 statement is that the scorer is a lexical-and-structural linter with a
 research-backed roadmap, not a stylometric classifier.
+
+## Why register repair beats detection (2025-26)
+
+Two current results reframe what a slop tool should even try to do.
+
+**Detection is losing an arms race.** Adversarial paraphrasing — an LLM
+rewriting AI text under the guidance of a detector — cuts detector true-positive
+rates by 87-99% and transfers across neural, watermark and zero-shot detectors
+(Adversarial Paraphrasing, arXiv:2506.07001; StealthRL, arXiv:2602.08934).
+Anything that competes on catching a machine is chasing a target the literature
+is actively defeating. Zero Slop does not compete there: it repairs the register
+rather than classifying authorship, which is the half that stays useful when
+detection fails.
+
+**Slop is a training-supply pollutant, not just an aesthetic one.** Model
+collapse work shows machine text re-entering training corpora degrades the next
+model, with as little as 1% synthetic data measurably harming quality
+(arXiv:2603.11784, arXiv:2510.16657). That makes de-slopping a contribution to
+the commons, not only to one post's reach — the cleaner the human writing that
+survives, the less the collapse.
+
+Together these are the argument for the product's shape: measure and rewrite the
+author's own draft, personalise to the author's own voice, and never optimise
+against a detector, because the detector is both defeatable and beside the point.

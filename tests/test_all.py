@@ -672,6 +672,46 @@ class Fidelity(unittest.TestCase):
         self.assertEqual(r.returncode, 1, r.stdout)
 
 
+class Personalization(unittest.TestCase):
+    """A voice profile quiets one author's own tell-words without touching
+    anyone else's meter or letting real slop through."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "voices").mkdir()
+        (self.tmp / "voices" / "au.json").write_text(
+            json.dumps({"keep": ["robust", "landscape", "leverage"], "mute": []}))
+        self._h = slopscore.HOME
+        slopscore.HOME = self.tmp
+
+    def tearDown(self):
+        slopscore.HOME = self._h
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    TXT = "Elevate your robust brand across the evolving landscape to leverage growth."
+
+    def test_profile_quiets_the_authors_own_words(self):
+        base = slopscore.score_text(self.TXT, slopscore.load_patterns())["ai_likelihood"]
+        mine = slopscore.score_text(self.TXT, slopscore.load_patterns(voice="au"))["ai_likelihood"]
+        self.assertLess(mine, base - 20, f"profile did not quiet: {base} -> {mine}")
+
+    def test_profile_does_not_leak_to_other_users(self):
+        a = slopscore.score_text(self.TXT, slopscore.load_patterns())["ai_likelihood"]
+        b = slopscore.score_text(self.TXT, slopscore.load_patterns(voice="nobody"))["ai_likelihood"]
+        self.assertEqual(a, b, "a missing profile changed the meter")
+
+    def test_profile_still_catches_real_slop(self):
+        slop = "We're thrilled to announce a seamless cutting-edge synergy! Agree? #Grateful"
+        s = slopscore.score_text(slop, slopscore.load_patterns(voice="au"))["ai_likelihood"]
+        self.assertGreater(s, 70, "personalisation let genuine slop through")
+
+    def test_zero_weight_term_produces_no_hit(self):
+        r = slopscore.score_text(self.TXT, slopscore.load_patterns(voice="au"))
+        muted = {"robust", "landscape", "leverage"}
+        self.assertFalse([h for h in r["hits"] if h["name"] in muted],
+                         "a muted term still recorded a hit")
+
+
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
 

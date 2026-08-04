@@ -3,7 +3,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "1.5.0"
+  version: "1.6.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
@@ -361,8 +361,20 @@ out was a tell you missed. Capture it.
   (lexicon entries override the base); for regex patterns, lower the weight
   directly in `data/patterns.json` — learned patterns append, they cannot
   override. Log either change.
-- **User voice feedback** ("I'd never say X", "keep my Y") → append to that
-  user's profile in `data/voices/<name>.md`; read it at step 0 next time.
+- **User voice feedback** ("I'd never say X", "keep my Y") → this is now a
+  built mechanism, not a note. Build the profile from a sample of their real
+  writing once:
+
+  ```
+  python3 scripts/learn.py --voice <name> --from <their-writing>
+  ```
+
+  It records every tell-word the author genuinely uses to
+  `~/.zero-slop/voices/<name>.json`, and from then on
+  `slopscore.py --voice <name>` zeroes exactly those for that author and no
+  one else. A writing sample outranks every global rule, which is the whole
+  point of a linter you can teach rather than fight. Score their drafts with
+  `--voice <name>` at step 1.
 - **Era shift** — the lexicon moves as models change (delve peaked 2023–24;
   2025+ models over-use "emphasizing/enhance/highlight/showcase"). Rather
   than guessing new weights, derive them:
