@@ -52,7 +52,9 @@ WORD = re.compile(r"[A-Za-z’']+")
 
 def strip_noise(text):
     text = re.sub(r"```.*?```", " ", text, flags=re.S)
-    text = re.sub(r"`[^`]*`", " ", text)
+    # Inline `code` spans still render as visible prose, so their words are
+    # scored; only the backticks go. Fenced blocks are genuinely code.
+    text = re.sub(r"`([^`\n]*)`", r"\1", text)
     text = re.sub(r"https?://\S+", " ", text)
     return text
 
@@ -105,7 +107,11 @@ def score_text(text, data, formal=False):
             lex_hits += w
 
     pattern_weight = sum(h["w"] for h in hits)
-    tell_density = 100.0 * pattern_weight / n_words  # weighted tells per 100 words
+    # Density window is floored at 60 words (a single tell in a 7-word tweet
+    # must not read as 100/100) and the long-text dilution is bounded by also
+    # tracking absolute weight: a 2000-word piece cannot hide 20 tells.
+    tell_density = 100.0 * pattern_weight / max(n_words, 60)
+    tell_density = max(tell_density, min(pattern_weight / 3.0, 14.0))
 
     # 3. Rhythm: burstiness = coefficient of variation of sentence lengths.
     # Human prose ~0.55-0.75; machine prose clusters ~0.25-0.45.
@@ -118,7 +124,9 @@ def score_text(text, data, formal=False):
 
     # 4. Punctuation / formatting densities (per 100 words)
     emdash = 100.0 * len(re.findall(r"—|--", raw)) / max(n_words, 120)
-    emdash_penalty = max(0.0, emdash - 0.6) * 6
+    # Capped: dash-heavy but otherwise excellent prose (Lincoln, Dickinson)
+    # must not be convicted on punctuation alone.
+    emdash_penalty = min(max(0.0, emdash - 0.6) * 6, 8.0)
     emoji = len(re.findall(r"[\U0001F300-\U0001FAFF✅✨⚡\U0001F449\U0001F447\U0001F680\U0001F525]", raw))
     emoji_penalty = min(emoji * 2.0, 12)
     # Bold as mid-sentence emphasis is the tell (WP:AICATCH); bold used as a
@@ -147,15 +155,20 @@ def score_text(text, data, formal=False):
         max(0.0, poly_ratio - 0.14) * 40 + chain_frac * 9 + overlong_frac * 7,
         12.0)
 
-    # Composite: logistic squash of the summed evidence.
+    # Clusters convict, singles don't. Em-dash density and missing contractions
+    # are stylistic habits, not evidence on their own — 19th-century oratory and
+    # plenty of excellent formal prose trip both. So corroborate them against
+    # lexical evidence: with no tells present they contribute little. Emoji,
+    # hashtags and bold spam stay at full strength (they convict alone), and
+    # burstiness is an independent statistical signal, so neither is scaled.
+    corroboration = min(1.0, 0.45 + tell_density / 3.0)
     evidence = (
         tell_density * 1.15
         + uniformity_penalty
-        + emdash_penalty
+        + (emdash_penalty + formality_penalty) * corroboration
         + emoji_penalty
         + bold_penalty
         + hashtag_penalty
-        + formality_penalty
         + followability_penalty
     )
     ai_likelihood = round(100 / (1 + math.exp(-(evidence - 9.0) / 4.0)), 1)

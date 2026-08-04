@@ -89,3 +89,22 @@ example that motivated it.
   (p=0.15). All published claims corrected. Methodological rule for any
   future benchmark run by this project: never publish a single-pass judge
   number without a replication and an agreement statistic.
+- 2026-08-03 — Adversarial red-team (36 tool-uses, 779-line report). Six
+  vulnerabilities found and fixed in the scorer: (1) regexes were
+  contraction-locked, so expanding "it's" to "it is" dropped 20-tell slop
+  from 100 to 9.5 while the skill's own L4 rule told rewriters to ADD
+  contractions — 18 patterns now match both forms; (2) inline `code` spans
+  were stripped, so backticking slop hid it — only the backticks are removed
+  now, the words are scored; (3) tell density was length-normalised without
+  bounds, so 20 tells diluted to a pass at 2437 words and one tell in a
+  7-word tweet scored 100 — window floored at 60 words with an absolute
+  weight term; (4) the skill's own banned edgy-slop (overcorrection.md) was
+  invisible to the scorer — four overcorrection patterns added; (5) the
+  em-dash term was uncapped, convicting the Gettysburg Address at 88.9 —
+  capped, and (6) formatting/register penalties now require lexical
+  corroboration, implementing the "clusters convict, singles don't" rule the
+  scorer stated but never enforced. Gettysburg 88.9 → 29.6, evasions all
+  restored to ~100, corpus calibration held (37/50 flagged, v1.2 50/50 clean).
+  Still open and documented as boundaries: hollowness remains invisible to
+  any regex (by design), non-Latin scripts score unconditionally clean, and
+  the learning loop must never lower a weight to pass the draft under review.

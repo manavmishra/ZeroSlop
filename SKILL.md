@@ -224,6 +224,10 @@ This skill improves with use. When any of these happen, persist it:
   missed) → add a regex + weight to `data/learned.json` (same schema as
   `data/patterns.json`; the scorer merges it automatically) and log one line
   in `data/learned-log.md` with the date and the example.
+- **Never tune to pass the draft in front of you.** Weight changes are for
+  patterns that misfire across *many* texts, and they get logged with the
+  examples that motivated them. Lowering a weight because this draft failed
+  is self-dealing, not learning, and it corrupts every future run.
 - **False positive** (the scorer flags honest prose repeatedly) → for
   lexicon terms, re-add the term in `data/learned.json` with a lower weight
   (lexicon entries override the base); for regex patterns, lower the weight

@@ -24,6 +24,30 @@
    "cat": "spec-notation",
    "rx": "[\u2264\u2265][^.!?\\n]{1,50}[\u2264\u2265]",
    "w": 3
+  },
+  {
+   "name": "fake-first-person-authority",
+   "cat": "overcorrection",
+   "rx": "\\b(?:i(?:'|\u2019)ve|i have) (?:seen|watched) (?:this|it) (?:happen )?(?:a hundred times|over and over|again and again)\\b|\\bin my experience,\\b",
+   "w": 4
+  },
+  {
+   "name": "everyone-says-wrong",
+   "cat": "overcorrection",
+   "rx": "\\bevery(?:one|body) (?:says|thinks|tells you)[^.!?]{0,40}(?:they(?:'|\u2019)re| they are | but )\\s*wrong\\b",
+   "w": 5
+  },
+  {
+   "name": "staccato-emphasis",
+   "cat": "overcorrection",
+   "rx": "\\b\\w+\\. (?:A lot|Deeply|Enormously|Massively)\\. ",
+   "w": 4
+  },
+  {
+   "name": "hard-truth-posture",
+   "cat": "overcorrection",
+   "rx": "\\bthe (?:hard|honest|real) (?:truth|answer|version)(?: is|:)\\b|\\bnobody wants to (?:hear|say) (?:this|it)\\b",
+   "w": 4
   }
  ],
  "lexicon": {}
