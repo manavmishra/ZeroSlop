@@ -199,10 +199,17 @@ and flag it: "needs a real claim/detail, not better words."
 
 ### 5. Report
 
-Every run ends with the rewritten text plus a **before/after scorecard** the
-user can read at a glance — this is the product's proof and it is never
-optional. Use this exact shape (a markdown table in chat contexts; the same
-fields in plain lines where tables don't render):
+Every run ends with three things, in this order, and none of them is
+optional: the **rewritten text**, a **before/after scorecard**, and a
+**before/after heatmap**. Together they are the product's proof — the text is
+the deliverable, the scorecard is the measurement, and the heatmap shows
+*where* the slop was, which is what teaches the writer rather than just
+fixing the draft.
+
+**(a) The rewritten text**, in full, ready to paste.
+
+**(b) The scorecard.** Use this exact shape (a markdown table in chat; the
+same fields as plain lines where tables don't render):
 
 ```
 | Metric                    | Before        | After        |
@@ -216,8 +223,24 @@ fields in plain lines where tables don't render):
 Gate: PASSED (LinkedIn ≤20) · facts preserved 12/12 · nothing invented
 ```
 
-Follow the scorecard with: (a) a short change log naming the patterns fixed
-and the judgment calls made (including deliberate keeps); (b) flags — hollow
+**(c) The heatmap**, before and after, from
+`python3 <skill-root>/scripts/slopscore.py --heatmap <file>`:
+
+```
+  heatmap  (each bar = one sentence, hottest first)
+    s2   ██████████████████████████████████  18.0  Moreover, our seamless solution…
+                                                    ← empower, marketing-register, seamless
+    s1   ██████████████████████████········  14.0  I'm beyond excited to announce…
+                                                    ← announce-excited, game-chang
+    1 of 5 sentences carry no tells
+```
+
+The after-heatmap should be flat (`····· no tells found`). Show both: a
+reader who sees which sentences were hot learns the pattern and stops
+producing it, which is worth more than the single rewrite.
+
+Then close with: a short **change log** naming the patterns fixed and the
+judgment calls made, including deliberate keeps; and **flags** — hollow
 spans, capped spans, and anything needing a real fact from the user. Never
 silently overwrite; the author decides.
 
