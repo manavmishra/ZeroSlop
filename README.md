@@ -14,14 +14,14 @@
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Then say "de-slop this" in any agent. Say "score this" for a report without a
-rewrite.
+Then say "de-slop this" in any agent.
 
 ---
 
-## What it does
+## See it work
 
-A real LinkedIn draft, August 2026:
+A real LinkedIn draft from August 2026. No "delve", no exclamation points, no
+hype vocabulary:
 
 > Enterprise AI value has too often compounded inside individual workflows, leaving a widening gap between the employees building leverage and the organizations trying to scale it.
 >
@@ -31,10 +31,10 @@ A real LinkedIn draft, August 2026:
 >
 > #AgenticAI #EnterpriseAI #AIAdoption
 
-**45.7 — suspect.** No "delve", no exclamation points, no hype vocabulary. What
-the loop caught: announcement voice in the opener, the best statistic buried in
-paragraph two, a cliché doing an idea's job, and a hook promising two reports
-while citing one.
+**Scores 45.7 of 100**, where raw model output averages 76 and strong human
+writing lands between 9 and 29. Four catches, none of them a banned word:
+announcement voice in the opener, the best statistic buried in paragraph two, a
+cliché doing an idea's job, and a hook promising two reports while citing one.
 
 After:
 
@@ -44,7 +44,10 @@ After:
 >
 > Then the control numbers. 35% of companies admit they couldn't immediately pull the plug on a rogue agent…
 
-**9.5 — clean.**
+**Scores 9.5.** Every figure and both citations survived. Nothing invented.
+
+<details>
+<summary>Full scorecard and the heatmap that ships with every run</summary>
 
 | Metric | Before | After |
 |---|---|---|
@@ -53,11 +56,6 @@ After:
 | Em-dashes / emoji / hashtags | 0 / 1 / 3 | 0 / 0 / 0 |
 | Burstiness (target ≥0.45) | 0.65 | 0.79 |
 | Words | 254 | 230 |
-
-Every figure and both citations survived. Nothing invented.
-
-<details>
-<summary>The heatmap that ships with it</summary>
 
 ```
   SLOP MAP · 7 sentences · 5 carry tells · hottest first
@@ -75,44 +73,134 @@ shows where slop clusters, which often means a structural problem rather than a
 word problem.
 </details>
 
----
+## What you get
 
-## Why the accent exists
+- **Detector.** 68 weighted patterns and a 72-term lexicon, plus rhythm,
+  followability, and a shape channel for social posts. Every point traces to a
+  quoted span.
+- **Two-pass rewrite.** Strip the tells, then rebuild toward an expert register.
+- **Hard gate.** The rewrite has to clear a numeric threshold that tightens by
+  genre, strictest on LinkedIn. Three failures and it stops and says the draft
+  needs a real detail, not better words.
+- **Scorecard and heatmap.** Before and after, on every run.
+- **Six platform modules.** LinkedIn, X, email, blog, newsletter, research.
+- **Shape channel.** Catches broetry, reported on its own axis. Genre is
+  declared by the caller, never auto-detected.
+- **Learning database.** Misses become patterns in `data/learned.json`.
+- **CI tooling.** `--gate` exit codes, `--batch` a directory, `--explain` a
+  heatmap.
+- **Fidelity rules.** No invented numbers, names, anecdotes, or feelings.
+  Hollow spans get flagged, never padded.
 
-Two 2024 studies measured it. Stanford found "meticulous" in AI-conference peer
-reviews at nearly 35 times its pre-ChatGPT rate; Tübingen found the same class
-of words surging across fifteen million biomedical abstracts.
+## Install
 
-The useful finding is what happens when you strip a model's assistant training:
-detectors rate the raw base model as human 97 to 99 percent of the time. The
-accent is a style acquired in post-training, and it lives in wording rather than
-ideas. Rewriting removes it without touching a fact.
+Installation differs by harness. Pick yours; skip the rest.
 
-## Capabilities
+**Any agent:**
 
-| | |
-|---|---|
-| **Detector** | 68 weighted patterns, 72-term lexicon, rhythm, followability, and a shape channel for social posts. Every point traces to a quoted span. |
-| **Two-pass rewrite** | Strip the tells, then rebuild toward an expert register. |
-| **Hard gate** | LinkedIn ≤20, general ≤25, email ≤35, research on a formal track. Three failures and it says the draft needs a real detail. |
-| **Scorecard + heatmap** | Before and after, on every run. |
-| **Six platform modules** | LinkedIn, X, email, blog, newsletter, research. Each with its own rules. |
-| **Shape channel** | Catches broetry on social posts, reported on its own axis. Genre declared by the caller, never auto-detected. |
-| **Learning database** | Misses become patterns in `data/learned.json`. |
-| **CI tooling** | `--gate` exit codes, `--batch` a directory, `--explain` a heatmap. |
-| **Fidelity rules** | No invented numbers, names, anecdotes, or feelings. Hollow spans get flagged, never padded. |
+```bash
+npx skills add manavmishra/ZeroSlop --global
+```
 
-**Built for** people who publish under their own name, comms teams, researchers
-who need the formal register left intact, and engineering teams who want slop to
-fail CI like any other lint rule.
+`--agent '*'` hits every harness; `--agent claude-code` (or `codex`, `cursor`,
+`opencode`, `warp`, `zed`) hits one; drop `--global` for a project-local install.
 
-## The engine
+**Claude Code and Cowork, as a plugin:**
 
-Three interpretable channels, no black box.
+```
+/plugin marketplace add manavmishra/ZeroSlop
+/plugin install zero-slop@zero-slop
+```
+
+<details>
+<summary>ChatGPT · Codex · claude.ai · Cowork workspaces · manual clone</summary>
+
+**ChatGPT and ChatGPT at Work:**
+
+```bash
+curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md
+```
+
+Paste it into a Project's Instructions, upload it as Custom GPT Knowledge, or
+paste it at the top of a chat. The bundle carries the skill and all four
+reference documents.
+
+**Codex.** Run this in *your* project, not in a clone of this repo, since it
+writes `AGENTS.md`:
+
+```bash
+curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
+```
+
+**claude.ai and Desktop:** download the repo zip, then upload it under
+Settings → Capabilities → Skills.
+
+**Cowork workspace**, so teammates inherit it:
+
+```bash
+git clone https://github.com/manavmishra/ZeroSlop.git .claude/skills/zero-slop
+```
+
+**Manual, any tool:**
+
+```bash
+git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
+```
+
+Windows: clone into `$env:USERPROFILE\.claude\skills\zero-slop`. The folder must
+be named `zero-slop`.
+</details>
+
+**Requirements:** none. Markdown plus one standard-library Python file. Where
+Python is unavailable the skill falls back to its reference lists; you lose the
+numeric gate, not the rewrite.
+
+## Use it
+
+Two doors into the same tool. The skill rewrites and explains; the CLI only
+measures, which is what makes it usable in CI.
+
+### In an agent
+
+Say "de-slop this" and paste a draft. Say "score this" for a report without a
+rewrite. Every run returns the rewritten text, a before-and-after scorecard, and
+a heatmap of which sentences carried tells.
+
+Output comes back in the form you gave it. Paste text, get text; hand it a
+`.docx`, `.pdf`, or `.html` file and you get that file back.
+
+Name your platform ("this is for LinkedIn") to load the matching module. The
+research module is the one that matters most to get right: it forbids moves the
+general ladder prescribes, because contractions and short punchy sentences are
+themselves a tell in a journal abstract.
+
+### From the CLI
+
+```bash
+pbpaste | python3 scripts/slopscore.py --explain     # clipboard + heatmap
+python3 scripts/slopscore.py --heatmap draft.md      # heatmap only
+python3 scripts/slopscore.py --gate 25 draft.md      # exit 1 on failure (CI)
+python3 scripts/slopscore.py --batch docs/           # directory, worst first
+python3 scripts/slopscore.py --formal abstract.txt   # research register
+python3 scripts/slopscore.py --json draft.md         # machine-readable
+```
+
+The pattern database ages. These commands keep it current:
+
+```bash
+python3 scripts/calibrate.py --human dir/ --ai dir/  # refit weights to current models
+python3 scripts/calibrate.py --selftest              # false-positive regression
+python3 scripts/calibrate.py --decay                 # age out stale tells
+```
+
+## How it works
 
 <p align="center">
   <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 68 tells, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and writes lessons back to learned.json." width="880">
 </p>
+
+<p align="center"><em>Three interpretable channels fuse into one score, then a
+two-pass rewrite runs until the gate passes or three attempts fail.</em></p>
 
 <details>
 <summary>Diagram source (Mermaid)</summary>
@@ -172,93 +260,18 @@ Deterministic measures are steadier, being computed rather than judged:
 | **Zero Slop v1.2** | **9.5** | **0.00** | **159** |
 
 Every other method shrinks the draft by up to 28%. Zero Slop holds the original
-length at zero tells.
+length at zero tells. Harness in [`bench/`](bench/).
 
-The gate reports what it measured and what it did not. A draft can be
-word-clean and still read as machine-written, so a green number never means
-the judgment pass was optional.
+## Why the accent exists
 
-One rewrite invented a feeling the author never described. Two independent
-judges caught it, and the rule it produced runs on every draft now. Harness in
-[`bench/`](bench/).
+Two 2024 studies measured it. Stanford found "meticulous" in AI-conference peer
+reviews at nearly 35 times its pre-ChatGPT rate; Tübingen found the same class
+of words surging across fifteen million biomedical abstracts.
 
-## Install
-
-**Any agent:**
-
-```bash
-npx skills add manavmishra/ZeroSlop --global
-```
-
-`--agent '*'` hits every harness; `--agent claude-code` (or `codex`, `cursor`,
-`opencode`, `warp`, `zed`) hits one; drop `--global` for a project-local install.
-
-**Claude Code / Cowork, as a plugin:**
-
-```
-/plugin marketplace add manavmishra/ZeroSlop
-/plugin install zero-slop@zero-slop
-```
-
-**Cowork workspace**, so teammates inherit it:
-
-```bash
-git clone https://github.com/manavmishra/ZeroSlop.git .claude/skills/zero-slop
-```
-
-**ChatGPT and ChatGPT at Work:**
-
-```bash
-curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md
-```
-
-Paste it into a Project's Instructions, upload it as Custom GPT Knowledge, or
-paste it at the top of a chat. The bundle carries the skill and all four
-reference documents.
-
-**Codex** — run this in *your* project, not in a clone of this repo, since it
-writes `AGENTS.md`:
-
-```bash
-curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
-```
-
-**claude.ai and Desktop:** download the repo zip, upload under Settings →
-Capabilities → Skills.
-
-**Manual, any tool:**
-
-```bash
-git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
-```
-
-Windows: clone into `$env:USERPROFILE\.claude\skills\zero-slop`. The folder must
-be named `zero-slop`.
-
-**Requirements:** none. Markdown plus one standard-library Python file. Where
-Python is unavailable the skill falls back to its reference lists; you lose the
-numeric gate, not the rewrite.
-
-## CLI
-
-```bash
-pbpaste | python3 scripts/slopscore.py --explain     # clipboard + heatmap
-python3 scripts/slopscore.py --heatmap draft.md      # heatmap only
-python3 scripts/slopscore.py --gate 25 draft.md      # exit 1 on failure (CI)
-python3 scripts/slopscore.py --batch docs/           # directory, worst first
-python3 scripts/slopscore.py --formal abstract.txt   # research register
-python3 scripts/slopscore.py --json draft.md         # machine-readable
-```
-
-Raw LLM drafts average around 76. Strong human writing lands between 9 and 29.
-
-Maintenance:
-
-```bash
-python3 scripts/calibrate.py --human dir/ --ai dir/  # refit weights to current models
-python3 scripts/calibrate.py --selftest              # false-positive regression
-python3 scripts/calibrate.py --decay                 # age out stale tells
-```
+The useful finding is what happens when you strip a model's assistant training:
+detectors rate the raw base model as human 97 to 99 percent of the time. The
+accent is a style acquired in post-training, and it lives in wording rather than
+ideas. Rewriting removes it without touching a fact.
 
 ## What it refuses
 
@@ -267,6 +280,12 @@ the trap most tools fall into. Zero Slop treats it as the cardinal sin: no fake
 numbers, names, war stories, or interior feelings. Hollow paragraphs get flagged
 rather than padded. Performed candor and forced hot takes are rejected as the
 louder dialect of the same disease. Where disclosure is required, disclose.
+
+The score has limits, and the gate reports what it did not measure. A draft can
+be word-clean and still read as machine-written, so a green number never means
+the judgment pass was optional. During benchmarking one rewrite invented a
+feeling the author never described. Two independent judges caught it, and the
+rule it produced now runs on every draft.
 
 ## FAQ
 
