@@ -1,6 +1,8 @@
 # Zero Slop
 
-**A linter for the AI accent.** Scores a draft, strips the tells, proves the fix.
+**AI writing has an accent, and readers have learned to hear it.** Zero Slop
+scores any draft 0-100, strips the tells, and proves the fix with before and
+after numbers. Every edit you make to its output teaches the detector.
 
 <p align="center">
   <img alt="MIT licensed" src="https://img.shields.io/badge/license-MIT-1B1D22">
@@ -86,7 +88,13 @@ word problem.
 - **Six platform modules.** LinkedIn, X, email, blog, newsletter, research.
 - **Shape channel.** Catches broetry, reported on its own axis. Genre is
   declared by the caller, never auto-detected.
-- **Learning database.** Misses become patterns in `data/learned.json`.
+- **A reflect loop.** The gap between what the skill returned and what you
+  actually published is free training signal. A span you cut becomes a pattern
+  once three separate documents cut it too; a pattern you overrule three times
+  loses half its weight. The meter sharpens as it is used, in both directions.
+- **Learning that cannot corrupt the meter.** Nothing ships without clearing a
+  corpus of certified human writing, including non-native English, which AI
+  detectors are documented to over-flag.
 - **CI tooling.** `--gate` exit codes, `--batch` a directory, `--explain` a
   heatmap.
 - **Fidelity rules.** No invented numbers, names, anecdotes, or feelings.
@@ -174,6 +182,32 @@ research module is the one that matters most to get right: it forbids moves the
 general ladder prescribes, because contractions and short punchy sentences are
 themselves a tell in a journal abstract.
 
+### Teach it
+
+Point the loop at what the skill gave you and what you actually published:
+
+```bash
+python3 scripts/learn.py --reflect --produced out.md --shipped final.md
+python3 scripts/learn.py --promote --apply    # mint what cleared threshold
+python3 scripts/learn.py --demote  --apply    # relax what writers overruled
+python3 scripts/learn.py --stats              # the learning curve
+```
+
+A single edit changes nothing. A span becomes a pattern only after three
+independent documents cut it, because one diff cannot tell a stylistic tell
+from an author trimming for length. That threshold is also what makes sharing
+safe: a phrase found in three unrelated documents is a generic construction,
+not anyone's sentence.
+
+```bash
+python3 scripts/learn.py --export             # prints exactly what would be shared
+```
+
+Reflection data stays on your machine, in `~/.zero-slop/`, never in the
+repository. The export carries spans and counts with no source text, no
+filenames, and no dates finer than a month, and it prints the whole payload for
+you to read before anything is written.
+
 ### From the CLI
 
 ```bash
@@ -200,7 +234,8 @@ python3 scripts/calibrate.py --decay                 # age out stale tells
 </p>
 
 <p align="center"><em>Three interpretable channels fuse into one score, then a
-two-pass rewrite runs until the gate passes or three attempts fail.</em></p>
+two-pass rewrite runs until the gate passes or three attempts fail. What you
+change afterwards feeds back into the meter.</em></p>
 
 <details>
 <summary>Diagram source (Mermaid)</summary>
@@ -221,6 +256,9 @@ flowchart LR
     G -- "fail, up to 3x" --> W
     G -. lessons .-> L[(learned.json)]
     L -. sharpens the meter .-> PM
+    O -.-> R{{"your edit"}}
+    R -. "3 documents agree" .-> L
+    R -. "you overruled it" .-> L
 ```
 </details>
 
@@ -309,8 +347,20 @@ surface feature, so each point of the score traces back to a span you can read.
 Trained classifiers were evaluated and rejected; the measurements are in
 [references/evidence.md](references/evidence.md).
 
-**Found a tell it missed?** PR a regex into `data/learned.json` with a line in
-the log. That is the whole contribution process.
+**Found a tell it missed?** Run the reflect loop on it. Once three documents
+agree, `--export` packages the finding with no source text attached, ready to
+attach to a PR. A regex straight into `data/learned.json` also works.
+
+**Does my writing leave my machine?** No. Scoring and rewriting are local, and
+reflection data is written to `~/.zero-slop/`, outside the repository. Sharing
+is opt-in, one command, and prints the entire payload before it writes
+anything.
+
+**Can the learning loop be poisoned?** Not by one person. Three independent
+documents are required, spans carrying figures or proper nouns are discarded as
+content rather than style, and nothing ships that fires on, or borrows four
+consecutive words from, the certified-human corpus. A pattern that would
+convict Lincoln or an SRE runbook is rejected at any level of evidence.
 
 ## Credits
 

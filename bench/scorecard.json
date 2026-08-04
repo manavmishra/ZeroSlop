@@ -1,0 +1,105 @@
+{
+ "orig_ai_mean": 70.3,
+ "n_examples": 50,
+ "n_judged_items": 50,
+ "methods": {
+  "zeroslop": {
+   "obj_ai_mean": 10.4,
+   "obj_ai_median": 9.5,
+   "pct_clean_le25": 100,
+   "burstiness_mean": 0.634,
+   "judge_human": 7.84,
+   "judge_voice": 7.54,
+   "judge_fidelity": 8.8,
+   "judge_craft": 7.9,
+   "judge_platform": 7.96,
+   "judge_avg": 8.01,
+   "best_picks": 32,
+   "worst_picks": 1,
+   "fabrication_flags": 1
+  },
+  "petergyang": {
+   "obj_ai_mean": 19.1,
+   "obj_ai_median": 12.4,
+   "pct_clean_le25": 84,
+   "burstiness_mean": 0.594,
+   "judge_human": 6.3,
+   "judge_voice": 5.42,
+   "judge_fidelity": 9.58,
+   "judge_craft": 6.4,
+   "judge_platform": 7.12,
+   "judge_avg": 6.96,
+   "best_picks": 0,
+   "worst_picks": 4,
+   "fabrication_flags": 0
+  },
+  "blader": {
+   "obj_ai_mean": 19.5,
+   "obj_ai_median": 12.4,
+   "pct_clean_le25": 82,
+   "burstiness_mean": 0.58,
+   "judge_human": 7.6,
+   "judge_voice": 6.82,
+   "judge_fidelity": 9.32,
+   "judge_craft": 7.54,
+   "judge_platform": 7.8,
+   "judge_avg": 7.82,
+   "best_picks": 18,
+   "worst_picks": 0,
+   "fabrication_flags": 0
+  },
+  "deslop": {
+   "obj_ai_mean": 26.9,
+   "obj_ai_median": 20.2,
+   "pct_clean_le25": 74,
+   "burstiness_mean": 0.635,
+   "judge_human": 5,
+   "judge_voice": 4.96,
+   "judge_fidelity": 9.66,
+   "judge_craft": 5.6,
+   "judge_platform": 6.52,
+   "judge_avg": 6.35,
+   "best_picks": 0,
+   "worst_picks": 45,
+   "fabrication_flags": 0
+  }
+ },
+ "per_genre_judge_avg": {
+  "blog": {
+   "blader": 7.58,
+   "petergyang": 6.78,
+   "deslop": 6.4,
+   "zeroslop": 8.35
+  },
+  "email": {
+   "zeroslop": 7.7,
+   "blader": 7.7,
+   "petergyang": 6.65,
+   "deslop": 6.3
+  },
+  "linkedin": {
+   "deslop": 6.29,
+   "petergyang": 7.04,
+   "zeroslop": 7.96,
+   "blader": 7.93
+  },
+  "newsletter": {
+   "zeroslop": 7.96,
+   "blader": 7.68,
+   "petergyang": 6.72,
+   "deslop": 6.24
+  },
+  "research": {
+   "deslop": 6.53,
+   "petergyang": 6.87,
+   "blader": 7.33,
+   "zeroslop": 7.87
+  },
+  "twitter": {
+   "blader": 8.16,
+   "zeroslop": 8.08,
+   "deslop": 6.6,
+   "petergyang": 7.44
+  }
+ }
+}

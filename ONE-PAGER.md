@@ -1,6 +1,8 @@
 # Zero Slop
 
-**A linter for the AI accent.** Scores a draft, strips the tells, proves the fix.
+**AI writing has an accent, and readers have learned to hear it.** Zero Slop
+measures it, strips it, and proves the fix with numbers — then learns from the
+edits you make to its output.
 
 ## The problem
 
@@ -24,6 +26,26 @@ and anything else that reads skills.
 
 Every run returns three things: the rewritten text, a scorecard, and a heatmap
 showing which sentences carried tells.
+
+## It learns from you
+
+The gap between what the skill returned and what you actually published is free
+training signal. A phrase you struck becomes a candidate tell; a phrase it
+flagged that you kept becomes evidence it was wrong. Neither changes anything
+until three independent documents agree, which is what stops one person's taste
+from becoming everyone's rule.
+
+That threshold doubles as the privacy model. A span found in three unrelated
+documents is a generic construction rather than anyone's sentence, so what can
+be shared upstream is exactly what carries no private text. Reflection data
+stays in `~/.zero-slop/`, never in the repository, and sharing is one opt-in
+command that prints the entire payload first.
+
+Nothing ships without clearing a corpus of certified human writing — 19th
+century oratory, runbooks, business memos, and non-native English, which AI
+detectors are documented to over-flag. A pattern that would convict any of them
+is rejected at any level of evidence. Learning that corrupts the meter is worse
+than not learning.
 
 ## A real run
 
@@ -61,9 +83,12 @@ louder dialect of the same disease. Where disclosure is required, disclose.
 
 ## Trust
 
-The scorer is two hundred lines of standard-library Python. No network calls, no
-dependencies, no accounts. Drafts never leave the machine, and personal voice
-profiles are git-ignored.
+The scorer is standard-library Python with no network calls, no dependencies,
+and no accounts. Drafts never leave the machine; voice profiles and reflection
+data are git-ignored and live outside the repository. A 35-case suite covers the
+detector, the learning gates, decay, and throughput, and runs in under two
+seconds. Scoring sustains about 1,100 documents per second, so it gates CI
+without being felt.
 
 ## Install
 

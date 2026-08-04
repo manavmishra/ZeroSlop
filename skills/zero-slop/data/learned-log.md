@@ -167,3 +167,7 @@ example that motivated it.
   the reach-versus-voice call belongs to the author.
   Also fixed the deeper failure: the gate printed PASS for channels it never
   measured. Every verdict now enumerates what was checked and what was not.
+
+- 2026-08-04 — Reflect loop added 2 context-gated rider(s) (capability, experience) after each was struck from 5+ documents. Entered as riders, not always-on lexicon terms.
+
+- 2026-08-04 — Reflect loop promoted 0 pattern(s) after each was independently cut from 3+ documents (); 0 rejected by the false-positive gate. Source documents are not recorded: reflection evidence stays on the machine that produced it.

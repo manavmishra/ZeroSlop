@@ -3,3 +3,8 @@ __pycache__/
 .DS_Store
 # per-user voice profiles are personal — never commit them
 data/voices/
+# reflection evidence is derived from the user's own drafts. It defaults to
+# ~/.zero-slop/ and should never appear in a checkout, but ignore it here too
+# in case ZERO_SLOP_HOME is pointed back at the repo.
+data/reflections.json
+reflections.json

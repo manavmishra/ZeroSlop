@@ -3,7 +3,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
@@ -298,7 +298,33 @@ silently overwrite; the author decides.
 
 ### 6. Learn
 
-This skill improves with use. When any of these happen, persist it:
+This skill improves with use, and the strongest signal is the writer's own
+edit. If you hand back a rewrite and the author changes something before
+publishing, that change is a free label: what you left in that a human took
+out was a tell you missed. Capture it.
+
+- **The reflect loop.** Whenever you can see both what the skill produced and
+  what the author actually shipped — they paste the final version, they say
+  "I cut X", you edit a file they later revise — record it:
+
+  ```
+  python3 scripts/learn.py --reflect --produced out.md --shipped final.md
+  ```
+
+  This does **not** create a pattern. It records an observation. A span
+  becomes a pattern only after it has been independently cut from three
+  different documents, because a single diff cannot tell a stylistic tell
+  from an author trimming a sentence for length. Once a span clears that
+  bar, `--promote --apply` mints it, and the accuracy of the meter rises
+  with the number of people using it rather than with anyone's guesswork.
+
+  Three gates stand between an observation and a shipped pattern:
+  recurrence (three distinct documents), novelty (not already scored), and
+  safety (must not fire on, or borrow four consecutive words from, the
+  certified human writing in `data/corpus/must-not-flag/`). The safety gate
+  is absolute — a pattern that would convict Lincoln, an SRE runbook, or a
+  non-native English speaker's email is rejected at any level of evidence.
+  Learning that corrupts the meter is worse than not learning.
 
 - **New tell spotted** (a pattern readers call out as AI that the scorer
   missed) → add a regex + weight to `data/learned.json` (same schema as
@@ -337,10 +363,12 @@ This skill improves with use. When any of these happen, persist it:
 
   which scores a corpus of writing that must never be flagged
   (`data/corpus/must-not-flag/`): dash-heavy 19th-century oratory, dense
-  technical prose, terse engineering notes. A pattern that convicts any of
-  them is rejected before it ships. Add a sample to that corpus whenever you
-  find honest writing the meter got wrong — that is how a false positive
-  becomes permanent protection rather than a one-time fix.
+  technical prose, terse engineering notes, business memos, human press
+  copy, and non-native English. A pattern that convicts any of them is
+  rejected before it ships. Add a sample to that corpus whenever you find
+  honest writing the meter got wrong — that is how a false positive becomes
+  permanent protection rather than a one-time fix, and it is the most useful
+  contribution anyone can make to this skill.
 
 - **Context beats a global weight.** Terms that are ordinary technical
   vocabulary ("robust", "landscape", "elevated", "leverage") live in
@@ -350,10 +378,15 @@ This skill improves with use. When any of these happen, persist it:
   context-dependent, move it to `riders` rather than lowering its weight
   globally.
 
-- **Patterns carry provenance and decay.** New entries record
+- **Patterns carry provenance and decay.** Every pattern records
   `first_seen`/`last_confirmed`; `calibrate.py --decay` halves the weight of
-  anything unconfirmed for 18 months, so a 2024 tell fades on its own
-  instead of accumulating forever.
+  anything unconfirmed for 18 months, so a 2024 tell fades on its own instead
+  of accumulating forever. The other half is re-earning weight:
+  `learn.py --confirm <dir>` bumps `last_confirmed` on every pattern that
+  fires against known slop, so a tell that keeps catching things stays sharp
+  while one the models have moved past ages out by itself. Run
+  `learn.py --stats` to see the taxonomy's age, sources, and what is pending
+  promotion.
 
 ## References
 

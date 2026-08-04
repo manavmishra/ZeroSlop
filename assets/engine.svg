@@ -1,82 +1,112 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 340" width="880" height="340" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop engine. A draft is measured by three interpretable channels: a pattern meter of 68 weighted tells and a 72 term lexicon, rhythm and burstiness statistics, and followability, formatting and register checks. Evidence fusion produces an AI-likelihood score from 0 to 100 in which every point traces to a quoted span. Diagnose finds hollow spans, inventories facts and marks the author voice. A two-pass rewrite strips then builds. A verify gate either passes, emitting the rewritten text with a scorecard, or fails and loops back to the rewrite up to three times. Lessons are written to learned.json, which sharpens the pattern meter.">
-<defs>
-  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8A8F99"/></marker>
-  <marker id="ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B9BCC4"/></marker>
-  <style>
-    .bx{fill:#F5F5F1;stroke:#D8D7D0;stroke-width:1.5}
-    .bxa{fill:#EAF1FC;stroke:#2a78d6;stroke-width:1.6}
-    .bxg{fill:#FBFBF8;stroke:#E3E2DC;stroke-width:1.2;stroke-dasharray:4 3}
-    .t{font-size:12.5px;fill:#1B1D22}
-    .ts{font-size:10.5px;fill:#6E7280}
-    .tl{font-size:9.5px;fill:#8A8F99;letter-spacing:.06em}
-    .ln{stroke:#8A8F99;stroke-width:1.6;fill:none;marker-end:url(#a)}
-    .lnd{stroke:#B9BCC4;stroke-width:1.4;fill:none;stroke-dasharray:4 3;marker-end:url(#ad)}
-    @media (prefers-color-scheme:dark){
-      .bx{fill:#1C1F26;stroke:#333741}.bxa{fill:#17243A;stroke:#3987e5}
-      .bxg{fill:#15171C;stroke:#2B2E36}.t{fill:#E9E8E3}.ts{fill:#A0A4AE}.tl{fill:#7B7F89}
-      .ln{stroke:#8A8F99}.lnd{stroke:#565B66}
-    }
-  </style>
-</defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 440" width="880" height="440" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop engine. A draft is measured by three interpretable channels: a pattern meter of 68 weighted tells with a lexicon and context-gated riders, rhythm covering burstiness, uniformity and shape, and followability covering density, dashes and register. Evidence fusion produces an AI-likelihood score from 0 to 100 in which every point traces to a quoted span. Diagnose finds hollow spans, inventories facts and marks the author voice. A two-pass rewrite strips the tells then rebuilds toward an expert register. A verify gate either passes, emitting the rewritten text with a scorecard, or fails and loops back to the rewrite up to three times. Below that runs the reflect loop. When you publish an edited version, a span you cut becomes a candidate tell and a flagged span you kept becomes false-positive evidence. Neither changes anything until three gates pass: three independent documents agree, the span is not already caught, and it clears the corpus of certified human writing. Surviving evidence is written to learned.json, raising patterns, lowering weights and letting stale tells decay, which sharpens the pattern meter on the next run.">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8A939F"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8A4FA3"/>
+    </marker>
+    <style>
+      .s  { fill:#F7F8FA; stroke:#C9CED6; stroke-width:1.2 }
+      .ch { fill:#EEF3FA; stroke:#2A78D6; stroke-width:1.2 }
+      .hi { fill:#E8F3EC; stroke:#1E7A4C; stroke-width:1.4 }
+      .lr { fill:#F4EEF8; stroke:#8A4FA3; stroke-width:1.2 }
+      .t  { font-size:12px; fill:#1B1D22 }
+      .m  { font-size:10px; fill:#5B6270 }
+      .h  { font-size:10.5px; fill:#5B6270; letter-spacing:.06em }
+      .hp { font-size:10.5px; fill:#8A4FA3; letter-spacing:.06em }
+      .lb { font-size:9.5px; fill:#8A4FA3 }
+      .ln { stroke:#8A939F; stroke-width:1.3; fill:none }
+      .lp { stroke:#8A4FA3; stroke-width:1.3; fill:none; stroke-dasharray:4 3 }
+      .grp{ fill:none; stroke:#C9CED6; stroke-width:1; stroke-dasharray:3 3 }
+      .grl{ fill:none; stroke:#8A4FA3; stroke-width:1; stroke-dasharray:3 3 }
+      @media (prefers-color-scheme: dark) {
+        .s  { fill:#1E2128; stroke:#3A404B }
+        .ch { fill:#16233A; stroke:#4B90E2 }
+        .hi { fill:#14291D; stroke:#3FA872 }
+        .lr { fill:#241B2E; stroke:#A972C4 }
+        .t  { fill:#E8EAED }
+        .m  { fill:#9AA2AE }
+        .h  { fill:#9AA2AE }
+        .hp { fill:#A972C4 }
+        .lb { fill:#A972C4 }
+        .ln { stroke:#6B7280 }
+        .grp{ stroke:#3A404B }
+      }
+    </style>
+  </defs>
 
-<rect x="106" y="16" width="250" height="152" rx="9" class="bxg"/>
-<text x="118" y="34" class="tl">MEASURE · ALL CHANNELS, EVERY RUN</text>
+  <text x="16" y="20" class="h">MEASURE · every channel, every run</text>
+  <rect x="14" y="28" width="300" height="152" rx="8" class="grp"/>
 
-<rect x="0" y="78" width="86" height="34" rx="7" class="bx"/>
-<text x="43" y="99" class="t" text-anchor="middle">Draft</text>
+  <rect x="26" y="40" width="276" height="40" rx="6" class="ch"/>
+  <text x="38" y="58" class="t">Pattern meter</text>
+  <text x="38" y="72" class="m">68 weighted tells · lexicon · riders</text>
 
-<rect x="118" y="42" width="226" height="36" rx="7" class="bx"/>
-<text x="130" y="58" class="t">Pattern meter</text><text x="130" y="71" class="ts">68 tells · 72-term lexicon</text>
-<rect x="118" y="86" width="226" height="36" rx="7" class="bx"/>
-<text x="130" y="102" class="t">Rhythm</text><text x="130" y="115" class="ts">burstiness · uniformity</text>
-<rect x="118" y="130" width="226" height="36" rx="7" class="bx"/>
-<text x="130" y="146" class="t">Followability + format</text><text x="130" y="159" class="ts">density · dashes · register</text>
+  <rect x="26" y="86" width="276" height="40" rx="6" class="ch"/>
+  <text x="38" y="104" class="t">Rhythm</text>
+  <text x="38" y="118" class="m">burstiness · uniformity · shape</text>
 
-<rect x="118" y="200" width="226" height="36" rx="7" class="bx"/>
-<text x="231" y="217" class="t" text-anchor="middle">learned.json</text>
-<text x="231" y="229" class="ts" text-anchor="middle">every miss, dated and logged</text>
+  <rect x="26" y="132" width="276" height="40" rx="6" class="ch"/>
+  <text x="38" y="150" class="t">Followability + format</text>
+  <text x="38" y="164" class="m">density · dashes · register</text>
 
-<rect x="382" y="68" width="150" height="52" rx="7" class="bxa"/>
-<text x="457" y="88" class="t" text-anchor="middle">Evidence fusion</text>
-<text x="457" y="103" class="ts" text-anchor="middle">score 0–100, every</text>
-<text x="457" y="115" class="ts" text-anchor="middle">point traceable</text>
+  <rect x="14" y="200" width="92" height="42" rx="6" class="s"/>
+  <text x="26" y="226" class="t">Draft</text>
+  <path d="M60 200 L60 183" class="ln" marker-end="url(#a)"/>
 
-<rect x="570" y="70" width="160" height="50" rx="7" class="bx"/>
-<text x="650" y="90" class="t" text-anchor="middle">Diagnose</text>
-<text x="650" y="105" class="ts" text-anchor="middle">hollow · facts · voice</text>
+  <path d="M314 104 L342 104" class="ln" marker-end="url(#a)"/>
 
-<rect x="570" y="162" width="160" height="50" rx="7" class="bx"/>
-<text x="650" y="182" class="t" text-anchor="middle">Two-pass rewrite</text>
-<text x="650" y="197" class="ts" text-anchor="middle">strip, then build</text>
+  <rect x="344" y="82" width="196" height="44" rx="6" class="s"/>
+  <text x="356" y="101" class="t">Evidence fusion</text>
+  <text x="356" y="115" class="m">0–100, every point traceable</text>
 
-<path d="M650 258 L712 284 L650 310 L588 284 Z" class="bxa"/>
-<text x="650" y="288" class="t" text-anchor="middle">Verify gate</text>
+  <path d="M442 126 L442 152" class="ln" marker-end="url(#a)"/>
+  <rect x="344" y="154" width="196" height="44" rx="6" class="s"/>
+  <text x="356" y="173" class="t">Diagnose</text>
+  <text x="356" y="187" class="m">hollow spans · facts · voice</text>
 
-<rect x="768" y="266" width="112" height="36" rx="7" class="bxa"/>
-<text x="824" y="283" class="t" text-anchor="middle">Rewritten text</text>
-<text x="824" y="295" class="t" text-anchor="middle">+ scorecard</text>
+  <path d="M442 198 L442 226" class="ln" marker-end="url(#a)"/>
+  <rect x="344" y="228" width="196" height="44" rx="6" class="s"/>
+  <text x="356" y="247" class="t">Two-pass rewrite</text>
+  <text x="356" y="261" class="m">strip, then build</text>
 
-<path d="M86 95 L112 95" class="ln"/>
-<path d="M99 95 L99 60 L112 60" class="ln"/>
-<path d="M99 95 L99 148 L112 148" class="ln"/>
+  <path d="M540 250 L570 250" class="ln" marker-end="url(#a)"/>
+  <rect x="572" y="228" width="156" height="44" rx="6" class="hi"/>
+  <text x="584" y="247" class="t">Verify gate</text>
+  <text x="584" y="261" class="m">fail → retry, up to 3×</text>
 
-<path d="M344 60 L364 60 L364 84 L376 84" class="ln"/>
-<path d="M344 104 L376 96" class="ln"/>
-<path d="M344 148 L364 148 L364 108 L376 108" class="ln"/>
+  <path d="M650 272 L650 294 L442 294 L442 275" class="ln" marker-end="url(#a)"/>
+  <text x="528" y="290" class="m">fail</text>
 
-<path d="M532 94 L564 94" class="ln"/>
-<path d="M650 120 L650 156" class="ln"/>
-<path d="M650 212 L650 252" class="ln"/>
+  <path d="M728 250 L746 250" class="ln" marker-end="url(#a)"/>
+  <rect x="748" y="228" width="124" height="44" rx="6" class="hi"/>
+  <text x="760" y="247" class="t">Rewritten text</text>
+  <text x="760" y="261" class="m">+ scorecard</text>
 
-<path d="M712 284 L762 284" class="ln"/>
-<text x="716" y="276" class="tl">pass</text>
+  <text x="16" y="318" class="hp">REFLECT · what you changed teaches the meter</text>
+  <rect x="14" y="326" width="852" height="92" rx="8" class="grl"/>
 
-<path d="M588 284 L548 284 L548 187 L564 187" class="ln"/>
-<text x="452" y="183" class="tl">fail · up to 3x</text>
+  <path d="M810 272 L810 306 L718 306 L718 343" class="lp" marker-end="url(#b)"/>
+  <text x="592" y="302" class="lb">you publish an edited version</text>
 
-<path d="M650 310 L650 330 L231 330 L231 242" class="lnd"/>
-<text x="380" y="324" class="tl">lessons</text>
+  <rect x="584" y="346" width="268" height="58" rx="6" class="lr"/>
+  <text x="596" y="366" class="t">Your edit</text>
+  <text x="596" y="380" class="m">cut a span → candidate tell</text>
+  <text x="596" y="394" class="m">kept a flagged one → false positive</text>
 
-<path d="M231 200 L231 172" class="lnd"/>
-<text x="240" y="188" class="tl">sharpens the meter</text>
+  <path d="M584 375 L546 375" class="lp" marker-end="url(#b)"/>
+  <rect x="300" y="346" width="244" height="58" rx="6" class="lr"/>
+  <text x="312" y="366" class="t">Three gates</text>
+  <text x="312" y="380" class="m">3 documents agree · not already</text>
+  <text x="312" y="394" class="m">caught · clears the human corpus</text>
+
+  <path d="M300 375 L262 375" class="lp" marker-end="url(#b)"/>
+  <rect x="20" y="346" width="240" height="58" rx="6" class="lr"/>
+  <text x="32" y="366" class="t">learned.json</text>
+  <text x="32" y="380" class="m">patterns up, weights down,</text>
+  <text x="32" y="394" class="m">stale tells decay out</text>
+
+  <path d="M20 375 L8 375 L8 60 L23 60" class="lp" marker-end="url(#b)"/>
+  <text x="16" y="338" class="lb">sharpens the meter</text>
 </svg>

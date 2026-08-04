@@ -1,0 +1,5 @@
+This project investigates the mechanisms by which soil microbial communities mediate nitrogen retention in restored tallgrass prairie. Restoration efforts across the upper Midwest have achieved substantial gains in plant species richness, yet nitrogen leaching from restored sites remains elevated relative to remnant prairie for at least two decades following seeding.
+
+We hypothesize that the lag reflects incomplete recovery of arbuscular mycorrhizal networks rather than plant community composition per se. To test this, we will establish twelve paired plots across a chronosequence of restoration ages, quantify hyphal length density and community composition by amplicon sequencing, and measure nitrogen flux using resin lysimeters at three depths.
+
+The work addresses a gap in restoration ecology, where above-ground metrics dominate assessment despite evidence that below-ground function recovers on a different timescale. Results will inform whether mycorrhizal inoculation at seeding is justified by measurable improvement in nutrient retention.
