@@ -555,7 +555,7 @@ class DocsMatchReality(unittest.TestCase):
         human = [slopscore.score_text(f.read_text(), data)["ai_likelihood"]
                  for f in CORPUS.glob("*.txt")]
         ai_mean, lo, hi = _st.mean(drafts), min(human), max(human)
-        m = re.search(r"drafts?[^.]{0,40}?average (\d+)",
+        m = re.search(r"drafts?[^.]{0,60}?average(?:\s+\w+){0,2}?\s+(\d+)",
                       re.sub(r"\s+", " ", self.docs["README.md"]))
         self.assertIsNotNone(m, "README no longer states the AI-draft anchor")
         self.assertAlmostEqual(int(m.group(1)), ai_mean, delta=2,
