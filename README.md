@@ -315,48 +315,96 @@ puts a full security review within a single sitting.
 
 ## Install
 
-**Fastest (any agent, macOS/Linux/Windows):** the cross-agent skills CLI
-installs into whichever harnesses you use.
+Zero Slop is a plain [Agent Skills](https://agentskills.io) package, so it
+installs anywhere skills are supported. Pick your surface.
+
+### One command, any agent
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Target every supported harness at once with `--agent '*'`, a single one with
-`--agent claude-code` (or `codex`, `cursor`, `opencode`, `warp`), or drop
-`--global` for a project-local install your team can commit. Update later
-with `npx skills update zero-slop --global`.
+The cross-agent CLI detects the harnesses on your machine and installs into
+each. Useful variations: `--agent '*'` targets every supported harness,
+`--agent claude-code` (or `codex`, `cursor`, `opencode`, `warp`, `zed`)
+targets one, and dropping `--global` gives a project-local install your team
+can commit. Update with `npx skills update zero-slop --global`.
 
-**Claude Code (plugin system):**
+### Claude Code
+
+Either the command above, or the plugin marketplace:
 
 ```
 /plugin marketplace add manavmishra/ZeroSlop
 /plugin install zero-slop@zero-slop
 ```
 
-**claude.ai and Claude Desktop:** download the repo zip from GitHub and
-upload it under Settings → Capabilities → Skills.
-
-**Codex and OpenAI-compatible agents:** install via the skills CLI above, or
-point the agent at the repo. `.codex-plugin/plugin.json`,
-`agents/openai.yaml`, and `AGENTS.md` ship in the package.
-
-**Cursor, OpenCode, Warp, and other Agent-Skills harnesses:** the skills CLI
-handles each via `--agent`, or clone manually into the harness's skills
-directory:
+Or clone straight into the skills directory:
 
 ```bash
 git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
 ```
 
-(Windows PowerShell: clone into `$env:USERPROFILE\.claude\skills\zero-slop`;
-the folder must be named `zero-slop`.)
+### Claude Cowork
 
-**Requirements:** none. The package follows the
-[Agent Skills standard](https://agentskills.io) and is plain Markdown plus
-one standard-library Python script. The scorer runs on any Python 3.8+
-(`python3` on macOS/Linux, `py -3` on Windows); when Python is missing the
-skill falls back to its reference lists instead of failing.
+Cowork reads the same skills directory as Claude Code, so any install above
+works. For a workspace-scoped install that teammates inherit, clone into the
+project's `.claude/skills/` instead of your home directory:
+
+```bash
+git clone https://github.com/manavmishra/ZeroSlop.git .claude/skills/zero-slop
+```
+
+### claude.ai and Claude Desktop
+
+Download the repository as a zip from GitHub, then upload it under
+**Settings → Capabilities → Skills**. The skill appears for every
+conversation on your account. The scorer will not execute in this
+environment, so the skill falls back to its reference lists and self-rubric.
+The rewrite quality holds; you lose the numeric gate.
+
+### Codex and ChatGPT
+
+The package ships `.codex-plugin/plugin.json`, `agents/openai.yaml`, and
+`AGENTS.md`, so Codex-family agents load it directly:
+
+```bash
+npx skills add manavmishra/ZeroSlop --global --agent codex
+```
+
+For ChatGPT and ChatGPT at Work, paste `SKILL.md` into a Project's custom
+instructions, or attach it plus the `references/` files to a Custom GPT's
+knowledge. Everything runs on the model's judgment there; the Python scorer
+needs a shell, so use Code Interpreter if you want the numbers, or treat the
+reference lists as the gate.
+
+### Cursor, Windsurf, Warp, OpenCode, Zed, Continue
+
+All read Agent Skills packages. Use the CLI with `--agent <name>`, or clone
+into whichever skills directory that tool expects — the runtime artifact is
+`SKILL.md` and it is harness-neutral.
+
+### Windows
+
+```powershell
+git clone https://github.com/manavmishra/ZeroSlop.git `
+  $env:USERPROFILE\.claude\skills\zero-slop
+```
+
+The folder must be named `zero-slop` to match the skill's `name` field. The
+scorer runs on `py -3` where the docs say `python3`.
+
+### Anything else
+
+Copy the repository into whatever directory your tool scans for skills. There
+is no build step, no install script, and nothing to compile: `SKILL.md` plus
+`references/` is the whole skill, and `scripts/` is optional tooling.
+
+### Requirements
+
+None. Plain Markdown plus one standard-library Python file. The scorer wants
+Python 3.8+ and uses no packages, no network, and no accounts. Where Python
+is unavailable the skill degrades to its reference lists rather than failing.
 
 Then say: "de-slop this," "humanize this draft," "make this post not sound
 like AI," or "score this" for a report without a rewrite.
