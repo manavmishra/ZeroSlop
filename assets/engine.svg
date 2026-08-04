@@ -42,7 +42,7 @@
 
 <rect x="570" y="70" width="160" height="50" rx="7" class="bx"/>
 <text x="650" y="90" class="t" text-anchor="middle">Diagnose</text>
-<text x="650" y="105" class="ts" text-anchor="middle">hollow spans · facts · voice</text>
+<text x="650" y="105" class="ts" text-anchor="middle">hollow · facts · voice</text>
 
 <rect x="570" y="168" width="160" height="50" rx="7" class="bx"/>
 <text x="650" y="188" class="t" text-anchor="middle">Two-pass rewrite</text>
@@ -62,7 +62,7 @@
 <path d="M344 61 L364 61 L364 86 L376 86" class="ln"/>
 <path d="M344 103 L376 97" class="ln"/>
 <path d="M344 145 L364 145 L364 108 L376 108" class="lnd"/>
-<text x="350" y="130" class="tl">second opinion</text>
+<text x="360" y="182" class="tl">second opinion</text>
 
 <path d="M532 95 L564 95" class="ln"/>
 <path d="M650 120 L650 162" class="ln"/>
@@ -72,7 +72,7 @@
 <text x="716" y="284" class="tl">pass</text>
 
 <path d="M588 292 L548 292 L548 193 L564 193" class="ln"/>
-<text x="470" y="189" class="tl">fail · up to 3x</text>
+<text x="452" y="189" class="tl">fail · up to 3x</text>
 
 <path d="M650 318 L650 344 L231 344 L231 246" class="lnd"/>
 <text x="380" y="338" class="tl">lessons</text>
