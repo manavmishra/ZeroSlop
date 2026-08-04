@@ -10,7 +10,7 @@
     {
       "name": "zero-slop",
       "source": "./",
-      "description": "Turn any draft into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics. Detect \u2192 rewrite \u2192 verify \u2192 learn.",
+      "description": "Removes the writing style language models acquire in post-training and proves it with before/after scores: 68-pattern detector, two-pass rewrite, quantitative gate, and a learning database. Offline, zero dependencies.",
       "license": "MIT",
       "keywords": [
         "writing",

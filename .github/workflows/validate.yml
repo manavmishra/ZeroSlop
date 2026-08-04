@@ -41,6 +41,9 @@ jobs:
           assert s1 > 60, f"slop sample under-scored: {s1}"
           assert s2 < 30, f"human sample over-scored: {s2}"
           EOF
+      - name: Plugin mirror in sync
+        run: python3 scripts/build_plugin.py --check
+
       - name: False-positive regression
         run: python3 scripts/calibrate.py --selftest
 
