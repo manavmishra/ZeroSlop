@@ -128,3 +128,18 @@ example that motivated it.
   their own, and every point of the score can still be traced to a quoted
   span. The negative result is documented in references/evidence.md;
   SVMs and HMMs were rejected earlier on the same evidentiary standard.
+- 2026-08-03 — Answered the "hardcoded meter" problem with three mechanisms
+  instead of a bigger list. (1) calibrate.py derives lexicon weights from
+  excess frequency between a human corpus and current AI output, so the meter
+  can be re-fit to any model generation or to one writer's baseline.
+  (2) data/corpus/must-not-flag/ is a false-positive regression suite;
+  calibrate.py --selftest must pass before any pattern change ships. It
+  immediately caught three real bugs: duplicate lexicon prefixes double-
+  counting one word (elevate/elevat), technical terms of art convicting
+  honest prose (robust, landscape, elevated), and style-only conviction of
+  text with zero lexical evidence. (3) Rider words are now sentence-scoped:
+  13 context-dependent terms score only when a marketing-register trigger
+  shares their sentence. Result: 6/6 on the FP suite, marketing use of the
+  same words still scores 100, corpus calibration unchanged at 37/50 flagged
+  and 50/50 clean. Patterns also gained first_seen/last_confirmed with an
+  18-month decay so stale tells fade automatically.

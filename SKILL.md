@@ -241,9 +241,44 @@ This skill improves with use. When any of these happen, persist it:
 - **User voice feedback** ("I'd never say X", "keep my Y") → append to that
   user's profile in `data/voices/<name>.md`; read it at step 0 next time.
 - **Era shift** — the lexicon moves as models change (delve peaked 2023–24;
-  2025+ models over-use "emphasizing/enhance/highlight/showcase"). When new
-  research or observation shows a shift, update weights rather than only
-  adding words.
+  2025+ models over-use "emphasizing/enhance/highlight/showcase"). Rather
+  than guessing new weights, derive them:
+
+  ```
+  python3 scripts/calibrate.py --human <dir> --ai <dir>
+  ```
+
+  This computes each term's excess frequency in current AI output against
+  known-human writing — the method the excess-vocabulary studies used — so
+  the meter tracks the model generation you actually face. Point it at your
+  own past writing for a personal baseline, or at this month's model output
+  for an era refresh.
+
+- **Every change is gated.** After editing patterns or weights, run
+
+  ```
+  python3 scripts/calibrate.py --selftest
+  ```
+
+  which scores a corpus of writing that must never be flagged
+  (`data/corpus/must-not-flag/`): dash-heavy 19th-century oratory, dense
+  technical prose, terse engineering notes. A pattern that convicts any of
+  them is rejected before it ships. Add a sample to that corpus whenever you
+  find honest writing the meter got wrong — that is how a false positive
+  becomes permanent protection rather than a one-time fix.
+
+- **Context beats a global weight.** Terms that are ordinary technical
+  vocabulary ("robust", "landscape", "elevated", "leverage") live in
+  `riders` and only score when a marketing-register trigger shares their
+  sentence. "Elevated write volume" in a runbook is silent; "elevate your
+  brand with our seamless platform" is not. When a term proves
+  context-dependent, move it to `riders` rather than lowering its weight
+  globally.
+
+- **Patterns carry provenance and decay.** New entries record
+  `first_seen`/`last_confirmed`; `calibrate.py --decay` halves the weight of
+  anything unconfirmed for 18 months, so a 2024 tell fades on its own
+  instead of accumulating forever.
 
 ## References
 

@@ -98,13 +98,26 @@ def score_text(text, data, formal=False):
                 "quote": m.group(0)[:90].strip(),
             })
 
-    # 2. Lexicon (over-represented LLM vocabulary, weighted per occurrence)
-    lex_hits = 0.0
+    # 2. Lexicon. Two tiers, because context decides. Always-on terms
+    # ("delve", "tapestry") almost never appear in honest prose. Rider terms
+    # ("robust", "landscape", "elevated") are ordinary technical vocabulary
+    # and only count when a marketing-register trigger shares their sentence —
+    # so "elevated write volume" in a runbook is silent while "elevate your
+    # brand with our seamless platform" fires. Sentence-scoped, not global.
     lower = text.lower()
     for term, w in data["lexicon"].items():
         for m in re.finditer(r"\b" + re.escape(term) + r"\w*", lower):
             hits.append({"cat": "lexicon", "name": term, "w": w, "quote": m.group(0)})
-            lex_hits += w
+    riders, triggers = data.get("riders", {}), data.get("rider_triggers", [])
+    if riders:
+        for sent in sents:
+            sl = sent.lower()
+            if not any(t in sl for t in triggers):
+                continue
+            for term, w in riders.items():
+                for m in re.finditer(r"\b" + re.escape(term) + r"\w*", sl):
+                    hits.append({"cat": "rider", "name": term, "w": w,
+                                 "quote": m.group(0)})
 
     pattern_weight = sum(h["w"] for h in hits)
     # Density window is floored at 60 words (a single tell in a 7-word tweet
@@ -162,14 +175,21 @@ def score_text(text, data, formal=False):
     # hashtags and bold spam stay at full strength (they convict alone), and
     # burstiness is an independent statistical signal, so neither is scaled.
     corroboration = min(1.0, 0.45 + tell_density / 3.0)
+    stylistic = ((emdash_penalty + formality_penalty) * corroboration
+                 + uniformity_penalty + followability_penalty)
+    # No lexical evidence at all means no cluster, and the rule is that
+    # clusters convict. Style alone (dashes, long sentences, formal register,
+    # even rhythm) describes plenty of excellent human prose — 19th-century
+    # oratory, dense technical writing — so with zero tells and zero emoji or
+    # hashtag spam, style can raise suspicion but must never convict.
+    if not hits and emoji == 0 and hashtags == 0:
+        stylistic = min(stylistic, 3.5)
     evidence = (
         tell_density * 1.15
-        + uniformity_penalty
-        + (emdash_penalty + formality_penalty) * corroboration
+        + stylistic
         + emoji_penalty
         + bold_penalty
         + hashtag_penalty
-        + followability_penalty
     )
     ai_likelihood = round(100 / (1 + math.exp(-(evidence - 9.0) / 4.0)), 1)
 
