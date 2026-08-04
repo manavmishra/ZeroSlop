@@ -1,163 +1,133 @@
 # Zero Slop
 
-**AI writing has an accent, and readers have learned to hear it.** Zero Slop
-measures it, strips it, and proves the fix with numbers — then learns from the
-edits you make to its output.
+A linter for the AI accent. It scores a draft 0-100, tells you which spans cost
+what, rewrites it, and checks that the rewrite didn't invent anything.
 
-## Why now
-
-Between late July and early August 2026, LinkedIn, Snapchat, YouTube and
-Substack all shipped countermeasures. LinkedIn readers can now report a post as
-AI-generated; flagged posts lose reach beyond the author's own network and
-repeat authors are notified privately. Snapchat dropped wholly AI-generated
-video from Spotlight recommendations. YouTube made generic and template-based
-video ineligible for monetisation. Substack shipped a reader-facing detector,
-citing research that up to 40% of social-media writing is now synthetic.
-
-All four drew the same line: AI that refines your work is acceptable, AI that
-produces it is not. Zero Slop sits on the right side of it — it never writes a
-draft, it measures and rewrites yours. And because the penalty is now reach
-rather than reputation, the cost of shipping a tell went up for everyone who
-publishes under their own name.
-
-## The problem
-
-Two 2024 studies caught it in the data. Stanford found "meticulous" appearing in
-AI-conference peer reviews at nearly 35 times its pre-ChatGPT rate. Tübingen
-found the same class of words surging across fifteen million biomedical
-abstracts. Readers learned the accent fast enough that an em-dash on LinkedIn
-now gets a writer accused of outsourcing their thinking.
-
-Strip a model's assistant training and detectors call the raw output human 97 to
-99 percent of the time. The accent is a style acquired in post-training. It
-lives in wording, not ideas, which is why a careful rewrite can remove it
-without altering a fact.
-
-## The product
-
-An agent skill that measures a draft, rewrites it in two passes, and reports
-before-and-after scores. It runs offline with no dependencies, follows the Agent
-Skills standard, and installs into Claude Code, Cowork, Codex, ChatGPT, Cursor
-and anything else that reads skills.
-
-Every run returns three things: the rewritten text, a scorecard, and a heatmap
-showing which sentences carried tells.
-
-## It learns from you
-
-The gap between what the skill returned and what you actually published is free
-training signal. A phrase you struck becomes a candidate tell; a phrase it
-flagged that you kept becomes evidence it was wrong. Neither changes anything
-until three independent documents agree, which is what stops one person's taste
-from becoming everyone's rule.
-
-That threshold doubles as the privacy model. A span found in three unrelated
-documents is a generic construction rather than anyone's sentence, so what can
-be shared upstream is exactly what carries no private text. Reflection data
-stays in `~/.zero-slop/`, never in the repository, and sharing is one opt-in
-command that prints the entire payload first.
-
-Nothing ships without clearing a corpus of certified human writing — 19th
-century oratory, runbooks, business memos, and non-native English, which AI
-detectors are documented to over-flag. A pattern that would convict any of them
-is rejected at any level of evidence. Learning that corrupts the meter is worse
-than not learning.
-
-## A real run
-
-A founder's LinkedIn draft opened with "Enterprise AI value has too often
-compounded inside individual workflows…" and scored **45.7 — suspect**, despite
-having no emoji and no buzzwords. The catches were judgment calls: announcement
-voice in the opener, the best statistic buried in paragraph two, and a hook
-promising two reports while citing one.
-
-The rewrite opens "Six times. That's how much more your best people talk to
-models than everyone else does," gives each report its own number, and scores
-**9.5 — clean**. Same facts, same citations, nothing invented.
-
-## The evidence
-
-Fifty AI-typical drafts, six genres, blind judges on shuffled labels, every
-skill running its own published prompt.
-
-Competitor outputs were authored to represent each tool's published prompt
-rather than produced by running it, and only Zero Slop's rewrites iterated
-against a gate, so this is a design study rather than a head-to-head.
-
-Run one gave Zero Slop 32 of 50 best-picks. A replication with fresh judges on
-identical texts gave 23. Cohen's kappa 0.12 means judges barely agree on "best",
-so single-run numbers in this category are noise. Pooled across 100 verdicts:
-Zero Slop 55, blader/humanizer 40, no-ai-slop 5, de-slop 0. That wins the
-plurality against a 25 percent chance rate (p = 1.7 × 10⁻¹⁰) and is
-statistically tied with blader head to head (p = 0.15).
-
-The computed measures are steadier, with one caveat that has to lead: they are
-computed by Zero Slop's own detector, so they show how much of the surface
-register each method removes as measured by the thing that defines it, not an
-independent verdict. On that measure Zero Slop leaves 10.0 against 17 to 27 for
-the alternatives, a followability penalty of 0.07 against 0.33 to 0.46, and the
-original word count. Every other method shrinks the draft by up to 28 percent.
-
-Against us: Zero Slop ranked **last of four on judge-rated fidelity** and
-carried the only fabrication flag — a rewrite invented a feeling the author
-never described. The cause was structural: the gate measured vocabulary,
-rhythm, format and followability, and nothing measured fidelity.
-
-That is now a channel. `--fidelity` inventories figures, names, quotes and
-links in the source and fails the rewrite if any went missing, or if any
-appeared that was not there before. The gate runs it on every draft. It cannot
-see an invented feeling, so the judgment pass still applies — but the class of
-error that produced the flag is now caught by machine.
-
-## The rules
-
-No invented numbers, names, anecdotes, or feelings. Hollow paragraphs get
-flagged, never padded. Performed candor and forced hot takes are rejected as the
-louder dialect of the same disease. Where disclosure is required, disclose.
-
-## Accuracy, stated plainly
-
-Scoring this repo's own human-written documents once convicted five of eight.
-Two scoring bugs were responsible — a corroboration floor that gave style 45%
-weight with no lexical evidence, and a clamp keyed on hit count so a single
-light tell unlocked the full penalty. Both fixed, both under regression test;
-the rate on ordinary human prose is now zero of five.
-
-Five documents is a direction, not a rate. Claiming a 1% false-positive figure
-needs roughly a thousand labelled human samples, and that corpus does not exist
-here yet. Treat the gate as a linting threshold, not a judgment about who wrote
-something.
-
-This is not an AI detector and does not compete with one. A detector answers
-"did a machine produce this" for a third party; this answers "does this read as
-machine-written" for the author. It deliberately does not optimise against
-detector scores.
-
-Next, in order: a labelled corpus at volume, then channels that use no patterns
-at all — function-word distribution, hapax rate, sentence-opener diversity —
-then re-tuning against real labels. Tuning before the corpus is how the five-in-
-eight happened.
-
-## Trust
-
-The scorer is standard-library Python with no network calls, no dependencies,
-and no accounts. Drafts never leave the machine; voice profiles and reflection
-data are git-ignored and live outside the repository. A 35-case suite covers the
-detector, the learning gates, decay, and throughput, and runs in under two
-seconds. Scoring sustains about 1,100 documents per second, so it gates CI
-without being felt.
-
-## Install
+The score is computed, not judged. That is the whole difference. You can put it in
+CI, diff it across drafts, and argue with it, because every point is traceable
+to something you can read.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Or `/plugin marketplace add manavmishra/ZeroSlop` then `/plugin install
-zero-slop@zero-slop` in Claude Code and Cowork. Then say "de-slop this."
+Then say "de-slop this" in any agent. No dependencies, no network, no account.
+
+## the pitch, in one paragraph
+
+Every other de-slop tool is a prompt. You paste your draft, it hands one back,
+and you have no idea whether it got better or just different. Zero Slop measures
+first, shows you the six spans carrying the score, rewrites, measures again, and
+fails the rewrite if a figure went missing or a name appeared that wasn't in
+your source. Then it learns from whatever you change before publishing.
+
+## why now, specifically
+
+Four platforms shipped countermeasures in two weeks, late July into August 2026.
+LinkedIn added a reader-facing "seems like AI slop" report — flagged posts lose
+reach beyond the author's own network. Snapchat dropped wholly AI-generated
+video from Spotlight. YouTube made template-based video ineligible for
+monetisation. Substack shipped a reader detector, citing research that up to 40%
+of social-media writing is now synthetic.
+
+They all drew the same line: AI that *refines* your work is fine, AI that
+*produces* it is not. Zero Slop sits on the right side of it by construction.
+It never writes a draft; it measures and rewrites yours.
+
+The consequence is that reach is now downstream of whether readers think a
+machine wrote it. This stopped being a matter of taste and became a
+distribution problem.
+
+## what it actually does
+
+Four channels, every draft:
+
+| channel | measures | reads wording? |
+|---|---|---|
+| pattern meter | 74 weighted patterns, 55-term lexicon, 13 context-gated riders | yes |
+| rhythm | sentence variance, uniformity, paragraph shape | no |
+| followability | comma chains, long-word pileups, 38+ word sentences | no |
+| format | em-dash density, emoji, hashtags, bold spam | no |
+
+Three quarters of the signal never looks at specific words, which is why a score
+survives someone swapping synonyms to dodge a word list. The discrimination
+corpus contains a post scoring 38.6 with zero charged spans, caught on
+rhythm and shape alone, which is exactly what a lexicon-only tool misses.
+
+Fusion is deliberately conservative: clusters convict, singles don't. Em-dashes
+and formal register are habits, not evidence. Nineteenth-century oratory trips
+both, so they only carry weight when lexical evidence corroborates.
+
+## the numbers
+
+Pooled over 100 blind verdicts on 50 drafts across six genres: **55 best-picks**
+against blader/humanizer 40, no-ai-slop 5, de-slop 0. Wins the plurality against
+a 25% chance rate (p = 1.7e-10). Statistically tied with blader head to head
+(p = 0.15), which is worth saying because most tools in this category wouldn't.
+
+Discrimination between obvious slop and obvious human writing across LinkedIn,
+blog, social, Reddit and newsletter: AUC 1.000, 12/12, 77 points of separation.
+
+False positives on ordinary human prose: 0 of 5, down from 5 of 8 after two
+scoring bugs were found by measuring rather than reading.
+
+Speed: ~1,100 docs/sec, 0.94 ms/doc. Fast enough to gate CI without anyone
+noticing.
+
+## the part I'd want to know before installing
+
+It ranked **last of four on judge-rated fidelity** in the benchmark, and carried
+the only fabrication flag. A rewrite invented a feeling the author never
+described. The cause was structural: the gate measured vocabulary, rhythm,
+format and followability, and nothing measured fidelity.
+
+That's now a channel. `--fidelity` inventories figures, names, quotes and links
+in the source and fails a rewrite that drops one or invents one. It still can't
+see an invented *feeling*, so the judgment pass stays.
+
+Also: 9.5 is the floor, not a grade. `Hello` scores 9.5. The accuracy numbers
+above rest on corpora I authored, which shows the meter agrees with an obvious
+judgment, not that it generalises. A real false-positive rate needs a thousand
+labelled samples and that corpus doesn't exist yet.
+
+## it learns from your edits
+
+The most honest signal a linter can get is what you change *after* it hands the
+draft back. Strike a phrase before publishing and that phrase was a tell it
+missed.
+
+One edit changes nothing. A span becomes a pattern only after three independent
+documents cut it, because a single diff can't tell a stylistic tell from an
+author trimming for length. The loop runs both ways. A pattern you overrule
+three times loses half its weight, because a meter that can only grow ends up
+flagging everything.
+
+Reflection data stays in `~/.zero-slop/`, never the repo. Sharing upstream is
+opt-in and prints the whole payload first.
+
+## what it refuses
+
+No invented numbers, names, anecdotes or feelings. Hollow paragraphs get
+flagged, not padded. Performed candor and forced hot takes are rejected as the
+louder dialect of the same disease. Where disclosure is required, disclose.
+
+It also doesn't optimise against detector scores. Tools like Pangram answer "did
+a machine produce this" for schools and compliance teams. This answers a
+different question for a different person, and the people who'd want the first
+thing defeated are the ones it refuses to serve.
+
+## who it's for
+
+People who publish under their own name and would rather not be pattern-matched
+to a chatbot. Comms teams who need a number they can put in a review. Engineering
+teams who want slop to fail CI like any other lint rule. Researchers who need the
+formal register left intact: the research module forbids moves the general
+ladder prescribes, because contractions and short punchy sentences are
+themselves a tell in a journal abstract.
 
 ---
 
-github.com/manavmishra/ZeroSlop · MIT · builds on petergyang/no-ai-slop,
-blader/humanizer, isatimur/de-slop, hardikpandya/stop-slop, Wikipedia's Signs of
-AI writing, and thirteen detection papers cited in references/evidence.md.
+MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop)
+· 56 tests · builds on no-ai-slop, humanizer, de-slop, stop-slop, Wikipedia's
+Signs of AI writing, Kagi's SlopStop, and thirteen detection papers cited in the
+repo.

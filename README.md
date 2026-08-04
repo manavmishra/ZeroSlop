@@ -1,28 +1,34 @@
 # Zero Slop
 
-**AI writing has an accent, and readers have learned to hear it.** Zero Slop
-scores any draft 0-100, strips the tells, and proves the fix with before and
-after numbers. Every edit you make to its output teaches the detector.
+A linter for the AI accent. It scores a draft 0-100, tells you which spans cost
+what, and rewrites it. The score is computed, not judged, so you can put it in
+CI and argue with it.
 
-<p align="center">
-  <img alt="MIT licensed" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="Agent Skills standard" src="https://img.shields.io/badge/Agent%20Skills-standard-2a78d6">
-  <img alt="Zero dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
-  <img alt="Offline" src="https://img.shields.io/badge/network%20calls-0-1E7A4C">
-  <img alt="Benchmark replicated" src="https://img.shields.io/badge/benchmark-replicated-8A4FA3">
-</p>
+It is not a detector. It won't tell you whether a machine wrote something. It
+tells you whether a reader will *think* one did, which is a different question
+and the only one a writer can act on.
+
+Still actively wrong about things. See [todos](#todos).
+
+## install
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Then say "de-slop this" in any agent.
+Then say "de-slop this" in any agent. Or clone it and use the scorer on its own:
 
----
+```bash
+git clone https://github.com/manavmishra/ZeroSlop.git
+cd ZeroSlop
+printf "We're thrilled to announce a seamless cutting-edge solution.\n" | python3 scripts/slopscore.py --explain
+```
 
-## See it work
+No dependencies. One stdlib Python file does the scoring. Nothing phones home.
 
-Two sentences a product marketer would call finished:
+## quick start
+
+Here is a sentence a product marketer would call finished:
 
 > We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience, reducing setup time by 40%.
 
@@ -41,11 +47,12 @@ AI-likelihood: 100.0/100  [slop]
                                                 = 23 weighted, 38.33 per 100 words
 ```
 
-Six spans carry the whole score, and each one names itself. `seamless` is
+Six spans carry the whole thing and each one names itself. `seamless` gets
 charged twice on purpose, once as marketing register and once as vocabulary,
-because the two channels are independent evidence. `leveraged` scores only 2:
-it is a *rider*, silent in a sentence like "we leveraged the existing index"
-and charged here because marketing words share its sentence.
+because those are two independent channels agreeing, which is worth more than
+either alone. `leveraged` only scores 2, because it's a *rider*: silent in "we
+leveraged the existing index", charged here because marketing words share its
+sentence.
 
 Strike the six and one fact is left standing:
 
@@ -59,20 +66,9 @@ AI-likelihood: 9.5/100  [clean]
   charged spans: none — the score is rhythm and format only
 ```
 
-Twenty-two words to eight, and the only survivor is the 40%. That ratio is the
-point: most of the original was decoration around a single measurement, which
-is what the AI accent usually turns out to be on inspection.
-
-**About that 9.5.** It is the floor, not a grade. Any document with zero charged
-spans scores 9.5 — including the string `Hello`. So read the charged-span list
-first and the composite second.
-
-For scale: the 50 raw AI drafts in [`bench/`](bench/) average 70, and the
-certified-human writing in [`data/corpus/`](data/corpus/must-not-flag/) lands
-between 9 and 21. That makes the number useful for ranking drafts against each
-other and for a CI threshold. It is not a judgment about one text on its own,
-and it says nothing about whether the sentence was worth writing — which is why
-every run prints what it did not measure.
+22 words to 8, and the survivor is the 40%. That ratio is the whole point. Most
+of the original was decoration around one measurement, which is what the AI
+accent usually turns out to be once you look.
 
 Run both yourself:
 
@@ -81,252 +77,119 @@ printf "We're thrilled to announce that our team has leveraged cutting-edge AI t
 printf "We cut onboarding setup time by 40%% using AI.\n" | python3 scripts/slopscore.py --explain
 ```
 
-## What you get
+## about that 9.5
 
-- **Detector, four channels.** A pattern meter (74 weighted patterns, a 55-term
-  lexicon, 13 context-gated riders that stay silent in honest technical prose),
-  plus rhythm, followability and format, and a shape channel for social posts.
-  Only the pattern meter reads specific words, and its hits come back as quoted
-  spans you can argue with. The other three are document-level statistics, which
-  is why they still fire on text that has been reworded to dodge a word list.
-- **Two-pass rewrite.** Strip the tells, then rebuild toward an expert register.
-- **Hard gate.** The rewrite has to clear a numeric threshold that tightens by
-  genre, strictest on LinkedIn. Three failures and it stops and says the draft
-  needs a real detail, not better words.
-- **Scorecard and heatmap.** Before and after, on every run.
-- **Six platform modules.** LinkedIn, X, email, blog, newsletter, research.
-- **Shape channel.** Catches broetry, reported on its own axis. Genre is
-  declared by the caller, never auto-detected.
-- **A reflect loop.** The gap between what the skill returned and what you
-  actually published is free training signal. A span you cut becomes a pattern
-  once three separate documents cut it too; a pattern you overrule three times
-  loses half its weight. The meter sharpens as it is used, in both directions.
-- **Learning that cannot corrupt the meter.** Nothing ships without clearing a
-  corpus of certified human writing, including non-native English, which AI
-  detectors are documented to over-flag.
-- **CI tooling.** `--gate` exit codes, `--batch` a directory, `--explain` a
-  heatmap.
-- **Fidelity rules.** No invented numbers, names, anecdotes, or feelings.
-  Hollow spans get flagged, never padded.
+It's the floor, not a grade. Any document with zero charged spans scores 9.5.
+So does the string `Hello`. Read the span list first and the number second.
 
-## Install
+For scale: the 50 raw AI drafts in [`bench/`](bench/) average 70, and the
+certified-human writing in [`data/corpus/`](data/corpus/must-not-flag/) lands
+between 9 and 21. That makes the number useful for ranking drafts
+against each other and for a CI threshold. It is not a verdict on one text
+alone, and it says nothing about whether the sentence was worth writing, which
+is why every run prints what it did not measure.
 
-Pick the line for your harness. You do not need to read the others.
+## how it works
 
-**Any agent:**
+Four channels, all interpretable, all computed on every draft.
 
-```bash
-npx skills add manavmishra/ZeroSlop --global
-```
+| channel | what it measures | reads wording? |
+|---|---|---|
+| pattern meter | 74 weighted patterns, 55-term lexicon, 13 context-gated riders | yes |
+| rhythm | sentence-length variance, uniformity, paragraph shape | no |
+| followability | comma chains, long-word pileups, 38+ word sentences | no |
+| format | em-dash density, emoji, hashtags, bold spam | no |
 
-`--agent '*'` hits every harness; `--agent claude-code` (or `codex`, `cursor`,
-`opencode`, `warp`, `zed`) hits one; drop `--global` for a project-local install.
+Only the first reads specific words. That's why a score survives someone
+swapping synonyms to dodge a word list — three quarters of the signal never
+looked at the words.
 
-**Claude Code and Cowork, as a plugin:**
-
-```
-/plugin marketplace add manavmishra/ZeroSlop
-/plugin install zero-slop@zero-slop
-```
-
-<details>
-<summary>ChatGPT · Codex · claude.ai · Cowork workspaces · manual clone</summary>
-
-**ChatGPT and ChatGPT at Work:**
+They fuse into one number, but the fusion is deliberately conservative:
+clusters convict, singles don't. Em-dash density and formal register are
+stylistic habits, not evidence on their own. Nineteenth-century oratory trips
+both, so they only carry weight when lexical evidence corroborates them. Getting that
+arithmetic wrong once made the scorer convict 5 of 8 human-written documents in
+this very repo. See [accuracy](#accuracy).
 
 ```bash
-curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md
+python3 scripts/slopscore.py --dna before.md after.md   # which channel carried the slop
+python3 scripts/slopscore.py --gate 25 draft.md         # exit 1 on failure, for CI
+python3 scripts/slopscore.py --batch docs/              # whole directory, worst first
+python3 scripts/slopscore.py --formal abstract.txt      # research register
 ```
 
-Paste it into a Project's Instructions, upload it as Custom GPT Knowledge, or
-paste it at the top of a chat. The bundle carries the skill and all five
-reference documents.
+### fidelity
 
-**Codex.** Run this in *your* project, not in a clone of this repo, since it
-writes `AGENTS.md`:
+The rewrite must not invent things. This used to be a rule the agent was asked
+to honour; now it's checked:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
+python3 scripts/slopscore.py --fidelity original.md rewrite.md
 ```
 
-**claude.ai and Desktop:** download the repo zip, then upload it under
-Settings → Capabilities → Skills.
+It inventories figures, names, quotes and links in the source and exits
+non-zero if any went missing, or if any appeared that wasn't there before. The
+second half is the one that matters. A dropped number is visible to the author;
+an invented one isn't.
 
-**Cowork workspace**, so teammates inherit it:
+It only sees figures, names, quotes and links. It cannot see an invented
+*feeling*, which is exactly the failure that made me build it (below).
 
-```bash
-git clone https://github.com/manavmishra/ZeroSlop.git .claude/skills/zero-slop
-```
+### it learns from your edits
 
-**Manual, any tool:**
-
-```bash
-git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
-```
-
-Windows: clone into `$env:USERPROFILE\.claude\skills\zero-slop`. The folder must
-be named `zero-slop`.
-</details>
-
-**Requirements:** none. Markdown plus one standard-library Python file. Where
-Python is unavailable the skill falls back to its reference lists; you lose the
-numeric gate, not the rewrite.
-
-## Use it
-
-Same tool, two entry points. The skill scores a draft and rewrites it; the CLI
-only scores, and returns an exit code, so it drops into CI as a lint step.
-
-### In an agent
-
-Say "de-slop this" and paste a draft. Say "score this" for a report without a
-rewrite. Every run returns the rewritten text, a before-and-after scorecard, and
-a heatmap of which sentences carried tells.
-
-Output comes back in the form you gave it. Paste text, get text; hand it a
-`.docx`, `.pdf`, or `.html` file and you get that file back.
-
-Name your platform ("this is for LinkedIn") to load the matching module. The
-research module is the one that matters most to get right: it forbids moves the
-general ladder prescribes, because contractions and short punchy sentences are
-themselves a tell in a journal abstract.
-
-### Teach it
-
-Point the loop at what the skill gave you and what you actually published:
+The most honest signal a linter can get is what you change *after* it hands the
+draft back. If you strike a phrase before publishing, that phrase was a tell it
+missed.
 
 ```bash
 python3 scripts/learn.py --reflect --produced out.md --shipped final.md
-python3 scripts/learn.py --promote --apply    # mint what cleared threshold
-python3 scripts/learn.py --demote  --apply    # relax what writers overruled
-python3 scripts/learn.py --stats              # the learning curve
+python3 scripts/learn.py --promote --apply
 ```
 
-A single edit changes nothing. A span becomes a pattern only after three
-independent documents cut it, because one diff cannot tell a stylistic tell
-from an author trimming for length. That threshold is also what makes sharing
-safe: a phrase found in three unrelated documents is a generic construction,
-not anyone's sentence.
+One edit changes nothing. A span becomes a pattern only after three independent
+documents cut it, because a single diff can't tell a stylistic tell from an
+author trimming for length. An early version watched someone delete "the people
+is the standard we hold ourselves to" and proposed it as a tell. It was
+just content.
 
-```bash
-python3 scripts/learn.py --export             # prints exactly what would be shared
-```
+The loop runs both directions: a pattern you overrule three times loses half
+its weight. A meter that can only grow ends up flagging everything.
 
-Reflection data stays on your machine, in `~/.zero-slop/`, never in the
-repository. The export carries spans and counts with no source text, no
-filenames, and no dates finer than a month, and it prints the whole payload for
-you to read before anything is written.
+Reflection data lives in `~/.zero-slop/`, never in the repo. `--export` shares what
+it learned upstream with no source text attached, and prints the whole payload
+before writing anything.
 
-### From the CLI
-
-```bash
-pbpaste | python3 scripts/slopscore.py --explain     # clipboard + heatmap
-python3 scripts/slopscore.py --heatmap draft.md      # heatmap only
-python3 scripts/slopscore.py --gate 25 draft.md      # exit 1 on failure (CI)
-python3 scripts/slopscore.py --batch docs/           # directory, worst first
-python3 scripts/slopscore.py --formal abstract.txt   # research register
-python3 scripts/slopscore.py --json draft.md         # machine-readable
-```
-
-The pattern database ages. These commands keep it current:
-
-```bash
-python3 scripts/calibrate.py --human dir/ --ai dir/  # refit weights to current models
-python3 scripts/calibrate.py --selftest              # false-positive regression
-python3 scripts/calibrate.py --decay                 # age out stale tells
-```
-
-## How it works
-
-<p align="center">
-  <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 74 weighted tells with a 55-term lexicon and 13 context-gated riders, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and a reflect loop that turns your own edits into new evidence." width="880">
-</p>
-
-<p align="center"><em>Four interpretable channels fuse into one score. Only the
-pattern meter reads specific wording; the rest measure shape and rhythm, which
-is why a score survives a rewrite. What you change afterwards feeds back in.</em></p>
-
-<details>
-<summary>Diagram source (Mermaid)</summary>
-
-```mermaid
-flowchart LR
-    D([Draft]) --> PM & RH & FF
-    subgraph Measure["Measure · every channel, every run · 3 of 4 survive rewording"]
-      PM["Pattern meter · reads wording<br/>74 tells · 55 lexicon · 13 riders"]
-      RH["Rhythm · wording-blind<br/>burstiness · uniformity · shape"]
-      FF["Followability + format · wording-blind<br/>density · dashes · register"]
-    end
-    PM & RH & FF --> F["Evidence fusion<br/>score 0-100 · hits quoted, stats reported"]
-    F --> J[Diagnose<br/>hollow spans · facts · voice]
-    J --> W[Two-pass rewrite<br/>strip, then build]
-    W --> G{Verify gate}
-    G -- pass --> O([Rewritten text + scorecard])
-    G -- "fail, up to 3x" --> W
-    G -. lessons .-> L[(learned.json)]
-    L -. sharpens the meter .-> PM
-    O -.-> R{{"your edit"}}
-    R -. "3 documents agree" .-> L
-    R -. "you overruled it" .-> L
-```
-</details>
-
-## Benchmark
+## benchmarks
 
 Fifty AI-typical drafts, six genres, blind judges on shuffled labels.
 
-**This is a design study, not a head-to-head.** Competitor outputs in
-[`bench/outputs/`](bench/outputs/) were written to represent each tool's
-published prompt rather than produced by running it, and only Zero Slop's
-rewrites iterated against a gate. Judge prompts and model ids were not
-recorded. Weigh the numbers accordingly.
+**This is a design study, not a head-to-head.** The competitor outputs in
+`bench/outputs/` were written to represent each tool's published prompt rather
+than produced by running it, and only Zero Slop's rewrites iterated against a
+gate. Judge prompts and model ids weren't recorded. Weigh accordingly.
 
-Run one gave Zero Slop 32 of 50 best-picks; a replication with fresh judges on
-identical rewrites gave 23. Cohen's kappa 0.12 — judges barely agree on "best",
-so a single run in this category is noise. Pooled across 100 verdicts:
+Run one gave Zero Slop 32 of 50 best-picks. A replication with fresh judges on
+identical rewrites gave 23. Cohen's kappa 0.12, so judges barely agree on "best" and one run in this
+category is noise. Pooled over 100 verdicts:
 
-| Method | Best-picks | Composite r1 | Composite r2 |
+| method | best-picks | composite r1 | composite r2 |
 |---|--:|--:|--:|
 | **Zero Slop** | **55** | **8.01** | 7.51 |
 | blader/humanizer | 40 | 7.82 | 7.51 |
 | petergyang/no-ai-slop | 5 | 6.96 | 6.87 |
 | isatimur/de-slop | 0 | 6.35 | 6.60 |
 
-Wins the plurality against a 25% chance rate (p = 1.7 × 10⁻¹⁰), 95% CI
-[45%, 64%]. **Not statistically separable from blader/humanizer** head to head
-(p = 0.15). Both beat the other two decisively (p < 10⁻⁷).
+Wins the plurality against a 25% chance rate (p = 1.7e-10, 95% CI [45%, 64%]).
+**Not statistically separable from blader/humanizer** head to head (p = 0.15).
+Both beat the other two decisively (p < 1e-7).
 
-### The result that went against us, and what it cost to fix
+Deterministic panel, scored by Zero Slop's own detector — so read it as "how
+much surface register each method removes, as measured by the thing that
+defines the register", not as an independent verdict:
 
-Zero Slop ranked **last of four on judge-rated fidelity** — 8.80 against blader
-9.32, petergyang 9.58, de-slop 9.66 — and carried the only fabrication flag: a
-rewrite invented a feeling the author never described.
-
-The cause was structural. The gate scored vocabulary, rhythm, format and
-followability, and nothing measured fidelity. The property the product claims
-matters most was enforced by instruction alone.
-
-That is now a channel, not a rule:
-
-```bash
-python3 scripts/slopscore.py --fidelity original.md rewrite.md
-```
-
-It inventories figures, names, quotes and links in the source, and exits
-non-zero if any went missing **or if any appeared that was not there before**.
-The second half is the one that matters — a dropped figure is visible to the
-author, an invented one is not. SKILL.md step 4 now runs it on every rewrite.
-It cannot see an invented *feeling* or a reframed claim; those still need the
-judgment pass, and the report says so.
-
-Deterministic measures, recomputed against the current scorer. One caveat
-first: **this column is scored by Zero Slop's own detector**, so it measures how
-much of the surface register each method removes, as judged by the thing that
-defines the register.
-
-| Method | Detector score | Followability | Words |
+| method | detector | followability | words |
 |---|--:|--:|--:|
-| Original drafts | 69.0 | 0.46 | 159 |
+| original drafts | 69.0 | 0.46 | 159 |
 | isatimur/de-slop | 23.4 | 0.41 | 137 |
 | stacked pipeline | 21.2 | 0.38 | 114 |
 | blader/humanizer | 19.3 | 0.46 | 135 |
@@ -335,184 +198,150 @@ defines the register.
 | Zero Slop v1.0 *(the judged build)* | 10.4 | 0.36 | 128 |
 | **Zero Slop v1.2** | **9.8** | **0.07** | **159** |
 
-Both Zero Slop rows are shown because they are different builds: v1.0 won the
-55 best-picks and cut drafts 22% shorter; v1.2 holds the original length and no
-judge ever saw it. Read the length column as a property of v1.2, not as a
-judged result.
+Both Zero Slop rows are shown because they're different builds. v1.0 won the 55
+best-picks and cut drafts 22% shorter. v1.2 holds length and no judge ever saw
+it. Don't read the length column as a judged result.
 
-Harness in [`bench/`](bench/). Honest summary: statistically tied with a
-simpler tool, on a benchmark we wrote, against competitor outputs we wrote —
-and now with the one dimension we lost on actually measured.
+There's also a discrimination test — can it tell obvious slop from obvious human
+writing across LinkedIn, blog, social, Reddit and newsletter? AUC 1.000, 12/12,
+77 points of separation, no overlap. With the caveat that I wrote both classes,
+so it shows the meter agrees with an obvious judgment, not that it generalises.
 
-## Accuracy, and what it is not
+```bash
+python3 bench/discrimination/evaluate.py
+```
 
-**False positives on human writing.** Scoring the human-written documents in
-this repo, with quoted specimens stripped, once convicted **5 of 8**. Two
-scoring bugs caused it: the corroboration floor was 0.45, handing style 45% of
-its weight to text carrying no lexical evidence at all, and the clamp meant to
-catch the rest keyed on hit *count*, so one weight-2.5 tell in 392 words scored
-`AGENTS.md` at 59.2. Both are fixed and both have regression tests. On ordinary
-human prose the rate is now **0 of 5**.
+Speed: ~1,100 docs/sec, 0.94 ms/doc, a 15,000-word document in 0.16s.
 
-That is a direction, not a rate. You cannot establish a 1% false-positive rate
-from five documents; it needs on the order of a thousand labelled human samples.
-Until that exists, treat the gate as a linting threshold, not a verdict about
-authorship.
+## the result that went against me
 
-This README scores 30.7, and every charged span is a word it is *explaining* —
-`seamless` and `leveraged` appear in the prose above describing why they are
-charged. A document about slop contains slop by necessity. That is the clearest
-demonstration of the limit below.
+Zero Slop ranked **last of four on judge-rated fidelity**, 8.80 against blader
+9.32, petergyang 9.58 and de-slop 9.66, and carried the only fabrication flag in
+the whole benchmark. A rewrite invented a feeling the author never described,
+and two independent judges caught it.
 
-**Three documents here still score 59–96, correctly.**
-`references/rewrite-moves.md` and `overcorrection.md` are catalogues of slop
-examples and `evidence.md` discusses "delve" and "meticulous" as vocabulary. No
-regex distinguishes a specimen from an assertion. If you lint documentation
-*about* writing, expect this and read the charged spans.
+That is the exact thing the skill's first rule forbids, and it's the most useful
+thing the benchmark produced. The cause was structural: the gate measured
+vocabulary, rhythm, format and followability, and nothing measured fidelity.
+The property I claimed mattered most was enforced by instruction alone.
 
-**This is not an AI detector, and does not compete with one.** A detector like
-Pangram answers "did a machine produce this", sells to schools and compliance
-teams, and publishes a 1-in-10,000 false-positive rate from a trained model
-validated on millions of labelled documents. This answers "does this read as
-machine-written", for the person writing it. The honest gap: 74 regexes
-validated against twelve human samples is not that, and the tool deliberately
-does not optimise against detector scores, because the people who would want
-that are the ones it refuses to serve.
+`--fidelity` exists because of that. It catches the mechanical half: invented
+figures and names. It still cannot catch an invented feeling, so the judgment
+pass stays.
 
-**Where regexes fail.** They are brittle by construction: every false positive
-above traces to a pattern firing on legitimate notation, and every miss to
-phrasing no pattern anticipated. Three of the four channels are already
-phrasing-independent, which is why a score survives rewording. The next work is
-channels that use no patterns at all — function-word distribution (the
-Mosteller–Wallace signal), hapax rate, and sentence-opener diversity — all
-stdlib-computable and blind to specific wording. Corpus first, then those
-channels, then re-tuning against real labels, in that order.
+## accuracy
 
-## Why this matters now
+Scoring the human-written docs in this repo, with quoted specimens stripped,
+once convicted **5 of 8**. Two bugs: the corroboration floor was 0.45, handing
+style 45% of its weight to text with no lexical evidence at all, and the clamp
+meant to catch the rest keyed on hit *count*, so one weight-2.5 tell in 392
+words scored `AGENTS.md` at 59.2. Both fixed, both under regression test. Now
+**0 of 5**.
 
-Four platforms moved within two weeks of each other in late July and early
-August 2026, and the common thread is that reach, not taste, is now the penalty.
+That's a direction, not a rate. You can't establish a 1% false-positive rate
+from five documents. It needs on the order of a thousand labelled human
+samples, and that corpus doesn't exist here yet.
 
-**LinkedIn** added a control letting any reader report a post or comment as
-AI-generated. Reports hide the post for that reader and train LinkedIn's
-classifiers; flagged posts lose algorithmic reach beyond the author's own
-network, and repeat authors get private notices in their analytics. LinkedIn's
-chief product officer says the platform is catching hundreds of thousands of
-automated comment attempts daily. It also retired the "enhance this post"
-generator in favour of a plain proofreader. **Snapchat** stopped recommending
-wholly AI-generated video in Spotlight. **YouTube** made generic, repetitive and
-template-based video ineligible for monetisation. **Substack** shipped a
-reader-facing detector for AI writing, with its CEO citing research that up to
-40% of writing on social media is now synthetic.
+Three docs here still score 59-96, correctly. `references/rewrite-moves.md` and
+`overcorrection.md` are catalogues of slop examples; `evidence.md` discusses
+"delve" and "meticulous" as vocabulary. No regex distinguishes a specimen from
+an assertion. If you lint documentation *about* writing, expect this.
 
-Every one of them draws the same line: AI used to *refine* your work is fine,
-AI used to *produce* it is not. That is exactly the line this skill is built
-for — it never generates a draft, it measures and rewrites yours.
+This README scores about 30, and every charged span is a word it's explaining.
 
-Two design consequences follow. The systems on the other side are trained on
-**reader reports**, so the target is perception rather than any fixed word list,
-which is what the reflect loop tracks. And a false negative now costs
-distribution rather than a little credibility, which raises the value of
-catching structural tells: the discrimination corpus contains a post scoring
-38.6 with **zero** charged spans, caught on rhythm and shape alone.
+## why this matters now
 
-Sources: [BBC, 4 Aug 2026](https://www.bbc.com/news/articles/c77g6dm5pr8o) ·
-[Forbes, 1 Aug 2026](https://www.forbes.com/sites/gabrielalinzainescu/2026/08/01/snapchat-and-linkedin-launch-new-tools-to-curb-ai-slop-in-feeds/)
+Four platforms shipped countermeasures within two weeks of each other in late
+July and early August 2026. LinkedIn added a reader-facing "seems like AI slop"
+report; flagged posts lose reach beyond the author's own network. Snapchat
+dropped wholly AI-generated video from Spotlight. YouTube made generic and
+template-based video ineligible for monetisation. Substack shipped a reader
+detector, citing research that up to 40% of social-media writing is now
+synthetic.
 
-## Why the accent exists
+They all drew the same line: AI that *refines* your work is fine, AI that
+*produces* it is not. This sits on the right side of it — it never writes a
+draft, it measures and rewrites yours.
 
-Two 2024 studies measured it. Stanford found "meticulous" in AI-conference peer
-reviews at nearly 35 times its pre-ChatGPT rate; Tübingen found the same class
-of words surging across fifteen million biomedical abstracts.
+The practical consequence is that reach is now downstream of whether readers
+think a machine wrote it. That makes this a distribution problem, not a matter
+of taste.
 
-The useful finding is what happens when you strip a model's assistant training:
-detectors rate the raw base model as human 97 to 99 percent of the time. The
-accent is a style acquired in post-training, and it lives in wording rather than
-ideas. Rewriting removes it without touching a fact.
+## what it refuses
 
-<details>
-<summary>The thirteen papers this is built on</summary>
-
-Every design decision below traces to one of these. Full reasoning, including
-which findings were rejected, is in [references/evidence.md](references/evidence.md).
-
-| Finding used here | Source |
-|---|---|
-| Detectors classify the post-training register, not machine generation: base models rate 97–99% human | [arXiv:2605.19516](https://arxiv.org/abs/2605.19516) |
-| Excess-vocabulary method — how `calibrate.py` derives weights from frequency differentials | Kobak et al., [arXiv:2406.07016](https://arxiv.org/abs/2406.07016) |
-| Style-word surge across AI-era corpora; era-dependence of "delve" | Juzek & Ward, [arXiv:2412.11385](https://arxiv.org/abs/2412.11385) |
-| **Detectors misclassify >50% of non-native English as AI** — why the corpus has an ESL sample | Liang et al., [arXiv:2304.02819](https://arxiv.org/abs/2304.02819) (*Patterns* 4:100779) |
-| Detector decay across model generations — why no trained classifier ships | RAID, [arXiv:2405.07940](https://arxiv.org/abs/2405.07940) |
-| Perplexity/curvature detection and its limits | DetectGPT [2301.11305](https://arxiv.org/abs/2301.11305), Binoculars [2401.12070](https://arxiv.org/abs/2401.12070) |
-| Burstiness and sentence-length variance as a human signal | Muñoz-Ortiz [2308.09067](https://arxiv.org/abs/2308.09067), Reinhart [2410.16107](https://arxiv.org/abs/2410.16107) |
-| Human raters cannot reliably identify AI text unaided | Herbold [2304.14276](https://arxiv.org/abs/2304.14276), Liang [2403.07183](https://arxiv.org/abs/2403.07183) |
-| Stylometric drift and register analysis | [2303.13408](https://arxiv.org/abs/2303.13408), [2310.06202](https://arxiv.org/abs/2310.06202) |
-
-</details>
-
-## What it refuses
-
-Inventing a personal anecdote is the fastest way to make text sound human, and
-the trap most tools fall into. Zero Slop treats it as the cardinal sin: no fake
-numbers, names, war stories, or interior feelings. Hollow paragraphs get flagged
-rather than padded. Performed candor and forced hot takes are rejected as the
+No invented numbers, names, anecdotes or feelings. Hollow paragraphs get
+flagged, not padded. Performed candor and forced hot takes are rejected as the
 louder dialect of the same disease. Where disclosure is required, disclose.
 
-The score has limits, and the gate reports what it did not measure. A draft can
-be word-clean and still read as machine-written, so a green number never means
-the judgment pass was optional. During benchmarking one rewrite invented a
-feeling the author never described. Two independent judges caught it, and the
-rule it produced now runs on every draft.
+It also doesn't optimise against detector scores. Tools like Pangram answer
+"did a machine produce this" for schools and compliance teams, from a trained
+model with a published 1-in-10,000 false-positive rate. This answers a
+different question for a different person, and the people who'd want the first
+thing defeated are the ones it refuses to serve.
 
-## FAQ
+## todos
 
-**Is this an AI detector bypass?** No. Detectors flag a writing style; this
-removes the style by making the writing better.
+- **A labelled corpus at volume.** This is the blocker for everything
+  quantitative. RAID, HC3, M4 and AuTextification are free, labelled, and cover
+  email/social/blog. Every accuracy number above rests on samples I authored,
+  and tuning before this corpus exists is precisely how the 5-in-8 false
+  positive rate survived unnoticed.
+- **Channels that use no patterns at all.** Regexes are brittle by
+  construction. Every false positive traced to one firing on legitimate
+  notation, every miss to phrasing nothing anticipated. Function-word
+  distribution (the Mosteller-Wallace signal), hapax rate, and sentence-opener
+  diversity are all stdlib-computable and blind to wording.
+- **Actually run the competitors.** The benchmark comparison isn't a real
+  head-to-head until each tool is executed and logged.
+- **A fidelity channel that sees claims, not just entities.** It catches an
+  invented name; it misses an invented feeling, which is the failure that
+  motivated it.
+- **The reflect loop has never promoted a pattern automatically.** By
+  construction: it only learns from cuts the meter missed, and the skill has
+  already stripped what it knows. The capture step also needs to stop requiring
+  a CLI invocation nobody will run.
 
-**Why does ChatGPT say "delve"?** Preference tuning. Human raters rewarded a
-polished formal register and the vocabulary came with it. The lexicon shifts
-between model generations, which is why the pattern database is versioned and
-`calibrate.py` can refit it from your own corpus.
+## repo layout
 
-**Are em-dashes really a tell?** Density is. One dash doing real work is fine
-almost everywhere except LinkedIn. An early version of this README used
-twenty-three of them; the scorer caught it.
+```
+SKILL.md                  the runtime artifact — the loop the agent follows
+scripts/slopscore.py      the scorer, stdlib only
+scripts/learn.py          the reflect loop
+scripts/calibrate.py      refit weights from your own corpus; decay stale tells
+data/patterns.json        74 weighted patterns + lexicon + riders
+data/corpus/must-not-flag/  writing that must never be flagged
+references/               the taxonomy, rewrite moves, platform modules, evidence
+bench/                    the benchmark harness and the discrimination test
+tests/test_all.py         56 tests
+```
 
-**Will it flatten my voice?** A sample of your real writing outranks every rule
-in the skill.
+## tests
 
-**Is there a trained model in it?** No. Every channel is an interpretable
-surface feature. Pattern-meter hits come back as quoted spans; the rhythm,
-followability and format channels report document-level statistics rather than
-spans, and `--explain` prints both.
-Trained classifiers were evaluated and rejected; the measurements are in
-[references/evidence.md](references/evidence.md).
+```bash
+python3 tests/test_all.py
+python3 scripts/calibrate.py --selftest
+```
 
-**Found a tell it missed?** Run the reflect loop on it. Once three documents
-agree, `--export` packages the finding with no source text attached, ready to
-attach to a PR. A regex straight into `data/learned.json` also works.
+The suite covers the detector, the learning gates, decay, CLI contracts,
+throughput, diagram geometry, and a set of guards that exist because these
+things drifted before: documented counts must match the data files, calibration
+anchors must match the corpora, the bundle and plugin mirror must be current,
+and no user prose may enter a git-tracked file.
 
-**Does my writing leave my machine?** No. Scoring and rewriting are local, and
-reflection data is written to `~/.zero-slop/`, outside the repository. Sharing
-is opt-in, one command, and prints the entire payload before it writes
-anything.
-
-**Can the learning loop be poisoned?** Not by one person. Three independent
-documents are required, spans carrying figures or proper nouns are discarded as
-content rather than style, and nothing ships that fires on, or borrows four
-consecutive words from, the certified-human corpus. A pattern that would
-convict Lincoln or an SRE runbook is rejected at any level of evidence.
-
-## Credits
+## acknowledgements
 
 Builds on [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop),
 [blader/humanizer](https://github.com/blader/humanizer),
 [isatimur/de-slop](https://github.com/isatimur/de-slop) and
-[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop), all MIT;
-Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing);
-Paul Graham's essays on writing; and the detection literature cited in
-[references/evidence.md](references/evidence.md).
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop), all MIT.
+Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
+Kagi's [SlopStop](https://help.kagi.com/kagi/features/slopstop.html), which
+converged independently on corroboration-before-conviction and an appeals path.
+Thirteen detection papers, cited in
+[references/evidence.md](references/evidence.md) — the load-bearing ones are
+the post-training register finding (arXiv:2605.19516), the excess-vocabulary
+method (Kobak et al., arXiv:2406.07016), and Liang et al.
+(arXiv:2304.02819), which found detectors misclassify over half of non-native
+English writing and is why there's an ESL sample in the safety corpus.
 
-## License
-
-[MIT](LICENSE).
+MIT.
