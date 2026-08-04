@@ -280,8 +280,10 @@ twenty-three of them; the scorer caught it.
 **Will it flatten my voice?** A sample of your real writing outranks every rule
 in the skill.
 
-**Does it use MaxEnt, SVMs, or HMMs?** No. All three were tested; the reasoning
-and the measurements are in [references/evidence.md](references/evidence.md).
+**Is there a trained model in it?** No. Every channel is an interpretable
+surface feature, so each point of the score traces back to a span you can read.
+Trained classifiers were evaluated and rejected; the measurements are in
+[references/evidence.md](references/evidence.md).
 
 **Found a tell it missed?** PR a regex into `data/learned.json` with a line in
 the log. That is the whole contribution process.

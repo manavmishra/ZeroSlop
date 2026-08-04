@@ -80,32 +80,30 @@ largest human-curated corpus of caught-in-the-wild AI text — converges on the
 same tell families and adds the cluster rule this skill inherits: one tell is
 coincidence; many tells, repeatedly, convict.
 
-## Negative results: what we tested and did not ship
+## Negative results: trained classifiers
 
-Three classic approaches were evaluated for a trained detection channel and
-all three were rejected on evidence, not preference.
+Several trained-classifier approaches were evaluated for an additional
+detection channel. None shipped, and the reasoning generalises beyond the
+specific methods.
 
-**Support-vector machines.** Head-to-head comparisons on text classification
-show no measurable gain over logistic regression, and an SVM would add a
-dependency to a package whose entire value proposition includes having none.
+**The ones that added nothing.** Two well-established classifier families were
+ruled out on published evidence: one shows no measurable gain over a simpler
+model on text classification while adding a dependency to a package whose value
+includes having none, and the other models a sequence signal that the burstiness
+and followability statistics already capture more cheaply and more legibly.
 
-**Hidden Markov models.** No published result shows HMMs adding value for
-AI-text detection. The sequence signal they would model is already captured
-by the burstiness and followability statistics, which are cheaper and
-interpretable.
+**The one that worked, and was cut anyway.** A trained channel built on lexical
+frequency and stylometric features performed well in-domain: 0.985 AUC and 94%
+accuracy on held-out data, properly calibrated with an abstain band. It was
+built, integrated, and then removed. The transfer test is why. Trained on
+2022-era text, it rated 2026-era AI drafts as human at a mean probability of
+0.038, and in a live check returned 0.33 on a passage the pattern meter scored
+100 out of 100. Detector decay across model generations is well documented
+(RAID, arXiv:2405.07940); this was that decay measured directly. A channel that
+is confidently wrong on current text is worse than no channel, even reported
+separately and labelled a second opinion.
 
-**Logistic regression (MaxEnt) over a Bayesian log-odds lexicon.** This one
-worked in-domain: 0.985 AUC, 94% accuracy on held-out HC3 data, Platt
-calibrated with an abstain band. It was built, trained, integrated, and then
-cut. The reason is the transfer test. Trained on ChatGPT-3.5-era text, it
-rated 2026-era AI drafts as human at a mean probability of 0.038, and in a
-live check returned 0.33 on a passage the pattern meter scored 100/100.
-Detector decay across model generations is well documented (RAID,
-arXiv:2405.07940); this is that decay measured directly. A channel that is
-confidently wrong on current text is worse than no channel, even when it is
-reported separately and labelled a second opinion.
-
-The lesson generalises: interpretable surface features degrade gracefully as
-models change, because the tells are updated in a data file. A trained
-classifier degrades silently, and silence is the failure mode you cannot
-audit.
+The lesson generalises. Interpretable surface features degrade gracefully as
+models change, because updating them means editing a data file and the drift is
+visible in the diff. A trained classifier degrades silently, and silence is the
+failure mode you cannot audit.
