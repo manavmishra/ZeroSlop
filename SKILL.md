@@ -252,17 +252,25 @@ Gate: PASSED (LinkedIn ≤20) · facts preserved 12/12 · nothing invented
 `python3 <skill-root>/scripts/slopscore.py --heatmap <file>`:
 
 ```
-  heatmap  (each bar = one sentence, hottest first)
-    s2   ██████████████████████████████████  18.0  Moreover, our seamless solution…
-                                                    ← empower, marketing-register, seamless
-    s1   ██████████████████████████········  14.0  I'm beyond excited to announce…
-                                                    ← announce-excited, game-chang
-    1 of 5 sentences carry no tells
+  SLOP MAP · 7 sentences · 5 carry tells · hottest first
+
+  ████████  heavy    ¶1  "I'm beyond excited to"
+                      LinkedIn tell — readers pattern-match this to AI instantly
+  ███░░░░░  mild     ¶3  "Let's dive"
+                      structural filler — delete the stem, keep the point
+
+  by paragraph  █ · ▓ ▒   █ heavy  ▓ moderate  ▒ mild  · clean
 ```
 
-The after-heatmap should be flat (`····· no tells found`). Show both: a
-reader who sees which sentences were hot learns the pattern and stops
-producing it, which is worth more than the single rewrite.
+Read it as: severity on an absolute scale (so bars mean the same thing in
+every document), the paragraph it lives in, **the exact phrase that triggered
+it**, and what to do instead in plain English. The paragraph strip at the
+bottom shows where slop clusters, which is often more useful than any single
+line — three heavy paragraphs and a clean one tells you the piece has a
+structural problem, not a word problem.
+
+The after-map should read `none carry tells`. Show both. A writer who sees
+which phrases were hot stops producing them, and that outlasts the rewrite.
 
 Then close with: a short **change log** naming the patterns fixed and the
 judgment calls made, including deliberate keeps; and **flags** — hollow

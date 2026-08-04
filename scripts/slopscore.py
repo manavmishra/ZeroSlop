@@ -246,33 +246,95 @@ def sentence_map(text, data, formal=False):
     return rows
 
 
-def render_heatmap(text, data, formal=False, width=34, max_rows=14):
-    """Draw the heatmap: one bar per sentence, hottest first, tells named.
+# Plain-English names and fixes, keyed by pattern category. The internal
+# category is a maintenance label; a writer needs to know what it is and what
+# to do instead.
+CAT_MEANING = {
+    "linkedin":      ("LinkedIn tell", "readers pattern-match this to AI instantly"),
+    "marketing":     ("marketing register", "name what it does; cut the adjectives"),
+    "scaffolding":   ("structural filler", "delete the stem, keep the point"),
+    "hedging":       ("empty hedge", "commit, or cut the sentence"),
+    "lexicon":       ("AI vocabulary", "use the plain word"),
+    "rider":         ("buzzword in marketing context", "plain word, or drop the hype around it"),
+    "performed":     ("performed candor", "say the thing instead of announcing it"),
+    "contrast":      ("not-X-but-Y construction", "state Y directly; one per piece maximum"),
+    "puffery":       ("unearned significance", "state the fact, let the reader judge"),
+    "drama":         ("manufactured drama", "the fact should carry the weight"),
+    "triads":        ("rule of three", "two items, or one, or a real list"),
+    "filler":        ("filler word", "cut it; the sentence survives"),
+    "stakes":        ("manufactured stakes", "start where the reader needs to start"),
+    "verbs":         ("weak verb", "use the direct verb"),
+    "assistant":     ("assistant voice", "delete; you are not a chatbot"),
+    "artifact":      ("template artifact", "fill it in or remove it"),
+    "overcorrection":("over-corrected, still slop", "edgy-slop is slop in a costume"),
+    "spec-notation": ("spec notation in prose", "write it as a sentence"),
+    "misc":          ("machine phrasing", "rewrite plainly"),
+}
 
-    Severity bands mirror the score bands so the picture and the number agree:
-    a sentence carrying weight >= 8 is the same red the composite would be.
-    """
-    rows = sentence_map(text, data, formal=formal)
-    if not rows:
-        return []
-    hot = max((r["weight"] for r in rows), default=0)
-    out = ["  heatmap  (each bar = one sentence, hottest first)"]
-    if hot == 0:
-        n = len(rows)
-        out.append(f"    {'·' * min(n, width)}  {n} sentences, no tells found")
+
+def _severity(w):
+    """Absolute bands, so bars mean the same thing in every document."""
+    if w >= 10: return "heavy", 8
+    if w >= 5:  return "moderate", 5
+    if w >= 2:  return "mild", 3
+    return "trace", 2
+
+
+def render_heatmap(text, data, formal=False, max_rows=8, width=8):
+    """A map a writer can act on: where the slop is, how bad, and what to do."""
+    clean = strip_noise(text)
+    doc = score_text(text, data, formal=formal)
+    paras = [p for p in re.split(r"\n\s*\n", clean) if p.strip()]
+    rows = []
+    for pi, para in enumerate(paras, 1):
+        for s in sentences(para):
+            w, cats, quotes = 0.0, [], []
+            for h in doc["hits"]:
+                q = h["quote"]
+                if q and q.lower() in s.lower():
+                    w += h["w"]
+                    cats.append(h["cat"])
+                    quotes.append(q)
+            rows.append({"para": pi, "sent": s, "w": round(w, 1),
+                         "cats": cats, "quotes": quotes})
+    total = len(rows)
+    dirty = [r for r in rows if r["w"] > 0]
+    out = []
+    if not total:
         return out
-    ranked = sorted(enumerate(rows, 1), key=lambda kv: -kv[1]["weight"])
-    shown = [r for r in ranked if r[1]["weight"] > 0][:max_rows]
-    for idx, r in shown:
-        filled = max(1, round(width * r["weight"] / hot))
-        glyph = "█" if r["weight"] >= 8 else ("▇" if r["weight"] >= 4 else "▄")
-        bar = glyph * filled + "·" * (width - filled)
-        snippet = re.sub(r"\s+", " ", r["sentence"])[:52]
-        out.append(f"    s{idx:<3} {bar} {r['weight']:5.1f}  {snippet}")
-        out.append(f"         {' ' * width}         ← {', '.join(r['tells'][:4])}")
-    quiet = sum(1 for r in rows if r["weight"] == 0)
-    if quiet:
-        out.append(f"    {quiet} of {len(rows)} sentences carry no tells")
+    if not dirty:
+        out.append(f"  SLOP MAP · {total} sentences · none carry tells")
+        out.append("  " + "·" * min(total, 40) + "   all clean")
+        return out
+
+    out.append(f"  SLOP MAP · {total} sentences · {len(dirty)} carry tells "
+               f"· hottest first")
+    out.append("")
+    for r in sorted(dirty, key=lambda r: -r["w"])[:max_rows]:
+        label, fill = _severity(r["w"])
+        bar = "█" * fill + "░" * (width - fill)
+        # quote the trigger, not the whole sentence — that is what to change
+        trig = max(r["quotes"], key=len)[:46]
+        out.append(f'  {bar}  {label:<8} ¶{r["para"]}  “{trig}”')
+        seen, notes = set(), []
+        for c in r["cats"]:
+            if c in seen:
+                continue
+            seen.add(c)
+            name, fix = CAT_MEANING.get(c, (c, "rewrite plainly"))
+            notes.append(f"{name} — {fix}")
+        for n in notes[:2]:
+            out.append(f'  {" " * width}            {n}')
+    if len(dirty) > max_rows:
+        out.append(f'  {" " * width}            …and {len(dirty)-max_rows} more')
+    out.append("")
+    # document shape: one block per paragraph, so clustering is visible
+    shape = []
+    for pi in range(1, len(paras) + 1):
+        pw = sum(r["w"] for r in rows if r["para"] == pi)
+        shape.append("█" if pw >= 10 else "▓" if pw >= 5 else "▒" if pw > 0 else "·")
+    out.append(f'  by paragraph  {" ".join(shape)}   █ heavy  ▓ moderate  '
+               f'▒ mild  · clean')
     return out
 
 
