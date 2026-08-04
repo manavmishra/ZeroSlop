@@ -13,7 +13,49 @@ npx skills add manavmishra/ZeroSlop --global
 ```
 
 Then say "de-slop this" in any agent, or "score this" for a report with no
-rewrite. MIT, offline, zero dependencies.
+rewrite.
+
+<p align="center">
+  <img alt="MIT licensed" src="https://img.shields.io/badge/license-MIT-1B1D22">
+  <img alt="Agent Skills standard" src="https://img.shields.io/badge/Agent%20Skills-standard-2a78d6">
+  <img alt="Zero dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
+  <img alt="Fully offline" src="https://img.shields.io/badge/network%20calls-0-1E7A4C">
+  <img alt="Benchmarked and replicated" src="https://img.shields.io/badge/benchmark-replicated-8A4FA3">
+</p>
+
+## What you get
+
+| | |
+|---|---|
+| **A detector you can run** | 68 weighted patterns, rhythm and followability statistics, and an optional calibrated MaxEnt channel. Scores any text 0–100 with every hit quoted by name. |
+| **A rewrite that keeps your facts** | Two passes: strip the tells, then rebuild toward an expert register. Invented facts, invented numbers, and invented feelings are all forbidden and tested for. |
+| **A pass/fail gate** | LinkedIn ≤20, general ≤25, email ≤35, research on its own formal track. Fail three times and it tells you the draft needs a real detail, rather than faking one. |
+| **A scorecard on every run** | Before and after, with the patterns fixed named individually. |
+| **Six platform modules** | LinkedIn, X, email, blog, newsletter, and research each get their own rules. A research abstract is not casualised; a LinkedIn post is not left with em-dashes. |
+| **A memory** | Every miss becomes a pattern in `data/learned.json`. Community PRs sharpen the detector for everyone. |
+| **CI and batch tooling** | `--gate` for exit codes, `--batch` to score a whole directory worst-first, `--explain` for a per-sentence heatmap. |
+
+## Who it is for
+
+**People who publish under their own name.** Founders, operators and creators
+posting on LinkedIn, where "this was written by ChatGPT" in the comments costs
+more than the post earns. The LinkedIn module is the most opinionated in the
+package for exactly this reason.
+
+**Communications and content teams.** Newsletters, blogs and launch emails
+that need to sound like the company rather than like every other company.
+`--batch` audits an entire content directory in one command.
+
+**Researchers and analysts.** The formal track keeps calibrated hedging and
+technical register intact while removing puffery, copula inflation and
+unearned significance claims. It will not casualise your abstract.
+
+**Engineering teams shipping docs.** `--gate` returns a non-zero exit code, so
+slop becomes a pre-commit hook or a CI check like any other lint rule.
+
+**Anyone running an agent that writes.** Because the skill is portable across
+harnesses, the same quality bar applies whether the draft came from Claude
+Code, Codex, or a human on the team.
 
 ## Why the AI accent exists
 
@@ -222,6 +264,31 @@ against v1.0 outputs. That is the honest cost of rewriting harder than the
 alternatives, and the reason the fidelity rules were tightened.
 
 The harness ships in the repo. Re-run it, add a method, or judge it yourself.
+
+## How it compares
+
+Benchmark scores are above. This is the capability difference, which is what
+actually decides whether a tool fits your workflow.
+
+| | Zero Slop | blader/humanizer | petergyang/no-ai-slop | isatimur/de-slop | stop-slop |
+|---|:--:|:--:|:--:|:--:|:--:|
+| Runnable detector | ✅ | — | — | ✅ | — |
+| Quantitative pass/fail gate | ✅ | — | — | — | — |
+| Before/after scorecard | ✅ | — | — | partial | — |
+| Platform-specific rules | ✅ 6 | — | — | — | — |
+| Followability check | ✅ | — | — | — | — |
+| Learning database | ✅ | — | — | — | — |
+| CI gate + batch mode | ✅ | — | — | — | — |
+| Published benchmark | ✅ | — | — | — | — |
+| Replicated benchmark | ✅ | — | — | — | — |
+| Adversarial red-team | ✅ | — | — | — | — |
+| Over-correction guardrails | ✅ | ✅ | ✅ | ✅ | — |
+| Voice preservation rules | ✅ | ✅ | ✅ | ✅ | partial |
+
+Every one of these skills is worth reading, and Zero Slop borrows from all of
+them; the credits are real, not a courtesy. The difference is that the others
+ask you to trust the edit, and this one hands you the measurement and the
+harness to check it.
 
 ## What it refuses to do
 
