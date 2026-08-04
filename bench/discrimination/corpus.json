@@ -1,0 +1,74 @@
+[
+ {
+  "id": "linkedin-slop-00",
+  "genre": "linkedin",
+  "label": "slop",
+  "text": "\ud83d\ude80 I'm thrilled to announce that I've joined Vertex as Head of Product!\n\nThis isn't just a new role \u2014 it's a testament to the incredible journey that brought me here.\n\nOver the past decade, I've learned that success isn't about the destination. It's about the people you meet along the way.\n\nHere are 3 lessons I'm carrying forward:\n\u2705 Always be learning\n\u2705 Relationships compound\n\u2705 Trust the process\n\nTo everyone who believed in me: thank you. \ud83d\ude4f\n\nWhat's the best career advice you've ever received? Drop it below! \ud83d\udc47\n\n#NewBeginnings #ProductManagement #Grateful #Leadership"
+ },
+ {
+  "id": "linkedin-slop-01",
+  "genre": "linkedin",
+  "label": "slop",
+  "text": "Most people think hiring is about finding the best candidate.\n\nThey're wrong.\n\nHiring is about finding the RIGHT candidate.\n\nLet that sink in.\n\nI've interviewed over 500 people in my career. The best hire I ever made? She failed the technical screen.\n\nThe kicker? She's now our VP of Engineering.\n\nHere's what I learned:\n\u2192 Skills can be taught\n\u2192 Attitude cannot\n\u2192 Culture eats strategy for breakfast\n\nAgree? \ud83d\udc47\n\n#Hiring #Leadership #Culture"
+ },
+ {
+  "id": "linkedin-human-02",
+  "genre": "linkedin",
+  "label": "human",
+  "text": "We shut down our EU expansion after seven months. Cost us about $400k.\n\nThe thing nobody tells you: the hard part wasn't GDPR or the entity setup. It was that our sales motion assumed a 3-week eval cycle and German mid-market runs 11 weeks with a works council review in the middle. Our AEs were comped on a quota that made that math impossible, so they churned.\n\nWe could have found that out with four customer calls before hiring anyone. We did the calls after.\n\nReopening next year with a longer cycle baked into comp."
+ },
+ {
+  "id": "linkedin-human-03",
+  "genre": "linkedin",
+  "label": "human",
+  "text": "Reviewed 40 candidate take-homes this month. Two observations.\n\nFirst, almost everyone over-engineers. A caching layer on a toy dataset tells me you can write a caching layer; it doesn't tell me you know when not to.\n\nSecond, the ones I want to hire almost always include a short note about what they'd do with more time. That's the actual signal \u2014 it means they made a scoping decision on purpose rather than running out of clock.\n\nWe're not testing whether you can finish. We're testing whether you know what to cut."
+ },
+ {
+  "id": "blog-slop-04",
+  "genre": "blog",
+  "label": "slop",
+  "text": "In today's rapidly evolving digital landscape, businesses are increasingly leveraging artificial intelligence to unlock unprecedented value.\n\nBut what does this really mean for organizations?\n\nLet's dive in.\n\n## The Current State of AI Adoption\n\nAI adoption has become a critical imperative for forward-thinking enterprises. Studies show that companies leveraging AI see significant improvements across key metrics.\n\n## Why This Matters\n\nThe implications are profound. Organizations that fail to adapt risk being left behind in an increasingly competitive marketplace.\n\n## Key Takeaways\n\n- AI is transforming how businesses operate\n- Early adopters gain competitive advantage\n- The time to act is now\n\nThe future belongs to those who embrace change. The question isn't whether to adopt AI \u2014 it's how quickly you can move."
+ },
+ {
+  "id": "blog-human-05",
+  "genre": "blog",
+  "label": "human",
+  "text": "Our p99 latency was 340ms and our p50 was 12ms. That gap is the whole story.\n\nThe obvious guess was garbage collection, and it wasn't. We spent two days on GC logs before someone noticed the slow requests correlated with a specific shard, not a specific time.\n\nTurned out one customer had 2.3M rows in a table we'd assumed would hold a few thousand, and a query with no index on the filter column. It had been fine for a year because that customer had 400 rows when they signed up.\n\nAdding the index took p99 to 19ms. The two days were spent looking at the wrong distribution \u2014 we were averaging across shards, so the one bad shard vanished into the mean.\n\nIf your p50 and p99 disagree that badly, stop looking at time series and start looking at which key is slow."
+ },
+ {
+  "id": "social-slop-06",
+  "genre": "social",
+  "label": "slop",
+  "text": "Everyone is talking about AI agents.\n\nNobody is talking about what happens when they fail.\n\nI've spent 10 years in infrastructure. Here's the uncomfortable truth:\n\nWe're building autonomous systems with manual rollback.\n\nThink about that for a second.\n\nThe future of AI isn't about capability. It's about control.\n\nRT if you agree \ud83e\uddf5\ud83d\udc47"
+ },
+ {
+  "id": "social-human-07",
+  "genre": "social",
+  "label": "human",
+  "text": "spent 3 hours today because a config had `timeout: 30` and the library parsed it as milliseconds\n\nthe docs said seconds\n\nthe changelog for v4.2 said \"timeout now consistently in ms\" and I was on 4.3"
+ },
+ {
+  "id": "reddit-slop-08",
+  "genre": "reddit",
+  "label": "slop",
+  "text": "Great question! This is definitely something a lot of people struggle with.\n\nIn my experience, there are a few key things to consider:\n\n1. **Start with the fundamentals** - It's important to have a solid foundation before moving on to more advanced topics.\n\n2. **Practice consistently** - Consistency is key when it comes to building any skill.\n\n3. **Don't be afraid to ask for help** - The community is here to support you!\n\nAt the end of the day, everyone's journey is different. What works for one person may not work for another.\n\nHope this helps! Feel free to reach out if you have any other questions. \ud83d\ude0a"
+ },
+ {
+  "id": "reddit-human-09",
+  "genre": "reddit",
+  "label": "human",
+  "text": "Depends what you mean by \"doesn't scale.\"\n\nIf you're hitting connection limits, pgbouncer in transaction mode fixes it and takes an afternoon. If you're hitting write throughput, that's a different problem and pgbouncer won't help at all.\n\nI ran Postgres at about 40k writes/sec on a single primary for two years. It was fine. The thing that eventually forced a change wasn't throughput, it was that our largest table hit a point where any schema migration took a maintenance window we couldn't afford.\n\nSo: what's actually breaking?"
+ },
+ {
+  "id": "newsletter-slop-10",
+  "genre": "newsletter",
+  "label": "slop",
+  "text": "Hey friends! \ud83d\udc4b\n\nHope you're having an amazing week!\n\nThis week, I've been diving deep into the world of productivity systems, and I have to say \u2014 I'm blown away.\n\nHere's what caught my eye:\n\n\ud83d\udccc **The 2-minute rule** \u2014 If it takes less than 2 minutes, do it now. Simple but powerful!\n\n\ud83d\udccc **Time blocking** \u2014 Game changer for deep work.\n\n\ud83d\udccc **The Eisenhower Matrix** \u2014 Not just urgent vs important, but a whole new way of thinking about priorities.\n\nWhat's your favorite productivity hack? Hit reply \u2014 I read every email!\n\nUntil next week,\nAlex \u2728"
+ },
+ {
+  "id": "newsletter-human-11",
+  "genre": "newsletter",
+  "label": "human",
+  "text": "Three things this week.\n\nThe Postgres 18 release notes have a line about `NOT NULL NOT VALID` that I think most people will miss. It lets you add a not-null constraint without the full table scan, then validate later. If you've been avoiding that migration on a big table, it's now cheap.\n\nI was wrong about something I wrote in March. I said the new pricing on Fly.io made it uncompetitive for small apps. I'd misread the free allowance \u2014 it's per-org, not per-app, which changes the math for anyone running more than two services. Sorry.\n\nReading: Kleppmann's paper on CRDTs from 2019, which I'd skipped because I assumed it was about collaborative text editing. About a third of it is, and the rest is a much more general argument about convergence that's worth the time."
+ }
+]

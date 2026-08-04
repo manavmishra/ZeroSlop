@@ -553,6 +553,14 @@ class DocsMatchReality(unittest.TestCase):
                       "SKILL.md version does not match the plugin manifest")
 
 
+class Discrimination(unittest.TestCase):
+    """The meter must agree with an obvious human judgment, both directions."""
+
+    def test_separates_known_slop_from_known_human(self):
+        r = run([str(ROOT / "bench" / "discrimination" / "evaluate.py")])
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
 

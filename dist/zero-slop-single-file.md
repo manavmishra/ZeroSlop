@@ -1079,3 +1079,33 @@ The honest limit: this measures what *writers who use the skill* strike, not
 what readers detect. It tracks the register those authors are editing away
 from, which is the target, but it is a convenience sample and no substitute for
 the frequency work in `calibrate.py` against a real corpus.
+
+## Practitioner corroboration: Kagi SlopStop
+
+Kagi ships a production system for the same problem at web scale, and it
+converged on three of the design decisions here independently, which is the
+closest thing to external validation this architecture has.
+
+**Corroboration before conviction.** A domain is downranked when it is *mostly*
+AI-generated, typically above 80% of its pages, rather than on a single hit.
+That is the same principle as "clusters convict, singles don't", arrived at from
+ranking rather than from linting.
+
+**Multiple reports accelerate review.** Kagi's community reporting treats
+repeated independent flags on one domain as stronger evidence than one flag.
+The reflect loop's three-document threshold is the same idea at document scale,
+and for the same reason: one reporter's judgment is taste, several unrelated
+reporters agreeing is signal.
+
+**An appeals path is a first-class feature, not an afterthought.** Users can
+report content as *not* slop, which triggers re-review and restores ranking.
+A system that can only add suspicion converges on suspecting everything. This
+is what `learn.py --demote` exists for, and Kagi treating it as core rather
+than optional is the argument for building it before you think you need it.
+
+**Downrank, never remove.** Flagged results stay visible and simply rank lower.
+The analogue here is hard rule 2 — flag hollow spans, do not fill them — and
+the reason both hold is that a false positive under a removal policy is
+unrecoverable, while a false positive under a flagging policy is an annoyance.
+
+Source: <https://help.kagi.com/kagi/features/slopstop.html>
