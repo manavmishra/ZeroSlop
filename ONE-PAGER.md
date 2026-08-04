@@ -40,14 +40,21 @@ figure and citation intact; the author's best lines protected, not
 polished away. The complete before-and-after, with its scorecard, is in
 the README.
 
-**The proof.** Fifty AI-typical drafts, six genres, independent blind
-judges, every skill running its own published prompt. Zero-Slop took 32 of
-50 "which would you publish" verdicts; the three best-known alternatives
-combined took 18. Its rewrites left a third of the detector residue of the
-lowest-scoring alternative. The most useful result was a failure: one rewrite invented a
-feeling the author never described, a blind judge caught it, and the
-fabrication became a hard rule the same day. The full harness ships in the
-repo, reproducible, with close results labeled as close.
+**The proof, and its limits.** Fifty AI-typical drafts, six genres,
+independent blind judges on shuffled labels, every skill running its own
+published prompt. The first run gave Zero Slop 32 of 50 best-picks. A full
+replication with fresh judges on the identical texts gave 23 of 50. Judges
+agree only slightly on which rewrite is best (kappa 0.12), so single-run
+headlines in this category are noise. Pooled across 100 verdicts: Zero Slop
+55, blader/humanizer 40, no-ai-slop 5, de-slop 0. Zero Slop wins the
+plurality against a chance rate of 25 (p = 1.7 × 10⁻¹⁰) and is statistically
+tied with blader head to head (p = 0.15). The deterministic measurements are
+steadier: Zero Slop v1.2 leaves a detector score of 9.5 against 17-40 for the
+alternatives, a followability penalty of zero, and — the column that matters
+— the original's word count, where every other method shrinks the draft by up
+to 28 percent. The most useful single result was a failure: one rewrite
+invented a feeling the author never described, two independent judges caught
+it, and the rule it produced now runs on every draft.
 
 **What it refuses.** No invented anecdotes, numbers, or feelings; missing
 details get asked for. No padding empty paragraphs into confident mush. No

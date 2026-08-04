@@ -150,26 +150,70 @@ flowchart LR
     L -.-> PM
 ```
 
-## The benchmark
+## The benchmark, and what replicating it revealed
 
 Fifty AI-typical drafts, six genres, blind judges on shuffled labels, each
 skill running its own published prompt verbatim.
 
-| | **Zero Slop** | blader/humanizer | petergyang/no-ai-slop | isatimur/de-slop |
-|---|---|---|---|---|
-| Judge composite (1–10) | **8.01** | 7.82 | 6.96 | 6.35 |
-| Human-likeness | **7.84** | 7.60 | 6.30 | 5.00 |
-| "Which would you publish?" wins | **32/50** | 18/50 | 0 | 0 |
-| Detector score after rewrite (drafts start at 76) | **10.9** | 18.7 | 19.4 | 39.7 |
+The first run gave Zero Slop 32 of 50 best-picks. Then we re-ran the entire
+judging pass with fresh independent judges on the identical rewrites and the
+identical labels. The second run gave 23 of 50. Same texts, different judges,
+a 64-to-46-percent swing.
 
-The most useful result was a failure. One Zero Slop rewrite of a post about
-an AWS exam added the phrase "by test day the real thing felt familiar," an
+That is the most useful number in this repository, so it is reported first.
+Judges agree with each other only slightly on which rewrite is best (Cohen's
+kappa 0.12, per-item agreement 52 percent), which means any single-run
+headline from any tool in this category — including ours — is noise dressed
+as a result.
+
+Pooled across both runs, 100 independent verdicts:
+
+| Method | Best-picks (of 100) | Composite run 1 | Composite run 2 |
+|---|---|---|---|
+| **Zero Slop** | **55** | **8.01** | 7.51 |
+| blader/humanizer | 40 | 7.82 | 7.51 |
+| petergyang/no-ai-slop | 5 | 6.96 | 6.87 |
+| isatimur/de-slop | 0 | 6.35 | 6.60 |
+
+What survives the replication:
+
+- Zero Slop wins the plurality of blind head-to-heads, 55 of 100 against a
+  chance rate of 25 (p = 1.7 × 10⁻¹⁰).
+- Zero Slop and blader/humanizer are **not statistically separable** head to
+  head (55 vs 40, p = 0.15). Anyone claiming a decisive win between these two
+  on 50 examples is over-reading their data.
+- Both clearly beat the other two skills (p < 10⁻⁷).
+- The ranking order held across both runs; only the margin moved.
+
+Objective detector scores are far more stable than judge verdicts, because
+they are deterministic:
+
+| Method | Detector score after rewrite | Followability penalty | Words |
+|---|---|---|---|
+| Original drafts | 76.5 | 0.25 | 159 |
+| isatimur/de-slop | 39.8 | 0.18 | 137 |
+| stacked pipeline | 32.2 | 0.16 | 114 |
+| petergyang/no-ai-slop | 19.4 | 0.17 | 123 |
+| blader/humanizer | 18.2 | 0.24 | 135 |
+| hardikpandya/stop-slop | 17.4 | 0.11 | 116 |
+| **Zero Slop v1.2** | **9.5** | **0.00** | **159** |
+
+The word count is the column to read. Every other method shrinks the draft;
+stop-slop cuts 27 percent, the stacked pipeline 28. Zero Slop v1.2 lands at
+the original's length while removing every tell, which is the difference
+between replacing slop with substance and deleting until the tells are gone.
+
+The most useful single result was a failure. One rewrite of a post about an
+AWS exam added the phrase "by test day the real thing felt familiar," an
 experience the author never described. A blind judge caught it and marked
-that rewrite worst on the spot. The fabrication became a hard rule the same
-day: invented feelings count as invented facts. A benchmark that can embarrass
-its own author is the only kind worth publishing, so the methodology and a
-later round against two additional peer skills ship in the repo, reproducible, with the
-close results labeled as close.
+that rewrite worst. Independently, a judge in the replication run caught the
+same invention on the same item. The rule it produced — invented feelings
+count as invented facts — now runs on every draft. The replication also
+raised Zero Slop's fabrication flags from one to four, all against v1.0
+outputs, which is the honest cost of rewriting harder than the alternatives
+and the reason the fidelity rules were tightened.
+
+The harness ships in the repo. Re-run it, add a method, or judge it yourself.
 
 ## What it refuses to do
 
