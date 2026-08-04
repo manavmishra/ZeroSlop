@@ -79,3 +79,33 @@ overclaiming, qualification as precision. Wikipedia's WP:AICATCH — the
 largest human-curated corpus of caught-in-the-wild AI text — converges on the
 same tell families and adds the cluster rule this skill inherits: one tell is
 coincidence; many tells, repeatedly, convict.
+
+## Negative results: what we tested and did not ship
+
+Three classic approaches were evaluated for a trained detection channel and
+all three were rejected on evidence, not preference.
+
+**Support-vector machines.** Head-to-head comparisons on text classification
+show no measurable gain over logistic regression, and an SVM would add a
+dependency to a package whose entire value proposition includes having none.
+
+**Hidden Markov models.** No published result shows HMMs adding value for
+AI-text detection. The sequence signal they would model is already captured
+by the burstiness and followability statistics, which are cheaper and
+interpretable.
+
+**Logistic regression (MaxEnt) over a Bayesian log-odds lexicon.** This one
+worked in-domain: 0.985 AUC, 94% accuracy on held-out HC3 data, Platt
+calibrated with an abstain band. It was built, trained, integrated, and then
+cut. The reason is the transfer test. Trained on ChatGPT-3.5-era text, it
+rated 2026-era AI drafts as human at a mean probability of 0.038, and in a
+live check returned 0.33 on a passage the pattern meter scored 100/100.
+Detector decay across model generations is well documented (RAID,
+arXiv:2405.07940); this is that decay measured directly. A channel that is
+confidently wrong on current text is worse than no channel, even when it is
+reported separately and labelled a second opinion.
+
+The lesson generalises: interpretable surface features degrade gracefully as
+models change, because the tells are updated in a data file. A trained
+classifier degrades silently, and silence is the failure mode you cannot
+audit.

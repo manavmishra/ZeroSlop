@@ -65,6 +65,11 @@ Run the statistical scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
+Every channel runs on every draft: the pattern meter (68 weighted tells plus
+a 72-term lexicon), rhythm and burstiness, followability, formatting
+densities, and register. Each one is interpretable, so every point of the
+score can be traced to a quoted span.
+
 Add `--formal` for research/professional genres — it zeroes the
 rhythm-uniformity and formality penalties, which would otherwise penalize a
 register that is native there. If `python3` is unavailable in this

@@ -29,7 +29,7 @@ are examples, not limits.
 - `data/patterns.json` + `data/learned.json` — the weighted tell database;
   learned merges over base at runtime. `data/learned-log.md` — dated log of
   every taxonomy change.
-- `data/model.json` — optional trained predictive channel (`--predict`).
+- (no trained model ships; see references/evidence.md for why)
   Separate channel, never blended into the composite; era-fragile by
   measurement; retrain with `scripts/train_model.py`.
 - `data/voices/` — per-user voice profiles. Git-ignored, personal, never

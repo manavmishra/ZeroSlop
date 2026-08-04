@@ -27,7 +27,7 @@ rewrite.
 
 | | |
 |---|---|
-| **A detector you can run** | 68 weighted patterns, rhythm and followability statistics, and an optional calibrated MaxEnt channel. Scores any text 0–100 with every hit quoted by name. |
+| **A detector you can run** | 68 weighted patterns, a 72-term lexicon, rhythm and followability statistics. Scores any text 0–100, with every point traceable to a quoted span. |
 | **A rewrite that keeps your facts** | Two passes: strip the tells, then rebuild toward an expert register. Invented facts, invented numbers, and invented feelings are all forbidden and tested for. |
 | **A pass/fail gate** | LinkedIn ≤20, general ≤25, email ≤35, research on its own formal track. Fail three times and it tells you the draft needs a real detail, rather than faking one. |
 | **A scorecard on every run** | Before and after, with the patterns fixed named individually. |
@@ -167,10 +167,16 @@ that runs on every future draft.
 
 ## The engine
 
-One diagram, no magic. Logistic regression is the MaxEnt family; the
-Bayesian lexicon is spam-filter lineage. Support-vector machines and hidden
-Markov models were evaluated and rejected: head-to-heads show no gain over
-logistic for text, and rhythm statistics already carry the sequence signal.
+Three interpretable channels, no black box. Every point of the score traces
+back to a span you can read, which is the property that makes the gate
+arguable rather than oracular.
+
+We built and trained a MaxEnt classifier for a fourth channel and then cut
+it. It scored 0.985 AUC in-domain, and on current-era drafts it rated real
+AI slop as human. A model that is confidently wrong on the text you actually
+have is worse than no model. The full negative result, including why SVMs
+and HMMs were rejected earlier, is in
+[references/evidence.md](references/evidence.md).
 
 <p align="center">
   <img src="assets/engine.svg" alt="Zero Slop engine: a draft flows through the pattern meter, rhythm and followability statistics, and an optional MaxEnt channel into evidence fusion; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and feeds lessons back into the pattern meter." width="880">
@@ -181,21 +187,20 @@ logistic for text, and rhythm statistics already carry the sequence signal.
 
 ```mermaid
 flowchart LR
-    D([Draft]) --> PM & RS & ML
-    subgraph Measure
-      PM[Pattern meter<br/>60+ weighted tells]
-      RS[Rhythm and followability<br/>statistics]
-      ML[Bayesian lexicon + MaxEnt channel<br/>optional, calibrated, abstains]
+    D([Draft]) --> PM & RH & FF
+    subgraph Measure["Measure · all channels, every run"]
+      PM[Pattern meter<br/>68 tells · 72-term lexicon]
+      RH[Rhythm<br/>burstiness · uniformity]
+      FF[Followability + format<br/>density · dashes · register]
     end
-    PM & RS --> F[Evidence fusion<br/>AI-likelihood 0-100]
-    ML -.second opinion.-> F
-    F --> J[Diagnose<br/>hollow spans, facts, voice]
+    PM & RH & FF --> F[Evidence fusion<br/>score 0-100, every point traceable]
+    F --> J[Diagnose<br/>hollow spans · facts · voice]
     J --> W[Two-pass rewrite<br/>strip, then build]
     W --> G{Verify gate}
     G -- pass --> O([Rewritten text + scorecard])
     G -- "fail, up to 3x" --> W
-    G -- lessons --> L[(learned.json)]
-    L -.-> PM
+    G -. lessons .-> L[(learned.json)]
+    L -. sharpens the meter .-> PM
 ```
 
 </details>
@@ -359,10 +364,11 @@ like AI," or "score this" for a report without a rewrite.
 ## The scorer, standalone
 
 ```bash
-pbpaste | python3 scripts/slopscore.py --explain   # score your clipboard (macOS)
+pbpaste | python3 scripts/slopscore.py --explain   # clipboard + per-sentence heatmap
+python3 scripts/slopscore.py --gate 25 draft.md     # exit 1 if it fails (CI, pre-commit)
 python3 scripts/slopscore.py --json draft.md        # machine-readable
 python3 scripts/slopscore.py --formal abstract.txt  # research register
-python3 scripts/slopscore.py --predict draft.md     # + trained ML channel
+python3 scripts/slopscore.py --batch docs/         # score a directory, worst first
 ```
 
 Every hit comes back as a quote with a pattern name and a weight. Raw LLM
@@ -388,12 +394,16 @@ caught it.
 **Will it flatten my voice?** A sample of your real writing outranks every
 rule in the skill. If dashes and "honestly" are how you write, they stay.
 
-**Does it use MaxEnt, SVMs, or HMMs?** The optional predictive channel is
-logistic regression (the MaxEnt family) over a Bayesian log-odds lexicon and
-stylometric features, Platt-calibrated, with an abstain band. SVMs showed no
-measurable gain over logistic in head-to-heads, and HMMs added nothing the
-rhythm statistics don't already carry, so neither ships. The main gate stays
-interpretable on purpose: weighted patterns you can read.
+**Does it use MaxEnt, SVMs, or HMMs?** No, and the reason is worth reading.
+All three were evaluated. SVMs showed no gain over logistic regression on
+text and would have added a dependency. HMMs added nothing the rhythm
+statistics don't already carry. MaxEnt over a Bayesian log-odds lexicon
+actually worked in-domain, at 0.985 AUC, so it was built, trained and
+integrated, and then cut: on current-era drafts it rated real AI slop as
+human. Detector decay across model generations is well documented, and this
+was that decay measured directly. Interpretable surface features degrade
+gracefully, because you update a data file. A trained classifier degrades
+silently, and silence is the failure mode you cannot audit.
 
 **Found a tell it missed?** Open a PR adding a regex to `data/learned.json`
 and a line to the log. That is the entire contribution process. The taxonomy

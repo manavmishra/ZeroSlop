@@ -118,3 +118,13 @@ example that motivated it.
   README prose went 30.3 → 20.9 after stripping six em-dashes from running
   prose; the raw file still scores 99.9 because it quotes the tells it
   teaches, which is the documented mention-versus-use boundary.
+- 2026-08-03 — Cut the trained MaxEnt channel and its 205 KB of weights. It
+  scored 0.985 AUC in-domain on HC3 but failed the only test that mattered:
+  on 2026-era drafts it rated real AI slop as human (mean p=0.038), and on a
+  live check it returned p=0.33 for text the pattern meter scored 100/100.
+  A channel that is confidently wrong on current text is a liability even
+  when labelled a second opinion. The interpretable channels — pattern
+  meter, rhythm, followability, formatting, register — carry the signal on
+  their own, and every point of the score can still be traced to a quoted
+  span. The negative result is documented in references/evidence.md;
+  SVMs and HMMs were rejected earlier on the same evidentiary standard.
