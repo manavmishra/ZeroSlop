@@ -201,8 +201,19 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   relaxes rhythm rules)
 - zero high-weight hits (weight ≥ 4) remaining, unless documented as the
   writer's own voice
-- fidelity: every inventoried fact present and unchanged; nothing added the
-  author didn't supply
+- fidelity: **run the check, do not eyeball it** —
+
+  ```
+  python3 <skill-root>/scripts/slopscore.py --fidelity <original> <rewrite>
+  ```
+
+  It exits non-zero if a figure, name, quote or link was dropped, or if one
+  appears in the rewrite that was not in the source. Benchmarking found this
+  was the one dimension the gate never measured, and the one the skill ranked
+  worst on: a rewrite invented a feeling the author never described and two
+  judges caught it, because nothing in the loop did. The check catches invented
+  figures and names; it cannot see an invented *feeling* or a reframed claim,
+  so the judgment pass below still applies to those
 - unsourced statistics: when the draft asserts a figure with no source ("~70%
   of pilots fail"), keep it as the author's own claim and flag it in the
   report. Never attach a citation the author didn't give, and never launder

@@ -592,6 +592,51 @@ class Discrimination(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout)
 
 
+class Fidelity(unittest.TestCase):
+    """The channel the gate was missing. Benchmarking ranked the skill last on
+    fidelity and it carried the only fabrication flag, because nothing measured
+    it."""
+
+    SRC = ("Acme raised $4.2M led by Basis Ventures. Setup time fell 40%. "
+           "See https://acme.io/blog for the numbers.")
+
+    def test_faithful_rewrite_passes(self):
+        same = ("Acme raised $4.2M, led by Basis Ventures. Setup time fell 40%. "
+                "The numbers are at https://acme.io/blog.")
+        r = slopscore.fidelity(self.SRC, same)
+        self.assertTrue(r["preserved"], "a faithful rewrite was marked lossy")
+        self.assertFalse(r["invented"])
+
+    def test_dropped_figure_is_caught(self):
+        lossy = "Acme raised money led by Basis Ventures. See https://acme.io/blog."
+        self.assertFalse(slopscore.fidelity(self.SRC, lossy)["preserved"])
+
+    def test_invented_name_is_caught(self):
+        made_up = (self.SRC + " Priya said it was the best quarter yet.")
+        self.assertTrue(slopscore.fidelity(self.SRC, made_up)["invented"],
+                        "an invented name slipped through")
+
+    def test_invented_figure_is_caught(self):
+        made_up = self.SRC.replace("40%", "40% and churn fell 12%")
+        self.assertTrue(slopscore.fidelity(self.SRC, made_up)["invented"])
+
+    def test_sentence_openers_are_not_entities(self):
+        """'The', 'See', 'This' are not names; treating them as facts would
+        make every rewrite look lossy."""
+        r = slopscore.fidelity("The system works. See the docs.",
+                               "It works. Read the docs.")
+        self.assertTrue(r["preserved"])
+        self.assertFalse(r["invented"])
+
+    def test_cli_exits_nonzero_on_invention(self):
+        import tempfile
+        d = Path(tempfile.mkdtemp())
+        (d / "a.md").write_text(self.SRC)
+        (d / "b.md").write_text(self.SRC + " Priya led the round.")
+        r = run([str(SCORER), "--fidelity", str(d / "a.md"), str(d / "b.md")])
+        self.assertEqual(r.returncode, 1, r.stdout)
+
+
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
 

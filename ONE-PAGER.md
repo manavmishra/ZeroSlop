@@ -98,12 +98,16 @@ independent verdict. On that measure Zero Slop leaves 10.0 against 17 to 27 for
 the alternatives, a followability penalty of 0.07 against 0.33 to 0.46, and the
 original word count. Every other method shrinks the draft by up to 28 percent.
 
-Against us, and worth stating plainly: Zero Slop ranked **last of four on
-judge-rated fidelity** in both runs, and carried the only fabrication flag in
-run one. The verify gate scores vocabulary, rhythm, format and followability
-and has no fidelity channel, so the property the product claims matters most is
-enforced by instruction rather than measurement. Closing that is the top
-roadmap item.
+Against us: Zero Slop ranked **last of four on judge-rated fidelity** and
+carried the only fabrication flag — a rewrite invented a feeling the author
+never described. The cause was structural: the gate measured vocabulary,
+rhythm, format and followability, and nothing measured fidelity.
+
+That is now a channel. `--fidelity` inventories figures, names, quotes and
+links in the source and fails the rewrite if any went missing, or if any
+appeared that was not there before. The gate runs it on every draft. It cannot
+see an invented feeling, so the judgment pass still applies — but the class of
+error that produced the flag is now caught by machine.
 
 ## The rules
 

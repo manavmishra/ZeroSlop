@@ -13,6 +13,7 @@ Usage (runnable from any cwd; data resolves relative to this script):
     python3 slopscore.py <file>            # pretty report
     python3 slopscore.py --json <file>     # machine-readable
     python3 slopscore.py --dna a.md b.md   # channel anatomy, before vs after
+    python3 slopscore.py --fidelity a.md b.md  # facts kept? anything invented?
     cat text | python3 slopscore.py        # stdin
     python3 slopscore.py --explain <file>  # report + hits + heatmap
     python3 slopscore.py --heatmap <file>  # per-sentence heatmap only
@@ -484,6 +485,101 @@ CHANNELS = [
 ]
 
 
+# What counts as a fact worth preserving. Deliberately narrow: things a reader
+# could check, and things whose invention is the failure the skill forbids.
+FACT_RX = [
+    ("figure",  r"(?<![\w.])\$?\d[\d,]*(?:\.\d+)?\s*(?:%|percent|x|bn|m|k|million|billion)?(?![\w])"),
+    ("name",    r"\b(?:[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]+)*)\b"),
+    ("quote",   r"[\u201c\"]([^\u201d\"]{6,120})[\u201d\"]"),
+    ("url",     r"https?://\S+"),
+]
+# Sentence-initial capitals are not names. Neither are these.
+NOT_NAMES = set("""The This That These Those We They It He She You I A An And But Or
+So Then Now Here There When While If After Before Our Their His Her Its My Your
+Most Many Some Every Each Both All No Not One Two Three Four Five Six Seven
+Eight Nine Ten First Second Third Last Next Why How What Which Who Where
+See Read Use Run Add Set Get Let Note Also Just Only Even Still Yet Once
+More Less Best Worst Same Other Another Such Very Much Well Then Than""".split())
+
+
+def facts(text):
+    """Checkable claims in a draft: figures, named entities, quotes, links."""
+    # URLs contain lowercase forms of the names they point at ("acme.io" made
+    # "Acme" look like a sentence opener in the source and an invention in the
+    # rewrite), so entity detection runs on the text with links removed.
+    prose = re.sub(r"https?://\S+", " ", text)
+    out = {}
+    for kind, rx in FACT_RX:
+        found = set()
+        for m in re.finditer(rx, text if kind == "url" else prose):
+            v = (m.group(1) if m.lastindex else m.group(0)).strip()
+            if kind == "name":
+                if v in NOT_NAMES or len(v) < 3:
+                    continue
+                # a capitalised word that also appears lowercased is just a
+                # sentence opener, not an entity
+                if re.search(r"\b" + re.escape(v.lower()) + r"\b", prose):
+                    continue
+            if kind == "figure":
+                v = v.replace(",", "").lstrip("$").rstrip()
+            if kind == "url":
+                # a link at the end of a sentence carries the full stop
+                v = v.rstrip(".,;:)]}\u201d\"'")
+            if v:
+                found.add(v)
+        out[kind] = found
+    return out
+
+
+def fidelity(before, after):
+    """Did the rewrite keep every fact, and did it add any?
+
+    The benchmark's worst result was a rewrite that invented a feeling the
+    author never described — the exact thing hard rule 1 forbids — and nothing
+    in the gate measured it. Preservation is checkable; invention is the half
+    that matters, because a dropped figure is visible to the author and an
+    added one is not.
+    """
+    a, b = facts(before), facts(after)
+    rows, kept_all, invented_any = [], True, False
+    for kind, _ in FACT_RX:
+        kept = a[kind] & b[kind]
+        dropped = a[kind] - b[kind]
+        added = b[kind] - a[kind]
+        if not (a[kind] or b[kind]):
+            continue
+        rows.append((kind, kept, dropped, added))
+        if dropped:
+            kept_all = False
+        if added:
+            invented_any = True
+    return {"rows": rows, "preserved": kept_all, "invented": invented_any}
+
+
+def render_fidelity(before, after):
+    r = fidelity(before, after)
+    out = ["", "  FIDELITY · facts in the draft vs the rewrite", ""]
+    for kind, kept, dropped, added in r["rows"]:
+        out.append(f"  {kind:<8} {len(kept)} kept"
+                   + (f" · {len(dropped)} DROPPED" if dropped else "")
+                   + (f" · {len(added)} ADDED" if added else ""))
+        for v in sorted(dropped)[:4]:
+            out.append(f"           dropped  {v[:56]!r}")
+        for v in sorted(added)[:4]:
+            out.append(f"           ADDED    {v[:56]!r}   <-- not in the source")
+    if not r["rows"]:
+        out.append("  no checkable facts in either text")
+    out += ["",
+            "  verdict: " + ("facts preserved, nothing invented"
+                             if r["preserved"] and not r["invented"] else
+                             ("FACTS DROPPED" if not r["preserved"] else "")
+                             + (" · CONTENT INVENTED" if r["invented"] else "")),
+            "  note   : this checks figures, names, quotes and links only. It",
+            "           cannot see an invented feeling or a reframed claim —",
+            "           those still need the judgment pass.", ""]
+    return out
+
+
 def dna(before, after, data, formal=False, width=22):
     """Side-by-side channel anatomy of a draft and its rewrite.
 
@@ -539,6 +635,15 @@ def main():
         except IndexError: pass
     if formal: genre = "formal"
     data = load_patterns()
+
+    if "--fidelity" in sys.argv:
+        if len(args) < 2:
+            sys.exit("--fidelity needs two files: before and after")
+        before, after = Path(args[0]).read_text(), Path(args[1]).read_text()
+        for line in render_fidelity(before, after):
+            print(line)
+        r = fidelity(before, after)
+        sys.exit(0 if (r["preserved"] and not r["invented"]) else 1)
 
     if "--dna" in sys.argv:
         if len(args) < 2:

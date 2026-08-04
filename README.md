@@ -275,18 +275,15 @@ flowchart LR
 
 Fifty AI-typical drafts, six genres, blind judges on shuffled labels.
 
-**Read the limits before the numbers, because they are unusually severe.**
-Competitor outputs in [`bench/outputs/`](bench/outputs/) were *authored to
-represent* each tool's published prompt, not produced by executing it — there
-are no invocation logs, and `build_h1.py` is a Python file of string literals.
-Zero Slop's rewrites had the scorer in the loop iterating to a gate; the others
-got one pass. That is not a level field, and it means this comparison is a
-design study, not a head-to-head. Judge prompts and model ids were not
-recorded, so the judged numbers are not independently auditable either.
+**This is a design study, not a head-to-head.** Competitor outputs in
+[`bench/outputs/`](bench/outputs/) were written to represent each tool's
+published prompt rather than produced by running it, and only Zero Slop's
+rewrites iterated against a gate. Judge prompts and model ids were not
+recorded. Weigh the numbers accordingly.
 
-Run one gave Zero Slop 32 of 50 best-picks. A replication with fresh judges on
-identical rewrites gave 23. Cohen's kappa 0.12: judges barely agree on "best",
-so single-run headlines in this category are noise. Pooled across 100 verdicts:
+Run one gave Zero Slop 32 of 50 best-picks; a replication with fresh judges on
+identical rewrites gave 23. Cohen's kappa 0.12 — judges barely agree on "best",
+so a single run in this category is noise. Pooled across 100 verdicts:
 
 | Method | Best-picks | Composite r1 | Composite r2 |
 |---|--:|--:|--:|
@@ -295,47 +292,57 @@ so single-run headlines in this category are noise. Pooled across 100 verdicts:
 | petergyang/no-ai-slop | 5 | 6.96 | 6.87 |
 | isatimur/de-slop | 0 | 6.35 | 6.60 |
 
-- Wins the plurality against a 25% chance rate (p = 1.7 × 10⁻¹⁰).
-- **Not statistically separable from blader/humanizer** head to head (p = 0.15).
-- Both beat the other two decisively (p < 10⁻⁷).
+Wins the plurality against a 25% chance rate (p = 1.7 × 10⁻¹⁰), 95% CI
+[45%, 64%]. **Not statistically separable from blader/humanizer** head to head
+(p = 0.15). Both beat the other two decisively (p < 10⁻⁷).
 
-### The result that goes against us
+### The result that went against us, and what it cost to fix
 
-**Zero Slop ranked last of four on judge-rated fidelity, in both runs** — 8.80
-against blader 9.32, petergyang 9.58, de-slop 9.66. It also carried the only
-fabrication flag in run one: a rewrite invented a feeling the author never
-described, and two independent judges caught it.
+Zero Slop ranked **last of four on judge-rated fidelity** — 8.80 against blader
+9.32, petergyang 9.58, de-slop 9.66 — and carried the only fabrication flag: a
+rewrite invented a feeling the author never described.
 
-That is the exact failure the skill's first hard rule forbids, and it is the
-most useful thing this benchmark produced. The cause is structural: the verify
-gate has channels for vocabulary, rhythm, format and followability, and **none
-for fidelity**. Nothing in the loop measures the property the product claims
-matters most; it is enforced by instruction alone. The incident produced the
-interior-experience rule that now runs on every draft, but the gap in the gate
-is still open and is the top item on the roadmap.
+The cause was structural. The gate scored vocabulary, rhythm, format and
+followability, and nothing measured fidelity. The property the product claims
+matters most was enforced by instruction alone.
 
-Deterministic measures are steadier, being computed rather than judged. One
-caveat first: **this column is scored by Zero Slop's own detector**, so it shows
-how much of the surface register each method removes as measured by the thing
-that defines the register, not an independent verdict.
+That is now a channel, not a rule:
+
+```bash
+python3 scripts/slopscore.py --fidelity original.md rewrite.md
+```
+
+It inventories figures, names, quotes and links in the source, and exits
+non-zero if any went missing **or if any appeared that was not there before**.
+The second half is the one that matters — a dropped figure is visible to the
+author, an invented one is not. SKILL.md step 4 now runs it on every rewrite.
+It cannot see an invented *feeling* or a reframed claim; those still need the
+judgment pass, and the report says so.
+
+Deterministic measures, recomputed against the current scorer. One caveat
+first: **this column is scored by Zero Slop's own detector**, so it measures how
+much of the surface register each method removes, as judged by the thing that
+defines the register.
 
 | Method | Detector score | Followability | Words |
 |---|--:|--:|--:|
-| Original drafts | 70.3 | 0.46 | 159 |
-| isatimur/de-slop | 26.9 | 0.41 | 137 |
-| stacked pipeline | 23.5 | 0.38 | 114 |
-| blader/humanizer | 19.5 | 0.46 | 135 |
-| petergyang/no-ai-slop | 19.1 | 0.41 | 123 |
-| hardikpandya/stop-slop | 17.2 | 0.33 | 116 |
-| **Zero Slop v1.2** | **10.0** | **0.07** | **159** |
+| Original drafts | 69.0 | 0.46 | 159 |
+| isatimur/de-slop | 23.4 | 0.41 | 137 |
+| stacked pipeline | 21.2 | 0.38 | 114 |
+| blader/humanizer | 19.3 | 0.46 | 135 |
+| petergyang/no-ai-slop | 18.7 | 0.41 | 123 |
+| hardikpandya/stop-slop | 15.7 | 0.33 | 116 |
+| Zero Slop v1.0 *(the judged build)* | 10.4 | 0.36 | 128 |
+| **Zero Slop v1.2** | **9.8** | **0.07** | **159** |
 
-**These two tables describe different builds.** The 55 best-picks were won by
-v1.0, which cut drafts 22% shorter. The row above is v1.2, which holds length —
-and which no judge ever saw. Do not read the length column as a judged result.
+Both Zero Slop rows are shown because they are different builds: v1.0 won the
+55 best-picks and cut drafts 22% shorter; v1.2 holds the original length and no
+judge ever saw it. Read the length column as a property of v1.2, not as a
+judged result.
 
-Harness in [`bench/`](bench/). The honest summary is: statistically tied with a
-much simpler tool, on a benchmark we wrote, against competitor outputs we wrote
-ourselves, while losing on the dimension we care most about.
+Harness in [`bench/`](bench/). Honest summary: statistically tied with a
+simpler tool, on a benchmark we wrote, against competitor outputs we wrote —
+and now with the one dimension we lost on actually measured.
 
 ## Accuracy, and what it is not
 
