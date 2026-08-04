@@ -715,6 +715,12 @@ class Personalization(unittest.TestCase):
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
 
+    def test_benchmark_charts_are_current(self):
+        """The README charts are computed from the benchmark data; a re-run or a
+        scorer change that would move a bar fails until they are regenerated."""
+        r = run([str(ROOT / "bench" / "make_charts.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+
     def test_dist_bundle_is_current(self):
         """The pasteable bundle is what ChatGPT and Codex users actually get."""
         r = run([str(ROOT / "scripts" / "build_bundle.py"), "--check"])

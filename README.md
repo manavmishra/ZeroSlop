@@ -355,15 +355,15 @@ scripts/calibrate.py        refit weights from a corpus; decay stale tells
 data/patterns.json          74 weighted patterns, lexicon, riders
 data/corpus/must-not-flag/  writing that must never be flagged
 references/                 taxonomy, rewrite moves, platform modules, evidence
-bench/                      the benchmark harness and the discrimination test
+bench/                      the benchmark harness, discrimination test, and chart generator
 tests/test_all.py           62 tests
 ```
 
 Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The
 suite covers the detector, the learning gates, decay and throughput, plus guards that
 exist because each of these drifted once: documented counts match the data,
-calibration anchors match the corpora, the plugin mirror and bundle stay current, and
-no user prose reaches a git-tracked file.
+calibration anchors match the corpora, the plugin mirror, bundle and
+benchmark charts stay current, and no user prose reaches a git-tracked file.
 
 ## Acknowledgements
 
