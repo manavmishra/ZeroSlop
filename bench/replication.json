@@ -1,0 +1,20 @@
+{
+ "run1": {
+  "zeroslop": 32,
+  "blader": 18,
+  "petergyang": 0,
+  "deslop": 0
+ },
+ "run2": {
+  "zeroslop": 23,
+  "blader": 22,
+  "petergyang": 5,
+  "deslop": 0
+ },
+ "agreement": 0.52,
+ "kappa": 0.12280701754385971,
+ "pooled_ci": [
+  0.45244427031643447,
+  0.6438562489359654
+ ]
+}

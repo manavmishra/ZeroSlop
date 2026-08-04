@@ -1,0 +1,55 @@
+{
+ "r1": {
+  "zeroslop": {
+   "human": 7.84,
+   "voice": 7.54,
+   "fidelity": 8.8,
+   "craft": 7.9,
+   "platform": 7.96
+  },
+  "petergyang": {
+   "human": 6.3,
+   "voice": 5.42,
+   "fidelity": 9.58,
+   "craft": 6.4,
+   "platform": 7.12
+  },
+  "blader": {
+   "human": 7.6,
+   "voice": 6.82,
+   "fidelity": 9.32,
+   "craft": 7.54,
+   "platform": 7.8
+  },
+  "deslop": {
+   "human": 5,
+   "voice": 4.96,
+   "fidelity": 9.66,
+   "craft": 5.6,
+   "platform": 6.52
+  }
+ },
+ "r2": {
+  "zeroslop": {
+   "human": 7.62,
+   "voice": 7.62,
+   "fidelity": 8.96,
+   "craft": 7.8,
+   "platform": 8.02
+  },
+  "stopslop": {
+   "human": 7.44,
+   "voice": 7.04,
+   "fidelity": 8.68,
+   "craft": 7.38,
+   "platform": 7.86
+  },
+  "anthpipe": {
+   "human": 7.82,
+   "voice": 7.44,
+   "fidelity": 9.04,
+   "craft": 7.82,
+   "platform": 8.04
+  }
+ }
+}

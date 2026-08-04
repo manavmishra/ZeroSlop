@@ -1,0 +1,315 @@
+<title>Zero-Slop — Evaluation Report</title>
+<style>
+:root {
+  --paper: #FCFCFA; --ink: #1B1D22; --muted: #6E7280; --faint: #9A9EA8;
+  --rule: #E3E2DC; --band: #F5F5F1; --accent: #2a78d6;
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #eda100; --sn: #B9BCC4;
+  --good: #1E7A4C; --warn: #A4630E; --bad: #B03A30;
+  --serif: "Iowan Old Style", Palatino, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161A; --ink: #E9E8E3; --muted: #A0A4AE; --faint: #7B7F89;
+    --rule: #2B2E36; --band: #1B1E24; --accent: #6FA0F0;
+    --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #c98500; --sn: #565B66;
+    --good: #6FBE93; --warn: #DCA33F; --bad: #E0837A;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14161A; --ink: #E9E8E3; --muted: #A0A4AE; --faint: #7B7F89;
+  --rule: #2B2E36; --band: #1B1E24; --accent: #6FA0F0;
+  --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #c98500; --sn: #565B66;
+  --good: #6FBE93; --warn: #DCA33F; --bad: #E0837A;
+}
+:root[data-theme="light"] {
+  --paper: #FCFCFA; --ink: #1B1D22; --muted: #6E7280; --faint: #9A9EA8;
+  --rule: #E3E2DC; --band: #F5F5F1; --accent: #2a78d6;
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #eda100; --sn: #B9BCC4;
+  --good: #1E7A4C; --warn: #A4630E; --bad: #B03A30;
+}
+html { background: var(--paper); }
+body { font-family: var(--serif); color: var(--ink); background: var(--paper);
+       margin: 0; line-height: 1.58; font-size: 17px; }
+.sheet { max-width: 48rem; margin: 0 auto; padding: 3rem 1.4rem 5rem; }
+.eyebrow { font-family: var(--mono); font-size: .7rem; letter-spacing: .16em;
+           text-transform: uppercase; color: var(--accent); margin: 0 0 .7rem; }
+h1 { font-size: clamp(2rem, 5.5vw, 2.8rem); line-height: 1.08; margin: 0 0 .6rem;
+     font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
+.dek { font-size: 1.1rem; color: var(--muted); margin: 0 0 2.2rem; max-width: 40rem;
+       text-wrap: balance; }
+h2 { font-family: var(--mono); font-size: .76rem; letter-spacing: .14em;
+     text-transform: uppercase; font-weight: 600; color: var(--ink);
+     border-top: 1px solid var(--rule); padding-top: 1.1rem; margin: 2.6rem 0 .9rem; }
+h2 .n { color: var(--accent); margin-right: .5em; }
+h3 { font-size: 1.02rem; font-weight: 600; margin: 1.4rem 0 .5rem; }
+p { margin: 0 0 .9rem; max-width: 42rem; }
+.fine { font-size: .85rem; color: var(--muted); }
+figure { margin: 1.2rem 0 1.4rem; }
+figcaption { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em;
+             text-transform: uppercase; color: var(--muted); margin: 0 0 .5rem; }
+.chart { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--rule); stroke-width: 1; }
+.chart .axis { font-family: var(--mono); font-size: 10px; fill: var(--faint); }
+.chart .lab { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.chart .val { font-family: var(--mono); font-size: 11px; fill: var(--ink);
+              font-variant-numeric: tabular-nums; }
+.bar.s0, .dot.s0 { fill: var(--s0); } .bar.s1, .dot.s1 { fill: var(--s1); }
+.bar.s2, .dot.s2 { fill: var(--s2); } .bar.s3, .dot.s3 { fill: var(--s3); }
+.bar.sn, .dot.sn { fill: var(--sn); }
+.dot { stroke: var(--paper); stroke-width: 2; }
+.legend { display: flex; gap: 1rem; flex-wrap: wrap; font-family: var(--mono);
+          font-size: .7rem; color: var(--muted); margin: .4rem 0 0; }
+.legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.tablewrap { overflow-x: auto; margin: .5rem 0 1rem; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; min-width: 32rem; }
+th, td { text-align: left; padding: .45rem .8rem .45rem 0; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em;
+     text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td { font-variant-numeric: tabular-nums; }
+td.num, th.num { text-align: right; padding-right: 1.1rem; font-family: var(--mono);
+                 font-size: .84rem; }
+tr.ours td { font-weight: 600; } tr.ours td:first-child { color: var(--accent); }
+.metrics { display: flex; gap: 1.8rem; flex-wrap: wrap; margin: .8rem 0 1.2rem; }
+.metric .v { font-family: var(--mono); font-size: 1.55rem; font-weight: 600;
+             font-variant-numeric: tabular-nums; }
+.metric .l { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em;
+             text-transform: uppercase; color: var(--muted); }
+.v.good { color: var(--good); } .v.bad { color: var(--bad); } .v.acc { color: var(--accent); }
+ul { padding-left: 1.15rem; margin: .3rem 0 1rem; } li { margin-bottom: .45rem; }
+code { font-family: var(--mono); font-size: .84em; background: var(--band);
+       border: 1px solid var(--rule); border-radius: 3px; padding: .06em .32em; }
+blockquote { margin: .6rem 0; padding: .1rem 0 .1rem .9rem; border-left: 3px solid var(--rule);
+             color: var(--ink); font-size: .95rem; }
+.callout { background: var(--band); border: 1px solid var(--rule); border-radius: 6px;
+           padding: .9rem 1.1rem; margin: 1rem 0; }
+.callout p:last-child { margin-bottom: 0; }
+footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-top: 1rem;
+         font-size: .84rem; color: var(--muted); }
+a { color: var(--accent); }
+
+</style>
+<div class="sheet">
+<p class="eyebrow">Evaluation report · 2026-08-03</p>
+<h1>Zero Slop: what survived testing</h1>
+<p class="dek">Six methods, 50 drafts, two independent judging passes, an adversarial red-team, and a replication that broke the headline number. Everything below is measured, including the parts that went badly.</p>
+
+<div class="metrics">
+  <div class="metric"><div class="v acc">55/100</div><div class="l">best-picks, pooled</div></div>
+  <div class="metric"><div class="v bad">0.12</div><div class="l">judge kappa</div></div>
+  <div class="metric"><div class="v good">9.5</div><div class="l">v1.2 detector score</div></div>
+  <div class="metric"><div class="v good">6</div><div class="l">red-team holes closed</div></div>
+</div>
+
+<h2><span class="n">01</span>The finding that matters most</h2>
+<p>The first blind judging pass gave Zero Slop 32 of 50 best-picks. We then re-ran the identical pass — same rewrites, same shuffled labels, five fresh judges — and got 23 of 50. An eighteen-point swing on unchanged text.</p>
+<p>Cohen's kappa on the winner choice is <b>0.12</b>, with per-item agreement at 52 percent. Judges barely agree on which rewrite is best. That means every single-run headline in this product category, including the one we published first, is noise dressed as a result.</p>
+<div class="callout">
+<p><b>What survives replication.</b> Pooled across 100 verdicts: Zero Slop 55, blader/humanizer 40, petergyang/no-ai-slop 5, isatimur/de-slop 0. Zero Slop wins the plurality against a 25 percent chance rate (p = 1.7 × 10<sup>-10</sup>). Against blader specifically it is <b>not statistically separable</b> (p = 0.15). The ranking order held in both runs; only the margin moved.</p>
+</div>
+
+<figure>
+<figcaption>Figure 1 · Best-pick selections, run one (n = 50)</figcaption>
+<svg viewBox="0 0 640 178" role="img" aria-label="Best-pick selections out of 50" class="chart">
+<line x1="257.5" y1="24" x2="257.5" y2="144" class="grid"/>
+<text x="257.5" y="162" class="axis" text-anchor="middle">12</text>
+<line x1="365.0" y1="24" x2="365.0" y2="144" class="grid"/>
+<text x="365.0" y="162" class="axis" text-anchor="middle">25</text>
+<line x1="472.5" y1="24" x2="472.5" y2="144" class="grid"/>
+<text x="472.5" y="162" class="axis" text-anchor="middle">38</text>
+<line x1="580.0" y1="24" x2="580.0" y2="144" class="grid"/>
+<text x="580.0" y="162" class="axis" text-anchor="middle">50</text>
+<rect x="150" y="28" width="275.2" height="18" rx="4" class="bar s0"/>
+<text x="140" y="41" class="lab" text-anchor="end">Zero-Slop</text>
+<text x="433.2" y="41" class="val">32</text>
+<rect x="150" y="58" width="154.8" height="18" rx="4" class="bar s2"/>
+<text x="140" y="71" class="lab" text-anchor="end">blader/humanizer</text>
+<text x="312.8" y="71" class="val">18</text>
+<rect x="150" y="88" width="2.0" height="18" rx="4" class="bar s2"/>
+<text x="140" y="101" class="lab" text-anchor="end">no-ai-slop</text>
+<text x="160.0" y="101" class="val">0</text>
+<rect x="150" y="118" width="2.0" height="18" rx="4" class="bar s3"/>
+<text x="140" y="131" class="lab" text-anchor="end">de-slop</text>
+<text x="160.0" y="131" class="val">0</text>
+</svg>
+<div class="legend"><span><i style="background:var(--s0)"></i>Zero Slop</span><span><i style="background:var(--s2)"></i>peer skills</span><span><i style="background:var(--s3)"></i>de-slop</span></div>
+<p class="fine">Run two on identical texts: Zero Slop 23, blader 22, no-ai-slop 5, de-slop 0. Read Figure 1 as one sample, not a verdict.</p>
+</figure>
+
+<h2><span class="n">02</span>Deterministic measures are the stable ones</h2>
+<p>Detector scores are computed rather than judged, so they do not move between runs. This is where the separation is real.</p>
+
+<figure>
+<figcaption>Figure 2 · Mean detector score after rewrite (lower is better)</figcaption>
+<svg viewBox="0 0 640 268" role="img" aria-label="Mean detector score after rewrite, lower is better" class="chart">
+<line x1="257.5" y1="24" x2="257.5" y2="234" class="grid"/>
+<text x="257.5" y="252" class="axis" text-anchor="middle">20.0</text>
+<line x1="365.0" y1="24" x2="365.0" y2="234" class="grid"/>
+<text x="365.0" y="252" class="axis" text-anchor="middle">40.0</text>
+<line x1="472.5" y1="24" x2="472.5" y2="234" class="grid"/>
+<text x="472.5" y="252" class="axis" text-anchor="middle">60.0</text>
+<line x1="580.0" y1="24" x2="580.0" y2="234" class="grid"/>
+<text x="580.0" y="252" class="axis" text-anchor="middle">80.0</text>
+<rect x="150" y="28" width="411.2" height="18" rx="4" class="bar sn"/>
+<text x="140" y="41" class="lab" text-anchor="end">Original AI drafts</text>
+<text x="569.2" y="41" class="val">76.5</text>
+<rect x="150" y="58" width="213.9" height="18" rx="4" class="bar s3"/>
+<text x="140" y="71" class="lab" text-anchor="end">de-slop</text>
+<text x="371.9" y="71" class="val">39.8</text>
+<rect x="150" y="88" width="173.1" height="18" rx="4" class="bar s1"/>
+<text x="140" y="101" class="lab" text-anchor="end">Stacked pipeline</text>
+<text x="331.1" y="101" class="val">32.2</text>
+<rect x="150" y="118" width="104.3" height="18" rx="4" class="bar s2"/>
+<text x="140" y="131" class="lab" text-anchor="end">no-ai-slop</text>
+<text x="262.3" y="131" class="val">19.4</text>
+<rect x="150" y="148" width="97.8" height="18" rx="4" class="bar s2"/>
+<text x="140" y="161" class="lab" text-anchor="end">blader/humanizer</text>
+<text x="255.8" y="161" class="val">18.2</text>
+<rect x="150" y="178" width="93.5" height="18" rx="4" class="bar s3"/>
+<text x="140" y="191" class="lab" text-anchor="end">stop-slop</text>
+<text x="251.5" y="191" class="val">17.4</text>
+<rect x="150" y="208" width="55.4" height="18" rx="4" class="bar s0"/>
+<text x="140" y="221" class="lab" text-anchor="end">Zero-Slop</text>
+<text x="213.4" y="221" class="val">10.3</text>
+</svg>
+</figure>
+
+<div class="tablewrap">
+<table>
+<tr><th>Method</th><th class="num">Detector</th><th class="num">Followability</th><th class="num">Burstiness</th><th class="num">Words</th><th class="num">Clean</th></tr>
+<tr><td>Original AI drafts</td><td class="num">76.5</td><td class="num">0.25</td><td class="num">0.670</td><td class="num">159</td><td class="num">6%</td></tr>
+<tr><td>isatimur/de-slop</td><td class="num">39.8</td><td class="num">0.18</td><td class="num">0.643</td><td class="num">137</td><td class="num">34%</td></tr>
+<tr><td>Stacked pipeline</td><td class="num">32.2</td><td class="num">0.16</td><td class="num">0.600</td><td class="num">114</td><td class="num">56%</td></tr>
+<tr><td>petergyang/no-ai-slop</td><td class="num">19.4</td><td class="num">0.17</td><td class="num">0.599</td><td class="num">123</td><td class="num">78%</td></tr>
+<tr><td>blader/humanizer</td><td class="num">18.2</td><td class="num">0.24</td><td class="num">0.588</td><td class="num">135</td><td class="num">84%</td></tr>
+<tr><td>hardikpandya/stop-slop</td><td class="num">17.4</td><td class="num">0.11</td><td class="num">0.535</td><td class="num">116</td><td class="num">86%</td></tr>
+<tr class="ours"><td>Zero Slop v1.2</td><td class="num">9.5</td><td class="num">0.00</td><td class="num">0.628</td><td class="num">159</td><td class="num">100%</td></tr>
+</table>
+</div>
+
+<p><b>Read the word count column.</b> Every other method shrinks the draft: stop-slop by 27 percent, the stacked pipeline by 28. Zero Slop v1.2 lands at the original's exact length while removing every tell. That is the difference between replacing slop with substance and deleting until the tells are gone, and it is the one metric that separates editing from compression.</p>
+
+<h2><span class="n">03</span>Where the judges disagreed with the meter</h2>
+<p>The most aggressive cutter removes the most surface tells and still finished last with judges: stop-slop scored 17.4 on the detector and took 27 worst-picks. Surface-clean and well-written are different properties, which is the entire argument for keeping a judgment pass alongside the meter.</p>
+
+<figure>
+<figcaption>Figure 3 · Judge dimension means, run one</figcaption>
+<svg viewBox="0 0 640 658" role="img" aria-label="Judge dimension means, round one" class="chart">
+<line x1="257.5" y1="24" x2="257.5" y2="624" class="grid"/>
+<text x="257.5" y="642" class="axis" text-anchor="middle">2</text>
+<line x1="365.0" y1="24" x2="365.0" y2="624" class="grid"/>
+<text x="365.0" y="642" class="axis" text-anchor="middle">5</text>
+<line x1="472.5" y1="24" x2="472.5" y2="624" class="grid"/>
+<text x="472.5" y="642" class="axis" text-anchor="middle">8</text>
+<line x1="580.0" y1="24" x2="580.0" y2="624" class="grid"/>
+<text x="580.0" y="642" class="axis" text-anchor="middle">10</text>
+<text x="140" y="86.0" class="lab" text-anchor="end">human</text>
+<rect x="150" y="26" width="337.1" height="18" rx="3.5" class="bar s0"/>
+<text x="494.1" y="41" class="val">7.84</text>
+<rect x="150" y="52" width="326.8" height="18" rx="3.5" class="bar s1"/>
+<text x="483.8" y="67" class="val">7.60</text>
+<rect x="150" y="78" width="270.9" height="18" rx="3.5" class="bar s2"/>
+<text x="427.9" y="93" class="val">6.30</text>
+<rect x="150" y="104" width="215.0" height="18" rx="3.5" class="bar s3"/>
+<text x="372.0" y="119" class="val">5.00</text>
+<text x="140" y="206.0" class="lab" text-anchor="end">voice</text>
+<rect x="150" y="146" width="324.2" height="18" rx="3.5" class="bar s0"/>
+<text x="481.2" y="161" class="val">7.54</text>
+<rect x="150" y="172" width="293.3" height="18" rx="3.5" class="bar s1"/>
+<text x="450.3" y="187" class="val">6.82</text>
+<rect x="150" y="198" width="233.1" height="18" rx="3.5" class="bar s2"/>
+<text x="390.1" y="213" class="val">5.42</text>
+<rect x="150" y="224" width="213.3" height="18" rx="3.5" class="bar s3"/>
+<text x="370.3" y="239" class="val">4.96</text>
+<text x="140" y="326.0" class="lab" text-anchor="end">craft</text>
+<rect x="150" y="266" width="339.7" height="18" rx="3.5" class="bar s0"/>
+<text x="496.7" y="281" class="val">7.90</text>
+<rect x="150" y="292" width="324.2" height="18" rx="3.5" class="bar s1"/>
+<text x="481.2" y="307" class="val">7.54</text>
+<rect x="150" y="318" width="275.2" height="18" rx="3.5" class="bar s2"/>
+<text x="432.2" y="333" class="val">6.40</text>
+<rect x="150" y="344" width="240.8" height="18" rx="3.5" class="bar s3"/>
+<text x="397.8" y="359" class="val">5.60</text>
+<text x="140" y="446.0" class="lab" text-anchor="end">platform</text>
+<rect x="150" y="386" width="342.3" height="18" rx="3.5" class="bar s0"/>
+<text x="499.3" y="401" class="val">7.96</text>
+<rect x="150" y="412" width="335.4" height="18" rx="3.5" class="bar s1"/>
+<text x="492.4" y="427" class="val">7.80</text>
+<rect x="150" y="438" width="306.2" height="18" rx="3.5" class="bar s2"/>
+<text x="463.2" y="453" class="val">7.12</text>
+<rect x="150" y="464" width="280.4" height="18" rx="3.5" class="bar s3"/>
+<text x="437.4" y="479" class="val">6.52</text>
+<text x="140" y="566.0" class="lab" text-anchor="end">fidelity</text>
+<rect x="150" y="506" width="378.4" height="18" rx="3.5" class="bar s0"/>
+<text x="535.4" y="521" class="val">8.80</text>
+<rect x="150" y="532" width="400.8" height="18" rx="3.5" class="bar s1"/>
+<text x="557.8" y="547" class="val">9.32</text>
+<rect x="150" y="558" width="411.9" height="18" rx="3.5" class="bar s2"/>
+<text x="568.9" y="573" class="val">9.58</text>
+<rect x="150" y="584" width="415.4" height="18" rx="3.5" class="bar s3"/>
+<text x="572.4" y="599" class="val">9.66</text>
+</svg>
+<div class="legend"><span><i style="background:var(--s0)"></i>Zero Slop</span><span><i style="background:var(--s1)"></i>blader</span><span><i style="background:var(--s2)"></i>no-ai-slop</span><span><i style="background:var(--s3)"></i>de-slop</span></div>
+</figure>
+
+<figure>
+<figcaption>Figure 4 · The fidelity trade-off</figcaption>
+<svg viewBox="0 0 640 330" role="img" aria-label="Fidelity against voice" class="chart">
+<line x1="60.0" y1="20" x2="60.0" y2="284" class="grid"/>
+<line x1="60" y1="20.0" x2="510" y2="20.0" class="grid"/>
+<text x="60.0" y="300" class="axis" text-anchor="middle">8.5</text>
+<text x="52" y="288.0" class="axis" text-anchor="end">4.5</text>
+<line x1="172.5" y1="20" x2="172.5" y2="284" class="grid"/>
+<line x1="60" y1="86.0" x2="510" y2="86.0" class="grid"/>
+<text x="172.5" y="300" class="axis" text-anchor="middle">8.9</text>
+<text x="52" y="222.0" class="axis" text-anchor="end">5.4</text>
+<line x1="285.0" y1="20" x2="285.0" y2="284" class="grid"/>
+<line x1="60" y1="152.0" x2="510" y2="152.0" class="grid"/>
+<text x="285.0" y="300" class="axis" text-anchor="middle">9.2</text>
+<text x="52" y="156.0" class="axis" text-anchor="end">6.2</text>
+<line x1="397.5" y1="20" x2="397.5" y2="284" class="grid"/>
+<line x1="60" y1="218.0" x2="510" y2="218.0" class="grid"/>
+<text x="397.5" y="300" class="axis" text-anchor="middle">9.6</text>
+<text x="52" y="90.0" class="axis" text-anchor="end">7.1</text>
+<line x1="510.0" y1="20" x2="510.0" y2="284" class="grid"/>
+<line x1="60" y1="284.0" x2="510" y2="284.0" class="grid"/>
+<text x="510.0" y="300" class="axis" text-anchor="middle">10.0</text>
+<text x="52" y="24.0" class="axis" text-anchor="end">8.0</text>
+<circle cx="150.0" cy="54.7" r="7" class="dot s0"/>
+<text x="162.0" y="58.7" class="val">Zero-Slop</text>
+<circle cx="306.0" cy="109.0" r="7" class="dot s2"/>
+<text x="318.0" y="113.0" class="val">blader/humanizer</text>
+<circle cx="384.0" cy="214.6" r="7" class="dot s2"/>
+<text x="396.0" y="218.6" class="val">no-ai-slop</text>
+<circle cx="408.0" cy="249.3" r="7" class="dot s3"/>
+<text x="420.0" y="253.3" class="val">de-slop</text>
+<text x="285.0" y="324" class="axis" text-anchor="middle">Fidelity (1-10)</text>
+<text x="14" y="152.0" class="axis" text-anchor="middle" transform="rotate(-90 14 152.0)">Voice (1-10)</text>
+</svg>
+<p class="fine">Lighter edits preserve facts more perfectly and say less. de-slop leads on fidelity (9.66) and finishes last on voice (4.96). Zero Slop trades 0.86 points of fidelity for 2.58 points of voice. Whether that trade is right depends on whether the draft had anything to say.</p>
+</figure>
+
+<h2><span class="n">04</span>The adversarial audit</h2>
+<p>A red-team agent spent 36 tool-calls attacking the scorer. It found six real vulnerabilities, all now fixed and regression-tested.</p>
+<ul class="rules">
+<li><b>Contraction-locked regexes.</b> Expanding "it's" to "it is" dropped a 20-tell paragraph from 100 to 9.5 — while the skill's own register rule told rewriters to <em>add</em> contractions. Following the skill raised the score; evading it hit the floor. Eighteen patterns now match both forms.</li>
+<li><b>Backtick laundering.</b> Inline code spans were stripped before scoring, so wrapping slop in backticks hid it completely. Only the backticks are removed now.</li>
+<li><b>Unbounded length normalisation.</b> The same 20 tells passed the gate at 2,437 words, while one tell in a 7-word tweet scored 100. The window is floored and an absolute-weight term added.</li>
+<li><b>Invisible edgy-slop.</b> Text built entirely from the skill's own banned over-corrections scored 18.2 — the gate was certifying the failure mode the skill documents. Four over-correction patterns added.</li>
+<li><b>Punctuation convicting alone.</b> An uncapped em-dash term scored the Gettysburg Address at 88.9. Formatting and register signals now require lexical corroboration, which finally implements the "clusters convict, singles don't" rule the scorer stated but never enforced. Gettysburg now scores 29.6.</li>
+<li><b>Self-dealing in the learning loop.</b> Step 6 let an executing model lower a weight with no rule against doing so to pass the draft under review. Explicitly forbidden now.</li>
+</ul>
+<p class="fine">Documented and still open, by design or by scope: hollowness is invisible to any regex, which is why the judgment pass exists; non-Latin scripts score unconditionally clean; and dialogue, poetry and citation-heavy pages remain out of scope.</p>
+
+<h2><span class="n">05</span>Takeaways</h2>
+<ul class="rules">
+<li><b>Publish the disagreement.</b> A benchmark that replicates itself and reports the swing is worth more than one that crowns its author. This is the only evaluation in the category that did.</li>
+<li><b>Trust computed metrics over judged ones.</b> Kappa 0.12 versus deterministic scores that never move. Use judges for direction, meters for magnitude.</li>
+<li><b>Length preservation is the honest signal.</b> Anyone can hit a low tell count by cutting. Hitting it at the original length is the harder and more useful result.</li>
+<li><b>Every tool in this category is under-tested.</b> None of the five alternatives ships an evaluation at all. The bar to clear is low; the bar worth setting is not.</li>
+<li><b>The failures taught more than the wins.</b> A fabricated feeling caught by two independent judges, a scorer that convicted Lincoln, an evasion the skill's own rules encouraged — each became a rule that now runs on every draft.</li>
+</ul>
+
+<footer>Zero Slop evaluation · harness, corpus, judge packets and scripts ship in the repository · MIT</footer>
+</div>

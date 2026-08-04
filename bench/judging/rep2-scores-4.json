@@ -1,0 +1,392 @@
+[
+  {
+    "id": "L19",
+    "scores": {
+      "A": {
+        "human": 7,
+        "voice": 6,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 7,
+        "fabrication": false
+      },
+      "B": {
+        "human": 8,
+        "voice": 8,
+        "fidelity": 8,
+        "craft": 8,
+        "platform": 7,
+        "fabrication": false
+      },
+      "C": {
+        "human": 4,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      },
+      "D": {
+        "human": 7,
+        "voice": 5,
+        "fidelity": 8,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      }
+    },
+    "best": "B",
+    "worst": "C"
+  },
+  {
+    "id": "L20",
+    "scores": {
+      "A": {
+        "human": 8,
+        "voice": 7,
+        "fidelity": 9,
+        "craft": 8,
+        "platform": 6,
+        "fabrication": false
+      },
+      "B": {
+        "human": 5,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      },
+      "C": {
+        "human": 6,
+        "voice": 6,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 6,
+        "fabrication": false
+      },
+      "D": {
+        "human": 7,
+        "voice": 5,
+        "fidelity": 8,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      }
+    },
+    "best": "A",
+    "worst": "B"
+  },
+  {
+    "id": "L21",
+    "scores": {
+      "A": {
+        "human": 8,
+        "voice": 7,
+        "fidelity": 8,
+        "craft": 8,
+        "platform": 7,
+        "fabrication": false
+      },
+      "B": {
+        "human": 6,
+        "voice": 6,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      },
+      "C": {
+        "human": 7,
+        "voice": 7,
+        "fidelity": 7,
+        "craft": 7,
+        "platform": 6,
+        "fabrication": false
+      },
+      "D": {
+        "human": 5,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      }
+    },
+    "best": "A",
+    "worst": "D"
+  },
+  {
+    "id": "L22",
+    "scores": {
+      "A": {
+        "human": 7,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 7,
+        "fabrication": false
+      },
+      "B": {
+        "human": 5,
+        "voice": 4,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      },
+      "C": {
+        "human": 8,
+        "voice": 8,
+        "fidelity": 8,
+        "craft": 8,
+        "platform": 7,
+        "fabrication": false
+      },
+      "D": {
+        "human": 6,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      }
+    },
+    "best": "C",
+    "worst": "B"
+  },
+  {
+    "id": "L23",
+    "scores": {
+      "A": {
+        "human": 6,
+        "voice": 5,
+        "fidelity": 7,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      },
+      "B": {
+        "human": 7,
+        "voice": 8,
+        "fidelity": 8,
+        "craft": 8,
+        "platform": 6,
+        "fabrication": false
+      },
+      "C": {
+        "human": 7,
+        "voice": 7,
+        "fidelity": 8,
+        "craft": 7,
+        "platform": 7,
+        "fabrication": false
+      },
+      "D": {
+        "human": 6,
+        "voice": 6,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 8,
+        "fabrication": false
+      }
+    },
+    "best": "B",
+    "worst": "A"
+  },
+  {
+    "id": "L24",
+    "scores": {
+      "A": {
+        "human": 7,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 8,
+        "fabrication": false
+      },
+      "B": {
+        "human": 8,
+        "voice": 7,
+        "fidelity": 9,
+        "craft": 8,
+        "platform": 8,
+        "fabrication": false
+      },
+      "C": {
+        "human": 5,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      },
+      "D": {
+        "human": 8,
+        "voice": 8,
+        "fidelity": 4,
+        "craft": 7,
+        "platform": 6,
+        "fabrication": true
+      }
+    },
+    "best": "B",
+    "worst": "D"
+  },
+  {
+    "id": "L25",
+    "scores": {
+      "A": {
+        "human": 7,
+        "voice": 6,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 7,
+        "fabrication": false
+      },
+      "B": {
+        "human": 7,
+        "voice": 8,
+        "fidelity": 9,
+        "craft": 8,
+        "platform": 7,
+        "fabrication": false
+      },
+      "C": {
+        "human": 7,
+        "voice": 7,
+        "fidelity": 8,
+        "craft": 7,
+        "platform": 6,
+        "fabrication": false
+      },
+      "D": {
+        "human": 5,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      }
+    },
+    "best": "B",
+    "worst": "D"
+  },
+  {
+    "id": "N01",
+    "scores": {
+      "A": {
+        "human": 8,
+        "voice": 8,
+        "fidelity": 9,
+        "craft": 8,
+        "platform": 7,
+        "fabrication": false
+      },
+      "B": {
+        "human": 8,
+        "voice": 7,
+        "fidelity": 9,
+        "craft": 8,
+        "platform": 8,
+        "fabrication": false
+      },
+      "C": {
+        "human": 5,
+        "voice": 5,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      },
+      "D": {
+        "human": 4,
+        "voice": 4,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 7,
+        "fabrication": false
+      }
+    },
+    "best": "B",
+    "worst": "D"
+  },
+  {
+    "id": "N02",
+    "scores": {
+      "A": {
+        "human": 6,
+        "voice": 4,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      },
+      "B": {
+        "human": 8,
+        "voice": 7,
+        "fidelity": 9,
+        "craft": 8,
+        "platform": 8,
+        "fabrication": false
+      },
+      "C": {
+        "human": 6,
+        "voice": 4,
+        "fidelity": 9,
+        "craft": 6,
+        "platform": 8,
+        "fabrication": false
+      },
+      "D": {
+        "human": 7,
+        "voice": 7,
+        "fidelity": 8,
+        "craft": 7,
+        "platform": 7,
+        "fabrication": false
+      }
+    },
+    "best": "B",
+    "worst": "C"
+  },
+  {
+    "id": "N03",
+    "scores": {
+      "A": {
+        "human": 4,
+        "voice": 6,
+        "fidelity": 10,
+        "craft": 7,
+        "platform": 8,
+        "fabrication": false
+      },
+      "B": {
+        "human": 6,
+        "voice": 7,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 8,
+        "fabrication": false
+      },
+      "C": {
+        "human": 7,
+        "voice": 7,
+        "fidelity": 9,
+        "craft": 7,
+        "platform": 7,
+        "fabrication": false
+      },
+      "D": {
+        "human": 8,
+        "voice": 8,
+        "fidelity": 8,
+        "craft": 8,
+        "platform": 8,
+        "fabrication": false
+      }
+    },
+    "best": "D",
+    "worst": "A"
+  }
+]

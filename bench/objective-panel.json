@@ -1,0 +1,74 @@
+{
+ "original-drafts": {
+  "ai_mean": 76.5,
+  "follow_mean": 0.25,
+  "burst_mean": 0.67,
+  "words_mean": 159,
+  "clean_pct": 6,
+  "n": 50
+ },
+ "zeroslop-v1.0": {
+  "ai_mean": 10.3,
+  "follow_mean": 0.15,
+  "burst_mean": 0.637,
+  "words_mean": 128,
+  "clean_pct": 100,
+  "n": 50
+ },
+ "anthpipe": {
+  "ai_mean": 32.2,
+  "follow_mean": 0.16,
+  "burst_mean": 0.6,
+  "words_mean": 114,
+  "clean_pct": 56,
+  "n": 50
+ },
+ "blader": {
+  "ai_mean": 18.2,
+  "follow_mean": 0.24,
+  "burst_mean": 0.588,
+  "words_mean": 135,
+  "clean_pct": 84,
+  "n": 50
+ },
+ "stopslop": {
+  "ai_mean": 17.4,
+  "follow_mean": 0.11,
+  "burst_mean": 0.535,
+  "words_mean": 116,
+  "clean_pct": 86,
+  "n": 50
+ },
+ "petergyang": {
+  "ai_mean": 19.4,
+  "follow_mean": 0.17,
+  "burst_mean": 0.599,
+  "words_mean": 123,
+  "clean_pct": 78,
+  "n": 50
+ },
+ "deslop": {
+  "ai_mean": 39.8,
+  "follow_mean": 0.18,
+  "burst_mean": 0.643,
+  "words_mean": 137,
+  "clean_pct": 34,
+  "n": 50
+ },
+ "zeroslop-v1.1 (LinkedIn only)": {
+  "ai_mean": 9.9,
+  "follow_mean": 0.15,
+  "burst_mean": 0.615,
+  "words_mean": 131,
+  "clean_pct": 100,
+  "n": 25
+ },
+ "zeroslop-v1.2": {
+  "ai_mean": 9.5,
+  "follow_mean": 0.0,
+  "burst_mean": 0.628,
+  "words_mean": 159,
+  "clean_pct": 100,
+  "n": 50
+ }
+}

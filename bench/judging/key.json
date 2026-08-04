@@ -1,0 +1,302 @@
+{
+ "B01": {
+  "A": "blader",
+  "B": "petergyang",
+  "C": "deslop",
+  "D": "zeroslop"
+ },
+ "B02": {
+  "A": "deslop",
+  "B": "blader",
+  "C": "zeroslop",
+  "D": "petergyang"
+ },
+ "B03": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "B04": {
+  "A": "petergyang",
+  "B": "blader",
+  "C": "zeroslop",
+  "D": "deslop"
+ },
+ "B05": {
+  "A": "petergyang",
+  "B": "blader",
+  "C": "deslop",
+  "D": "zeroslop"
+ },
+ "B06": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "B07": {
+  "A": "blader",
+  "B": "petergyang",
+  "C": "zeroslop",
+  "D": "deslop"
+ },
+ "B08": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "E01": {
+  "A": "zeroslop",
+  "B": "blader",
+  "C": "petergyang",
+  "D": "deslop"
+ },
+ "E02": {
+  "A": "blader",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "petergyang"
+ },
+ "E03": {
+  "A": "blader",
+  "B": "petergyang",
+  "C": "deslop",
+  "D": "zeroslop"
+ },
+ "E04": {
+  "A": "deslop",
+  "B": "blader",
+  "C": "petergyang",
+  "D": "zeroslop"
+ },
+ "L01": {
+  "A": "deslop",
+  "B": "petergyang",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "L02": {
+  "A": "blader",
+  "B": "deslop",
+  "C": "petergyang",
+  "D": "zeroslop"
+ },
+ "L03": {
+  "A": "zeroslop",
+  "B": "petergyang",
+  "C": "deslop",
+  "D": "blader"
+ },
+ "L04": {
+  "A": "deslop",
+  "B": "zeroslop",
+  "C": "blader",
+  "D": "petergyang"
+ },
+ "L05": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "L06": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "L07": {
+  "A": "deslop",
+  "B": "blader",
+  "C": "petergyang",
+  "D": "zeroslop"
+ },
+ "L08": {
+  "A": "zeroslop",
+  "B": "petergyang",
+  "C": "blader",
+  "D": "deslop"
+ },
+ "L09": {
+  "A": "zeroslop",
+  "B": "blader",
+  "C": "deslop",
+  "D": "petergyang"
+ },
+ "L10": {
+  "A": "zeroslop",
+  "B": "deslop",
+  "C": "blader",
+  "D": "petergyang"
+ },
+ "L11": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "L12": {
+  "A": "blader",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "petergyang"
+ },
+ "L13": {
+  "A": "blader",
+  "B": "zeroslop",
+  "C": "petergyang",
+  "D": "deslop"
+ },
+ "L14": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "L15": {
+  "A": "deslop",
+  "B": "blader",
+  "C": "petergyang",
+  "D": "zeroslop"
+ },
+ "L16": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "L17": {
+  "A": "deslop",
+  "B": "petergyang",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "L18": {
+  "A": "zeroslop",
+  "B": "petergyang",
+  "C": "blader",
+  "D": "deslop"
+ },
+ "L19": {
+  "A": "blader",
+  "B": "zeroslop",
+  "C": "deslop",
+  "D": "petergyang"
+ },
+ "L20": {
+  "A": "zeroslop",
+  "B": "deslop",
+  "C": "blader",
+  "D": "petergyang"
+ },
+ "L21": {
+  "A": "zeroslop",
+  "B": "petergyang",
+  "C": "blader",
+  "D": "deslop"
+ },
+ "L22": {
+  "A": "petergyang",
+  "B": "deslop",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "L23": {
+  "A": "petergyang",
+  "B": "blader",
+  "C": "zeroslop",
+  "D": "deslop"
+ },
+ "L24": {
+  "A": "petergyang",
+  "B": "blader",
+  "C": "deslop",
+  "D": "zeroslop"
+ },
+ "L25": {
+  "A": "petergyang",
+  "B": "zeroslop",
+  "C": "blader",
+  "D": "deslop"
+ },
+ "N01": {
+  "A": "zeroslop",
+  "B": "blader",
+  "C": "petergyang",
+  "D": "deslop"
+ },
+ "N02": {
+  "A": "petergyang",
+  "B": "zeroslop",
+  "C": "deslop",
+  "D": "blader"
+ },
+ "N03": {
+  "A": "deslop",
+  "B": "petergyang",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "N04": {
+  "A": "deslop",
+  "B": "petergyang",
+  "C": "zeroslop",
+  "D": "blader"
+ },
+ "N05": {
+  "A": "blader",
+  "B": "petergyang",
+  "C": "zeroslop",
+  "D": "deslop"
+ },
+ "R01": {
+  "A": "deslop",
+  "B": "petergyang",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "R02": {
+  "A": "deslop",
+  "B": "zeroslop",
+  "C": "blader",
+  "D": "petergyang"
+ },
+ "R03": {
+  "A": "petergyang",
+  "B": "zeroslop",
+  "C": "deslop",
+  "D": "blader"
+ },
+ "T01": {
+  "A": "blader",
+  "B": "zeroslop",
+  "C": "deslop",
+  "D": "petergyang"
+ },
+ "T02": {
+  "A": "deslop",
+  "B": "petergyang",
+  "C": "blader",
+  "D": "zeroslop"
+ },
+ "T03": {
+  "A": "petergyang",
+  "B": "blader",
+  "C": "zeroslop",
+  "D": "deslop"
+ },
+ "T04": {
+  "A": "deslop",
+  "B": "zeroslop",
+  "C": "petergyang",
+  "D": "blader"
+ },
+ "T05": {
+  "A": "petergyang",
+  "B": "blader",
+  "C": "deslop",
+  "D": "zeroslop"
+ }
+}
