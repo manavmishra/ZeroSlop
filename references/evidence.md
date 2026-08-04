@@ -19,7 +19,7 @@ not a deception.
 
 1. **Token-level predictability.** AI text sits at local maxima of model
    log-probability (DetectGPT, arXiv:2301.11305; Binoculars, 2401.12070).
-   Human text doesn't. → Ladder L1: specific, slightly surprising phrasing
+   Human text doesn't. Counter: Ladder L1: specific, slightly surprising phrasing
    and concrete facts are the direct counter.
 2. **The LLM lexicon.** A few hundred style words carry huge evidential
    weight: "meticulous" +34.7x, "commendable" +9.8x, "intricate" +11.2x in
@@ -27,26 +27,24 @@ not a deception.
    catalogued across 15M PubMed abstracts (Kobak, 2406.07016 —
    github.com/berenslab/llm-excess-vocab); 21 focal words traced to RLHF
    (Juzek & Ward, 2412.11385). Era-dependent: delve peaked 2023–24;
-   enhance/highlight/showcase dominate 2025+. → Ladder L5 + the scorer's
+   enhance/highlight/showcase dominate 2025+. Counter: Ladder L5 + the scorer's
    weighted lexicon + the learning loop's era updates.
 3. **Surprisal uniformity.** Humans spike information density unevenly; LLMs
-   smooth it (GPT-who/UID, 2310.06202 — beats commercial detectors by >20%).
-   → L3's "don't pad every claim to equal weight".
+   smooth it (GPT-who/UID, 2310.06202 — beats commercial detectors by >20%). Counter: L3's "don't pad every claim to equal weight".
 4. **Low burstiness.** Uniform sentence length/structure: GPTZero's founding
    feature, corroborated independently (Muñoz-Ortiz, 2308.09067; Reinhart,
-   PNAS 2410.16107). Human sentence-length CV is simply higher. → the
+   PNAS 2410.16107). Human sentence-length CV is simply higher. Counter: the
    scorer's burstiness metric and the ≥0.45 gate.
 5. **Register rigidity.** LLMs hold one polished expository voice regardless
-   of situation; humans shift register (Reinhart). → L4.
+   of situation; humans shift register (Reinhart). Counter: L4.
 6. **Stance asymmetry.** Humans: first-person stance, modals, selective
    epistemic hedging, discourse-marker cohesion. LLMs: nominalizations,
-   formal connectives, paragraph-architecture cohesion (Herbold, 2304.14276).
-   → L4's hedging rules and "connective texture over scaffolding".
+   formal connectives, paragraph-architecture cohesion (Herbold, 2304.14276). Counter: L4's hedging rules and "connective texture over scaffolding".
 7. **Syntax signature.** Nominalization density, present-participial
-   clauses, longer constituents (Reinhart; Muñoz-Ortiz). → de-nominalize;
+   clauses, longer constituents (Reinhart; Muñoz-Ortiz). Counter: de-nominalize;
    kill participial openers.
 8. **Affect skew.** LLM text is joy-skewed and uniformly positive
-   (Muñoz-Ortiz). → widen affect.
+   (Muñoz-Ortiz). Counter: widen affect.
 
 ## Why the scorer measures features, not detector verdicts
 
