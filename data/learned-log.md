@@ -209,3 +209,13 @@ example that motivated it.
   prose past the gate. This is a weight change motivated by false positives
   across several documents, not by one draft failing — the distinction step 6
   requires.
+
+- 2026-08-04 — v1.5.0. Fidelity became a measured channel rather than a rule
+  the agent was asked to honour, closing the one dimension the benchmark ranked
+  the skill last on. False-positive rate on ordinary human prose went from 5-in-8
+  to 0-in-5 after two scoring bugs were found by measurement: a corroboration
+  floor of 0.45 that gave style 45% weight with no lexical evidence, and a clamp
+  keyed on hit count so a single weight-2.5 tell unlocked the full stylistic
+  penalty. Six community tells added, `--explain` and `--json --gate` repaired,
+  `--dna` added, a ReDoS and two quadratics removed, and user prose stopped
+  reaching git-tracked files.
