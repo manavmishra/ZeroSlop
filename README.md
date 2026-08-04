@@ -332,14 +332,17 @@ can commit. Update with `npx skills update zero-slop --global`.
 
 ### Claude Code
 
-Either the command above, or the plugin marketplace:
+Either the command above, or install it as a **plugin**, which is the
+tidiest option because updates arrive through the marketplace:
 
 ```
 /plugin marketplace add manavmishra/ZeroSlop
 /plugin install zero-slop@zero-slop
 ```
 
-Or clone straight into the skills directory:
+The plugin ships the runtime only — the skill, its references, the pattern
+database and the scorer — and appears as `/zero-slop`. Or clone straight into
+the skills directory:
 
 ```bash
 git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
@@ -347,9 +350,12 @@ git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
 
 ### Claude Cowork
 
-Cowork reads the same skills directory as Claude Code, so any install above
-works. For a workspace-scoped install that teammates inherit, clone into the
-project's `.claude/skills/` instead of your home directory:
+Cowork reads the same plugin marketplace and skills directory as Claude
+Code, so both routes above work unchanged — `/plugin marketplace add
+manavmishra/ZeroSlop` then `/plugin install zero-slop@zero-slop` is the
+one-line version. For a workspace-scoped install that teammates inherit
+automatically, clone into the project's `.claude/skills/` instead of your
+home directory:
 
 ```bash
 git clone https://github.com/manavmishra/ZeroSlop.git .claude/skills/zero-slop
