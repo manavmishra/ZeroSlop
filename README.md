@@ -369,7 +369,7 @@ conversation on your account. The scorer will not execute in this
 environment, so the skill falls back to its reference lists and self-rubric.
 The rewrite quality holds; you lose the numeric gate.
 
-### Codex and ChatGPT
+### Codex
 
 The package ships `.codex-plugin/plugin.json`, `agents/openai.yaml`, and
 `AGENTS.md`, so Codex-family agents load it directly:
@@ -378,11 +378,31 @@ The package ships `.codex-plugin/plugin.json`, `agents/openai.yaml`, and
 npx skills add manavmishra/ZeroSlop --global --agent codex
 ```
 
-For ChatGPT and ChatGPT at Work, paste `SKILL.md` into a Project's custom
-instructions, or attach it plus the `references/` files to a Custom GPT's
-knowledge. Everything runs on the model's judgment there; the Python scorer
-needs a shell, so use Code Interpreter if you want the numbers, or treat the
-reference lists as the gate.
+Or drop the single-file bundle in as your project's `AGENTS.md`, which Codex
+reads automatically:
+
+```bash
+curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
+```
+
+### ChatGPT and ChatGPT at Work
+
+Grab the bundle, which carries the skill and all four reference documents in
+one file:
+
+```bash
+curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md
+```
+
+Then pick a route. **Project instructions:** open a Project, paste the file
+into Instructions, and every chat in it de-slops by default. **Custom GPT:**
+Configure → Knowledge → upload the file, and add "Use the Zero Slop method"
+to the instructions. **One-off:** paste the file at the top of a chat, then
+paste your draft under it.
+
+The scorer needs a shell, so enable Code Interpreter and upload
+`scripts/slopscore.py` if you want the numeric gate. Without it the reference
+lists are the gate and the rewrite quality holds.
 
 ### Cursor, Windsurf, Warp, OpenCode, Zed, Continue
 
