@@ -29,9 +29,10 @@ are examples, not limits.
 - `data/patterns.json` + `data/learned.json` — the weighted tell database;
   learned merges over base at runtime. `data/learned-log.md` — dated log of
   every taxonomy change.
-- (no trained model ships; see references/evidence.md for why)
-  Separate channel, never blended into the composite; era-fragile by
-  measurement; retrain with `scripts/train_model.py`.
+- No trained model ships. A MaxEnt classifier was built and cut for being
+  confidently wrong on current-era text; `references/evidence.md` documents
+  that negative result along with the SVM and HMM rejections. Do not
+  reintroduce a trained channel without a transfer test on current drafts.
 - `data/voices/` — per-user voice profiles. Git-ignored, personal, never
   commit.
 - `bench/` (if present) — reproducible benchmark harness and scorecard.
