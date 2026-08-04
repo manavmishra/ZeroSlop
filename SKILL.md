@@ -47,7 +47,9 @@ ordered by measured signal strength, strongest first.
 Identify: platform/genre (LinkedIn? blog? email?), audience, and what voice
 evidence exists (user's past writing in the conversation, a stored voice
 profile in `data/voices/`, or none). Skip code blocks, quotes, and legal
-boilerplate. Take a form inventory: decide which parts of the document are
+boilerplate. **Record the input format** — pasted text, .md, .docx, .pdf,
+.html, .txt, a JSON field — because the output must come back in that same
+format (step 5). Take a form inventory: decide which parts of the document are
 running text and which are legitimately structured (lists, tables, code,
 diagrams, spec blocks), then hold each part to its own standard — the goal
 is text a human would have written *in that form*, never prose-ifying
@@ -206,7 +208,30 @@ the deliverable, the scorecard is the measurement, and the heatmap shows
 *where* the slop was, which is what teaches the writer rather than just
 fixing the draft.
 
-**(a) The rewritten text**, in full, ready to paste.
+**(a) The rewritten text**, in full, **returned in the format it arrived
+in.** This is not a stylistic preference — a user who hands you a .docx wants
+a .docx back, and pasting markdown into chat instead makes them do the
+conversion by hand. Match the input:
+
+| Input | Output |
+|---|---|
+| Pasted text in chat | The rewritten text in chat, same shape (paragraphs, line breaks, list structure preserved) |
+| `.md` / `.txt` file | The same file rewritten in place, or a sibling `<name>-deslopped.<ext>` when the original must be preserved |
+| `.docx` | A `.docx`, styles and structure intact (use the docx skill; never return markdown for a Word document) |
+| `.pdf` | A `.pdf` rendered to match the original's layout and typography (use the pdf skill) |
+| `.html` | `.html`, with the markup, classes and structure preserved and only the prose nodes touched |
+| A file inside a repo | Edited in place, so the diff is reviewable |
+| A field in JSON/YAML/CSV | The same structure with only that field's value rewritten |
+
+Two rules that follow from this. **Preserve everything that is not prose**:
+front matter, code blocks, tables, image references, links, IDs, merge
+fields, and formatting all survive the rewrite untouched. And **never
+silently downgrade the format** — if the environment genuinely cannot produce
+the input type, say so plainly and hand back the closest thing, rather than
+quietly returning markdown and letting the user discover the mismatch.
+
+The exception is an explicit request: if the user asks for a different format
+("give me this as plain text", "put it in a doc"), that instruction wins.
 
 **(b) The scorecard.** Use this exact shape (a markdown table in chat; the
 same fields as plain lines where tables don't render):

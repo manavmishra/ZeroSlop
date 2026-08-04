@@ -143,3 +143,11 @@ example that motivated it.
   same words still scores 100, corpus calibration unchanged at 37/50 flagged
   and 50/50 clean. Patterns also gained first_seen/last_confirmed with an
   18-month decay so stale tells fade automatically.
+- 2026-08-03 — User rule: the output format must match the input format.
+  Text in, text out; .docx in, .docx out; PDF in, PDF out; a file in a repo
+  is edited in place so the diff is reviewable; a JSON field comes back as
+  that field. Non-prose content (front matter, code, tables, links, merge
+  fields, markup) survives untouched, and the skill must never silently
+  downgrade to markdown — if it cannot produce the input type it says so.
+  An explicit request for a different format overrides. Encoded in step 0
+  (record the input format) and step 5 (a format-matching table).
