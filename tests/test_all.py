@@ -207,7 +207,11 @@ class ReflectLoop(unittest.TestCase):
         before = len(self._learned())
         learn.promote(True, "test", 2.5)
         minted = self._learned()[before:]
-        self.assertTrue(any("needle" in p["name"] for p in minted),
+        # Names are digests now — the readable phrase is the author's prose and
+        # must not enter a tracked file. Assert on behaviour: some minted
+        # pattern matches the span that recurred.
+        self.assertTrue(any(re.search(p["rx"], "this moves the needle on latency", re.I)
+                            for p in minted),
                         f"the recurring tell was not minted: {[p['name'] for p in minted]}")
 
     def test_same_document_counted_once(self):
@@ -253,7 +257,8 @@ class ReflectLoop(unittest.TestCase):
         before = len(self._learned())
         learn.promote(True, "test", 2.5)
         minted = [p["name"] for p in self._learned()[before:]]
-        self.assertFalse([m for m in minted if "created" in m],
+        self.assertFalse([p for p in self._learned()[before:]
+                          if re.search(p["rx"], "that all men are created equal", re.I)],
                          f"safety gate let a Gettysburg phrase through: {minted}")
 
     def test_promoted_pattern_carries_provenance(self):
@@ -271,6 +276,23 @@ class ReflectLoop(unittest.TestCase):
             self.assertEqual(p.get("source"), "reflect")
             self.assertGreaterEqual(p.get("seen_in_docs", 0), learn.PROMOTE_AT)
             re.compile(p["rx"])
+
+    def test_no_user_prose_in_tracked_files(self):
+        """learned.json is committed. The author's sentences must not be in it.
+
+        An `example` field and a phrase-derived pattern name put the user's own
+        prose into a tracked file while --export printed "no source text is
+        included". Names are digests now and there is no example field.
+        """
+        txt = "We shipped it. Quietly winding down enterprise sales was the call."
+        cut = "We shipped it. That was the call."
+        for i in range(learn.PROMOTE_AT):
+            self._pair(txt, cut, f"doc{i}")
+        learn.promote(True, "test", 2.5)
+        blob = (learn.DATA / "learned.json").read_text().lower()
+        for secret in ("quietly", "winding", "enterprise sales"):
+            self.assertNotIn(secret, blob,
+                             f"user prose {secret!r} leaked into a tracked file")
 
     def test_promotion_is_not_repeated(self):
         txt = "We shipped it. This moves the needle on latency for us."
@@ -502,12 +524,13 @@ class DocsMatchReality(unittest.TestCase):
         human = [slopscore.score_text(f.read_text(), data)["ai_likelihood"]
                  for f in CORPUS.glob("*.txt")]
         ai_mean, lo, hi = _st.mean(drafts), min(human), max(human)
-        m = re.search(r"raw AI drafts in\s*\n?\[`bench/`\]\(bench/\) average (\d+)",
-                      self.docs["README.md"])
+        m = re.search(r"\[`bench/`\]\(bench/\) average (\d+)",
+                      re.sub(r"\s+", " ", self.docs["README.md"]))
         self.assertIsNotNone(m, "README no longer states the AI-draft anchor")
         self.assertAlmostEqual(int(m.group(1)), ai_mean, delta=2,
                                msg=f"README says drafts average {m.group(1)}, measured {ai_mean:.1f}")
-        m2 = re.search(r"lands between (\d+) and (\d+)", self.docs["README.md"])
+        m2 = re.search(r"lands\s+between (\d+) and (\d+)",
+                       re.sub(r"\s+", " ", self.docs["README.md"]))
         self.assertIsNotNone(m2, "README no longer states the human-writing anchor")
         c_lo, c_hi = int(m2.group(1)), int(m2.group(2))
         self.assertLessEqual(c_lo, lo, f"README floor {c_lo} above measured {lo:.1f}")

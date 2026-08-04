@@ -64,6 +64,10 @@ models than everyone else does," gives each report its own number, and scores
 Fifty AI-typical drafts, six genres, blind judges on shuffled labels, every
 skill running its own published prompt.
 
+Competitor outputs were authored to represent each tool's published prompt
+rather than produced by running it, and only Zero Slop's rewrites iterated
+against a gate, so this is a design study rather than a head-to-head.
+
 Run one gave Zero Slop 32 of 50 best-picks. A replication with fresh judges on
 identical texts gave 23. Cohen's kappa 0.12 means judges barely agree on "best",
 so single-run numbers in this category are noise. Pooled across 100 verdicts:
@@ -77,6 +81,13 @@ register each method removes as measured by the thing that defines it, not an
 independent verdict. On that measure Zero Slop leaves 10.0 against 17 to 27 for
 the alternatives, a followability penalty of 0.07 against 0.33 to 0.46, and the
 original word count. Every other method shrinks the draft by up to 28 percent.
+
+Against us, and worth stating plainly: Zero Slop ranked **last of four on
+judge-rated fidelity** in both runs, and carried the only fabrication flag in
+run one. The verify gate scores vocabulary, rhythm, format and followability
+and has no fidelity channel, so the property the product claims matters most is
+enforced by instruction rather than measurement. Closing that is the top
+roadmap item.
 
 ## The rules
 

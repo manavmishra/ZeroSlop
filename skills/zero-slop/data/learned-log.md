@@ -171,3 +171,26 @@ example that motivated it.
 - 2026-08-04 — Reflect loop added 2 context-gated rider(s) (capability, experience) after each was struck from 5+ documents. Entered as riders, not always-on lexicon terms.
 
 - 2026-08-04 — Reflect loop promoted 0 pattern(s) after each was independently cut from 3+ documents (); 0 rejected by the false-positive gate. Source documents are not recorded: reflection evidence stays on the machine that produced it.
+
+- 2026-08-04 — Community taxonomy review (r/OpenAI "telltale signs of AI-slop writing" thread and adjacent write-ups). Coverage test over ten named tells: eight already caught. Added lexicon term `ascertain` (w 3) and pattern `thats-the-thing` (w 3). Deliberately NOT added: the rule-of-three tricolon. It is a named AI tell and also standard rhetoric; the 12-sample corpus is too small to certify a pattern that broad, and shipping it would risk convicting honest parallel construction. Revisit when the corpus is larger.
+
+- 2026-08-04 — Community taxonomy pass over the r/OpenAI "telltale signs of
+  AI-slop writing" thread (Apr 2025, 78 comments). Tested the ten tells named
+  by the post and its commenters; four were already caught. Added six:
+  `fragment-question-pivot` (w 5) for the noun-phrase drum-roll question
+  ("The kicker?", "The issue?", "The real issue?") — the single most-cited tell
+  in the thread, quoted by four separate commenters and previously scoring 9.5,
+  the floor; `theres-a-twist` (w 4); `not-only-but-also` (w 3);
+  `explainer-restatement` (w 3.5) for the sentence that restates the paragraph
+  it ends, named by a working editor as "the unnecessary explainer sentence";
+  `tacked-on-moral` (w 4) for the lesson appended whether or not the piece
+  earned one. Every one cleared the 12-sample must-not-flag corpus. The
+  fragment-question regex is anchored to a sentence boundary and requires the
+  answer to follow, so an ordinary question is untouched.
+
+  Deliberately not added, though named in the thread: the em-dash as such
+  (density is already scored, and two commenters in that same thread are
+  career writers who have used em-dashes for twenty years — a per-instance
+  rule would convict them); "consistent hyphenation"; and the rule-of-three
+  tricolon, which is a real AI tell and also standard rhetoric that a
+  12-sample corpus is too small to certify a pattern against.

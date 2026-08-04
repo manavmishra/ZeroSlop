@@ -22,64 +22,65 @@ Then say "de-slop this" in any agent.
 
 ## See it work
 
-A real LinkedIn draft from August 2026. No "delve", no exclamation points, no
-hype vocabulary:
+Two sentences a product marketer would call finished:
 
-> Enterprise AI value has too often compounded inside individual workflows, leaving a widening gap between the employees building leverage and the organizations trying to scale it.
->
-> With OpenAI's State of Enterprise AI report and WRITER's 2026 adoption survey both out, that gap now has numbers. Frontier users send 6x more messages than the median employee…
->
-> More in both reports below. 👇
->
-> #AgenticAI #EnterpriseAI #AIAdoption
+> We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience, reducing setup time by 40%.
 
-**Scores 45.7 of 100**, on a scale where the 50 raw AI drafts in
-[`bench/`](bench/) average 70 and the certified-human writing in
-[`data/corpus/`](data/corpus/must-not-flag/) lands between 9 and 21. Four
-catches, none of them a banned word:
-announcement voice in the opener, the best statistic buried in paragraph two, a
-cliché doing an idea's job, and a hook promising two reports while citing one.
+```console
+$ python3 scripts/slopscore.py --explain draft.md
+AI-likelihood: 100.0/100  [slop]
+  tell density : 38.33 weighted hits /100w (22 words)
 
-After:
-
-> Six times. That's how much more your best people talk to models than everyone else does, and it comes from OpenAI's own telemetry in its new State of Enterprise AI report, not a survey.
->
-> WRITER's 2026 adoption survey measures the same gap in hours saved: nine a week for super-users, about two for everyone else.
->
-> Then the control numbers. 35% of companies admit they couldn't immediately pull the plug on a rogue agent…
-
-**Scores 9.5.** Every figure and both citations survived. Nothing invented.
-
-<details>
-<summary>Full scorecard and the heatmap that ships with every run</summary>
-
-| Metric | Before | After |
-|---|---|---|
-| AI-likelihood | 45.7 suspect | **9.5 clean** |
-| Weighted tells | 6 | 0 |
-| Em-dashes / emoji / hashtags | 0 / 1 / 3 | 0 / 0 / 0 |
-| Burstiness (target ≥0.45) | 0.65 | 0.79 |
-| Words | 254 | 230 |
-
-```
-  SLOP MAP · 7 sentences · 5 carry tells · hottest first
-
-  ████████  heavy    ¶1  "I'm beyond excited to"
-                      LinkedIn tell — readers pattern-match this to AI instantly
-  ███░░░░░  mild     ¶3  "Let's dive"
-                      structural filler — delete the stem, keep the point
-
-  by paragraph  █ · ▓ ▒   █ heavy  ▓ moderate  ▒ mild  · clean
+  charged spans (6), heaviest first:
+       5  linkedin       announce-excited       "We're thrilled to"
+       4  marketing      marketing-register     'cutting-edge'
+       4  marketing      marketing-register     'seamless'
+       4  lexicon        cutting-edge           'cutting-edge'
+       4  lexicon        seamless               'seamless'
+       2  rider          leverage               'leveraged'
+                                                = 23 weighted, 38.33 per 100 words
 ```
 
-Severity is absolute, so bars compare across documents. The paragraph strip
-shows where slop clusters, which often means a structural problem rather than a
-word problem.
-</details>
+Six spans carry the whole score, and each one names itself. `seamless` is
+charged twice on purpose, once as marketing register and once as vocabulary,
+because the two channels are independent evidence. `leveraged` scores only 2:
+it is a *rider*, silent in a sentence like "we leveraged the existing index"
+and charged here because marketing words share its sentence.
+
+Strike the six and one fact is left standing:
+
+> We cut onboarding setup time by 40% using AI.
+
+```console
+$ python3 scripts/slopscore.py --explain rewrite.md
+AI-likelihood: 9.5/100  [clean]
+  tell density : 0.00 weighted hits /100w (8 words)
+
+  charged spans: none — the score is rhythm and format only
+```
+
+Twenty-two words to eight, and the only survivor is the 40%. That ratio is the
+point: most of the original was decoration around a single measurement, which
+is what the AI accent usually turns out to be on inspection.
+
+**About that 9.5.** It is the floor, not a grade. A document with zero charged
+spans scores 9.5 no matter what it says, and so does the string `Hello`. For
+scale, the 50 raw AI drafts in [`bench/`](bench/) average 70 and the
+certified-human writing in [`data/corpus/`](data/corpus/must-not-flag/) lands
+between 9 and 21 — but read the tell count and the charged-span list first. The
+composite is for ranking drafts against each other and for CI thresholds, not
+for judging one text in isolation. It cannot tell you whether the sentence is
+*worth* writing, which is why the gate prints what it did not measure.
+
+Reproduce both runs:
+
+```bash
+printf "We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience, reducing setup time by 40%%." | python3 scripts/slopscore.py --explain
+```
 
 ## What you get
 
-- **Detector.** 68 weighted patterns, a 54-term lexicon, and 13 context-gated
+- **Detector.** 74 weighted patterns, a 55-term lexicon, and 13 context-gated
   riders that stay silent in honest technical prose, plus rhythm,
   followability, and a shape channel for social posts. Every point traces to a
   quoted span.
@@ -233,7 +234,7 @@ python3 scripts/calibrate.py --decay                 # age out stale tells
 ## How it works
 
 <p align="center">
-  <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 68 weighted tells with a 54-term lexicon and 13 context-gated riders, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and a reflect loop that turns your own edits into new evidence." width="880">
+  <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 74 weighted tells with a 55-term lexicon and 13 context-gated riders, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and a reflect loop that turns your own edits into new evidence." width="880">
 </p>
 
 <p align="center"><em>Three interpretable channels fuse into one score, then a
@@ -247,7 +248,7 @@ change afterwards feeds back into the meter.</em></p>
 flowchart LR
     D([Draft]) --> PM & RH & FF
     subgraph Measure["Measure · all channels, every run"]
-      PM[Pattern meter<br/>68 tells · 54-term lexicon · 13 riders]
+      PM[Pattern meter<br/>74 tells · 55-term lexicon · 13 riders]
       RH[Rhythm<br/>burstiness · uniformity]
       FF[Followability + format<br/>density · dashes · register]
     end
@@ -267,14 +268,20 @@ flowchart LR
 
 ## Benchmark
 
-Fifty AI-typical drafts, six genres, blind judges on shuffled labels, each skill
-running its own published prompt.
+Fifty AI-typical drafts, six genres, blind judges on shuffled labels.
 
-Run one gave Zero Slop 32 of 50 best-picks. A full replication with fresh judges
-on the identical rewrites gave 23. Cohen's kappa 0.12: judges barely agree on
-"best", so single-run headlines in this category are noise.
+**Read the limits before the numbers, because they are unusually severe.**
+Competitor outputs in [`bench/outputs/`](bench/outputs/) were *authored to
+represent* each tool's published prompt, not produced by executing it — there
+are no invocation logs, and `build_h1.py` is a Python file of string literals.
+Zero Slop's rewrites had the scorer in the loop iterating to a gate; the others
+got one pass. That is not a level field, and it means this comparison is a
+design study, not a head-to-head. Judge prompts and model ids were not
+recorded, so the judged numbers are not independently auditable either.
 
-Pooled across 100 verdicts:
+Run one gave Zero Slop 32 of 50 best-picks. A replication with fresh judges on
+identical rewrites gave 23. Cohen's kappa 0.12: judges barely agree on "best",
+so single-run headlines in this category are noise. Pooled across 100 verdicts:
 
 | Method | Best-picks | Composite r1 | Composite r2 |
 |---|--:|--:|--:|
@@ -286,15 +293,26 @@ Pooled across 100 verdicts:
 - Wins the plurality against a 25% chance rate (p = 1.7 × 10⁻¹⁰).
 - **Not statistically separable from blader/humanizer** head to head (p = 0.15).
 - Both beat the other two decisively (p < 10⁻⁷).
-- Ranking held across both runs; only the margin moved.
+
+### The result that goes against us
+
+**Zero Slop ranked last of four on judge-rated fidelity, in both runs** — 8.80
+against blader 9.32, petergyang 9.58, de-slop 9.66. It also carried the only
+fabrication flag in run one: a rewrite invented a feeling the author never
+described, and two independent judges caught it.
+
+That is the exact failure the skill's first hard rule forbids, and it is the
+most useful thing this benchmark produced. The cause is structural: the verify
+gate has channels for vocabulary, rhythm, format and followability, and **none
+for fidelity**. Nothing in the loop measures the property the product claims
+matters most; it is enforced by instruction alone. The incident produced the
+interior-experience rule that now runs on every draft, but the gap in the gate
+is still open and is the top item on the roadmap.
 
 Deterministic measures are steadier, being computed rather than judged. One
-caveat has to come first, because it limits the table below more than anything
-in it: **this column is scored by Zero Slop's own detector.** A tool grading its
-own output on its own metric will flatter itself, so read it as "how much of the
-surface register each method removes, as measured by the thing that defines the
-register" — not as an independent verdict. The judged table above is the
-independent one, and there Zero Slop is *not* separable from blader.
+caveat first: **this column is scored by Zero Slop's own detector**, so it shows
+how much of the surface register each method removes as measured by the thing
+that defines the register, not an independent verdict.
 
 | Method | Detector score | Followability | Words |
 |---|--:|--:|--:|
@@ -306,11 +324,13 @@ independent one, and there Zero Slop is *not* separable from blader.
 | hardikpandya/stop-slop | 17.2 | 0.33 | 116 |
 | **Zero Slop v1.2** | **10.0** | **0.07** | **159** |
 
-Every other method shrinks the draft by up to 28%. Zero Slop holds the original
-length. Recomputed against the current scorer by
-[`bench/aggregate.py`](bench/aggregate.py); these figures moved from an earlier
-published run when a regex fix changed two patterns' matching behaviour, which
-is the ordinary cost of a live scorer and the reason the harness ships.
+**These two tables describe different builds.** The 55 best-picks were won by
+v1.0, which cut drafts 22% shorter. The row above is v1.2, which holds length —
+and which no judge ever saw. Do not read the length column as a judged result.
+
+Harness in [`bench/`](bench/). The honest summary is: statistically tied with a
+much simpler tool, on a benchmark we wrote, against competitor outputs we wrote
+ourselves, while losing on the dimension we care most about.
 
 ## Why the accent exists
 

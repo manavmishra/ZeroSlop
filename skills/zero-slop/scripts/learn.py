@@ -48,13 +48,13 @@ Stdlib only, no network, no subprocess — same contract as the rest of the repo
 """
 import argparse
 import difflib
+import hashlib
 import json
+import os
 import re
 import sys
 from datetime import date
 from pathlib import Path
-
-import os
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -71,7 +71,7 @@ OBS = HOME / "reflections.json"
 
 # An edit has to be worth generalizing. One-word cuts are usually taste; very
 # long ones are unique to the draft and would never fire twice.
-MIN_WORDS, MAX_WORDS = 2, 7
+MIN_WORDS, MAX_WORDS = 3, 9
 # Independent documents a span must be cut from before it earns a pattern.
 PROMOTE_AT = 3
 # Learned patterns start low and earn weight back through --confirm.
@@ -92,11 +92,25 @@ this those through under until very were what when where which while with
 would your""".split())
 
 
+def write_json(path, obj):
+    """Write via a temp file and rename, so a crash cannot truncate the taxonomy."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=1) + "\n")
+    os.replace(tmp, path)
+
+
 def load(p, default=None):
     p = Path(p)
     if not p.exists() and default is not None:
         return default
-    return json.loads(p.read_text())
+    try:
+        return json.loads(p.read_text())
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        if default is not None:
+            return default
+        raise SystemExit(f"{p} is not valid JSON. Restore it from git and re-run.")
 
 
 def words(t):
@@ -104,7 +118,25 @@ def words(t):
 
 
 def norm(s):
-    return re.sub(r"[^a-z0-9 ]", "", s.lower()).strip()
+    """Lowercase, keeping the punctuation that carries meaning.
+
+    Apostrophes and hyphens are part of the token: stripping them turned
+    "it's worth pointing out" into a pattern for "its", which matched nothing —
+    and a regex that matches nothing passes the safety gate trivially, so the
+    gate reported success on a pattern that could never fire.
+    """
+    return re.sub(r"[^a-z0-9 '\u2019-]", "", s.lower()).strip()
+
+
+def is_all_function_words(span):
+    """A span of nothing but grammar is not a style tell.
+
+    "for us", "over time", "in practice" all cleared recurrence, novelty and the
+    safety corpus, then shipped as AI tells and fired on ordinary sentences.
+    A construction has to carry at least one content word to be a construction.
+    """
+    toks = [t for t in norm(span).split() if t]
+    return not any(t not in STOPWORDS and len(t) > 3 for t in toks)
 
 
 def is_content_specific(span):
@@ -116,7 +148,9 @@ def is_content_specific(span):
     toks = span.split()
     if re.search(r"\d", span):
         return "contains a figure"
-    caps = [w for w in toks[1:] if w[:1].isupper()]
+    # every token, not toks[1:]: a cut starting at a sentence boundary
+    # was leaking brand names ("Acme really improved the flow")
+    caps = [w for w in toks if w[:1].isupper() and w.lower() not in STOPWORDS]
     if caps:
         return f"proper noun ({caps[0].strip('.,')})"
     return None
@@ -161,12 +195,20 @@ def to_regex(span):
     """
     toks = norm(span).split()
     parts = []
-    for t in toks:
-        st = stem(t)
-        parts.append(re.escape(st) + r"\w{0,3}" if st != t or len(t) > 5
-                     else re.escape(t))
-    gap = r"\s+(?:\w+\s+)?" if len(toks) >= 4 else r"\s+"
-    return r"\b" + gap.join(parts) + r"\b"
+    for tok in toks:
+        st = stem(tok)
+        body = re.escape(st) + r"\w{0,3}" if st != tok or len(tok) > 5 else re.escape(tok)
+        # straight and curly apostrophes are the same word; so are hyphen and space
+        body = body.replace(re.escape("'"), "['\u2019]").replace("\\-", "[-\\s]")
+        parts.append(body)
+    # One optional insertion across the whole span, not between every pair: with
+    # a gap at each join a 7-token pattern accepted six filler words and matched
+    # sentences it had nothing to do with.
+    if len(toks) >= 4:
+        joined = r"\s+".join(parts)
+        alts = [r"\s+".join(parts[:i] + [r"\w+"] + parts[i:]) for i in range(1, len(parts))]
+        return r"\b(?:" + "|".join([joined] + alts) + r")\b"
+    return r"\b" + r"\s+".join(parts) + r"\b"
 
 
 def already_caught(span, pats, lex):
@@ -277,7 +319,11 @@ def reflect(produced, shipped, doc_id):
                      "observations": {}, "false_positives": {}})
     obs.setdefault("false_positives", {})
 
-    doc = doc_id or Path(produced).name
+    # Identity is the content, not the filename. Drafts saved as post-v1.md,
+    # post-v2.md, post-v3.md are one document and must count once; using the
+    # name let ordinary versioning defeat the recurrence guarantee by accident.
+    doc = doc_id or hashlib.sha256(
+        Path(shipped).read_bytes()).hexdigest()[:16]
     today = str(date.today())
     prod_text = Path(produced).read_text()
     ship_text = Path(shipped).read_text()
@@ -319,7 +365,8 @@ def reflect(produced, shipped, doc_id):
         if already_caught(d["span"], pats, lex):
             agreed += 1
             continue
-        why = is_content_specific(d["span"])
+        why = is_content_specific(d["span"]) or (
+            "all function words" if is_all_function_words(d["span"]) else None)
         if why:
             skipped += 1
             continue
@@ -336,8 +383,7 @@ def reflect(produced, shipped, doc_id):
         recorded += 1
         fresh.append((key, rec["count"]))
 
-    OBS.parent.mkdir(parents=True, exist_ok=True)
-    OBS.write_text(json.dumps(obs, indent=1) + "\n")
+    write_json(OBS, obs)
 
     print(f"reflect: {Path(produced).name} → {Path(shipped).name}\n")
     print(f"  {agreed} edit(s) the meter already caught — it was right, "
@@ -436,7 +482,9 @@ def promote(apply_, cat, weight):
     today = str(date.today())
     added = []
     for key, rec, rx, _ in eligible:
-        stem_name = re.sub(r"[^a-z0-9]+", "-", key)[:34].strip("-")
+        # A readable name is the author's phrase. Tracked files get a digest;
+        # the readable form stays in ~/.zero-slop/ where the author can see it.
+        stem_name = "learned-" + hashlib.sha256(key.encode()).hexdigest()[:10]
         name, i = stem_name, 2
         while name in known:
             name, i = f"{stem_name}-{i}", i + 1
@@ -444,17 +492,19 @@ def promote(apply_, cat, weight):
         added.append({"name": name, "cat": cat, "rx": rx, "w": weight,
                       "first_seen": today, "last_confirmed": today,
                       "source": "reflect", "seen_in_docs": rec["count"],
-                      # the span only — never the captured context, which is
-                      # the author's own writing and must not leave their machine
-                      "example": key[:90]})
+                      # No prose. The regex is the pattern; an `example` field
+                      # put the author's own sentence into a tracked file while
+                      # --export printed "no source text is included".
+                      "digest": hashlib.sha256(key.encode()).hexdigest()[:12]})
         rec["promoted"] = today
     learned.setdefault("patterns", []).extend(added)
     for w, r in lex_safe:
-        learned.setdefault("riders", {})[w] = round(weight / 2, 2)
+        # half the pattern start-weight: a single word convicts far more
+        # text than a phrase, so it enters quieter and earns weight back
+        learned.setdefault("riders", {})[w] = round(START_WEIGHT / 2, 2)
         r["promoted"] = today
-    (DATA / "learned.json").write_text(json.dumps(learned, indent=1) + "\n")
-    OBS.parent.mkdir(parents=True, exist_ok=True)
-    OBS.write_text(json.dumps(obs, indent=1) + "\n")
+    write_json(DATA / "learned.json", learned)
+    write_json(OBS, obs)
     with LOG.open("a") as fh:
         if lex_safe:
             fh.write(f"\n- {today} — Reflect loop added {len(lex_safe)} "
@@ -514,9 +564,8 @@ def demote(apply_):
             src["demoted"] = today; src["source"] = "reflect-fp"
             learned.setdefault("patterns", []).append(src)
         r["demoted"] = today
-    (DATA / "learned.json").write_text(json.dumps(learned, indent=1) + "\n")
-    OBS.parent.mkdir(parents=True, exist_ok=True)
-    OBS.write_text(json.dumps(obs, indent=1) + "\n")
+    write_json(DATA / "learned.json", learned)
+    write_json(OBS, obs)
     with LOG.open("a") as fh:
         fh.write(f"\n- {today} — Reflect loop lowered {len(due)} pattern weight(s) "
                  f"after writers published the flagged text unchanged in "
@@ -572,12 +621,21 @@ def export(out, yes):
     print(json.dumps(payload, indent=1))
     print(f"\n  {len(payload['spans'])} span(s), "
           f"{len(payload['false_positives'])} false-positive report(s).")
-    print("  No source text, filenames, or author information is included.")
+    print("  Short recurrent spans only. No surrounding context, no filenames,\n"
+          "  no author, no dates finer than a month. The spans themselves are\n"
+          "  phrases seen in " + str(PROMOTE_AT) + "+ unrelated documents — read them above.")
     if not yes:
         print(f"\n  Nothing written. Re-run with --yes --out {out} to save it, "
               f"then attach that file to a pull request.")
         return 0
-    Path(out).write_text(json.dumps(payload, indent=1) + "\n")
+    dest = Path(out).resolve()
+    if not str(dest).startswith(str(Path.cwd().resolve())):
+        raise SystemExit(f"refusing to write outside the working directory: {dest}")
+    if DATA.resolve() in dest.parents:
+        raise SystemExit(f"refusing to write into data/: {dest}")
+    if dest.exists():
+        raise SystemExit(f"{dest} exists; choose another --out")
+    dest.write_text(json.dumps(payload, indent=1) + "\n")
     print(f"\n  wrote {out}. Review it once more, then open a PR against "
           f"data/learned.json.")
     return 0
@@ -601,6 +659,17 @@ def merge(path, apply_, cat, weight):
 
     accept, reject = [], []
     for s in c.get("spans", []):
+        if not isinstance(s, dict) or not isinstance(s.get("span"), str):
+            reject.append((str(s)[:40], "malformed entry")); continue
+        # Never trust a contributed regex: rebuild it from the span locally, so
+        # a crafted pattern cannot smuggle catastrophic backtracking into the
+        # meter — or into fp_gate, which would run it against the corpus.
+        s["rx"] = to_regex(s["span"])
+        n = len(norm(s["span"]).split())
+        if not (MIN_WORDS <= n <= MAX_WORDS):
+            reject.append((s["span"], f"{n} words, outside {MIN_WORDS}-{MAX_WORDS}")); continue
+        if is_content_specific(s["span"]) or is_all_function_words(s["span"]):
+            reject.append((s["span"], "content-specific or all function words")); continue
         if s.get("documents", 0) < PROMOTE_AT:
             reject.append((s["span"], f"below threshold ({s.get('documents')})"))
         elif already_caught(s["span"], pats, lex):
@@ -624,7 +693,7 @@ def merge(path, apply_, cat, weight):
     today = str(date.today())
     added = []
     for s in accept:
-        stem_name = re.sub(r"[^a-z0-9]+", "-", s["span"])[:34].strip("-")
+        stem_name = "contrib-" + hashlib.sha256(s["span"].encode()).hexdigest()[:10]
         name, i = stem_name, 2
         while name in known:
             name, i = f"{stem_name}-{i}", i + 1
@@ -632,9 +701,9 @@ def merge(path, apply_, cat, weight):
         added.append({"name": name, "cat": cat, "rx": s["rx"], "w": weight,
                       "first_seen": today, "last_confirmed": today,
                       "source": "contributed", "seen_in_docs": s["documents"],
-                      "example": s["span"][:90]})
+                      "digest": hashlib.sha256(s["span"].encode()).hexdigest()[:12]})
     learned.setdefault("patterns", []).extend(added)
-    (DATA / "learned.json").write_text(json.dumps(learned, indent=1) + "\n")
+    write_json(DATA / "learned.json", learned)
     with LOG.open("a") as fh:
         fh.write(f"\n- {today} — Merged a reflect-loop contribution: "
                  f"{len(added)} pattern(s) ({', '.join(a['name'] for a in added)}), "
@@ -661,7 +730,7 @@ def confirm(target):
                 n += 1
         except re.error:
             continue
-    p.write_text(json.dumps(d, indent=1) + "\n")
+    write_json(p, d)
     print(f"confirmed {n}/{len(d.get('patterns', []))} learned pattern(s) "
           f"against {len(files)} file(s)")
     return 0

@@ -64,7 +64,64 @@
    "w": 4,
    "first_seen": "2026-08-03",
    "last_confirmed": "2026-08-03"
+  },
+  {
+   "name": "thats-the-thing",
+   "cat": "scaffolding",
+   "rx": "\\b(?:and\\s+)?that'?s?\\s+the\\s+thing\\s+(?:about|with)\\b",
+   "w": 3,
+   "first_seen": "2026-08-04",
+   "last_confirmed": "2026-08-04",
+   "source": "manual",
+   "example": "And that's the thing about scaling"
+  },
+  {
+   "name": "fragment-question-pivot",
+   "cat": "rhetorical",
+   "rx": "(?:^|[.!?]\\s+|\\n)(?:And |But |Then )?The\\s+(?:real\\s+|actual\\s+|best\\s+|worst\\s+)?(?:kicker|twist|catch|issue|problem|result|point|irony|kicker|upshot|reality|truth)\\?\\s",
+   "w": 5,
+   "first_seen": "2026-08-04",
+   "last_confirmed": "2026-08-04",
+   "source": "community-taxonomy"
+  },
+  {
+   "name": "theres-a-twist",
+   "cat": "rhetorical",
+   "rx": "\\b(?:but\\s+)?there'?s?\\s+(?:a|the)\\s+(?:twist|catch|kicker|rub)\\b",
+   "w": 4,
+   "first_seen": "2026-08-04",
+   "last_confirmed": "2026-08-04",
+   "source": "community-taxonomy"
+  },
+  {
+   "name": "not-only-but-also",
+   "cat": "rhetorical",
+   "rx": "\\bnot\\s+only\\s+\\w+(?:\\s+\\w+){0,6}?\\s+but\\s+also\\b",
+   "w": 3,
+   "first_seen": "2026-08-04",
+   "last_confirmed": "2026-08-04",
+   "source": "community-taxonomy"
+  },
+  {
+   "name": "explainer-restatement",
+   "cat": "scaffolding",
+   "rx": "(?:^|[.!?]\\s+|\\n)\\s*(?:This|That|These|Those)\\s+(?:indicates?|shows?|demonstrates?|means?|suggests?|highlights?|underscores?|illustrates?)\\s+(?:that\\b|the\\b|how\\b|why\\b)",
+   "w": 3.5,
+   "first_seen": "2026-08-04",
+   "last_confirmed": "2026-08-04",
+   "source": "community-taxonomy"
+  },
+  {
+   "name": "tacked-on-moral",
+   "cat": "scaffolding",
+   "rx": "\\b(?:the\\s+)?(?:lesson|moral|takeaway)\\s+(?:here\\s+|of\\s+the\\s+story\\s+|from\\s+(?:this|all\\s+this)\\s+)?is\\b",
+   "w": 4,
+   "first_seen": "2026-08-04",
+   "last_confirmed": "2026-08-04",
+   "source": "community-taxonomy"
   }
  ],
- "lexicon": {}
+ "lexicon": {
+  "ascertain": 3
+ }
 }

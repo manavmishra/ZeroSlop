@@ -12,6 +12,7 @@ invisible to any regex — the skill's judgment pass covers that.
 Usage (runnable from any cwd; data resolves relative to this script):
     python3 slopscore.py <file>            # pretty report
     python3 slopscore.py --json <file>     # machine-readable
+    python3 slopscore.py --dna a.md b.md   # channel anatomy, before vs after
     cat text | python3 slopscore.py        # stdin
     python3 slopscore.py --explain <file>  # report + hits + heatmap
     python3 slopscore.py --heatmap <file>  # per-sentence heatmap only
@@ -41,8 +42,32 @@ def load_patterns():
     if learned_path.exists():
         try:
             learned = json.loads(learned_path.read_text())
-            base["patterns"].extend(learned.get("patterns", []))
+            # Last-wins by name. Appending made --demote do the opposite of
+            # its name: a softened copy joined the original instead of
+            # replacing it, so halving a weight of 4 produced an effective 6.
+            _by = {q["name"]: q for q in base["patterns"]}
+            _order = [q["name"] for q in base["patterns"]]
+            for q in learned.get("patterns", []):
+                if q["name"] not in _by:
+                    _order.append(q["name"])
+                _by[q["name"]] = q
+            base["patterns"] = [_by[n] for n in _order]
             base["lexicon"].update(learned.get("lexicon", {}))
+            # riders too: the reflect loop promotes single words as riders, and
+            # for a while it wrote them somewhere nothing ever read.
+            base.setdefault("riders", {}).update(learned.get("riders", {}))
+            # Drop entries whose regex will not compile. SECURITY.md promises a
+            # malformed learned file degrades to base patterns; that was only
+            # true for JSON errors — one bad `rx` raised re.error at scan time
+            # and took the scorer down with it.
+            good = []
+            for q in base["patterns"]:
+                try:
+                    re.compile(q["rx"])
+                    good.append(q)
+                except (re.error, KeyError, TypeError):
+                    pass
+            base["patterns"] = good
         except Exception:
             pass  # a malformed learned file must never break scoring
     return base
@@ -285,9 +310,11 @@ def sentence_map(text, data, formal=False):
     rows = []
     for s in sentences(clean):
         w, names = 0.0, []
+        _sl = s.lower()   # hoisted out of the hit loop: this was
+                          # recomputed once per hit, giving O(sentences x hits)
         for h in doc["hits"]:
-            q = h["quote"]
-            if q and q.lower() in s.lower():
+            q = h["quote"].lower()
+            if q and q in _sl:
                 w += h["w"]
                 names.append(h["name"])
         rows.append({"sentence": s, "weight": round(w, 1),
@@ -338,9 +365,11 @@ def render_heatmap(text, data, formal=False, max_rows=8, width=8):
     for pi, para in enumerate(paras, 1):
         for s in sentences(para):
             w, cats, quotes = 0.0, [], []
+            _sl = s.lower()   # hoisted out of the hit loop: this was
+                              # recomputed once per hit, giving O(sentences x hits)
             for h in doc["hits"]:
-                q = h["quote"]
-                if q and q.lower() in s.lower():
+                q = h["quote"].lower()
+                if q and q in _sl:
                     w += h["w"]
                     cats.append(h["cat"])
                     quotes.append(q)
@@ -409,9 +438,11 @@ def worst_sentences(text, data, formal=False, k=3):
     rows = []
     for start, end, s in spans:
         w, names = 0.0, []
+        _sl = s.lower()   # hoisted out of the hit loop: this was
+                          # recomputed once per hit, giving O(sentences x hits)
         for h in doc["hits"]:
-            q = h["quote"]
-            if q and q.lower() in s.lower():
+            q = h["quote"].lower()
+            if q and q in _sl:
                 w += h["w"]
                 names.append(h["name"])
         if w > 0:
@@ -431,6 +462,60 @@ def gate_value():
         return 25.0, None
 
 
+CHANNELS = [
+    # label, how to pull the number, which direction is better, how to show it
+    ("vocabulary",    lambda r: sum(h["w"] for h in r["hits"]
+                                    if h["cat"] in ("lexicon", "rider")), "low"),
+    ("register",      lambda r: sum(h["w"] for h in r["hits"]
+                                    if h["cat"] not in ("lexicon", "rider")), "low"),
+    ("rhythm",        lambda r: r["burstiness"], "high"),
+    ("followability", lambda r: r["followability_penalty"], "low"),
+    ("format",        lambda r: r["emdash_per_100w"] + r["emoji_count"]
+                                + r["hashtags"], "low"),
+]
+
+
+def dna(before, after, data, formal=False, width=22):
+    """Side-by-side channel anatomy of a draft and its rewrite.
+
+    The composite says a draft got better; it never says what *kind* of better.
+    A writer who sees that the whole score was vocabulary learns to stop
+    reaching for those words, which outlasts the edit. Bars are scaled per
+    channel against the worse of the two texts, so each row reads as its own
+    before-and-after rather than against an arbitrary ceiling.
+    """
+    a, b = score_text(before, data, formal), score_text(after, data, formal)
+    out = ["", "  DNA · before → after", ""]
+    for label, get, better in CHANNELS:
+        x, y = get(a), get(b)
+        top = max(x, y) or 1.0
+        fx, fy = x / top, y / top
+        bar = "".join("█" if i < round(fx * width) else
+                      ("▁" if i < round(max(fx, fy) * width) else " ")
+                      for i in range(width))
+        gone = (x - y) if better == "low" else (y - x)
+        mark = "improved" if gone > 1e-9 else ("unchanged" if abs(gone) < 1e-9 else "WORSE")
+        fmt = (lambda v: f"{v:.2f}") if max(x, y) < 10 else (lambda v: f"{v:g}")
+        out.append(f"  {label:<14}{bar}  {fmt(x):>6} → {fmt(y):<6} {mark}")
+    out += ["",
+            f"  composite     {a['ai_likelihood']:.1f} → {b['ai_likelihood']:.1f}"
+            f"   ({band(a['ai_likelihood'])} → {band(b['ai_likelihood'])})",
+            f"  length        {a['n_words']} → {b['n_words']} words "
+            f"({(b['n_words']-a['n_words'])/max(a['n_words'],1)*100:+.0f}%)",
+            f"  tells         {len(a['hits'])} → {len(b['hits'])}"]
+    kept = {h["name"] for h in b["hits"]}
+    fixed = [h["name"] for h in a["hits"] if h["name"] not in kept]
+    if fixed:
+        out.append("  fixed         " + ", ".join(sorted(set(fixed))[:6]))
+    if kept:
+        out.append("  still present " + ", ".join(sorted(kept)[:6]))
+    # A shorter text with the same tells is not a better text.
+    if b["n_words"] < a["n_words"] * 0.75 and len(b["hits"]) >= len(a["hits"]):
+        out.append("  note          got shorter without removing tells — "
+                   "check this is an edit, not a deletion")
+    return out + [""]
+
+
 def main():
     gv, gv_tok = gate_value()
     gen_tok = sys.argv[sys.argv.index("--genre") + 1] if "--genre" in sys.argv and len(sys.argv) > sys.argv.index("--genre") + 1 else None
@@ -445,6 +530,14 @@ def main():
         except IndexError: pass
     if formal: genre = "formal"
     data = load_patterns()
+
+    if "--dna" in sys.argv:
+        if len(args) < 2:
+            sys.exit("--dna needs two files: before and after")
+        for line in dna(Path(args[0]).read_text(), Path(args[1]).read_text(),
+                        data, formal=formal):
+            print(line)
+        return
 
     if "--batch" in sys.argv:
         root = Path(args[0]) if args else Path(".")
@@ -467,7 +560,12 @@ def main():
     r = score_text(text, data, formal=formal)
     if as_json:
         print(json.dumps(r, ensure_ascii=False, indent=1))
-        return
+        if gv is None:
+            return
+        # --json --gate is documented CI usage; returning here exited 0 on a
+        # failing document, so a broken gate silently passed every build.
+        sh_j = shape_metrics(text, genre=genre)
+        sys.exit(0 if (r["ai_likelihood"] <= gv and not sh_j.get("broetry")) else 1)
     print(f"AI-likelihood: {r['ai_likelihood']}/100  [{band(r['ai_likelihood'])}]")
     print(f"  tell density : {r['tell_density_per_100w']:.2f} weighted hits /100w "
           f"({r['n_words']} words)")
@@ -493,7 +591,17 @@ def main():
           + (", shape" if sh["measured"] else "")
           + "\n  not measured  : substance (is there a claim?), voice, factual accuracy"
           + ("" if sh["measured"] else ", shape"))
-    if "--heatmap" in sys.argv and not explain:
+    if explain:
+        if r["hits"]:
+            print(f"\n  charged spans ({len(r['hits'])}), heaviest first:")
+            for h in sorted(r["hits"], key=lambda h: -h["w"]):
+                print(f"    {h['w']:>4}  {h['cat']:<14} {h['name']:<22} {h['quote']!r}")
+            print(f"    {'':>4}  {'':14} {'':22} "
+                  f"= {sum(h['w'] for h in r['hits']):g} weighted, "
+                  f"{r['tell_density_per_100w']:.2f} per 100 words")
+        else:
+            print("\n  charged spans: none — the score is rhythm and format only")
+    if "--heatmap" in sys.argv or explain:
         for line in render_heatmap(text, data, formal=formal):
             print(line)
     if gv is not None:
