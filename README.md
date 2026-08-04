@@ -1,8 +1,8 @@
 # Zero Slop
 
-**A linter for the AI accent.** It scores a draft from 0 to 100, shows you which
-words cost what, rewrites it, and proves the rewrite kept your facts and invented
-nothing.
+**Add taste to your output, or fix your slop.** Zero Slop is a linter for the AI
+accent: it scores a draft from 0 to 100, shows you which words cost what, rewrites
+it, and proves the rewrite kept your facts and invented nothing.
 
 <p align="center">
   <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">

@@ -1,8 +1,8 @@
 # Zero Slop
 
-A linter for the AI accent. It scores a draft from 0 to 100, shows you which
-spans cost what, rewrites it, and checks the rewrite kept every fact and made
-nothing up. The score is computed rather than judged, which is the whole point:
+**Add taste to your output, or fix your slop.** Zero Slop is a linter for the AI
+accent. It scores a draft from 0 to 100, shows you which words cost what, rewrites
+it, and checks the rewrite kept every fact and made nothing up. The score is computed rather than judged, which is the whole point:
 you can gate CI on it, diff it across revisions, and argue with any number,
 because each one traces back to a span you can read.
 
@@ -11,6 +11,8 @@ npx skills add manavmishra/ZeroSlop --global
 ```
 
 Then say "de-slop this" in any agent. No dependencies, no network, no account.
+
+![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
 
 ## what it is, and what it is not
 
