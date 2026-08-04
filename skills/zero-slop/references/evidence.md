@@ -211,3 +211,35 @@ It also raises the cost of *over*-correction, since a rewrite that strips a
 writer's voice to pass a meter is a worse outcome than the tell it removed.
 That trade is why `references/overcorrection.md` exists and why the gate reports
 what it did not measure.
+
+## The roadmap channels, and why they are not shipped yet
+
+Current work on interpretable detection converges on a small set of
+content-independent stylometric features, which is the direction this scorer
+should grow rather than adding more regex patterns.
+
+- **Function-word bigram frequency and average sentence length** are the two
+  highest-importance features in a lightweight interpretable detector, and the
+  paper reports 95–97% accuracy from them alone (NEULIF, arXiv:2511.21744).
+- A systematic cross-domain analysis finds the same family — function words,
+  punctuation, linguistic diversity — carries most of the interpretable signal
+  (arXiv:2606.04177).
+- These are attractive here because they are blind to specific wording, so
+  unlike the pattern meter they cannot be defeated by swapping synonyms, and
+  they degrade gracefully as models change.
+
+They are **not shipped**, and the reason is a measured negative result rather
+than a plan. Computing normalised sentence-opener entropy and function-word
+bigram entropy over the labelled discrimination corpus separates human from
+slop by essentially nothing (0.976 vs 0.986 opener entropy on twelve samples),
+with slop scoring marginally *higher*. That is not evidence the features fail;
+it is evidence the corpus is far too small to calibrate them — the cited work
+derives its thresholds from tens of thousands of documents. Adding an
+uncalibrated channel that shows no signal on the only data available would be
+exactly the hand-tuned rule this project tries to avoid.
+
+So the dependency is explicit: the labelled corpus (RAID arXiv:2405.07940, HC3,
+M4, AuTextification) comes first, the stylometric channels are calibrated
+against it second, and only then do they join the meter. Until then the honest
+statement is that the scorer is a lexical-and-structural linter with a
+research-backed roadmap, not a stylometric classifier.
