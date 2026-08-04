@@ -1,0 +1,9 @@
+A designer knows perfection is reached when there is nothing left to take away.
+
+Premature optimization is the root of all evil.
+
+There are two hard things in computer science.
+
+Make it work, make it right, make it fast.
+
+Everything should be as simple as possible, but no simpler.

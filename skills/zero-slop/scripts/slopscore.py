@@ -32,6 +32,7 @@ import sys
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+SHAPE_SOLO_THRESHOLD = 0.62  # calibrated, see calibrate.py --shape
 
 
 def load_patterns():
@@ -219,6 +220,54 @@ def score_text(text, data, formal=False):
     }
 
 
+
+# ── shape channel ─────────────────────────────────────────────────────────────
+# Broetry (every sentence its own paragraph) is invisible to every other
+# channel: paragraph structure is flattened before scoring, so identical words
+# in 26 paragraphs or 1 score the same to the decimal. Worse, broetry's
+# fragment/long-sentence mix INFLATES burstiness, so the rhythm channel that
+# exists to catch machine cadence is satisfied by the tell itself.
+#
+# This is reported as its own axis and never folded into ai_likelihood, for
+# two reasons. Mechanically, anything added to `stylistic` dies at the
+# corroboration clamp exactly when broetry is the only tell. Conceptually,
+# broetry is a slop tell, not a machine tell: LinkedIn writers invented it
+# years before GPT-3, and it demonstrably performs on the platform. Whether to
+# trade reach for a human voice is the author's call, not the meter's.
+STRUCT_MARK = re.compile(r"^\s*(?:[-*+•>#]|\d+[.)]|\|)")
+DIALOGUE_OPEN = re.compile("^[\"“‘']")
+
+
+def shape_metrics(text, genre="general"):
+    """Paragraph-shape signals. Gated by genre; abstains when unreliable."""
+    out = {"genre": genre, "measured": False, "solo_frac": None,
+           "prose_paras": 0, "max_fragment_run": 0, "broetry": None,
+           "reason": ""}
+    if genre != "social":
+        out["reason"] = f"not measured (genre={genre}; shape signals apply to social posts)"
+        return out
+    raw = [p.strip() for p in re.split(r"\n\s*\n", strip_noise(text)) if p.strip()]
+    # Guards BEFORE the metric — these genres are structurally identical to
+    # broetry and score harder than the real thing.
+    prose = [p for p in raw
+             if not STRUCT_MARK.match(p)                       # lists, headings, tables
+             and not DIALOGUE_OPEN.match(p)                    # dialogue
+             and len(WORD.findall(p)) >= 3]                    # stubs
+    out["prose_paras"] = len(prose)
+    if len(prose) < 8:                                         # mirrors length_conf
+        out["reason"] = f"abstains ({len(prose)} prose paragraphs; needs 8+)"
+        return out
+    solo = sum(1 for p in prose if len(sentences(p)) <= 1)
+    frag, run, best = [len(WORD.findall(s)) for s in sentences(strip_noise(text))], 0, 0
+    for L in frag:
+        run = run + 1 if L < 7 else 0
+        best = max(best, run)
+    out.update(measured=True, solo_frac=round(solo / len(prose), 2),
+               max_fragment_run=best, reason="")
+    out["broetry"] = out["solo_frac"] >= SHAPE_SOLO_THRESHOLD and best >= 3
+    return out
+
+
 def band(score):
     if score < 25:
         return "clean"
@@ -384,11 +433,17 @@ def gate_value():
 
 def main():
     gv, gv_tok = gate_value()
+    gen_tok = sys.argv[sys.argv.index("--genre") + 1] if "--genre" in sys.argv and len(sys.argv) > sys.argv.index("--genre") + 1 else None
     args = [a for a in sys.argv[1:]
-            if not a.startswith("--") and a != gv_tok]
+            if not a.startswith("--") and a != gv_tok and a != gen_tok]
     as_json = "--json" in sys.argv
     explain = "--explain" in sys.argv
     formal = "--formal" in sys.argv
+    genre = "general"
+    if "--genre" in sys.argv:
+        try: genre = sys.argv[sys.argv.index("--genre") + 1]
+        except IndexError: pass
+    if formal: genre = "formal"
     data = load_patterns()
 
     if "--batch" in sys.argv:
@@ -427,12 +482,26 @@ def main():
     if r["categories"]:
         top = sorted(r["categories"].items(), key=lambda kv: -kv[1])[:8]
         print("  top categories: " + ", ".join(f"{k}({v})" for k, v in top))
+    sh = shape_metrics(text, genre=genre)
+    r["shape"] = sh
+    print("  shape         : " + (
+        f"broetry — {sh['solo_frac']:.0%} of paragraphs are single sentences, "
+        f"longest fragment run {sh['max_fragment_run']}" if sh.get("broetry")
+        else (f"ok ({sh['solo_frac']:.0%} solo paragraphs)" if sh["measured"]
+              else sh["reason"])))
+    print("  checked       : vocabulary, formatting, rhythm, followability, register"
+          + (", shape" if sh["measured"] else "")
+          + "\n  not measured  : substance (is there a claim?), voice, factual accuracy"
+          + ("" if sh["measured"] else ", shape"))
     if "--heatmap" in sys.argv and not explain:
         for line in render_heatmap(text, data, formal=formal):
             print(line)
     if gv is not None:
-        ok = r["ai_likelihood"] <= gv
-        print(f"  gate {gv:g}: {'PASS' if ok else 'FAIL'}")
+        ok = r["ai_likelihood"] <= gv and not sh.get("broetry")
+        why = "" if ok else (" (shape: broetry)" if sh.get("broetry") and r["ai_likelihood"] <= gv else "")
+        verdict = "PASS" if ok else "FAIL"
+        print(f"  gate {gv:g}: {verdict}{why} — measured channels only; "
+              f"substance and voice still need the judgment pass")
         sys.exit(0 if ok else 1)
 
 

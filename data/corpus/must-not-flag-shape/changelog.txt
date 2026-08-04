@@ -1,0 +1,13 @@
+## 4.2.0
+
+Added retry logic to the webhook dispatcher.
+
+Fixed a race in the session cache that dropped writes under load.
+
+Removed the deprecated v1 auth path.
+
+## 4.1.3
+
+Patched a memory leak in the parser.
+
+Bumped minimum Python to 3.9.

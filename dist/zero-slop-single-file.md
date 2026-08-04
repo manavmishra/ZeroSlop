@@ -85,6 +85,11 @@ a 72-term lexicon), rhythm and burstiness, followability, formatting
 densities, and register. Each one is interpretable, so every point of the
 score can be traced to a quoted span.
 
+Pass `--genre social` for LinkedIn and X, which switches on the shape channel
+(paragraph structure and fragment runs). Genre comes from step 0, never from
+auto-detection: nothing in the text separates a poem from broetry, but you
+already know which one you are editing.
+
 Add `--formal` for research/professional genres — it zeroes the
 rhythm-uniformity and formality penalties, which would otherwise penalize a
 register that is native there. If `python3` is unavailable in this
@@ -187,6 +192,12 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   (LinkedIn, essays), ≥ 3 claims a reader could disagree with, drawn from the
   author's material — if the draft contains none, flag per step 5 rather than
   manufacture stance
+- shape (social genres only): the scorer reports `broetry` when most
+  paragraphs are single sentences and fragments run three or more deep. This
+  is its own axis, never folded into the score, because broetry is a slop tell
+  rather than a machine tell — LinkedIn writers invented it years before
+  GPT-3, and it demonstrably performs there. Report it and let the author
+  decide whether reach is worth the voice
 - read-aloud pass: no sentence you'd stumble over or never say
 - expert-voice test: would a respected practitioner in this field assume a
   peer wrote it? Terms precise, authority earned by specifics (never by
@@ -259,7 +270,15 @@ same fields as plain lines where tables don't render):
 | Followability penalty     | 4.2           | 0            |
 | Words                     | 254           | 217          |
 Gate: PASSED (LinkedIn ≤20) · facts preserved 12/12 · nothing invented
+Checked: vocabulary, formatting, rhythm, followability, register, shape
+Not measured: substance, voice, factual accuracy
 ```
+
+**Never print a bare PASS.** The gate covers the channels it can compute, and
+saying so is the difference between a verdict and a claim the tool cannot
+support. A draft can be word-clean and still read as machine-written; when the
+diagnose pass sees that, say it in the report even when every number is green.
+A green number never means the judgment pass was optional.
 
 **(c) The heatmap**, before and after, from
 `python3 <skill-root>/scripts/slopscore.py --heatmap <file>`:

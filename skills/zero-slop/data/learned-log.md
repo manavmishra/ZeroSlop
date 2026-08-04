@@ -150,3 +150,20 @@ example that motivated it.
   downgrade to markdown — if it cannot produce the input type it says so.
   An explicit request for a different format overrides. Encoded in step 0
   (record the input format) and step 5 (a format-matching table).
+- 2026-08-04 — Shape channel added after a verified blind spot: paragraph
+  structure was flattened before scoring, so the same words in 26 paragraphs
+  or 1 scored identically to the decimal. Broetry was invisible, and worse,
+  its fragment/long mix INFLATED burstiness — the channel meant to catch
+  machine cadence was satisfied by the tell. A naive fix would also have died
+  at the corroboration clamp, which caps stylistic evidence at 3.5 exactly
+  when zero lexical hits are present, the common broetry case.
+  Built corpus-first: data/corpus/must-not-flag-shape/ holds six genres that
+  mimic broetry (poem, dialogue, changelog, SMS, aphorisms, lyrics), all
+  solo_frac 1.00, so a naive metric convicts them harder than the real thing.
+  Guards run before the metric (structural markers, dialogue openings,
+  eight-paragraph floor) and silence five of six; lyrics remains a documented
+  boundary rather than a special case. Reported as its own axis, never folded
+  into ai_likelihood, because broetry is a slop tell not a machine tell and
+  the reach-versus-voice call belongs to the author.
+  Also fixed the deeper failure: the gate printed PASS for channels it never
+  measured. Every verdict now enumerates what was checked and what was not.

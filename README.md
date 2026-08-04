@@ -92,7 +92,7 @@ ideas. Rewriting removes it without touching a fact.
 
 | | |
 |---|---|
-| **Detector** | 68 weighted patterns, 72-term lexicon, rhythm, followability. Every point traces to a quoted span. |
+| **Detector** | 68 weighted patterns, 72-term lexicon, rhythm, followability, and a shape channel for social posts. Every point traces to a quoted span. |
 | **Two-pass rewrite** | Strip the tells, then rebuild toward an expert register. |
 | **Hard gate** | LinkedIn ≤20, general ≤25, email ≤35, research on a formal track. Three failures and it says the draft needs a real detail. |
 | **Scorecard + heatmap** | Before and after, on every run. |
@@ -172,6 +172,10 @@ Deterministic measures are steadier, being computed rather than judged:
 
 Every other method shrinks the draft by up to 28%. Zero Slop holds the original
 length at zero tells.
+
+The gate reports what it measured and what it did not. A draft can be
+word-clean and still read as machine-written, so a green number never means
+the judgment pass was optional.
 
 One rewrite invented a feeling the author never described. Two independent
 judges caught it, and the rule it produced runs on every draft now. Harness in

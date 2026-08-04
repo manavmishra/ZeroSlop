@@ -84,6 +84,35 @@ def excess_weights(human_dir, ai_dir):
     return out, hn, an
 
 
+def shape_selftest():
+    """Run the shape channel against genres that mimic broetry structurally.
+
+    Hostile setting: every sample is declared `social`, the only genre where
+    the channel engages. Anything that flags here is a documented boundary,
+    not a silent one.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import slopscore
+    d = DATA / "corpus" / "must-not-flag-shape"
+    if not d.exists():
+        print("no shape corpus — shape channel untested")
+        return 0
+    KNOWN = {"lyrics"}          # see data/corpus/must-not-flag-shape/README.md
+    flagged, total = [], 0
+    for p in sorted(d.glob("*.txt")):
+        total += 1
+        m = slopscore.shape_metrics(p.read_text(), genre="social")
+        if m.get("broetry"):
+            tag = "known boundary" if p.stem in KNOWN else "REGRESSION"
+            flagged.append((p.stem, tag))
+            print(f"  {tag:14s} {p.name}  solo={m['solo_frac']} run={m['max_fragment_run']}")
+    new = [f for f, t in flagged if t == "REGRESSION"]
+    print(f"shape regression: {total - len(flagged)}/{total} silent, "
+          f"{len([f for f,t in flagged if t=='known boundary'])} known boundary, "
+          f"{len(new)} new")
+    return 1 if new else 0
+
+
 def selftest(fp_dir=None):
     """No pattern may fire on writing that must never be flagged."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -130,7 +159,7 @@ def decay():
 def main():
     a = sys.argv[1:]
     if "--selftest" in a:
-        sys.exit(selftest())
+        sys.exit(selftest() or shape_selftest())
     if "--decay" in a:
         sys.exit(decay())
     if "--human" not in a or "--ai" not in a:
