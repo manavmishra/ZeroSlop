@@ -229,13 +229,34 @@ def band(score):
 
 
 def worst_sentences(text, data, formal=False, k=3):
-    """Per-sentence scores, worst first — the heatmap behind --explain."""
+    """Per-sentence heatmap, worst first.
+
+    Attributes the *document's* hits to the sentence containing them rather
+    than re-scoring each sentence alone. Scoring in isolation makes every
+    sentence look like the start of a document, so start-anchored patterns
+    fire on all of them — a heatmap that reports tells the document scan
+    never found is worse than no heatmap.
+    """
+    clean = strip_noise(text)
+    doc = score_text(text, data, formal=formal)
+    sents = sentences(clean)
+    spans, cursor = [], 0
+    for s in sents:
+        i = clean.find(s[:40], cursor)
+        if i < 0:
+            i = cursor
+        spans.append((i, i + len(s), s))
+        cursor = i + len(s)
     rows = []
-    for s in sentences(strip_noise(text)):
-        r = score_text(s, data, formal=formal)
-        w = sum(h["w"] for h in r["hits"])
+    for start, end, s in spans:
+        w, names = 0.0, []
+        for h in doc["hits"]:
+            q = h["quote"]
+            if q and q.lower() in s.lower():
+                w += h["w"]
+                names.append(h["name"])
         if w > 0:
-            rows.append((w, s, [h["name"] for h in r["hits"]]))
+            rows.append((w, s, names))
     return sorted(rows, key=lambda x: -x[0])[:k]
 
 
