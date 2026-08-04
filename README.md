@@ -97,6 +97,7 @@ ideas. Rewriting removes it without touching a fact.
 | **Hard gate** | LinkedIn ≤20, general ≤25, email ≤35, research on a formal track. Three failures and it says the draft needs a real detail. |
 | **Scorecard + heatmap** | Before and after, on every run. |
 | **Six platform modules** | LinkedIn, X, email, blog, newsletter, research. Each with its own rules. |
+| **Shape channel** | Catches broetry on social posts, reported on its own axis. Genre declared by the caller, never auto-detected. |
 | **Learning database** | Misses become patterns in `data/learned.json`. |
 | **CI tooling** | `--gate` exit codes, `--batch` a directory, `--explain` a heatmap. |
 | **Fidelity rules** | No invented numbers, names, anecdotes, or feelings. Hollow spans get flagged, never padded. |
