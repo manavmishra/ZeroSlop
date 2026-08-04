@@ -78,8 +78,10 @@ python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe 
 Every channel runs on every draft: the pattern meter (74 weighted tells plus
 a 55-term lexicon and 13 context-gated riders), rhythm and burstiness,
 followability, formatting
-densities, and register. Each one is interpretable, so every point of the
-score can be traced to a quoted span.
+densities, and register. Each one is interpretable: pattern-meter hits come
+back as quoted spans, and the rhythm, followability and format channels report
+document-level statistics. `--explain` prints both, so you can always see what
+the number is made of.
 
 Pass `--genre social` for LinkedIn and X, which switches on the shape channel
 (paragraph structure and fragment runs). Genre comes from step 0, never from

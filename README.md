@@ -85,9 +85,10 @@ printf "We cut onboarding setup time by 40%% using AI.\n" | python3 scripts/slop
 
 - **Detector, four channels.** A pattern meter (74 weighted patterns, a 55-term
   lexicon, 13 context-gated riders that stay silent in honest technical prose),
-  rhythm, followability, and format — plus a shape channel for social posts.
-  Three of the four never look at specific words, which is why a score survives
-  rewording. Every point traces to a quoted span.
+  plus rhythm, followability and format, and a shape channel for social posts.
+  Only the pattern meter reads specific words, and its hits come back as quoted
+  spans you can argue with. The other three are document-level statistics, which
+  is why they still fire on text that has been reworded to dodge a word list.
 - **Two-pass rewrite.** Strip the tells, then rebuild toward an expert register.
 - **Hard gate.** The rewrite has to clear a numeric threshold that tightens by
   genre, strictest on LinkedIn. Three failures and it stops and says the draft
@@ -110,7 +111,7 @@ printf "We cut onboarding setup time by 40%% using AI.\n" | python3 scripts/slop
 
 ## Install
 
-Installation differs by harness. Pick yours; skip the rest.
+Pick the line for your harness. You do not need to read the others.
 
 **Any agent:**
 
@@ -173,8 +174,8 @@ numeric gate, not the rewrite.
 
 ## Use it
 
-Two doors into the same tool. The skill rewrites and explains; the CLI only
-measures, which is what makes it usable in CI.
+Same tool, two entry points. The skill scores a draft and rewrites it; the CLI
+only scores, and returns an exit code, so it drops into CI as a lint step.
 
 ### In an agent
 
@@ -256,7 +257,7 @@ flowchart LR
       RH["Rhythm · wording-blind<br/>burstiness · uniformity · shape"]
       FF["Followability + format · wording-blind<br/>density · dashes · register"]
     end
-    PM & RH & FF --> F[Evidence fusion<br/>score 0-100, every point traceable]
+    PM & RH & FF --> F["Evidence fusion<br/>score 0-100 · hits quoted, stats reported"]
     F --> J[Diagnose<br/>hollow spans · facts · voice]
     J --> W[Two-pass rewrite<br/>strip, then build]
     W --> G{Verify gate}
@@ -474,7 +475,9 @@ twenty-three of them; the scorer caught it.
 in the skill.
 
 **Is there a trained model in it?** No. Every channel is an interpretable
-surface feature, so each point of the score traces back to a span you can read.
+surface feature. Pattern-meter hits come back as quoted spans; the rhythm,
+followability and format channels report document-level statistics rather than
+spans, and `--explain` prints both.
 Trained classifiers were evaluated and rejected; the measurements are in
 [references/evidence.md](references/evidence.md).
 
