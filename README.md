@@ -332,6 +332,37 @@ Harness in [`bench/`](bench/). The honest summary is: statistically tied with a
 much simpler tool, on a benchmark we wrote, against competitor outputs we wrote
 ourselves, while losing on the dimension we care most about.
 
+## Why this matters now
+
+Four platforms moved within two weeks of each other in late July and early
+August 2026, and the common thread is that reach, not taste, is now the penalty.
+
+**LinkedIn** added a control letting any reader report a post or comment as
+AI-generated. Reports hide the post for that reader and train LinkedIn's
+classifiers; flagged posts lose algorithmic reach beyond the author's own
+network, and repeat authors get private notices in their analytics. LinkedIn's
+chief product officer says the platform is catching hundreds of thousands of
+automated comment attempts daily. It also retired the "enhance this post"
+generator in favour of a plain proofreader. **Snapchat** stopped recommending
+wholly AI-generated video in Spotlight. **YouTube** made generic, repetitive and
+template-based video ineligible for monetisation. **Substack** shipped a
+reader-facing detector for AI writing, with its CEO citing research that up to
+40% of writing on social media is now synthetic.
+
+Every one of them draws the same line: AI used to *refine* your work is fine,
+AI used to *produce* it is not. That is exactly the line this skill is built
+for — it never generates a draft, it measures and rewrites yours.
+
+Two design consequences follow. The systems on the other side are trained on
+**reader reports**, so the target is perception rather than any fixed word list,
+which is what the reflect loop tracks. And a false negative now costs
+distribution rather than a little credibility, which raises the value of
+catching structural tells: the discrimination corpus contains a post scoring
+38.6 with **zero** charged spans, caught on rhythm and shape alone.
+
+Sources: [BBC, 4 Aug 2026](https://www.bbc.com/news/articles/c77g6dm5pr8o) ·
+[Forbes, 1 Aug 2026](https://www.forbes.com/sites/gabrielalinzainescu/2026/08/01/snapchat-and-linkedin-launch-new-tools-to-curb-ai-slop-in-feeds/)
+
 ## Why the accent exists
 
 Two 2024 studies measured it. Stanford found "meticulous" in AI-conference peer

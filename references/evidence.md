@@ -181,3 +181,33 @@ the reason both hold is that a false positive under a removal policy is
 unrecoverable, while a false positive under a flagging policy is an annoyance.
 
 Source: <https://help.kagi.com/kagi/features/slopstop.html>
+
+## Platform enforcement (August 2026)
+
+The target moved from reader disapproval to ranking. LinkedIn added a "Seems
+like AI slop" report control; reporting hides the post for that reader and
+trains LinkedIn's classifiers, flagged posts lose algorithmic reach beyond the
+author's own network, and repeat authors are notified privately in analytics.
+LinkedIn retired its "enhance your post" generator for a proofreader. Snapchat
+made wholly AI-generated video ineligible for Spotlight recommendation, ranking
+human-made above synthetic even with a disclosure label
+(Forbes, 1 August 2026).
+
+Two consequences for this skill's design.
+
+**The adversary is a reader-report classifier, not a word list.** LinkedIn's
+system is trained on what readers flag. That is a moving target defined by
+perception, which is an argument for the reflect loop — learning from what
+writers actually strike tracks the same perception — and against betting the
+detector on any fixed lexicon.
+
+**Reach is the cost of a false negative.** Before this, shipping a sloppy draft
+cost credibility with the people who noticed. Now it costs distribution to
+everyone. That raises the value of catching the structural tells, which is where
+a lexicon-only tool fails: the discrimination corpus contains a post scoring
+38.6 with zero charged spans, caught on rhythm and shape alone.
+
+It also raises the cost of *over*-correction, since a rewrite that strips a
+writer's voice to pass a meter is a worse outcome than the tell it removed.
+That trade is why `references/overcorrection.md` exists and why the gate reports
+what it did not measure.

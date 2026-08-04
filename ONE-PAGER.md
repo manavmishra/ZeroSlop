@@ -4,6 +4,22 @@
 measures it, strips it, and proves the fix with numbers — then learns from the
 edits you make to its output.
 
+## Why now
+
+Between late July and early August 2026, LinkedIn, Snapchat, YouTube and
+Substack all shipped countermeasures. LinkedIn readers can now report a post as
+AI-generated; flagged posts lose reach beyond the author's own network and
+repeat authors are notified privately. Snapchat dropped wholly AI-generated
+video from Spotlight recommendations. YouTube made generic and template-based
+video ineligible for monetisation. Substack shipped a reader-facing detector,
+citing research that up to 40% of social-media writing is now synthetic.
+
+All four drew the same line: AI that refines your work is acceptable, AI that
+produces it is not. Zero Slop sits on the right side of it — it never writes a
+draft, it measures and rewrites yours. And because the penalty is now reach
+rather than reputation, the cost of shipping a tell went up for everyone who
+publishes under their own name.
+
 ## The problem
 
 Two 2024 studies caught it in the data. Stanford found "meticulous" appearing in
