@@ -410,8 +410,110 @@ class Scale(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+class DocsMatchReality(unittest.TestCase):
+    """Numbers in the docs must equal numbers in the data.
+
+    Every count in README.md, SKILL.md and the diagram is a factual claim about
+    this repository, and they drift silently: the lexicon was described as
+    72 terms for weeks after riders were split out and duplicate prefixes
+    removed, leaving the real figure at 54. A skill whose whole premise is that
+    unverified specifics are worse than vagueness cannot ship stale numbers
+    about itself.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        b = json.loads((DATA / "patterns.json").read_text())
+        l = json.loads((DATA / "learned.json").read_text())
+        cls.n_pat = len(b["patterns"]) + len(l.get("patterns", []))
+        cls.n_lex = len(b.get("lexicon", {})) + len(l.get("lexicon", {}))
+        cls.n_rid = len(b.get("riders", {}))
+        cls.n_corpus = len(list((DATA / "corpus" / "must-not-flag").glob("*.txt")))
+        cls.docs = {f: (ROOT / f).read_text()
+                    for f in ("README.md", "SKILL.md", "ONE-PAGER.md",
+                              "assets/engine.svg")}
+
+    def _claims(self, text, unit):
+        """Every '<number> <unit>' assertion in a document."""
+        return {int(m) for m in re.findall(rf"(\d+)[- ]?{unit}", text, re.I)}
+
+    def test_pattern_count_is_accurate(self):
+        """Claims about the regex database. Distinct from the tells.md catalogue:
+        one tell can need several regexes, so the two numbers legitimately
+        differ and the docs must not blur them."""
+        for name, text in self.docs.items():
+            # the "(N tells, M families)" form is the tells.md catalogue, checked
+            # separately below; remove it so it is not read as a regex-count claim
+            body = re.sub(r"\(\d+ tells, \d+ families\)", "", text)
+            for claimed in self._claims(body, r"(?:weighted )?(?:tells|patterns|regexes)"):
+                with self.subTest(f"{name}: {claimed}"):
+                    self.assertEqual(claimed, self.n_pat,
+                                     f"{name} claims {claimed} patterns, data has {self.n_pat}")
+
+    def test_taxonomy_count_is_accurate(self):
+        """The 'N tells, 6 families' claim must match references/tells.md."""
+        src = (ROOT / "references" / "tells.md").read_text()
+        fam, counts = None, {}
+        for ln in src.split("\n"):
+            m = re.match(r"^## (.+)", ln)
+            if m:
+                fam = m.group(1); counts.setdefault(fam, 0); continue
+            if fam and ln.startswith("|") and not re.match(r"^\|[\s:|-]+\|?\s*$", ln):
+                head = [c.strip().lower() for c in ln.strip("|").split("|")]
+                if head and head[0] in ("tell", "pattern", "what", "construction", "signal"):
+                    continue
+                counts[fam] += 1
+        families = [k for k in counts if not k.startswith("What is NOT")]
+        n_tells = sum(counts[k] for k in families)
+        for name, text in self.docs.items():
+            for claimed, fams in re.findall(r"\((\d+) tells, (\d+) families\)", text):
+                with self.subTest(f"{name}"):
+                    self.assertEqual(int(claimed), n_tells,
+                                     f"{name} claims {claimed} tells, tells.md has {n_tells}")
+                    self.assertEqual(int(fams), len(families),
+                                     f"{name} claims {fams} families, tells.md has {len(families)}")
+
+    def test_lexicon_count_is_accurate(self):
+        for name, text in self.docs.items():
+            for claimed in self._claims(text, r"term lexicon"):
+                with self.subTest(f"{name}: {claimed}"):
+                    self.assertEqual(claimed, self.n_lex,
+                                     f"{name} claims a {claimed}-term lexicon, data has {self.n_lex}")
+
+    def test_rider_count_is_accurate(self):
+        for name, text in self.docs.items():
+            for claimed in self._claims(text, r"(?:context-gated )?riders"):
+                with self.subTest(f"{name}: {claimed}"):
+                    self.assertEqual(claimed, self.n_rid,
+                                     f"{name} claims {claimed} riders, data has {self.n_rid}")
+
+    def test_documented_cli_flags_exist(self):
+        """A flag named in the README must be a flag the script accepts."""
+        for script in ("slopscore.py", "learn.py", "calibrate.py"):
+            src = (ROOT / "scripts" / script).read_text()
+            for flag in re.findall(rf"scripts/{script} ([-\w ]*)", self.docs["README.md"]):
+                for f in re.findall(r"--[a-z-]+", flag):
+                    with self.subTest(f"{script} {f}"):
+                        self.assertIn(f, src, f"README documents {f} but {script} has no such flag")
+
+    def test_no_stale_version_references(self):
+        import json as _j
+        v = _j.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+        self.assertIn(f'version: "{v}"', self.docs["SKILL.md"],
+                      "SKILL.md version does not match the plugin manifest")
+
+
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
+
+    def test_dist_bundle_is_current(self):
+        """The pasteable bundle is what ChatGPT and Codex users actually get."""
+        r = run([str(ROOT / "scripts" / "build_bundle.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_plugin_mirror_is_current(self):
+        r = run([str(ROOT / "scripts" / "build_plugin.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout)
 
     def test_engine_svg_has_no_overflow(self):
         r = run([str(ROOT / "scripts" / "check_svg.py"),

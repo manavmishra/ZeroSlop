@@ -12,6 +12,9 @@ The statistical scorer needs a shell and is not included here. With Code
 Interpreter enabled you can also upload scripts/slopscore.py from the repo to
 get the numbers; without it, the reference lists below are the gate.
 
+GENERATED FILE — do not edit. Run scripts/build_bundle.py after changing
+SKILL.md or anything in references/.
+
 Source: https://github.com/manavmishra/ZeroSlop   MIT
 -->
 
@@ -20,6 +23,16 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 ========================================================================
 # FILE: SKILL.md
 ========================================================================
+
+---
+name: zero-slop
+license: MIT
+compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
+metadata:
+  version: "1.4.0"
+  author: manavmishra
+description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
+---
 
 # Zero Slop
 
@@ -81,7 +94,8 @@ python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe 
 ```
 
 Every channel runs on every draft: the pattern meter (68 weighted tells plus
-a 72-term lexicon), rhythm and burstiness, followability, formatting
+a 54-term lexicon and 13 context-gated riders), rhythm and burstiness,
+followability, formatting
 densities, and register. Each one is interpretable, so every point of the
 score can be traced to a quoted span.
 
@@ -311,7 +325,33 @@ silently overwrite; the author decides.
 
 ### 6. Learn
 
-This skill improves with use. When any of these happen, persist it:
+This skill improves with use, and the strongest signal is the writer's own
+edit. If you hand back a rewrite and the author changes something before
+publishing, that change is a free label: what you left in that a human took
+out was a tell you missed. Capture it.
+
+- **The reflect loop.** Whenever you can see both what the skill produced and
+  what the author actually shipped — they paste the final version, they say
+  "I cut X", you edit a file they later revise — record it:
+
+  ```
+  python3 scripts/learn.py --reflect --produced out.md --shipped final.md
+  ```
+
+  This does **not** create a pattern. It records an observation. A span
+  becomes a pattern only after it has been independently cut from three
+  different documents, because a single diff cannot tell a stylistic tell
+  from an author trimming a sentence for length. Once a span clears that
+  bar, `--promote --apply` mints it, and the accuracy of the meter rises
+  with the number of people using it rather than with anyone's guesswork.
+
+  Three gates stand between an observation and a shipped pattern:
+  recurrence (three distinct documents), novelty (not already scored), and
+  safety (must not fire on, or borrow four consecutive words from, the
+  certified human writing in `data/corpus/must-not-flag/`). The safety gate
+  is absolute — a pattern that would convict Lincoln, an SRE runbook, or a
+  non-native English speaker's email is rejected at any level of evidence.
+  Learning that corrupts the meter is worse than not learning.
 
 - **New tell spotted** (a pattern readers call out as AI that the scorer
   missed) → add a regex + weight to `data/learned.json` (same schema as
@@ -349,11 +389,13 @@ This skill improves with use. When any of these happen, persist it:
   ```
 
   which scores a corpus of writing that must never be flagged
-  (`data/corpus/must-not-flag/`): dash-heavy 19th-century oratory, dense
-  technical prose, terse engineering notes. A pattern that convicts any of
-  them is rejected before it ships. Add a sample to that corpus whenever you
-  find honest writing the meter got wrong — that is how a false positive
-  becomes permanent protection rather than a one-time fix.
+  (`data/corpus/must-not-flag/`, 12 samples): dash-heavy 19th-century oratory, dense
+  technical prose, terse engineering notes, business memos, human press
+  copy, and non-native English. A pattern that convicts any of them is
+  rejected before it ships. Add a sample to that corpus whenever you find
+  honest writing the meter got wrong — that is how a false positive becomes
+  permanent protection rather than a one-time fix, and it is the most useful
+  contribution anyone can make to this skill.
 
 - **Context beats a global weight.** Terms that are ordinary technical
   vocabulary ("robust", "landscape", "elevated", "leverage") live in
@@ -363,14 +405,21 @@ This skill improves with use. When any of these happen, persist it:
   context-dependent, move it to `riders` rather than lowering its weight
   globally.
 
-- **Patterns carry provenance and decay.** New entries record
+- **Patterns carry provenance and decay.** Every pattern records
   `first_seen`/`last_confirmed`; `calibrate.py --decay` halves the weight of
-  anything unconfirmed for 18 months, so a 2024 tell fades on its own
-  instead of accumulating forever.
+  anything unconfirmed for 18 months, so a 2024 tell fades on its own instead
+  of accumulating forever. The other half is re-earning weight:
+  `learn.py --confirm <dir>` bumps `last_confirmed` on every pattern that
+  fires against known slop, so a tell that keeps catching things stays sharp
+  while one the models have moved past ages out by itself. Run
+  `learn.py --stats` to see the taxonomy's age, sources, and what is pending
+  promotion.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (67 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (61 tells, 6 families) with fixes.
+  It is the human-readable catalogue; `data/patterns.json` is its machine
+  implementation and carries 68 regexes, since some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,
@@ -863,3 +912,162 @@ damage:
 Run the finished rewrite through the scorer and this file once more. If your
 rewrite added any catalogue item above, you traded costumes. Prefer the
 smaller edit: the best de-slop is usually deletion of the hedge plus nothing.
+
+
+========================================================================
+# FILE: references/evidence.md
+========================================================================
+
+# Evidence Base — why the ladder is ordered the way it is
+
+Every rule in this skill traces to measured findings. This file is the chain
+of custody. Full dossier with per-paper notes lives in the research archive;
+citations here are the load-bearing ones.
+
+## The central finding
+
+Commercial detectors (GPTZero, Pangram) rate *base-model* text as ~97–99%
+human while flagging *instruction-tuned* output from the same model
+(arXiv:2605.19516). Detectors are classifiers of the **post-training (RLHF)
+register** — the polished, uniform, preference-optimized voice — not of
+machine generation itself. That register lives entirely in surface
+realization, which is why rewriting can remove it without touching meaning.
+It is also why "humanizing" is legitimate editing: the target is a register,
+not a deception.
+
+## Detection features, ranked by evidence strength
+
+1. **Token-level predictability.** AI text sits at local maxima of model
+   log-probability (DetectGPT, arXiv:2301.11305; Binoculars, 2401.12070).
+   Human text doesn't. → Ladder L1: specific, slightly surprising phrasing
+   and concrete facts are the direct counter.
+2. **The LLM lexicon.** A few hundred style words carry huge evidential
+   weight: "meticulous" +34.7x, "commendable" +9.8x, "intricate" +11.2x in
+   post-ChatGPT scientific text (Liang, 2403.07183); ~900 excess words
+   catalogued across 15M PubMed abstracts (Kobak, 2406.07016 —
+   github.com/berenslab/llm-excess-vocab); 21 focal words traced to RLHF
+   (Juzek & Ward, 2412.11385). Era-dependent: delve peaked 2023–24;
+   enhance/highlight/showcase dominate 2025+. → Ladder L5 + the scorer's
+   weighted lexicon + the learning loop's era updates.
+3. **Surprisal uniformity.** Humans spike information density unevenly; LLMs
+   smooth it (GPT-who/UID, 2310.06202 — beats commercial detectors by >20%).
+   → L3's "don't pad every claim to equal weight".
+4. **Low burstiness.** Uniform sentence length/structure: GPTZero's founding
+   feature, corroborated independently (Muñoz-Ortiz, 2308.09067; Reinhart,
+   PNAS 2410.16107). Human sentence-length CV is simply higher. → the
+   scorer's burstiness metric and the ≥0.45 gate.
+5. **Register rigidity.** LLMs hold one polished expository voice regardless
+   of situation; humans shift register (Reinhart). → L4.
+6. **Stance asymmetry.** Humans: first-person stance, modals, selective
+   epistemic hedging, discourse-marker cohesion. LLMs: nominalizations,
+   formal connectives, paragraph-architecture cohesion (Herbold, 2304.14276).
+   → L4's hedging rules and "connective texture over scaffolding".
+7. **Syntax signature.** Nominalization density, present-participial
+   clauses, longer constituents (Reinhart; Muñoz-Ortiz). → de-nominalize;
+   kill participial openers.
+8. **Affect skew.** LLM text is joy-skewed and uniformly positive
+   (Muñoz-Ortiz). → widen affect.
+
+## Why the scorer measures features, not detector verdicts
+
+Detectors are brittle: RAID (2405.07940) shows trivial perturbations fool
+them, and DIPPER (2303.13408) shows one paraphrase pass drops DetectGPT from
+70% to 4.6% detection. Verdicts are therefore neither necessary nor
+sufficient. The features they key on, however, are exactly what human readers
+report as "sounds like AI" — so the scorer tracks the features directly:
+weighted tell density, lexicon hits, burstiness, formatting densities,
+register signals. Passing the gate means "the measurable tells are gone",
+which is the honest, robust target.
+
+## What rewriting cannot do (the honesty boundary)
+
+- Retrieval/watermarking by providers survives any rewrite (DIPPER's
+  conclusion). Fine — this skill's goal is reader-experienced quality, not
+  evasion.
+- Character-level tricks and fake typos fool detectors (RAID) but degrade
+  writing. Banned.
+- Hollow content scores clean on every surface metric. Only the removal test
+  catches it, which is why the judgment pass can never be skipped and why
+  hollow spans are flagged, not padded.
+
+## Practitioner corroboration
+
+Paul Graham's "Write Like You Talk" and "How to Write Usefully" predate LLMs
+and independently prescribe the same counters: spoken register (high
+perplexity relative to formal boilerplate), maximal-strength claims without
+overclaiming, qualification as precision. Wikipedia's WP:AICATCH — the
+largest human-curated corpus of caught-in-the-wild AI text — converges on the
+same tell families and adds the cluster rule this skill inherits: one tell is
+coincidence; many tells, repeatedly, convict.
+
+## Negative results: trained classifiers
+
+Several trained-classifier approaches were evaluated for an additional
+detection channel. None shipped, and the reasoning generalises beyond the
+specific methods.
+
+**The ones that added nothing.** Two well-established classifier families were
+ruled out on published evidence: one shows no measurable gain over a simpler
+model on text classification while adding a dependency to a package whose value
+includes having none, and the other models a sequence signal that the burstiness
+and followability statistics already capture more cheaply and more legibly.
+
+**The one that worked, and was cut anyway.** A trained channel built on lexical
+frequency and stylometric features performed well in-domain: 0.985 AUC and 94%
+accuracy on held-out data, properly calibrated with an abstain band. It was
+built, integrated, and then removed. The transfer test is why. Trained on
+2022-era text, it rated 2026-era AI drafts as human at a mean probability of
+0.038, and in a live check returned 0.33 on a passage the pattern meter scored
+100 out of 100. Detector decay across model generations is well documented
+(RAID, arXiv:2405.07940); this was that decay measured directly. A channel that
+is confidently wrong on current text is worse than no channel, even reported
+separately and labelled a second opinion.
+
+The lesson generalises. Interpretable surface features degrade gracefully as
+models change, because updating them means editing a data file and the drift is
+visible in the diff. A trained classifier degrades silently, and silence is the
+failure mode you cannot audit.
+
+## Fairness: who a false positive lands on
+
+Liang et al. ran seven commercial GPT detectors over two human-written corpora,
+US eighth-grade essays and TOEFL essays by non-native English speakers. Native
+samples scored near-perfectly. **More than half of the non-native samples were
+misclassified as AI-generated** (arXiv:2304.02819; *Patterns* 4:100779, 2023).
+
+The mechanism matters more than the headline. The same study found that
+enriching word choice in the non-native samples reduced misclassification,
+while simplifying the native samples increased it. The detectors were keying on
+linguistic complexity, so anything measuring "does this read as polished" will
+penalize the writers with the least room to perform polish.
+
+That is a direct hazard for this skill, which measures surface features by
+design. Two consequences are load-bearing rather than decorative. Burstiness
+and followability are scored as *bands*, not as "more is better", so plain
+sentences are never evidence on their own. And
+`data/corpus/must-not-flag/esl-engineer-email.txt` is in the corpus every new
+pattern must clear, so the reflect loop cannot learn a rule that convicts
+competent non-native writing however many people cut the phrase.
+
+## The reflect loop: why recurrence is the gate
+
+The learning path (`scripts/learn.py`) takes its labels from the difference
+between what the skill returned and what the author published. Two design
+choices come from the failure modes above rather than from preference.
+
+*Learning must be two-directional.* A loop that only adds patterns can only
+grow, and a detector that only grows converges on flagging everything —
+which, per Liang, lands hardest on the writers already over-flagged. So a
+pattern the author overrules repeatedly loses weight.
+
+*A single edit is not evidence.* Authors cut for length, fix facts, and change
+their minds, and none of that is a style signal. Requiring the same span across
+three independent documents is a crude significance test: it separates a
+construction that recurs across unrelated writing from one person's sentence.
+The same property is what makes an upstream contribution shareable without
+carrying private text.
+
+The honest limit: this measures what *writers who use the skill* strike, not
+what readers detect. It tracks the register those authors are editing away
+from, which is the target, but it is a convenience sample and no substitute for
+the frequency work in `calibrate.py` against a real corpus.

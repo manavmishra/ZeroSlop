@@ -77,7 +77,8 @@ word problem.
 
 ## What you get
 
-- **Detector.** 68 weighted patterns and a 72-term lexicon, plus rhythm,
+- **Detector.** 68 weighted patterns, a 54-term lexicon, and 13 context-gated
+  riders that stay silent in honest technical prose, plus rhythm,
   followability, and a shape channel for social posts. Every point traces to a
   quoted span.
 - **Two-pass rewrite.** Strip the tells, then rebuild toward an expert register.
@@ -130,7 +131,7 @@ curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-
 ```
 
 Paste it into a Project's Instructions, upload it as Custom GPT Knowledge, or
-paste it at the top of a chat. The bundle carries the skill and all four
+paste it at the top of a chat. The bundle carries the skill and all five
 reference documents.
 
 **Codex.** Run this in *your* project, not in a clone of this repo, since it
@@ -230,7 +231,7 @@ python3 scripts/calibrate.py --decay                 # age out stale tells
 ## How it works
 
 <p align="center">
-  <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 68 tells, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and writes lessons back to learned.json." width="880">
+  <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 68 weighted tells with a 54-term lexicon and 13 context-gated riders, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and a reflect loop that turns your own edits into new evidence." width="880">
 </p>
 
 <p align="center"><em>Three interpretable channels fuse into one score, then a
@@ -244,7 +245,7 @@ change afterwards feeds back into the meter.</em></p>
 flowchart LR
     D([Draft]) --> PM & RH & FF
     subgraph Measure["Measure · all channels, every run"]
-      PM[Pattern meter<br/>68 tells · 72-term lexicon]
+      PM[Pattern meter<br/>68 tells · 54-term lexicon · 13 riders]
       RH[Rhythm<br/>burstiness · uniformity]
       FF[Followability + format<br/>density · dashes · register]
     end
@@ -285,20 +286,29 @@ Pooled across 100 verdicts:
 - Both beat the other two decisively (p < 10⁻⁷).
 - Ranking held across both runs; only the margin moved.
 
-Deterministic measures are steadier, being computed rather than judged:
+Deterministic measures are steadier, being computed rather than judged. One
+caveat has to come first, because it limits the table below more than anything
+in it: **this column is scored by Zero Slop's own detector.** A tool grading its
+own output on its own metric will flatter itself, so read it as "how much of the
+surface register each method removes, as measured by the thing that defines the
+register" — not as an independent verdict. The judged table above is the
+independent one, and there Zero Slop is *not* separable from blader.
 
 | Method | Detector score | Followability | Words |
 |---|--:|--:|--:|
-| Original drafts | 76.5 | 0.25 | 159 |
-| isatimur/de-slop | 39.8 | 0.18 | 137 |
-| stacked pipeline | 32.2 | 0.16 | 114 |
-| petergyang/no-ai-slop | 19.4 | 0.17 | 123 |
-| blader/humanizer | 18.2 | 0.24 | 135 |
-| hardikpandya/stop-slop | 17.4 | 0.11 | 116 |
-| **Zero Slop v1.2** | **9.5** | **0.00** | **159** |
+| Original drafts | 70.3 | 0.46 | 159 |
+| isatimur/de-slop | 26.9 | 0.41 | 137 |
+| stacked pipeline | 23.5 | 0.38 | 114 |
+| blader/humanizer | 19.5 | 0.46 | 135 |
+| petergyang/no-ai-slop | 19.1 | 0.41 | 123 |
+| hardikpandya/stop-slop | 17.2 | 0.33 | 116 |
+| **Zero Slop v1.2** | **10.0** | **0.07** | **159** |
 
 Every other method shrinks the draft by up to 28%. Zero Slop holds the original
-length at zero tells. Harness in [`bench/`](bench/).
+length. Recomputed against the current scorer by
+[`bench/aggregate.py`](bench/aggregate.py); these figures moved from an earlier
+published run when a regex fix changed two patterns' matching behaviour, which
+is the ordinary cost of a live scorer and the reason the harness ships.
 
 ## Why the accent exists
 
@@ -310,6 +320,26 @@ The useful finding is what happens when you strip a model's assistant training:
 detectors rate the raw base model as human 97 to 99 percent of the time. The
 accent is a style acquired in post-training, and it lives in wording rather than
 ideas. Rewriting removes it without touching a fact.
+
+<details>
+<summary>The thirteen papers this is built on</summary>
+
+Every design decision below traces to one of these. Full reasoning, including
+which findings were rejected, is in [references/evidence.md](references/evidence.md).
+
+| Finding used here | Source |
+|---|---|
+| Detectors classify the post-training register, not machine generation: base models rate 97–99% human | [arXiv:2605.19516](https://arxiv.org/abs/2605.19516) |
+| Excess-vocabulary method — how `calibrate.py` derives weights from frequency differentials | Kobak et al., [arXiv:2406.07016](https://arxiv.org/abs/2406.07016) |
+| Style-word surge across AI-era corpora; era-dependence of "delve" | Juzek & Ward, [arXiv:2412.11385](https://arxiv.org/abs/2412.11385) |
+| **Detectors misclassify >50% of non-native English as AI** — why the corpus has an ESL sample | Liang et al., [arXiv:2304.02819](https://arxiv.org/abs/2304.02819) (*Patterns* 4:100779) |
+| Detector decay across model generations — why no trained classifier ships | RAID, [arXiv:2405.07940](https://arxiv.org/abs/2405.07940) |
+| Perplexity/curvature detection and its limits | DetectGPT [2301.11305](https://arxiv.org/abs/2301.11305), Binoculars [2401.12070](https://arxiv.org/abs/2401.12070) |
+| Burstiness and sentence-length variance as a human signal | Muñoz-Ortiz [2308.09067](https://arxiv.org/abs/2308.09067), Reinhart [2410.16107](https://arxiv.org/abs/2410.16107) |
+| Human raters cannot reliably identify AI text unaided | Herbold [2304.14276](https://arxiv.org/abs/2304.14276), Liang [2403.07183](https://arxiv.org/abs/2403.07183) |
+| Stylometric drift and register analysis | [2303.13408](https://arxiv.org/abs/2303.13408), [2310.06202](https://arxiv.org/abs/2310.06202) |
+
+</details>
 
 ## What it refuses
 

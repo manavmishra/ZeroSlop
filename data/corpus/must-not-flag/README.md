@@ -26,7 +26,7 @@ can never recur.
 | `exec-memo.txt` | Business register. Formal, declarative, and legitimately using the vocabulary marketing copy abuses. |
 | `press-release.txt` | Human promotional writing. PR is *supposed* to sound like PR; the meter must not treat genre as guilt. |
 | `recipe.txt` | Imperative instructional prose with deliberate second person and short commands. |
-| `esl-engineer-email.txt` | **Non-native English.** Published work has found AI detectors misclassify non-native writing at sharply higher rates. A tool that inherits that bias penalizes the writers who can least afford it, so this sample is a fairness guard, not just a coverage one. |
+| `esl-engineer-email.txt` | **Non-native English.** Liang et al. found seven commercial detectors misclassified over half of non-native (TOEFL) samples as AI-generated while scoring native samples near-perfectly (arXiv:2304.02819). A tool that inherits that bias penalizes the writers who can least afford it, so this sample is a fairness guard, not just a coverage one. |
 
 ## Provenance
 

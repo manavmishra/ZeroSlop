@@ -68,7 +68,8 @@ python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe 
 ```
 
 Every channel runs on every draft: the pattern meter (68 weighted tells plus
-a 72-term lexicon), rhythm and burstiness, followability, formatting
+a 54-term lexicon and 13 context-gated riders), rhythm and burstiness,
+followability, formatting
 densities, and register. Each one is interpretable, so every point of the
 score can be traced to a quoted span.
 
@@ -362,7 +363,7 @@ out was a tell you missed. Capture it.
   ```
 
   which scores a corpus of writing that must never be flagged
-  (`data/corpus/must-not-flag/`): dash-heavy 19th-century oratory, dense
+  (`data/corpus/must-not-flag/`, 12 samples): dash-heavy 19th-century oratory, dense
   technical prose, terse engineering notes, business memos, human press
   copy, and non-native English. A pattern that convicts any of them is
   rejected before it ships. Add a sample to that corpus whenever you find
@@ -390,7 +391,9 @@ out was a tell you missed. Capture it.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (67 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (61 tells, 6 families) with fixes.
+  It is the human-readable catalogue; `data/patterns.json` is its machine
+  implementation and carries 68 regexes, since some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

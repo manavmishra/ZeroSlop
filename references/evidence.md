@@ -107,3 +107,47 @@ The lesson generalises. Interpretable surface features degrade gracefully as
 models change, because updating them means editing a data file and the drift is
 visible in the diff. A trained classifier degrades silently, and silence is the
 failure mode you cannot audit.
+
+## Fairness: who a false positive lands on
+
+Liang et al. ran seven commercial GPT detectors over two human-written corpora,
+US eighth-grade essays and TOEFL essays by non-native English speakers. Native
+samples scored near-perfectly. **More than half of the non-native samples were
+misclassified as AI-generated** (arXiv:2304.02819; *Patterns* 4:100779, 2023).
+
+The mechanism matters more than the headline. The same study found that
+enriching word choice in the non-native samples reduced misclassification,
+while simplifying the native samples increased it. The detectors were keying on
+linguistic complexity, so anything measuring "does this read as polished" will
+penalize the writers with the least room to perform polish.
+
+That is a direct hazard for this skill, which measures surface features by
+design. Two consequences are load-bearing rather than decorative. Burstiness
+and followability are scored as *bands*, not as "more is better", so plain
+sentences are never evidence on their own. And
+`data/corpus/must-not-flag/esl-engineer-email.txt` is in the corpus every new
+pattern must clear, so the reflect loop cannot learn a rule that convicts
+competent non-native writing however many people cut the phrase.
+
+## The reflect loop: why recurrence is the gate
+
+The learning path (`scripts/learn.py`) takes its labels from the difference
+between what the skill returned and what the author published. Two design
+choices come from the failure modes above rather than from preference.
+
+*Learning must be two-directional.* A loop that only adds patterns can only
+grow, and a detector that only grows converges on flagging everything —
+which, per Liang, lands hardest on the writers already over-flagged. So a
+pattern the author overrules repeatedly loses weight.
+
+*A single edit is not evidence.* Authors cut for length, fix facts, and change
+their minds, and none of that is a style signal. Requiring the same span across
+three independent documents is a crude significance test: it separates a
+construction that recurs across unrelated writing from one person's sentence.
+The same property is what makes an upstream contribution shareable without
+carrying private text.
+
+The honest limit: this measures what *writers who use the skill* strike, not
+what readers detect. It tracks the register those authors are editing away
+from, which is the target, but it is a convenience sample and no substitute for
+the frequency work in `calibrate.py` against a real corpus.

@@ -71,9 +71,12 @@ Zero Slop 55, blader/humanizer 40, no-ai-slop 5, de-slop 0. That wins the
 plurality against a 25 percent chance rate (p = 1.7 × 10⁻¹⁰) and is
 statistically tied with blader head to head (p = 0.15).
 
-The computed measures are steadier. Zero Slop leaves a detector score of 9.5
-against 17 to 40 for the alternatives, a followability penalty of zero, and the
-original's word count. Every other method shrinks the draft by up to 28 percent.
+The computed measures are steadier, with one caveat that has to lead: they are
+computed by Zero Slop's own detector, so they show how much of the surface
+register each method removes as measured by the thing that defines it, not an
+independent verdict. On that measure Zero Slop leaves 10.0 against 17 to 27 for
+the alternatives, a followability penalty of 0.07 against 0.33 to 0.46, and the
+original word count. Every other method shrinks the draft by up to 28 percent.
 
 ## The rules
 
@@ -103,4 +106,4 @@ zero-slop@zero-slop` in Claude Code and Cowork. Then say "de-slop this."
 
 github.com/manavmishra/ZeroSlop · MIT · builds on petergyang/no-ai-slop,
 blader/humanizer, isatimur/de-slop, hardikpandya/stop-slop, Wikipedia's Signs of
-AI writing, and fifteen detection papers cited in the repo.
+AI writing, and thirteen detection papers cited in references/evidence.md.
