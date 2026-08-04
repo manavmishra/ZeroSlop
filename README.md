@@ -179,7 +179,7 @@ and HMMs were rejected earlier, is in
 [references/evidence.md](references/evidence.md).
 
 <p align="center">
-  <img src="assets/engine.svg" alt="Zero Slop engine: a draft flows through the pattern meter, rhythm and followability statistics, and an optional MaxEnt channel into evidence fusion; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and feeds lessons back into the pattern meter." width="880">
+  <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels — a pattern meter of 68 tells, rhythm and burstiness, and followability with formatting and register — which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and writes lessons back to learned.json." width="880">
 </p>
 
 <details>
