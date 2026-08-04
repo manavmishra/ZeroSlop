@@ -81,3 +81,11 @@ example that motivated it.
   followability 0.000 on every post, and the executing agent removed its own
   invented specifics in the final pass — the fidelity rules holding under a
   model that had already drafted the text.
+- 2026-08-03 — Replication finding, the most important of the project: a
+  second blind judging pass on the identical 50 rewrites moved Zero Slop's
+  best-picks from 32/50 to 23/50 (64% to 46%). Cohen's kappa 0.12 means
+  judges barely agree on "best". Pooled 55/100 beats a 25% chance rate
+  (p=1.7e-10) but is NOT separable from blader/humanizer head-to-head
+  (p=0.15). All published claims corrected. Methodological rule for any
+  future benchmark run by this project: never publish a single-pass judge
+  number without a replication and an agreement statistic.
