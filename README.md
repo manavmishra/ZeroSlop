@@ -3,8 +3,8 @@
 **A linter for the AI accent.** Scores a draft, strips the tells, proves the fix.
 
 Zero Slop is an agent skill that removes the writing style language models pick
-up in post-training — the em-dash rhythm, the "delve" vocabulary, the
-announcement voice — and reports before/after scores from a detector it ships
+up in post-training (the em-dash rhythm, the "delve" vocabulary, the
+announcement voice) and reports before/after scores from a detector it ships
 with. Every other humanizer asks you to trust it. This one hands you the
 numbers.
 
@@ -28,9 +28,8 @@ outsourcing your thinking, and WikiProject AI Cleanup has catalogued the tells
 since 2023.
 
 Here is the part that makes the problem solvable. Run one model in two
-versions — the raw base model, and the same model after assistant training —
-and commercial detectors call the raw version human 97 to 99 percent of the
-time. The accent is not in the machine. It is a style acquired in the last
+versions, the raw base model and the same model after assistant training, and
+commercial detectors call the raw version human 97 to 99 percent of the time. The accent is not in the machine. It is a style acquired in the last
 stage of training, and it lives in wording, not ideas. Rewriting removes it
 without touching a fact.
 
@@ -88,8 +87,8 @@ The scorecard that shipped with it:
 Every figure and both citations survived. Nothing was invented. The number
 moved to the first word, each report got its own statistic, and the author's
 best lines ("That work has names," "certification theater," the closing
-triplet) came through untouched — the diagnose pass had marked them as voice
-to protect.
+triplet) came through untouched, because the diagnose pass had marked them as
+voice to protect.
 
 This README is held to the same bar. Its prose scores clean; score the raw
 file and the number jumps, because the file quotes the tells it teaches and a
@@ -163,8 +162,8 @@ a 64-to-46-percent swing.
 That is the most useful number in this repository, so it is reported first.
 Judges agree with each other only slightly on which rewrite is best (Cohen's
 kappa 0.12, per-item agreement 52 percent), which means any single-run
-headline from any tool in this category — including ours — is noise dressed
-as a result.
+headline from any tool in this category, ours included, is noise dressed as a
+result.
 
 Pooled across both runs, 100 independent verdicts:
 
@@ -207,11 +206,11 @@ The most useful single result was a failure. One rewrite of a post about an
 AWS exam added the phrase "by test day the real thing felt familiar," an
 experience the author never described. A blind judge caught it and marked
 that rewrite worst. Independently, a judge in the replication run caught the
-same invention on the same item. The rule it produced — invented feelings
-count as invented facts — now runs on every draft. The replication also
-raised Zero Slop's fabrication flags from one to four, all against v1.0
-outputs, which is the honest cost of rewriting harder than the alternatives
-and the reason the fidelity rules were tightened.
+same invention on the same item. The rule it produced, that invented feelings
+count as invented facts, now runs on every draft. The replication also
+raised Zero Slop's fabrication flags to four, up from one, every instance
+against v1.0 outputs. That is the honest cost of rewriting harder than the
+alternatives, and the reason the fidelity rules were tightened.
 
 The harness ships in the repo. Re-run it, add a method, or judge it yourself.
 
@@ -258,7 +257,7 @@ with `npx skills update zero-slop --global`.
 upload it under Settings → Capabilities → Skills.
 
 **Codex and OpenAI-compatible agents:** install via the skills CLI above, or
-point the harness at the repo — `.codex-plugin/plugin.json`,
+point the agent at the repo. `.codex-plugin/plugin.json`,
 `agents/openai.yaml`, and `AGENTS.md` ship in the package.
 
 **Cursor, OpenCode, Warp, and other Agent-Skills harnesses:** the skills CLI

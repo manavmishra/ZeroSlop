@@ -108,3 +108,13 @@ example that motivated it.
   Still open and documented as boundaries: hollowness remains invisible to
   any regex (by design), non-Latin scripts score unconditionally clean, and
   the learning loop must never lower a weight to pass the draft under review.
+- 2026-08-03 — Running the skill on its own README caught two false positives
+  in patterns added earlier the same day: "arrow-in-prose" fired on UI menu
+  paths (Settings → Capabilities → Skills) and "question-hook-opener" fired
+  on bolded FAQ headings. Both are correct forms, not tells. Fixed: the arrow
+  rule now requires lowercase on both sides via (?-i:) — necessary because
+  the scorer matches case-insensitively, so a plain [a-z] class silently
+  matched capitals — and the question rule exempts markdown-bold headings.
+  README prose went 30.3 → 20.9 after stripping six em-dashes from running
+  prose; the raw file still scores 99.9 because it quotes the tells it
+  teaches, which is the documented mention-versus-use boundary.
