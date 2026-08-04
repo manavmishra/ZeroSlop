@@ -171,13 +171,6 @@ Three interpretable channels, no black box. Every point of the score traces
 back to a span you can read, which is the property that makes the gate
 arguable rather than oracular.
 
-We built and trained a MaxEnt classifier for a fourth channel and then cut
-it. It scored 0.985 AUC in-domain, and on current-era drafts it rated real
-AI slop as human. A model that is confidently wrong on the text you actually
-have is worse than no model. The full negative result, including why SVMs
-and HMMs were rejected earlier, is in
-[references/evidence.md](references/evidence.md).
-
 <p align="center">
   <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels — a pattern meter of 68 tells, rhythm and burstiness, and followability with formatting and register — which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and writes lessons back to learned.json." width="880">
 </p>
