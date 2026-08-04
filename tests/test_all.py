@@ -100,6 +100,37 @@ class Detector(unittest.TestCase):
                 self.assertLess(score(f.read_text()), 30,
                                 f"{f.name} convicted as AI")
 
+    def test_human_technical_prose_is_not_convicted(self):
+        """Ordinary human docs in this repo must clear the gate.
+
+        A corroboration floor of 0.45 plus a clamp keyed on hit *count* meant one
+        weight-2.5 tell in 392 words scored AGENTS.md at 59.2. Five of eight
+        human-written documents were convicted. Files that deliberately carry
+        slop specimens (rewrite-moves, overcorrection, evidence) are excluded —
+        their score is use/mention, not a false positive.
+        """
+        for name in ("AGENTS.md", "SECURITY.md"):
+            with self.subTest(name):
+                s = score((ROOT / name).read_text())
+                self.assertLess(s, 25, f"{name} convicted at {s}")
+
+    def test_a_single_light_tell_cannot_convict(self):
+        """One weak hit is not a cluster, and clusters are what convict."""
+        plain = (
+            "The service reads from the queue and writes to the primary. "
+            "Configuration lives in the deploy repo under env/, which is where "
+            "the on-call rotation looks first when something is misbehaving at "
+            "two in the morning and nobody remembers who changed what. "
+            "Rollback is one command. It takes under a minute, assuming the "
+            "migration was reversible, and about half of ours are not. "
+            "The runbook covers the three alerts that actually page someone; "
+            "everything else goes to a channel that people read when they can. "
+            "Nobody has updated the section on the old billing job since we "
+            "moved it off cron, which is a problem waiting to happen.")
+        with_arrow = plain + " The flow is read \u2192 transform \u2192 write."
+        self.assertLess(score(with_arrow), 25,
+                        "one spec-notation hit unlocked the stylistic penalty")
+
     def test_idempotence(self):
         """Clean text must survive re-scoring unchanged — the skill promises this."""
         clean = (CORPUS / "terse-engineer-note.txt").read_text()

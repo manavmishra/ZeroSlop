@@ -194,3 +194,18 @@ example that motivated it.
   rule would convict them); "consistent hyphenation"; and the rule-of-three
   tricolon, which is a real AI tell and also standard rhetoric that a
   12-sample corpus is too small to certify a pattern against.
+
+- 2026-08-04 — False-positive measurement against genuine human technical prose:
+  5 of 8 human-written documents in this repo were convicted at the ≤25 gate.
+  Two causes, both fixed. The corroboration floor was 0.45, handing style 45% of
+  its weight on text with no lexical evidence at all, and the clamp keyed on hit
+  *count* rather than weight, so a single weight-2.5 hit unlocked the full
+  em-dash penalty — AGENTS.md scored 59.2 on one arrow in 392 words. Floor is
+  now 0.10 and the clamp is weighted (density < 1.5).
+
+  Separately lowered `arrow-in-prose` 2.5 → 1.0. It fires on ordinary pipeline
+  and mapping notation ("read → transform → write", "id → record"), which is
+  correct technical writing, and at 2.5 it was on its own enough to push honest
+  prose past the gate. This is a weight change motivated by false positives
+  across several documents, not by one draft failing — the distinction step 6
+  requires.

@@ -201,7 +201,12 @@ def score_text(text, data, formal=False):
     # lexical evidence: with no tells present they contribute little. Emoji,
     # hashtags and bold spam stay at full strength (they convict alone), and
     # burstiness is an independent statistical signal, so neither is scaled.
-    corroboration = min(1.0, 0.45 + tell_density / 3.0)
+    # The floor was 0.45, which handed style 45% weight on text with no lexical
+    # evidence whatsoever. Measured against genuine human technical prose that
+    # convicted 5 of 8 documents: AGENTS.md scored 59.2 on one weight-2.5 hit in
+    # 392 words. Corroboration has to be earned, so the floor is now low enough
+    # that dashes and formal register alone cannot carry a verdict.
+    corroboration = min(1.0, 0.10 + tell_density / 2.5)
     stylistic = ((emdash_penalty + formality_penalty) * corroboration
                  + uniformity_penalty + followability_penalty)
     # No lexical evidence at all means no cluster, and the rule is that
@@ -209,7 +214,11 @@ def score_text(text, data, formal=False):
     # even rhythm) describes plenty of excellent human prose — 19th-century
     # oratory, dense technical writing — so with zero tells and zero emoji or
     # hashtag spam, style can raise suspicion but must never convict.
-    if not hits and emoji == 0 and hashtags == 0:
+    # Weighted evidence, not hit count. Keying on `not hits` meant a single
+    # light tell — one arrow in a spec, one borderline word — escaped the clamp
+    # entirely and unlocked the full stylistic penalty. A lone weak hit is not
+    # a cluster, and clusters are what convict.
+    if tell_density < 1.5 and emoji == 0 and hashtags == 0:
         stylistic = min(stylistic, 3.5)
     evidence = (
         tell_density * 1.15
