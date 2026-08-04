@@ -487,6 +487,33 @@ class DocsMatchReality(unittest.TestCase):
                     self.assertEqual(claimed, self.n_rid,
                                      f"{name} claims {claimed} riders, data has {self.n_rid}")
 
+    def test_calibration_anchors_match_the_corpora(self):
+        """The README teaches the scale with two numbers. Both must be measured.
+
+        Counts were not the only thing that drifted: the README told readers raw
+        AI drafts average 76 and human writing lands 9-29, when the benchmark
+        corpus averages 70 and the human corpus spans 10-20. A scale explained
+        with wrong anchors misleads every reader who then interprets a score.
+        """
+        import statistics as _st
+        data = slopscore.load_patterns()
+        drafts = [slopscore.score_text(e["draft"], data)["ai_likelihood"]
+                  for e in json.loads((ROOT / "bench" / "examples.json").read_text())]
+        human = [slopscore.score_text(f.read_text(), data)["ai_likelihood"]
+                 for f in CORPUS.glob("*.txt")]
+        ai_mean, lo, hi = _st.mean(drafts), min(human), max(human)
+        m = re.search(r"raw AI drafts in\s*\n?\[`bench/`\]\(bench/\) average (\d+)",
+                      self.docs["README.md"])
+        self.assertIsNotNone(m, "README no longer states the AI-draft anchor")
+        self.assertAlmostEqual(int(m.group(1)), ai_mean, delta=2,
+                               msg=f"README says drafts average {m.group(1)}, measured {ai_mean:.1f}")
+        m2 = re.search(r"lands between (\d+) and (\d+)", self.docs["README.md"])
+        self.assertIsNotNone(m2, "README no longer states the human-writing anchor")
+        c_lo, c_hi = int(m2.group(1)), int(m2.group(2))
+        self.assertLessEqual(c_lo, lo, f"README floor {c_lo} above measured {lo:.1f}")
+        self.assertGreaterEqual(c_hi, hi, f"README ceiling {c_hi} below measured {hi:.1f}")
+        self.assertLess(c_hi - hi, 8, f"README ceiling {c_hi} overstates measured max {hi:.1f}")
+
     def test_documented_cli_flags_exist(self):
         """A flag named in the README must be a flag the script accepts."""
         for script in ("slopscore.py", "learn.py", "calibrate.py"):

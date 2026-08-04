@@ -33,8 +33,10 @@ hype vocabulary:
 >
 > #AgenticAI #EnterpriseAI #AIAdoption
 
-**Scores 45.7 of 100**, where raw model output averages 76 and strong human
-writing lands between 9 and 29. Four catches, none of them a banned word:
+**Scores 45.7 of 100**, on a scale where the 50 raw AI drafts in
+[`bench/`](bench/) average 70 and the certified-human writing in
+[`data/corpus/`](data/corpus/must-not-flag/) lands between 9 and 21. Four
+catches, none of them a banned word:
 announcement voice in the opener, the best statistic buried in paragraph two, a
 cliché doing an idea's job, and a hook promising two reports while citing one.
 
