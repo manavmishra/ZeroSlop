@@ -1,38 +1,42 @@
 # Zero Slop
 
-**A linter for the AI accent.**  
-Scores your draft, strips the tells, and proves the fix with numbers.
+**A linter for the AI accent.** Scores a draft, strips the tells, proves the fix.
 
-
-In 2024, two research teams measured something strange happening to
-scientific writing. In AI-conference peer reviews, the word "meticulous" was
-appearing at nearly 35 times its expected rate. Across fifteen million
-biomedical abstracts, the same style words were surging: "delve,"
-"showcase," "intricate." Science had not gotten more careful. Scientists had
-started writing with ChatGPT, and ChatGPT has favorite words.
-
-Readers learned the accent fast. On LinkedIn, an em-dash can now get you
-accused of outsourcing your thoughts. On Wikipedia, a volunteer cleanup crew
-has spent two years cataloguing the tells of machine prose, from "stands as a
-testament" to the rhythm of sentences that all run the same length. The
-strange part is what the research found underneath: strip away a model's
-assistant training and detectors read its raw output as 98 percent human. The
-AI voice is not in the machine. It is a style, taught in the final step of
-training, and it lives entirely in wording, which means a careful rewrite can
-remove it without touching a single fact.
-
-Zero-Slop removes that style and shows you the receipts. It is an AI slop
-remover built as an agent skill, with one stubborn rule: every rewrite ships
-with before-and-after scores from its built-in detector. No other humanizer
-or de-slop tool shows you the numbers.
+Zero Slop is an agent skill that removes the writing style language models pick
+up in post-training — the em-dash rhythm, the "delve" vocabulary, the
+announcement voice — and reports before/after scores from a detector it ships
+with. Every other humanizer asks you to trust it. This one hands you the
+numbers.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
+Then say "de-slop this" in any agent, or "score this" for a report with no
+rewrite. MIT, offline, zero dependencies.
+
+## Why the AI accent exists
+
+Two research teams measured it in 2024. A Stanford group found "meticulous"
+appearing in AI-conference peer reviews at nearly 35 times its pre-ChatGPT
+rate. A Tübingen group, working across fifteen million biomedical abstracts,
+found the same class of words surging: "delve," "showcase," "intricate."
+Researchers had started drafting with ChatGPT, and ChatGPT has favorite words.
+
+Readers caught on fast. An em-dash on LinkedIn now gets you accused of
+outsourcing your thinking, and WikiProject AI Cleanup has catalogued the tells
+since 2023.
+
+Here is the part that makes the problem solvable. Run one model in two
+versions — the raw base model, and the same model after assistant training —
+and commercial detectors call the raw version human 97 to 99 percent of the
+time. The accent is not in the machine. It is a style acquired in the last
+stage of training, and it lives in wording, not ideas. Rewriting removes it
+without touching a fact.
+
 ## A real run, start to finish
 
-This August, a founder drafted a LinkedIn post about two new enterprise-AI
+In August 2026, a founder drafted a LinkedIn post about two new enterprise-AI
 reports. The full draft, as written:
 
 > Enterprise AI value has too often compounded inside individual workflows, leaving a widening gap between the employees building leverage and the organizations trying to scale it.
@@ -49,8 +53,8 @@ reports. The full draft, as written:
 >
 > #AgenticAI #EnterpriseAI #AIAdoption
 
-No "delve," no rocket emoji in the hook, and the scorer still read it at
-45.7: "suspect." The diagnosis was the interesting part. The opener is
+No "delve," no exclamation points, no hype vocabulary, and the scorer still
+read it at 45.7: "suspect." The diagnosis was the more useful output. The opener is
 announcement voice, an abstraction warming up the crowd while the draft's
 best material, a startling statistic, sits buried in paragraph two. The
 "quiet part out loud" line is a cliché doing an idea's job. And the hook
@@ -81,22 +85,21 @@ The scorecard that shipped with it:
 | Burstiness (target ≥ 0.45) | 0.65 | 0.79 |
 | Words | 254 | 230 |
 
-Every number and both report citations survived. Nothing was invented; the
-6x moved to the first word, each report got its own statistic, and the
-author's best lines ("That work has names," the closing triplet,
-"certification theater") came through untouched, because the diagnose pass
-had marked them as voice to protect.
+Every figure and both citations survived. Nothing was invented. The number
+moved to the first word, each report got its own statistic, and the author's
+best lines ("That work has names," "certification theater," the closing
+triplet) came through untouched — the diagnose pass had marked them as voice
+to protect.
 
-We hold this README to the same bar. Its prose scores clean on its own
-detector; score the raw file and the number jumps, because the file quotes
-the tells it teaches, and a regex cannot tell mention from use. That gap is
-the design lesson: the meter flags, judgment decides. Run it yourself with
-`python3 scripts/slopscore.py README.md`.
+This README is held to the same bar. Its prose scores clean; score the raw
+file and the number jumps, because the file quotes the tells it teaches and a
+regex cannot tell mention from use. That gap is the design lesson. The meter
+flags, judgment decides. Check it yourself: `python3 scripts/slopscore.py
+README.md`.
 
 ## How it works
 
-The skill runs a five-step loop, and each step exists because a measured
-finding says it should.
+Five steps. Each one is there because a measurement says it should be.
 
 **Measure.** A two-hundred-line Python script (standard library, no network,
 no dependencies) scores the draft: weighted tells across sixty-plus patterns,
@@ -149,18 +152,17 @@ flowchart LR
 
 ## The benchmark
 
-We tested Zero-Slop blind against every major alternative: fifty AI-typical
-drafts across six genres, scored by independent judges on shuffled labels,
-with each skill running its own published prompt verbatim.
+Fifty AI-typical drafts, six genres, blind judges on shuffled labels, each
+skill running its own published prompt verbatim.
 
-| | **Zero-Slop** | blader/humanizer | petergyang/no-ai-slop | isatimur/de-slop |
+| | **Zero Slop** | blader/humanizer | petergyang/no-ai-slop | isatimur/de-slop |
 |---|---|---|---|---|
 | Judge composite (1–10) | **8.01** | 7.82 | 6.96 | 6.35 |
 | Human-likeness | **7.84** | 7.60 | 6.30 | 5.00 |
 | "Which would you publish?" wins | **32/50** | 18/50 | 0 | 0 |
 | Detector score after rewrite (drafts start at 76) | **10.9** | 18.7 | 19.4 | 39.7 |
 
-The most useful result was a failure. One Zero-Slop rewrite of a post about
+The most useful result was a failure. One Zero Slop rewrite of a post about
 an AWS exam added the phrase "by test day the real thing felt familiar," an
 experience the author never described. A blind judge caught it and marked
 that rewrite worst on the spot. The fabrication became a hard rule the same
@@ -172,7 +174,7 @@ close results labeled as close.
 ## What it refuses to do
 
 The fastest way to humanize text is to invent a personal anecdote, which is
-why most tools drift there. Zero-Slop treats that as the cardinal sin. No
+why most tools drift there. Zero Slop treats that as the cardinal sin. No
 fake numbers, names, or war stories. No padding a pointless paragraph into
 confident emptiness; it gets flagged instead. No trading the AI voice for
 performed candor and forced hot takes, the louder dialect of the same
@@ -181,10 +183,11 @@ required, disclose.
 
 ## Trust, verifiable
 
-Read [SECURITY.md](SECURITY.md), then read the scorer. Standard library
-only. Zero network calls. Your drafts never leave your machine, and personal
-voice profiles are git-ignored so they cannot ship by accident. An
-enterprise security review of this repo takes about one coffee.
+Read [SECURITY.md](SECURITY.md), then read the scorer itself. Standard
+library only, no network calls, no dependencies. Drafts never leave the
+machine, and personal voice profiles are git-ignored so they cannot ship by
+accident. The entire executable surface is roughly two hundred lines, which
+puts a full security review within a single sitting.
 
 ## Install
 
@@ -249,7 +252,7 @@ drafts average around 76. Strong human writing lands between 9 and 29.
 ## Questions people actually ask
 
 **Is this an AI detector bypass?** No. Detectors flag a writing style;
-Zero-Slop removes the style by making the writing better. If your context
+Zero Slop removes the style by making the writing better. If your context
 requires AI disclosure, disclose.
 
 **Why does ChatGPT say "delve" so much?** The best available answer:
@@ -279,7 +282,7 @@ is community property.
 
 ## Credits
 
-Zero-Slop is a synthesis, and stands on prior work it gratefully credits:
+Zero Slop is a synthesis, and stands on prior work it gratefully credits:
 [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop),
 [blader/humanizer](https://github.com/blader/humanizer),
 [isatimur/de-slop](https://github.com/isatimur/de-slop), and

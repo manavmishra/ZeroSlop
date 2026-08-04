@@ -73,3 +73,11 @@ example that motivated it.
   weighted tells, formatting counts, burstiness, followability, words,
   gate verdict, facts-preserved count). Encoded as a template in SKILL.md
   step 5; no longer left to the executing model's formatting judgment.
+- 2026-08-03 — v1.2 benchmark run surfaced a gap: a draft asserted "~70% of
+  enterprise AI pilots never reach production" with no source. The correct
+  handling (keep as the author's claim, flag it, never invent a citation and
+  never launder it into "studies show") was previously implicit. Now an
+  explicit verify-gate rule. Same run: 25/25 LinkedIn gate passes,
+  followability 0.000 on every post, and the executing agent removed its own
+  invented specifics in the final pass — the fidelity rules holding under a
+  model that had already drafted the text.

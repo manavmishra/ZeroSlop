@@ -154,6 +154,11 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   writer's own voice
 - fidelity: every inventoried fact present and unchanged; nothing added the
   author didn't supply
+- unsourced statistics: when the draft asserts a figure with no source ("~70%
+  of pilots fail"), keep it as the author's own claim and flag it in the
+  report. Never attach a citation the author didn't give, and never launder
+  it into "studies show" — inventing attribution is fabrication, and weasel
+  attribution is a tell
 - source scope: every stat sits next to the source it actually came from,
   and a setup that names N sources pays off all N ("the number in two new
   reports is 6x" followed by only one report reads amnesiac — either scope
