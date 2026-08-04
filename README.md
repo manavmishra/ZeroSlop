@@ -80,10 +80,11 @@ printf "We're thrilled to announce that our team has leveraged cutting-edge AI t
 
 ## What you get
 
-- **Detector.** 74 weighted patterns, a 55-term lexicon, and 13 context-gated
-  riders that stay silent in honest technical prose, plus rhythm,
-  followability, and a shape channel for social posts. Every point traces to a
-  quoted span.
+- **Detector, four channels.** A pattern meter (74 weighted patterns, a 55-term
+  lexicon, 13 context-gated riders that stay silent in honest technical prose),
+  rhythm, followability, and format — plus a shape channel for social posts.
+  Three of the four never look at specific words, which is why a score survives
+  rewording. Every point traces to a quoted span.
 - **Two-pass rewrite.** Strip the tells, then rebuild toward an expert register.
 - **Hard gate.** The rewrite has to clear a numeric threshold that tightens by
   genre, strictest on LinkedIn. Three failures and it stops and says the draft
@@ -331,6 +332,50 @@ and which no judge ever saw. Do not read the length column as a judged result.
 Harness in [`bench/`](bench/). The honest summary is: statistically tied with a
 much simpler tool, on a benchmark we wrote, against competitor outputs we wrote
 ourselves, while losing on the dimension we care most about.
+
+## Accuracy, and what it is not
+
+**False positives on human writing.** Scoring the human-written documents in
+this repo, with quoted specimens stripped, once convicted **5 of 8**. Two
+scoring bugs caused it: the corroboration floor was 0.45, handing style 45% of
+its weight to text carrying no lexical evidence at all, and the clamp meant to
+catch the rest keyed on hit *count*, so one weight-2.5 tell in 392 words scored
+`AGENTS.md` at 59.2. Both are fixed and both have regression tests. On ordinary
+human prose the rate is now **0 of 5**.
+
+That is a direction, not a rate. You cannot establish a 1% false-positive rate
+from five documents; it needs on the order of a thousand labelled human samples.
+Until that exists, treat the gate as a linting threshold, not a verdict about
+authorship.
+
+This README scores 30.7, and every charged span is a word it is *explaining* —
+`seamless` and `leveraged` appear in the prose above describing why they are
+charged. A document about slop contains slop by necessity. That is the clearest
+demonstration of the limit below.
+
+**Three documents here still score 59–96, correctly.**
+`references/rewrite-moves.md` and `overcorrection.md` are catalogues of slop
+examples and `evidence.md` discusses "delve" and "meticulous" as vocabulary. No
+regex distinguishes a specimen from an assertion. If you lint documentation
+*about* writing, expect this and read the charged spans.
+
+**This is not an AI detector, and does not compete with one.** A detector like
+Pangram answers "did a machine produce this", sells to schools and compliance
+teams, and publishes a 1-in-10,000 false-positive rate from a trained model
+validated on millions of labelled documents. This answers "does this read as
+machine-written", for the person writing it. The honest gap: 74 regexes
+validated against twelve human samples is not that, and the tool deliberately
+does not optimise against detector scores, because the people who would want
+that are the ones it refuses to serve.
+
+**Where regexes fail.** They are brittle by construction: every false positive
+above traces to a pattern firing on legitimate notation, and every miss to
+phrasing no pattern anticipated. Three of the four channels are already
+phrasing-independent, which is why a score survives rewording. The next work is
+channels that use no patterns at all — function-word distribution (the
+Mosteller–Wallace signal), hapax rate, and sentence-opener diversity — all
+stdlib-computable and blind to specific wording. Corpus first, then those
+channels, then re-tuning against real labels, in that order.
 
 ## Why this matters now
 

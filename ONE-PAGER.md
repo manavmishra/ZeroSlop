@@ -111,6 +111,29 @@ No invented numbers, names, anecdotes, or feelings. Hollow paragraphs get
 flagged, never padded. Performed candor and forced hot takes are rejected as the
 louder dialect of the same disease. Where disclosure is required, disclose.
 
+## Accuracy, stated plainly
+
+Scoring this repo's own human-written documents once convicted five of eight.
+Two scoring bugs were responsible — a corroboration floor that gave style 45%
+weight with no lexical evidence, and a clamp keyed on hit count so a single
+light tell unlocked the full penalty. Both fixed, both under regression test;
+the rate on ordinary human prose is now zero of five.
+
+Five documents is a direction, not a rate. Claiming a 1% false-positive figure
+needs roughly a thousand labelled human samples, and that corpus does not exist
+here yet. Treat the gate as a linting threshold, not a judgment about who wrote
+something.
+
+This is not an AI detector and does not compete with one. A detector answers
+"did a machine produce this" for a third party; this answers "does this read as
+machine-written" for the author. It deliberately does not optimise against
+detector scores.
+
+Next, in order: a labelled corpus at volume, then channels that use no patterns
+at all — function-word distribution, hapax rate, sentence-opener diversity —
+then re-tuning against real labels. Tuning before the corpus is how the five-in-
+eight happened.
+
 ## Trust
 
 The scorer is standard-library Python with no network calls, no dependencies,
