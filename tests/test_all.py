@@ -555,12 +555,12 @@ class DocsMatchReality(unittest.TestCase):
         human = [slopscore.score_text(f.read_text(), data)["ai_likelihood"]
                  for f in CORPUS.glob("*.txt")]
         ai_mean, lo, hi = _st.mean(drafts), min(human), max(human)
-        m = re.search(r"\[`bench/`\]\(bench/\) average (\d+)",
+        m = re.search(r"drafts?[^.]{0,40}?average (\d+)",
                       re.sub(r"\s+", " ", self.docs["README.md"]))
         self.assertIsNotNone(m, "README no longer states the AI-draft anchor")
         self.assertAlmostEqual(int(m.group(1)), ai_mean, delta=2,
                                msg=f"README says drafts average {m.group(1)}, measured {ai_mean:.1f}")
-        m2 = re.search(r"lands\s+between (\d+) and (\d+)",
+        m2 = re.search(r"lands between (\d+) and (\d+)",
                        re.sub(r"\s+", " ", self.docs["README.md"]))
         self.assertIsNotNone(m2, "README no longer states the human-writing anchor")
         c_lo, c_hi = int(m2.group(1)), int(m2.group(2))
