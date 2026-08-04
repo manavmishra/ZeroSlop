@@ -63,19 +63,22 @@ Twenty-two words to eight, and the only survivor is the 40%. That ratio is the
 point: most of the original was decoration around a single measurement, which
 is what the AI accent usually turns out to be on inspection.
 
-**About that 9.5.** It is the floor, not a grade. A document with zero charged
-spans scores 9.5 no matter what it says, and so does the string `Hello`. For
-scale, the 50 raw AI drafts in [`bench/`](bench/) average 70 and the
-certified-human writing in [`data/corpus/`](data/corpus/must-not-flag/) lands
-between 9 and 21 — but read the tell count and the charged-span list first. The
-composite is for ranking drafts against each other and for CI thresholds, not
-for judging one text in isolation. It cannot tell you whether the sentence is
-*worth* writing, which is why the gate prints what it did not measure.
+**About that 9.5.** It is the floor, not a grade. Any document with zero charged
+spans scores 9.5 — including the string `Hello`. So read the charged-span list
+first and the composite second.
 
-Reproduce both runs:
+For scale: the 50 raw AI drafts in [`bench/`](bench/) average 70, and the
+certified-human writing in [`data/corpus/`](data/corpus/must-not-flag/) lands
+between 9 and 21. That makes the number useful for ranking drafts against each
+other and for a CI threshold. It is not a judgment about one text on its own,
+and it says nothing about whether the sentence was worth writing — which is why
+every run prints what it did not measure.
+
+Run both yourself:
 
 ```bash
-printf "We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience, reducing setup time by 40%%." | python3 scripts/slopscore.py --explain
+printf "We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience, reducing setup time by 40%%.\n" | python3 scripts/slopscore.py --explain
+printf "We cut onboarding setup time by 40%% using AI.\n" | python3 scripts/slopscore.py --explain
 ```
 
 ## What you get
@@ -238,9 +241,9 @@ python3 scripts/calibrate.py --decay                 # age out stale tells
   <img src="assets/engine.svg" alt="Zero Slop engine: a draft is measured by three interpretable channels, a pattern meter of 74 weighted tells with a 55-term lexicon and 13 context-gated riders, rhythm and burstiness, and followability with formatting and register, which fuse into a traceable 0-100 score; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and a reflect loop that turns your own edits into new evidence." width="880">
 </p>
 
-<p align="center"><em>Three interpretable channels fuse into one score, then a
-two-pass rewrite runs until the gate passes or three attempts fail. What you
-change afterwards feeds back into the meter.</em></p>
+<p align="center"><em>Four interpretable channels fuse into one score. Only the
+pattern meter reads specific wording; the rest measure shape and rhythm, which
+is why a score survives a rewrite. What you change afterwards feeds back in.</em></p>
 
 <details>
 <summary>Diagram source (Mermaid)</summary>
@@ -248,10 +251,10 @@ change afterwards feeds back into the meter.</em></p>
 ```mermaid
 flowchart LR
     D([Draft]) --> PM & RH & FF
-    subgraph Measure["Measure · all channels, every run"]
-      PM[Pattern meter<br/>74 tells · 55-term lexicon · 13 riders]
-      RH[Rhythm<br/>burstiness · uniformity]
-      FF[Followability + format<br/>density · dashes · register]
+    subgraph Measure["Measure · every channel, every run · 3 of 4 survive rewording"]
+      PM["Pattern meter · reads wording<br/>74 tells · 55 lexicon · 13 riders"]
+      RH["Rhythm · wording-blind<br/>burstiness · uniformity · shape"]
+      FF["Followability + format · wording-blind<br/>density · dashes · register"]
     end
     PM & RH & FF --> F[Evidence fusion<br/>score 0-100, every point traceable]
     F --> J[Diagnose<br/>hollow spans · facts · voice]
