@@ -130,6 +130,13 @@ Bayesian lexicon is spam-filter lineage. Support-vector machines and hidden
 Markov models were evaluated and rejected: head-to-heads show no gain over
 logistic for text, and rhythm statistics already carry the sequence signal.
 
+<p align="center">
+  <img src="assets/engine.svg" alt="Zero Slop engine: a draft flows through the pattern meter, rhythm and followability statistics, and an optional MaxEnt channel into evidence fusion; then diagnose, a two-pass rewrite, and a verify gate that loops on failure, emits the rewritten text with a scorecard, and feeds lessons back into the pattern meter." width="880">
+</p>
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
+
 ```mermaid
 flowchart LR
     D([Draft]) --> PM & RS & ML
@@ -148,6 +155,8 @@ flowchart LR
     G -- lessons --> L[(learned.json)]
     L -.-> PM
 ```
+
+</details>
 
 ## The benchmark, and what replicating it revealed
 

@@ -40,6 +40,10 @@ figure and citation intact; the author's best lines protected, not
 polished away. The complete before-and-after, with its scorecard, is in
 the README.
 
+<p align="center">
+  <img src="assets/engine.svg" alt="Zero Slop engine block diagram: measure, diagnose, two-pass rewrite, verify gate, and a learning loop." width="880">
+</p>
+
 **The proof, and its limits.** Fifty AI-typical drafts, six genres,
 independent blind judges on shuffled labels, every skill running its own
 published prompt. The first run gave Zero Slop 32 of 50 best-picks. A full

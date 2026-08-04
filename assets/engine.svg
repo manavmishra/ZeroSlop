@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 380" width="880" height="380" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop engine: draft flows through pattern meter, rhythm statistics and an optional MaxEnt channel into evidence fusion, then diagnose, two-pass rewrite, and a verify gate that loops on failure and feeds lessons back to the pattern meter.">
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#8A8F99"/>
+  </marker>
+  <marker id="ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#B9BCC4"/>
+  </marker>
+  <style>
+    .bx{fill:#F5F5F1;stroke:#D8D7D0;stroke-width:1.5;rx:7}
+    .bxa{fill:#EAF1FC;stroke:#2a78d6;stroke-width:1.5;rx:7}
+    .bxg{fill:#FBFBF8;stroke:#E3E2DC;stroke-width:1.2;stroke-dasharray:4 3;rx:9}
+    .t{font-size:12.5px;fill:#1B1D22}
+    .ts{font-size:10.5px;fill:#6E7280}
+    .tl{font-size:9.5px;fill:#8A8F99;letter-spacing:.06em}
+    .ln{stroke:#8A8F99;stroke-width:1.6;fill:none;marker-end:url(#a)}
+    .lnd{stroke:#B9BCC4;stroke-width:1.4;fill:none;stroke-dasharray:4 3;marker-end:url(#ad)}
+    @media (prefers-color-scheme:dark){
+      .bx{fill:#1C1F26;stroke:#333741}.bxa{fill:#17243A;stroke:#3987e5}
+      .bxg{fill:#15171C;stroke:#2B2E36}.t{fill:#E9E8E3}.ts{fill:#A0A4AE}.tl{fill:#7B7F89}
+      .ln{stroke:#8A8F99}.lnd{stroke:#565B66}
+    }
+  </style>
+</defs>
+<rect x="106" y="18" width="250" height="150" class="bxg"/>
+<text x="118" y="36" class="tl">MEASURE</text>
+<rect x="0" y="78" width="88" height="34" class="bx"/>
+<text x="44" y="99" class="t" text-anchor="middle">Draft</text>
+<rect x="118" y="44" width="226" height="34" class="bx"/>
+<text x="130" y="59" class="t">Pattern meter</text><text x="130" y="72" class="ts">60+ weighted tells</text>
+<rect x="118" y="86" width="226" height="34" class="bx"/>
+<text x="130" y="101" class="t">Rhythm + followability</text><text x="130" y="114" class="ts">burstiness, density, register</text>
+<rect x="118" y="128" width="226" height="34" class="bx"/>
+<text x="130" y="143" class="t">MaxEnt + Bayesian lexicon</text><text x="130" y="156" class="ts">optional, calibrated, abstains</text>
+<rect x="382" y="70" width="150" height="50" class="bxa"/>
+<text x="457" y="90" class="t" text-anchor="middle">Evidence fusion</text>
+<text x="457" y="105" class="ts" text-anchor="middle">AI-likelihood 0–100</text>
+<rect x="570" y="70" width="160" height="50" class="bx"/>
+<text x="650" y="90" class="t" text-anchor="middle">Diagnose</text>
+<text x="650" y="105" class="ts" text-anchor="middle">hollow spans · facts · voice</text>
+<rect x="570" y="168" width="160" height="50" class="bx"/>
+<text x="650" y="188" class="t" text-anchor="middle">Two-pass rewrite</text>
+<text x="650" y="203" class="ts" text-anchor="middle">strip, then build</text>
+<path d="M650 268 L716 296 L650 324 L584 296 Z" class="bxa" stroke="#2a78d6" fill="#EAF1FC"/>
+<text x="650" y="300" class="t" text-anchor="middle">Verify gate</text>
+<rect x="382" y="278" width="150" height="36" class="bx"/>
+<text x="457" y="295" class="t" text-anchor="middle">learned.json</text>
+<text x="457" y="307" class="ts" text-anchor="middle">every miss, logged</text>
+<rect x="768" y="278" width="112" height="36" class="bxa"/>
+<text x="824" y="295" class="t" text-anchor="middle">Text +</text>
+<text x="824" y="307" class="t" text-anchor="middle">scorecard</text>
+<path d="M88 95 L112 95" class="ln"/>
+<path d="M100 95 L100 61 L112 61" class="ln"/>
+<path d="M100 95 L100 145 L112 145" class="lnd"/>
+<path d="M344 61 L364 61 L364 88 L376 88" class="ln"/>
+<path d="M344 103 L376 100" class="ln"/>
+<path d="M344 145 L364 145 L364 110 L376 110" class="lnd"/>
+<text x="352" y="132" class="tl">second opinion</text>
+<path d="M532 95 L564 95" class="ln"/>
+<path d="M650 120 L650 162" class="ln"/>
+<path d="M650 218 L650 262" class="ln"/>
+<path d="M716 296 L762 296" class="ln"/>
+<text x="726" y="288" class="tl">pass</text>
+<path d="M700 320 L700 344 L600 344 L600 218" class="ln"/>
+<text x="606" y="340" class="tl">fail · up to 3x</text>
+<path d="M584 296 L538 296" class="lnd"/>
+<text x="542" y="288" class="tl">lessons</text>
+<path d="M382 290 L230 290 L230 178" class="lnd"/>
+<text x="236" y="200" class="tl">sharpens the meter</text>
+</svg>
