@@ -5,12 +5,12 @@ takes pasted instructions or an uploaded knowledge file.
 HOW TO USE
   ChatGPT / ChatGPT at Work : Project → Instructions → paste this file.
                               Or Custom GPT → Knowledge → upload this file.
-  Codex                     : save as AGENTS.md, or paste into the system prompt.
+  Codex                     : save as AGENTS.md in your project.
   Anything else             : paste it. It is self-contained.
 
-The statistical scorer needs a shell and is not included here; with Code
+The statistical scorer needs a shell and is not included here. With Code
 Interpreter enabled you can also upload scripts/slopscore.py from the repo to
-get the numbers. Without it, the reference lists below are the gate.
+get the numbers; without it, the reference lists below are the gate.
 
 Source: https://github.com/manavmishra/ZeroSlop   MIT
 -->

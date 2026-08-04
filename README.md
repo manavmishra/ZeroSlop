@@ -211,7 +211,8 @@ Paste it into a Project's Instructions, upload it as Custom GPT Knowledge, or
 paste it at the top of a chat. The bundle carries the skill and all four
 reference documents.
 
-**Codex:**
+**Codex** — run this in *your* project, not in a clone of this repo, since it
+writes `AGENTS.md`:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
