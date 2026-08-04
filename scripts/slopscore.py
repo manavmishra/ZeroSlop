@@ -499,10 +499,13 @@ So Then Now Here There When While If After Before Our Their His Her Its My Your
 Most Many Some Every Each Both All No Not One Two Three Four Five Six Seven
 Eight Nine Ten First Second Third Last Next Why How What Which Who Where
 See Read Use Run Add Set Get Let Note Also Just Only Even Still Yet Once
-More Less Best Worst Same Other Another Such Very Much Well Then Than""".split())
+More Less Best Worst Same Other Another Such Very Much Well Then Than
+Shipped Built Made Added Fixed Moved Cut Kept Found Gave Took Went Came
+Said Did Had Was Were Been Being Done Going Getting Started Stopped
+Because Since Though Although Unless Until Whether Given Once Yet""".split())
 
 
-def facts(text):
+def facts(text, _other=""):
     """Checkable claims in a draft: figures, named entities, quotes, links."""
     # URLs contain lowercase forms of the names they point at ("acme.io" made
     # "Acme" look like a sentence opener in the source and an invention in the
@@ -516,18 +519,57 @@ def facts(text):
             if kind == "name":
                 if v in NOT_NAMES or len(v) < 3:
                     continue
-                # a capitalised word that also appears lowercased is just a
-                # sentence opener, not an entity
-                if re.search(r"\b" + re.escape(v.lower()) + r"\b", prose):
+                # A word is only a name if it is never used as an ordinary
+                # lowercase word — not here, and not in the text we compare
+                # against. "Under"/"Shipped" appear lowercased somewhere in
+                # normal prose; "Priya"/"Acme" do not. Multi-word entities keep
+                # their head token for this test.
+                head = v.split()[0]
+                # Is this token ever used as an ordinary lowercase word, here or
+                # in the compared text? Sentence openers are ("under load",
+                # "shipped tuesday"); real names never are. Strip the capitalized
+                # forms first so the entity cannot vouch for itself.
+                blob = re.sub(r"\b" + re.escape(head) + r"\b", " ", prose + " " + _other)
+                if re.search(r"\b" + re.escape(head.lower()) + r"\b", blob):
                     continue
             if kind == "figure":
                 v = v.replace(",", "").lstrip("$").rstrip()
+                v = re.sub(r"\s*percent$", "%", v)
+                v = re.sub(r"\s*(million|bn|billion|m|k)$",
+                           lambda x: {"million":"m","billion":"bn"}.get(x.group(1), x.group(1)), v)
             if kind == "url":
                 # a link at the end of a sentence carries the full stop
                 v = v.rstrip(".,;:)]}\u201d\"'")
             if v:
                 found.add(v)
         out[kind] = found
+    return out
+
+
+# Interior states the author has to have supplied. The benchmark's one
+# fabrication was exactly this shape — "by test day the real thing felt
+# familiar" — and an entity check cannot see it, because no name or figure moved.
+# First-person emotional state and the body-as-feeling idiom. Kept deliberately
+# tight: "I felt/was <emotion>", "my heart/stomach ...", not every clause with
+# a feeling verb, because the goal is catching an INVENTED inner state, and the
+# comparison below cancels any that were already in the source.
+INTERIOR_RX = re.compile(
+    r"\b(?:I|we)\s+(?:was|were|am|felt|feel|got)\s+\w+"
+    r"|\b(?:I|we)\s+(?:remember|realrandom|realise|realize|knew|feared|hoped|"
+    r"worried|panicked|struggled|doubted)\w*"
+    r"|\b(?:my|our)\s+(?:heart|stomach|gut|chest|hands|mind)\b"
+    r"|\bit\s+felt\s+(?:surreal|unreal|impossible|inevitable|like\b)"
+    r"|\bfelt\s+(?:familiar|natural|surreal|foreign|inevitable|effortless)\b", re.I)
+
+
+def interior_claims(text):
+    """Inner-state assertions, reduced to a comparable core so paraphrase of an
+    existing one does not read as a new invention."""
+    out = set()
+    for m in INTERIOR_RX.finditer(text):
+        # keep the emotion/state word, drop the pronoun and tense
+        words = re.findall(r"[a-z]+", m.group(0).lower())
+        out.add(words[-1] if words else m.group(0).lower())
     return out
 
 
@@ -540,12 +582,26 @@ def fidelity(before, after):
     that matters, because a dropped figure is visible to the author and an
     added one is not.
     """
-    a, b = facts(before), facts(after)
+    a, b = facts(before, after), facts(after, before)
     rows, kept_all, invented_any = [], True, False
+    # Names compare by shared token, so "Shipped Tuesday" and "Tuesday" cancel
+    # (both contain the token) while a genuinely new name shares nothing.
+    def toks(s): return {w for e in s for w in re.findall(r"[a-z]+", e.lower())}
+    a_nt, b_nt = toks(a["name"]), toks(b["name"])
+    # Interior experience is the fabrication the judges actually caught, and the
+    # one no entity check sees: nothing was renamed, a feeling was added.
+    ia, ib = interior_claims(before), interior_claims(after)
+    new_interior = ib - ia
     for kind, _ in FACT_RX:
-        kept = a[kind] & b[kind]
-        dropped = a[kind] - b[kind]
-        added = b[kind] - a[kind]
+        if kind == "name":
+            dropped = {e for e in a[kind]
+                       if not (toks({e}) & b_nt)}
+            added = {e for e in b[kind] if not (toks({e}) & a_nt)}
+            kept = a[kind] - dropped
+        else:
+            kept = a[kind] & b[kind]
+            dropped = a[kind] - b[kind]
+            added = b[kind] - a[kind]
         if not (a[kind] or b[kind]):
             continue
         rows.append((kind, kept, dropped, added))
@@ -553,7 +609,11 @@ def fidelity(before, after):
             kept_all = False
         if added:
             invented_any = True
-    return {"rows": rows, "preserved": kept_all, "invented": invented_any}
+    if new_interior:
+        rows.append(("feeling", set(), set(), new_interior))
+        invented_any = True
+    return {"rows": rows, "preserved": kept_all, "invented": invented_any,
+            "interior": new_interior}
 
 
 def render_fidelity(before, after):
@@ -569,14 +629,17 @@ def render_fidelity(before, after):
             out.append(f"           ADDED    {v[:56]!r}   <-- not in the source")
     if not r["rows"]:
         out.append("  no checkable facts in either text")
+    if r.get("interior"):
+        out.append("  the author never said these; an added feeling is still a "
+                   "fabrication")
     out += ["",
             "  verdict: " + ("facts preserved, nothing invented"
                              if r["preserved"] and not r["invented"] else
                              ("FACTS DROPPED" if not r["preserved"] else "")
                              + (" · CONTENT INVENTED" if r["invented"] else "")),
-            "  note   : this checks figures, names, quotes and links only. It",
-            "           cannot see an invented feeling or a reframed claim —",
-            "           those still need the judgment pass.", ""]
+            "  note   : checks figures, names, quotes, links and asserted",
+            "           feelings. It cannot see a reframed claim or a shifted",
+            "           emphasis, so the judgment pass still applies.", ""]
     return out
 
 

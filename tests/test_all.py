@@ -628,6 +628,41 @@ class Fidelity(unittest.TestCase):
         self.assertTrue(r["preserved"])
         self.assertFalse(r["invented"])
 
+    # Rates over a battery, not sentence-by-sentence. A regression is a change
+    # in the aggregate, which is how you tell a real drop from a noisy example.
+    FAITHFUL = [
+        ("The service felt sluggish under load.", "Under load, the service felt sluggish."),
+        ("Revenue rose 12%.", "Revenue was up 12 percent."),
+        ("Ana Reyes joined as CTO.", "Ana Reyes is our new CTO."),
+        ("The API returns JSON.", "It returns JSON."),
+        ("The report covers Q3.", "This covers Q3."),
+        ("Latency dropped after the index.", "After the index, latency dropped."),
+        ("The exam felt familiar.", "It felt familiar, that exam."),
+        ("Built the parser in Rust.", "Made the parser in Rust."),
+        ("Basis Ventures led the round.", "The round was led by Basis Ventures."),
+    ]
+    INVENTED = [
+        ("I passed the exam.", "I passed the exam. It felt surreal to see the score."),
+        ("We raised a round.", "We raised a round. I was terrified we wouldn't close it."),
+        ("The migration finished.", "The migration finished. My stomach was in knots."),
+        ("I sat the exam in March.", "I sat the exam. By test day the real thing felt familiar."),
+        ("Acme shipped it.", "Acme shipped it. Priya led the team."),
+        ("Revenue rose.", "Revenue rose 40% last quarter."),
+        ("We closed the deal.", "We closed the deal with Vertex on Friday."),
+    ]
+
+    def test_faithful_rewrites_are_not_flagged(self):
+        """False-positive RATE on paraphrase, not one blessed sentence."""
+        fp = [b for a, b in self.FAITHFUL
+              if (r := slopscore.fidelity(a, b)) and (not r["preserved"] or r["invented"])]
+        self.assertLessEqual(len(fp), 1,
+                             f"{len(fp)}/{len(self.FAITHFUL)} faithful rewrites flagged: {fp}")
+
+    def test_inventions_are_caught(self):
+        """Miss RATE on inventions — dropped facts, added figures, added feelings."""
+        missed = [b for a, b in self.INVENTED if not slopscore.fidelity(a, b)["invented"]]
+        self.assertEqual(len(missed), 0, f"missed inventions: {missed}")
+
     def test_cli_exits_nonzero_on_invention(self):
         import tempfile
         d = Path(tempfile.mkdtemp())
