@@ -1,0 +1,26 @@
+# SkillOpt config for optimizing Zero Slop's SKILL.md.
+# Fields follow docs/guide/new-benchmark.md; adjust paths to your SkillOpt checkout.
+_base_: ../_base_/default.yaml
+
+env:
+  name: zeroslop
+  # The thing being tuned: Zero Slop's instructions. Point this at the repo's
+  # SKILL.md — that markdown is the trainable state SkillOpt rewrites.
+  skill_init: ../../SKILL.md
+  split_mode: split_dir
+  split_dir: ../../data/zeroslop_split   # written by make_split.py
+  workers: 4
+  max_completion_tokens: 4096
+  limit: 0
+
+train:
+  batch_size: 16
+  num_epochs: 4
+
+gradient:
+  minibatch_size: 8
+
+# Reward is supplied by reward.py: `hard` = fidelity (every fact kept, nothing
+# invented), `soft` = de-slop gain + gate + rhythm + length. SkillOpt maximises
+# both and accepts an edit only when it strictly improves the held-out val split,
+# so a candidate that de-slops harder by dropping a fact cannot win.

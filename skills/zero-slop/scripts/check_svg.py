@@ -105,8 +105,8 @@ def main(path):
             "box": tuple(float(r.get(k, 0)) for k in ("x", "y", "width", "height")),
             "cls": r.get("class", ""),
         })
-    solid = [r for r in rects if r["cls"] not in ("grp", "grl")]
-    groups = [r for r in rects if r["cls"] in ("grp", "grl")]
+    solid = [r for r in rects if r["cls"] not in ("grp", "grl", "grt")]
+    groups = [r for r in rects if r["cls"] in ("grp", "grl", "grt")]
 
     # 1. text must fit the canvas and the box it sits in
     for t in root.iter(NS + "text"):

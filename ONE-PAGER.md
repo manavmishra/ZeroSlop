@@ -12,19 +12,19 @@ nothing.
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Then say "de-slop this" in any agent. Nothing to install, nothing to sign up for, and
-your writing never leaves your machine.
+Then say "de-slop this" in any agent. No account, no server, and your writing never
+leaves your machine.
 
 ![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
 
 ## Why it matters now
 
 Sounding like AI used to just cost you a little credibility. Now it costs you reach.
-In two weeks across mid-2026, LinkedIn, Snapchat, YouTube, and Substack all started
-acting on slop, and on LinkedIn a flagged post stops reaching anyone outside your own
-network. One study the platforms keep citing puts as much as 40% of social-media
-writing at machine-made already. When a feed is that full of slop, the systems ranking
-it bury anything that smells the same, and human-sounding writing is what gets through.
+Over two weeks in mid-2026, LinkedIn, Snapchat, YouTube, and Substack all started acting
+on slop. On LinkedIn, a flagged post now stops reaching anyone outside your own network.
+One study the platforms keep citing estimates that up to 40% of social-media writing is
+already machine-made. When a feed is that full of slop, the systems ranking it bury
+anything that smells the same, and human-sounding writing is what gets through.
 
 ## Who it is for
 
@@ -35,17 +35,17 @@ the way a bug does.
 
 ## How it decides
 
-Slop is not one thing, so Zero Slop looks at four, and only the first pays attention to
-the actual words. That is the point: you cannot dodge it with a thesaurus, because most
+Slop is not one thing, so Zero Slop looks at four signals, and only the first pays
+attention to the actual words. That is the point: you cannot dodge it with a thesaurus, because most
 of what it measures is the shape of the writing, not the vocabulary. It weighs the words you chose, but also the rhythm of your sentences, how hard they
 are to read, and how heavily the page is formatted. Then it leans toward mercy. One
-em-dash is not slop; plenty of great writing uses them. A tell only counts once the word
+em-dash is not slop; plenty of great writing leans on them. A tell only counts once the word
 choice backs it up, so a cluster convicts and a lone one does not.
 
 ## What makes it different
 
-It is built on four open-source projects that worked out this craft first, no-ai-slop,
-humanizer, de-slop, and stop-slop, and it adds three things a plain rewriter cannot.
+It is built on four open-source projects that worked out this craft first: no-ai-slop,
+humanizer, de-slop, and stop-slop. It adds three things a plain rewriter cannot.
 
 A score you can trust and check. It comes from rules you can read, not a black box, so
 every point traces to a phrase you can see, and it can go straight into a build.
@@ -57,16 +57,18 @@ catch; an invented one reads perfectly and slips right past, which is exactly wh
 check exists.
 
 A tool that learns you. What you delete after it hands your draft back was a tell it
-missed, so it watches for that, and a sample of your own writing teaches it which words
-are just how you talk.
+missed, so it watches for that next time. And a sample of your own writing teaches it
+which words are just how you talk. It also keeps itself current: each session it checks
+for a newer release and points you at the one-line update, sending a version query and
+nothing of what you wrote.
 
 ## Does it actually work
 
-We tested it against the four tools it is built on: 50 AI-heavy drafts, six kinds of
-writing, judged blind. Across 100 picks, judges chose the Zero Slop version most often,
-55 to blader's 40, with the other two far back. Honestly: it clearly beat two of them,
-and it was a statistical tie with the strongest. It also sorts obvious slop from obvious
-human writing cleanly, with no overlap, at about 1,100 documents a second.
+We ran it head to head against the four tools it builds on: 50 AI-heavy drafts, six kinds
+of writing, judged blind. Across 100 picks, judges chose the Zero Slop version most often,
+55 to humanizer's 40, with the other two far back. It clearly beat two of them, and tied
+the strongest. It also cleanly separates obvious slop from genuine human writing, with no
+overlap, at about 1,100 documents a second.
 
 The honest caveat, which the full README does not bury: our accuracy numbers all come
 from test writing we created ourselves, so they show the tool agreeing with an obvious
@@ -77,5 +79,5 @@ list.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v1.6.0 · 63 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.0.0 · 65 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

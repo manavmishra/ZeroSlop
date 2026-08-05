@@ -67,6 +67,13 @@ which is the honest, robust target.
 - Hollow content scores clean on every surface metric. Only the removal test
   catches it, which is why the judgment pass can never be skipped and why
   hollow spans are flagged, not padded.
+- The fidelity check compares tokens and entities, not meaning. v2 hardened it
+  against the two false alarms it raised most — a number spelled out ("18"
+  versus "eighteen") and a common word capitalised at a sentence start read as
+  an invented name — but a paraphrase that keeps every entity while bending a
+  claim can still pass it. Semantic fidelity, entailment between the draft and
+  the rewrite, is the roadmap; until then the judgment pass carries what the
+  token check cannot see.
 
 ## Practitioner corroboration
 
@@ -149,6 +156,22 @@ The honest limit: this measures what *writers who use the skill* strike, not
 what readers detect. It tracks the register those authors are editing away
 from, which is the target, but it is a convenience sample and no substitute for
 the frequency work in `calibrate.py` against a real corpus.
+
+## Two learning axes: the meter and the instructions
+
+The reflect loop tunes the *detector* — which spans the meter should catch. It
+leaves the other half alone: the rewrite *instructions* in SKILL.md, which decide
+how a flagged draft is repaired. Those are optimizable too, by the same
+discipline. Microsoft's SkillOpt treats a skill's markdown as trainable text,
+runs it on a task set, scores each rewrite, and keeps an edit only when a
+held-out validation score strictly improves. Zero Slop supplies the reward that
+makes this safe for de-slopping: fidelity is a separate hard signal, so an edit
+that de-slops harder by dropping or inventing a fact cannot win, however clean it
+reads. The harness is in `bench/skillopt/`; like the reflect loop it is
+validation-gated, and like every learning path here it is barred from raising a
+score by loosening a rule that matters.
+
+Source: <https://github.com/microsoft/SkillOpt>
 
 ## Practitioner corroboration: Kagi SlopStop
 

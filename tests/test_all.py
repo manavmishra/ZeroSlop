@@ -640,6 +640,11 @@ class Fidelity(unittest.TestCase):
         ("The exam felt familiar.", "It felt familiar, that exam."),
         ("Built the parser in Rust.", "Made the parser in Rust."),
         ("Basis Ventures led the round.", "The round was led by Basis Ventures."),
+        # A spelled-out number is the same fact as its digits.
+        ("It took 18 months to ship.", "It took eighteen months to ship."),
+        # Sentence-opening common words and gerunds are not invented entities.
+        ("Start with the schema.", "Begin with the schema, then wire the rest."),
+        ("Reviewing the logs caught it.", "It surfaced while reviewing the logs."),
     ]
     INVENTED = [
         ("I passed the exam.", "I passed the exam. It felt surreal to see the score."),
@@ -649,7 +654,21 @@ class Fidelity(unittest.TestCase):
         ("Acme shipped it.", "Acme shipped it. Priya led the team."),
         ("Revenue rose.", "Revenue rose 40% last quarter."),
         ("We closed the deal.", "We closed the deal with Vertex on Friday."),
+        # The precision fixes must not blind the check to a real invented name.
+        ("The team shipped it.", "The team shipped it. Marcus wrote the parser."),
     ]
+
+    def test_number_words_and_openers_are_faithful(self):
+        """The two false-positive classes the token check used to invent:
+        a number spelled out, and a common word capitalised at a sentence
+        start. Neither is a dropped or invented fact."""
+        for a, b in [("It took 18 months.", "It took eighteen months."),
+                     ("Draw the diagram.", "Start by drawing the diagram."),
+                     ("Usually it works.", "It usually works."),
+                     ("We saw plenty of churn.", "Plenty of churn showed up.")]:
+            r = slopscore.fidelity(a, b)
+            self.assertTrue(r["preserved"] and not r["invented"],
+                            f"faithful paraphrase flagged: {b!r} -> {r}")
 
     def test_faithful_rewrites_are_not_flagged(self):
         """False-positive RATE on paraphrase, not one blessed sentence."""

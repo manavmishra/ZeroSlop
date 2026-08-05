@@ -543,20 +543,84 @@ Shipped Built Made Added Fixed Moved Cut Kept Found Gave Took Went Came
 Said Did Had Was Were Been Being Done Going Getting Started Stopped
 Because Since Though Although Unless Until Whether Given Once Yet""".split())
 
+# Spelled-out numbers, mapped to digits. A rewrite that turns "18 months" into
+# "Eighteen months" is faithful, but the raw extractor read "18" as a dropped
+# figure and "Eighteen" as an invented name — two false alarms from one honest
+# edit. Normalising both texts to digits before extracting cancels that, and
+# because the same transform runs on the original and the rewrite, it can never
+# manufacture a mismatch that was not already there.
+NUM_WORDS = {
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4", "five": "5",
+    "six": "6", "seven": "7", "eight": "8", "nine": "9", "ten": "10",
+    "eleven": "11", "twelve": "12", "thirteen": "13", "fourteen": "14",
+    "fifteen": "15", "sixteen": "16", "seventeen": "17", "eighteen": "18",
+    "nineteen": "19", "twenty": "20", "thirty": "30", "forty": "40",
+    "fifty": "50", "sixty": "60", "seventy": "70", "eighty": "80",
+    "ninety": "90", "hundred": "100", "thousand": "1000",
+    "million": "1000000", "billion": "1000000000",
+}
+# Only normalise numbers of eleven or more. "one".."ten" double as articles and
+# pronouns ("one of them", "two ways"), so digitising them invents figures that
+# were never quantities; from eleven up, a spelled number is almost always a real
+# count ("eighteen months", "forty percent", "a hundred users").
+_NUM_RX = re.compile(
+    r"\b(" + "|".join(w for w, d in NUM_WORDS.items() if int(d) >= 11) + r")\b", re.I)
+
+
+def _spell_to_digits(text):
+    return _NUM_RX.sub(lambda m: NUM_WORDS[m.group(0).lower()], text)
+
+
+# Common English words that legitimately start sentences and so get capitalised,
+# but are not names — "Draw the diagram", "Usually it works", "Start here". The
+# entity regex cannot tell these from "Priya" or "Acme" (which are never ordinary
+# words), so an explicit frequency list carries the difference. This is a
+# precision aid only: a word here is skipped as a name in BOTH texts, so it can
+# widen a miss but never invent a false fabrication flag.
+COMMON_WORDS = set("""
+about above across again against along already also although always among another
+any anyone around away back become been before behind below better between beyond
+build building built call called celebrate change changed come coming could deploy
+deployment deployments double doing down draw during each either enough every
+everyone everything except finally find found from give given going gone great grow
+growing hard help here however instead into keep kept later least leave less look
+looking made make making many maybe might migrate more most move moving much must
+never next nobody nothing often once only other over people perhaps ready really
+right run running same say saying send sent set ship shipping should show shown
+since some someone something soon start started still stop such take taken talk
+tell than that their them then there these they thing things think this those
+though through today together too took toward tried true trying turn under until
+upon usually using very want was way well went were what when where which while
+whole will with within without work working would writing agree agreeing
+monday tuesday wednesday thursday friday saturday sunday none plenty seats reps
+fix sit mid ambiguity team teams user users product feature features day days week
+weeks month months year years time thing done anyway besides meanwhile therefore
+worse worst harder easier simpler faster slower bigger smaller lots plus minus
+""".split())
+
 
 def facts(text, _other=""):
     """Checkable claims in a draft: figures, named entities, quotes, links."""
     # URLs contain lowercase forms of the names they point at ("acme.io" made
     # "Acme" look like a sentence opener in the source and an invention in the
     # rewrite), so entity detection runs on the text with links removed.
-    prose = re.sub(r"https?://\S+", " ", text)
+    urls = text  # links keep their spelled forms; numbers in a slug are not facts
+    prose = _spell_to_digits(re.sub(r"https?://\S+", " ", text))
+    other = _spell_to_digits(_other)
     out = {}
     for kind, rx in FACT_RX:
         found = set()
-        for m in re.finditer(rx, text if kind == "url" else prose):
+        for m in re.finditer(rx, urls if kind == "url" else prose):
             v = (m.group(1) if m.lastindex else m.group(0)).strip()
             if kind == "name":
                 if v in NOT_NAMES or len(v) < 3:
+                    continue
+                low = v.lower()
+                # A capitalised common word ("Draw", "Usually", "Start"), an
+                # adverb ("Finally"), or a sentence-opening gerund ("Watching",
+                # "Calling") is not an entity; a real name never is.
+                if " " not in v and (low in COMMON_WORDS
+                                     or low.endswith("ly") or low.endswith("ing")):
                     continue
                 # A word is only a name if it is never used as an ordinary
                 # lowercase word — not here, and not in the text we compare
@@ -568,7 +632,7 @@ def facts(text, _other=""):
                 # in the compared text? Sentence openers are ("under load",
                 # "shipped tuesday"); real names never are. Strip the capitalized
                 # forms first so the entity cannot vouch for itself.
-                blob = re.sub(r"\b" + re.escape(head) + r"\b", " ", prose + " " + _other)
+                blob = re.sub(r"\b" + re.escape(head) + r"\b", " ", prose + " " + other)
                 if re.search(r"\b" + re.escape(head.lower()) + r"\b", blob):
                     continue
             if kind == "figure":
