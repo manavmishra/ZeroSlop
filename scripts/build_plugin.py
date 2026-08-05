@@ -77,17 +77,5 @@ def build(check=False):
     return 0
 
 
-def _zip(check):
-    """Keep the single-skill claude.ai zip in step with the mirror."""
-    import subprocess
-    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "build_skill_zip.py")]
-                       + (["--check"] if check else []), capture_output=True, text=True)
-    sys.stdout.write(r.stdout)
-    return r.returncode
-
-
 if __name__ == "__main__":
-    check = "--check" in sys.argv
-    rc = build(check=check)
-    rc = _zip(check) or rc
-    sys.exit(rc)
+    sys.exit(build(check="--check" in sys.argv))

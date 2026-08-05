@@ -726,14 +726,20 @@ class Diagram(unittest.TestCase):
         r = run([str(ROOT / "scripts" / "build_bundle.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
 
-    def test_skill_zip_is_current(self):
-        """dist/zero-slop.zip is the claude.ai upload: exactly one skill, current."""
-        r = run([str(ROOT / "scripts" / "build_skill_zip.py"), "--check"])
-        self.assertEqual(r.returncode, 0, r.stdout)
-        import zipfile
-        names = zipfile.ZipFile(ROOT / "dist" / "zero-slop.zip").namelist()
+    def test_skill_zip_is_one_clean_skill(self):
+        """The claude.ai upload zip must hold exactly one SKILL.md and no nested
+        zip. Built fresh here so the test never depends on a committed artifact —
+        the zip is a release asset, kept out of the source tree so the repo's own
+        download does not contain a nested zip."""
+        import zipfile, io, importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "bsz", ROOT / "scripts" / "build_skill_zip.py")
+        bsz = importlib.util.module_from_spec(spec); spec.loader.exec_module(bsz)
+        names = zipfile.ZipFile(io.BytesIO(bsz.build_bytes())).namelist()
         skills = [n for n in names if n.endswith("SKILL.md")]
         self.assertEqual(len(skills), 1, f"zip must hold exactly one skill: {skills}")
+        nested = [n for n in names if n.endswith((".zip", ".tar", ".gz"))]
+        self.assertEqual(nested, [], f"zip must not contain a nested archive: {nested}")
 
     def test_plugin_mirror_is_current(self):
         r = run([str(ROOT / "scripts" / "build_plugin.py"), "--check"])

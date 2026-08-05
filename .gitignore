@@ -8,3 +8,7 @@ data/voices/
 # in case ZERO_SLOP_HOME is pointed back at the repo.
 data/reflections.json
 reflections.json
+
+# built single-skill zip — a release artifact, never in the source tree
+# (otherwise the repo download contains a nested zip)
+dist/zero-slop.zip
