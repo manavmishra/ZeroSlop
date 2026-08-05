@@ -82,8 +82,11 @@ Codex: run this in your own project, not in a copy of this repo, because it writ
 curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
 ```
 
-claude.ai and Desktop: download the repo as a zip and upload it under Settings,
-Capabilities, Skills.
+claude.ai and Desktop: download the ready-made single-skill zip,
+[`dist/zero-slop.zip`](dist/zero-slop.zip), and add it under Settings, Capabilities,
+Skills. Do not upload GitHub's whole-repo zip; it contains two `SKILL.md` files, one
+for a plain clone and one for the plugin system, so claude.ai reads it as two skills
+and rejects it.
 
 By hand, in any tool:
 

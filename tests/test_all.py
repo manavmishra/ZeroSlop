@@ -726,6 +726,15 @@ class Diagram(unittest.TestCase):
         r = run([str(ROOT / "scripts" / "build_bundle.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_skill_zip_is_current(self):
+        """dist/zero-slop.zip is the claude.ai upload: exactly one skill, current."""
+        r = run([str(ROOT / "scripts" / "build_skill_zip.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+        import zipfile
+        names = zipfile.ZipFile(ROOT / "dist" / "zero-slop.zip").namelist()
+        skills = [n for n in names if n.endswith("SKILL.md")]
+        self.assertEqual(len(skills), 1, f"zip must hold exactly one skill: {skills}")
+
     def test_plugin_mirror_is_current(self):
         r = run([str(ROOT / "scripts" / "build_plugin.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
