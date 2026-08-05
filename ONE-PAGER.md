@@ -68,9 +68,14 @@ and you edit it, it compares the two: a phrase you cut was a tell it should have
 and one it flagged that you kept was a false alarm. A phrase only becomes a new rule
 after three separate people's drafts have cut it, so no single quirk speaks for everyone
 — and the meter gets sharper the more the tool is used, instead of staying frozen. A
-sample of your own writing also teaches it which words are just how you talk. It also keeps itself current: each session it checks
-for a newer release and points you at the one-line update, sending a version query and
-nothing of what you wrote.
+sample of your own writing also teaches it which words are just how you talk.
+
+The tool even tunes itself. The instructions it follows to rewrite are scored the same
+way your drafts are — on how much slop they remove and whether they keep every fact — so
+Microsoft's SkillOpt can rewrite those instructions, run them on a batch of drafts, and
+keep only the changes that raise the score on drafts it has not seen. It also keeps
+itself current: each session it checks for a newer release and points you at the one-line
+update, sending a version query and nothing of what you wrote.
 
 ## Does it actually work
 
@@ -89,5 +94,5 @@ list.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.2.0 · 72 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.2.0 · 74 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

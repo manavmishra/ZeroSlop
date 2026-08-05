@@ -864,5 +864,22 @@ class PredictabilityChannel(unittest.TestCase):
         self.assertIsNone(r["predictability"])
 
 
+class CliStdin(unittest.TestCase):
+    """The scorer reads stdin with no file argument and with the conventional '-',
+    so it composes in a pipe without a temp file and never tracebacks on '-'."""
+
+    SLOP = "I'm beyond excited to announce our game-changing platform"
+
+    def test_stdin_with_no_arg(self):
+        r = run([str(SCORER), "--explain"], stdin=self.SLOP)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("AI-likelihood", r.stdout)
+
+    def test_dash_means_stdin(self):
+        r = run([str(SCORER), "--explain", "-"], stdin=self.SLOP)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("AI-likelihood", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2, buffer=False)

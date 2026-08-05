@@ -2,7 +2,7 @@
 
 <p align="center">
   <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="tests" src="https://img.shields.io/badge/tests-72%20passing-1E7A4C">
+  <img alt="tests" src="https://img.shields.io/badge/tests-74%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
   <img alt="version" src="https://img.shields.io/badge/version-2.2.0-2a78d6">
@@ -203,11 +203,19 @@ python3 scripts/learn.py --stats               # see what it has learned
 
 It keeps itself current, too. Each session it checks for a newer release and shows you
 the one-line update if one exists — a version query and nothing else, so your writing
-still never leaves your machine. And the instructions the rewrite follows are tunable in
-the same spirit: the repo ships a reward that scores a rewrite on how much slop it
-removed and whether it kept every fact, so Microsoft's [SkillOpt](https://github.com/microsoft/SkillOpt)
-can optimize `SKILL.md` against it and keep only edits that improve a held-out score.
-One loop sharpens what the meter catches; the other sharpens how the fix is written.
+still never leaves your machine.
+
+The instructions the rewrite follows can be tuned the same way, by Microsoft's
+[SkillOpt](https://github.com/microsoft/SkillOpt). Here is how that works. SkillOpt
+treats `SKILL.md` — the rewrite instructions — as text it is allowed to edit. It runs
+the skill on a batch of drafts, scores each rewrite with a reward this repo ships
+(`bench/skillopt/`), makes a small edit to the instructions, runs them again, and keeps
+the edit only when it *strictly improves* the score on a held-out set of drafts the edit
+never saw. The reward is what keeps it honest: fidelity is a separate pass/fail signal,
+so an edit that de-slops harder by dropping or inventing a fact scores zero no matter how
+clean it reads. The output is a `best_skill.md` to review and commit. It is a maintainer
+step — running the rewrites needs a model — and it never touches your local, offline use.
+One loop sharpens what the meter catches; this one sharpens how the fix is written.
 
 ## Does it actually work
 
@@ -283,7 +291,7 @@ data/patterns.json          the 74 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
 references/readalong.md     the read-aloud pass the verify gate runs
 bench/skillopt/             the reward and harness for tuning SKILL.md
-tests/test_all.py           72 tests
+tests/test_all.py           74 tests
 ```
 
 Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The

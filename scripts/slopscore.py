@@ -888,7 +888,8 @@ def main():
         worst = max((sc for sc, _, _ in rows if sc == sc), default=0)
         sys.exit(1 if gv is not None and worst > gv else 0)
 
-    text = Path(args[0]).read_text() if args else sys.stdin.read()
+    # No file argument, or the conventional "-", means read stdin.
+    text = sys.stdin.read() if (not args or args[0] == "-") else Path(args[0]).read_text()
     r = score_text(text, data, formal=formal)
     if as_json:
         print(json.dumps(r, ensure_ascii=False, indent=1))

@@ -141,8 +141,8 @@
 
   <path d="M216 497 L250 497" class="lt" marker-end="url(#c)"/>
   <rect x="252" y="476" width="286" height="42" rx="6" class="tn"/>
-  <text x="264" y="495" class="t">Eval harness</text>
-  <text x="264" y="509" class="m">de-slop gain · fidelity · gate (reward.py)</text>
+  <text x="264" y="495" class="t">Run + reward</text>
+  <text x="264" y="509" class="m">run drafts · reward.py: fidelity + de-slop</text>
 
   <path d="M538 497 L572 497" class="lt" marker-end="url(#c)"/>
   <rect x="574" y="476" width="286" height="42" rx="6" class="tn"/>
