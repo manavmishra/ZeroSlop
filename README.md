@@ -125,10 +125,12 @@ still runs from its written rules — you only lose the number.
 
 ## How it decides
 
-Slop is not one thing, so the scorer weighs four signals, and only the first looks at
-your actual words. That is deliberate. Most of what it measures is the shape of the
-writing rather than the vocabulary, which is why running a draft through a thesaurus
-does not move the score.
+The first thing Zero Slop does is **measure**. It reads your draft through several
+independent channels and turns them into one score from 0 to 100 — and every point of
+that score traces back to a specific phrase you can see, so the number is never a black
+box you have to trust. Slop is not one thing, so only one channel looks at your actual
+words; the rest read the *shape* of the writing, which is why running a draft through a
+thesaurus barely moves the score.
 
 | what it looks at | what gives you away |
 |---|---|
@@ -180,14 +182,17 @@ tool did exactly that, handing a writer a feeling they never expressed.
 
 ## It gets sharper the more you use it
 
+After the rewrite comes the part most tools skip: it **reflects** on what you did next.
 Most tools are frozen the day they ship. This one learns from you.
 
-The most reliable signal a slop-catcher can get is what you cut after it hands the
-draft back. Delete a phrase before publishing and that phrase was a tell it missed. It
-watches for those, with one guard: a phrase becomes a rule only after three separate
-documents have cut it, so no single person's quirk hardens into law for everyone. The
-loop runs both ways. A rule you keep overriding loses weight, and one that stops
-catching anything ages out.
+Here is exactly what that means. When Zero Slop hands a draft back and you edit it before
+publishing, it compares the two versions: a phrase you *cut* was a tell it should have
+caught, and a phrase it flagged that you *kept* was a false alarm. Both become evidence.
+Nothing changes on the strength of one document, though — a phrase becomes a new rule
+only after three separate people's drafts have cut it, so no single quirk hardens into a
+rule for everyone. The loop runs both ways: a rule you keep overriding loses weight, and
+one that stops catching anything ages out. That is how the meter gets sharper the more
+the tool is used, instead of staying frozen at whatever its author first guessed.
 
 ```bash
 python3 scripts/learn.py --reflect --produced out.md --shipped final.md

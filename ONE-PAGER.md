@@ -36,9 +36,11 @@ the way a bug does.
 
 ## How it decides
 
-Slop is not one thing, so Zero Slop looks at four signals, and only the first pays
-attention to the actual words. That is the point: you cannot dodge it with a thesaurus, because most
-of what it measures is the shape of the writing, not the vocabulary. It weighs the words you chose, but also the rhythm of your sentences, how hard they
+First, it measures. Zero Slop scores your draft from 0 to 100, and every point of that
+score points back at a phrase you can see, so the number is never a black box. Slop is
+not one thing, so it weighs several signals, and only the first pays attention to your
+actual words. That is the point: you cannot dodge it with a thesaurus, because most of
+what it measures is the shape of the writing, not the vocabulary. It weighs the words you chose, but also the rhythm of your sentences, how hard they
 are to read, and how heavily the page is formatted. Then it leans toward mercy. One
 em-dash is not slop; plenty of great writing leans on them. A tell only counts once the word
 choice backs it up, so a cluster convicts and a lone one does not. It adds a check no
@@ -61,9 +63,12 @@ original and fails a rewrite that loses one or adds one. A missing number you wo
 catch; an invented one reads perfectly and slips right past, which is exactly why the
 check exists.
 
-A tool that learns you. What you delete after it hands your draft back was a tell it
-missed, so it watches for that next time. And a sample of your own writing teaches it
-which words are just how you talk. It also keeps itself current: each session it checks
+A tool that learns you. This is the part most tools skip. After it hands your draft back
+and you edit it, it compares the two: a phrase you cut was a tell it should have caught,
+and one it flagged that you kept was a false alarm. A phrase only becomes a new rule
+after three separate people's drafts have cut it, so no single quirk speaks for everyone
+— and the meter gets sharper the more the tool is used, instead of staying frozen. A
+sample of your own writing also teaches it which words are just how you talk. It also keeps itself current: each session it checks
 for a newer release and points you at the one-line update, sending a version query and
 nothing of what you wrote.
 
