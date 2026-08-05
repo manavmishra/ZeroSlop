@@ -205,17 +205,19 @@ It keeps itself current, too. Each session it checks for a newer release and sho
 the one-line update if one exists — a version query and nothing else, so your writing
 still never leaves your machine.
 
-The instructions the rewrite follows can be tuned the same way, by Microsoft's
-[SkillOpt](https://github.com/microsoft/SkillOpt). Here is how that works. SkillOpt
-treats `SKILL.md` — the rewrite instructions — as text it is allowed to edit. It runs
-the skill on a batch of drafts, scores each rewrite with a reward this repo ships
-(`bench/skillopt/`), makes a small edit to the instructions, runs them again, and keeps
-the edit only when it *strictly improves* the score on a held-out set of drafts the edit
-never saw. The reward is what keeps it honest: fidelity is a separate pass/fail signal,
-so an edit that de-slops harder by dropping or inventing a fact scores zero no matter how
-clean it reads. The output is a `best_skill.md` to review and commit. It is a maintainer
-step — running the rewrites needs a model — and it never touches your local, offline use.
-One loop sharpens what the meter catches; this one sharpens how the fix is written.
+The rewrite instructions themselves can be made better, so every de-slop that follows is
+sharper — and that tuning runs on a score, not on taste. Here is how it works, using
+Microsoft's [SkillOpt](https://github.com/microsoft/SkillOpt). It treats `SKILL.md` — the
+rewrite instructions — as text it is allowed to edit. It runs the skill on a batch of
+drafts, scores each rewrite with a reward this repo ships (`bench/skillopt/`), makes a
+small edit to the instructions, runs them again, and keeps the edit only when it
+*strictly improves* the score on a held-out set of drafts the edit never saw. The reward
+is what keeps it honest: fidelity is a separate pass/fail signal, so an edit that de-slops
+harder by dropping or inventing a fact scores zero, however clean it reads. The output is
+a `best_skill.md` — a better instruction set that lifts every future rewrite, not one
+draft. It is a maintainer step (running the rewrites needs a model) and never touches your
+local, offline use. One loop sharpens what the meter catches; this one sharpens how the
+fix is written.
 
 ## Does it actually work
 

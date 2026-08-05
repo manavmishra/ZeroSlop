@@ -70,12 +70,15 @@ after three separate people's drafts have cut it, so no single quirk speaks for 
 — and the meter gets sharper the more the tool is used, instead of staying frozen. A
 sample of your own writing also teaches it which words are just how you talk.
 
-The tool even tunes itself. The instructions it follows to rewrite are scored the same
-way your drafts are — on how much slop they remove and whether they keep every fact — so
-Microsoft's SkillOpt can rewrite those instructions, run them on a batch of drafts, and
-keep only the changes that raise the score on drafts it has not seen. It also keeps
-itself current: each session it checks for a newer release and points you at the one-line
-update, sending a version query and nothing of what you wrote.
+The tool even improves itself. The rewrite follows a page of written instructions, and
+those can be tuned like anything with a score. Microsoft's SkillOpt edits them, runs the
+edited version on a batch of drafts, and grades each result the way your writing is
+graded — how much slop came out, and whether every fact stayed in. It keeps an edit only
+when it beats the old instructions on drafts it has never seen, and discards the rest.
+Every accepted edit makes the next de-slop a little sharper, for everyone who uses the
+skill, not just one draft. It also keeps itself current: each session it checks for a
+newer release and points you at the one-line update, sending a version query and nothing
+of what you wrote.
 
 ## Does it actually work
 
