@@ -30,7 +30,7 @@ the summary.
 
 ## Who it is for
 
-Anyone who writes under their own name and would rather not sound like a robot. A
+Anyone who creates content and would rather not sound like a robot. A
 founder shipping a launch post. A marketer with five posts due this week. A researcher
 whose paper needs to stay formal, not get "humanized" into mush. An engineering team
 that wants slop to fail a check the way a bug does. If AI helps you write and you
