@@ -82,13 +82,18 @@ Codex: run this in your own project, not in a copy of this repo, because it writ
 curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
 ```
 
-claude.ai and Desktop: grab `zero-slop.zip` from the
-[latest release](https://github.com/manavmishra/ZeroSlop/releases/latest) and add it
-under Settings, Capabilities, Skills. It holds one skill and nothing else, which is
-what claude.ai wants. Do not use GitHub's green "Download ZIP" button; that packages
-the whole repository, which carries two `SKILL.md` files and rejects as two skills. If
-you would rather build the upload yourself, `python3 scripts/build_skill_zip.py` writes
-the same file.
+claude.ai and Desktop need a zip that holds just this one skill, which is not the
+same as GitHub's green "Download ZIP" button, that one packages the whole repository
+and claude.ai rejects it. Build the right zip with one command:
+
+```bash
+git clone https://github.com/manavmishra/ZeroSlop.git
+python3 ZeroSlop/scripts/build_skill_zip.py     # writes ZeroSlop/dist/zero-slop.zip
+```
+
+Then upload `dist/zero-slop.zip` under Settings, Capabilities, Skills. The same file is
+attached to the [latest release](https://github.com/manavmishra/ZeroSlop/releases/latest)
+if you would rather just download it.
 
 By hand, in any tool:
 
