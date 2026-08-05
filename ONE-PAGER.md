@@ -40,7 +40,10 @@ attention to the actual words. That is the point: you cannot dodge it with a the
 of what it measures is the shape of the writing, not the vocabulary. It weighs the words you chose, but also the rhythm of your sentences, how hard they
 are to read, and how heavily the page is formatted. Then it leans toward mercy. One
 em-dash is not slop; plenty of great writing leans on them. A tell only counts once the word
-choice backs it up, so a cluster convicts and a lone one does not. When it rewrites, it
+choice backs it up, so a cluster convicts and a lone one does not. It adds a check no
+rulebook can: it asks the model running it to guess your words, and counts how often it
+can — machine writing is easy to predict, and yours should not be. Zero Slop ships no
+model of its own; it borrows whichever one you are already in. When it rewrites, it
 writes several versions and keeps the cleanest one that changes no fact.
 
 ## What makes it different
@@ -80,5 +83,5 @@ list.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.1.0 · 67 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.2.0 · 72 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

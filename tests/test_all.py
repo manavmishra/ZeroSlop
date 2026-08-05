@@ -818,5 +818,51 @@ class RerankBestOfN(unittest.TestCase):
                          "the cleaner faithful rewrite should win")
 
 
+class PredictabilityChannel(unittest.TestCase):
+    """The model channel: a deterministic cloze scaffold the harness model answers.
+    The Python half must be reproducible and testable without any model."""
+
+    def _mod(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "predictability", ROOT / "scripts" / "predictability.py")
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return m
+
+    TEXT = ("The startup raised a substantial round from investors who believed in "
+            "the mission. Revenue climbed steadily through the difficult quarter, and "
+            "the founders stayed cautiously optimistic about the year ahead.")
+
+    def test_probes_are_deterministic(self):
+        m = self._mod()
+        self.assertEqual(m.probes(self.TEXT, k=6), m.probes(self.TEXT, k=6))
+
+    def test_perfect_and_zero(self):
+        m = self._mod()
+        pr = m.probes(self.TEXT, k=6)
+        right = m.score(self.TEXT, {p["id"]: [p["answer"]] for p in pr}, k=6)
+        wrong = m.score(self.TEXT, {p["id"]: ["zzzz"] for p in pr}, k=6)
+        self.assertEqual(right["predictability"], 100.0)
+        self.assertEqual(wrong["predictability"], 0.0)
+
+    def test_morphology_counts_as_a_hit(self):
+        m = self._mod()
+        pr = m.probes(self.TEXT, k=6)
+        stem = m.score(self.TEXT, {p["id"]: [p["answer"][:4]] for p in pr}, k=6)
+        self.assertEqual(stem["predictability"], 100.0)
+
+    def test_context_never_contains_the_answer(self):
+        m = self._mod()
+        for p in m.probes(self.TEXT, k=8):
+            self.assertNotIn(p["answer"], m._norm(p["context"]).split())
+            self.assertTrue(p["context"].endswith("___"))
+
+    def test_too_short_degrades_cleanly(self):
+        m = self._mod()
+        r = m.score("Hi there.", {}, k=6)
+        self.assertIsNone(r["predictability"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2, buffer=False)

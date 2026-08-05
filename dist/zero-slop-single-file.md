@@ -29,7 +29,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
@@ -138,6 +138,35 @@ Record the baseline: AI-likelihood (0–100), burstiness (sentence-length CV),
 tell density, and every hit. The score is a surface meter, not a verdict — a
 clean score with hollow content is still slop, and one flagged word in honest
 technical prose is not. Clusters convict; singles don't.
+
+**The model channel (predictability).** The four channels above read the surface.
+This one reads the thing detectors key on hardest: whether a *model* finds the
+prose predictable, because machine text sits where a model would have put the
+words. Zero Slop ships no model — it uses **you**, the model running this skill,
+so the channel works the same in every harness (Claude, GPT, …) with nothing to
+install:
+
+```
+python3 <skill-root>/scripts/predictability.py --probes <file> > probes.json
+```
+
+That prints blanks, each a context ending in `___`. For every blank, predict the
+**three words most likely to fill it from that context alone** — do not read ahead
+into the rest of the draft, and do not hunt for the real word; answer as if you
+were writing the next word cold. Write `{id: [w1, w2, w3]}` to `preds.json` and
+score:
+
+```
+python3 <skill-root>/scripts/predictability.py --score <file> preds.json
+```
+
+High predictability (a model kept guessing the author's word) corroborates a high
+surface score; the two disagreeing is the interesting case — clean surface but
+high predictability is competent slop, a high surface score with low predictability
+is often a real voice that happens to use a few tell-words. Report it on its own
+line (step 5); never fold it into the traceable tell score. If the skill is run by
+a bare script with no model to answer the probes, this channel is simply absent —
+the surface score stands alone, exactly as before.
 
 ### 2. Diagnose
 
@@ -342,9 +371,10 @@ same fields as plain lines where tables don't render):
 | Em-dashes / emoji / tags  | 0 / 1 / 3     | 0 / 0 / 0    |
 | Burstiness (≥0.45)        | 0.65          | 0.67         |
 | Followability penalty     | 4.2           | 0            |
+| Predictability (model)    | 67 high       | 33 low       |
 | Words                     | 254           | 217          |
 Gate: PASSED (LinkedIn ≤20) · facts preserved 12/12 · nothing invented
-Checked: vocabulary, formatting, rhythm, followability, register, shape
+Checked: vocabulary, formatting, rhythm, followability, register, shape, predictability
 Not measured: substance, voice, factual accuracy
 ```
 
@@ -1011,8 +1041,9 @@ not a deception.
 
 1. **Token-level predictability.** AI text sits at local maxima of model
    log-probability (DetectGPT, arXiv:2301.11305; Binoculars, 2401.12070).
-   Human text doesn't. Counter: Ladder L1: specific, slightly surprising phrasing
-   and concrete facts are the direct counter.
+   Human text doesn't. **Now measured** (v2.2, `scripts/predictability.py`) —
+   see the model-channel note below. Counter: Ladder L1: specific, slightly
+   surprising phrasing and concrete facts are the direct counter.
 2. **The LLM lexicon.** A few hundred style words carry huge evidential
    weight: "meticulous" +34.7x, "commendable" +9.8x, "intricate" +11.2x in
    post-ChatGPT scientific text (Liang, 2403.07183); ~900 excess words
@@ -1224,6 +1255,32 @@ It also raises the cost of *over*-correction, since a rewrite that strips a
 writer's voice to pass a meter is a worse outcome than the tell it removed.
 That trade is why `references/overcorrection.md` exists and why the gate reports
 what it did not measure.
+
+## The model channel: token-predictability, without a shipped model
+
+The strongest signal in the table (feature 1) is the one a lexical linter cannot
+reach: whether a *model* finds the text predictable. DetectGPT and Binoculars read
+it from token log-probabilities. Zero Slop cannot — it ships no model, and it runs
+across harnesses where the model is Claude, whose API exposes no logprobs at all. So
+the predictability channel computes the same thing by generation instead of
+probability: it masks a spread of content words and asks the model *already running
+the skill* to guess each from context alone, then scores how often the guess lands on
+the word the author used (`scripts/predictability.py`). Machine text is easy to guess;
+human word choice is not.
+
+This is the DetectGPT insight — perturb, then ask the model how expected the original
+was — reduced to a cloze the host model can answer with generation alone. It works in
+any harness because it needs no logprobs and no bundled model; the scaffold (probe
+selection, scoring) is deterministic and offline, and only the guessing step needs the
+model, which the agent already is. A live check separates the extremes as expected: an
+AI-slop paragraph scored 66.7 predictability against 41.7 for a human bug-report of the
+same length. It is reported beside the surface score, never fused into it, so the
+0–100 score stays traceable to spans and this stays a second, independent opinion.
+
+The honest limit is calibration: the band cut-offs are set from small samples, not the
+tens of thousands of labelled documents the detection papers use, so read it as a
+corroborating signal, not a verdict — the same discipline the stylometric channels
+below are still waiting on.
 
 ## The roadmap channels, and why they are not shipped yet
 

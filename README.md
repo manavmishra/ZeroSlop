@@ -2,10 +2,10 @@
 
 <p align="center">
   <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="tests" src="https://img.shields.io/badge/tests-67%20passing-1E7A4C">
+  <img alt="tests" src="https://img.shields.io/badge/tests-72%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.1.0-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.2.0-2a78d6">
 </p>
 
 You used AI to help you write, and now the writing sounds like AI. You can hear it,
@@ -146,6 +146,15 @@ The last row of the table does more work than it seems to. Words like *leverage*
 the sentence. "Elevated write volume" in an engineering note is fine; "elevate your brand
 with our seamless platform" is not.
 
+There is a fifth signal the four cannot see: whether a *model* finds the writing
+predictable, which is the thing detectors lean on hardest — machine text sits where a
+model would have put the words. Zero Slop ships no model of its own, so it borrows the
+one already running it, the same assistant you are working in, and plays a quick
+fill-in-the-blank: mask a spread of words, predict each from its context, and count how
+often the guess lands on the word you actually chose. Machine writing is easy to guess;
+human word choice surprises it. Because it uses the host model, it needs nothing
+installed and reads the same whether that model is Claude or GPT.
+
 Scoring is only half the job. The rewrite runs in two passes; in testing, splitting the
 work beat doing it all at once. The first strips the tells and changes nothing else. The
 second rebuilds what remains into the voice of someone who knows the subject, with the
@@ -255,11 +264,12 @@ rewrites to fool them.
 
 ## Under the hood
 
-![How the engine works: a draft runs through four channels — only the pattern meter reads your wording — which fuse into a 0-100 score; the text is diagnosed, rewritten in two passes as several candidates and reranked to the best faithful one, then cleared only when all three verify checks pass: the numeric gate, a readalong that reads it aloud for stumbles, and a fidelity check. A reflect loop turns the edits you make into sharper patterns, and a tune loop lets SkillOpt improve the instructions themselves.](assets/engine.svg)
+![How the engine works: a draft runs through four surface channels (only the pattern meter reads your wording) that fuse into a 0-100 score, plus a model channel that has the host model guess masked words and is reported beside it; the text is diagnosed, rewritten in two passes as several candidates and reranked to the best faithful one, then cleared only when all three verify checks pass: the numeric gate, a readalong that reads it aloud for stumbles, and a fidelity check. A reflect loop turns the edits you make into sharper patterns, and a tune loop lets SkillOpt improve the instructions themselves.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
 scripts/slopscore.py        the scorer, plain Python, no libraries
+scripts/predictability.py   the model channel — cloze probe, answered by the host model
 scripts/rerank.py           best of N — pick the cleanest faithful rewrite
 scripts/learn.py            the learning loop and your style profile
 scripts/calibrate.py        retune from a corpus; retire stale tells
@@ -268,7 +278,7 @@ data/patterns.json          the 74 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
 references/readalong.md     the read-aloud pass the verify gate runs
 bench/skillopt/             the reward and harness for tuning SKILL.md
-tests/test_all.py           67 tests
+tests/test_all.py           72 tests
 ```
 
 Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The

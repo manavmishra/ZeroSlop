@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Turns AI-sounding drafts into expert human prose and proves it: statistical scorer, evidence-ranked rewrite ladder, quantitative verify gate, continuous learning.",
   "author": {
     "name": "Manav Mishra",

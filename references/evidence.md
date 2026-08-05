@@ -19,8 +19,9 @@ not a deception.
 
 1. **Token-level predictability.** AI text sits at local maxima of model
    log-probability (DetectGPT, arXiv:2301.11305; Binoculars, 2401.12070).
-   Human text doesn't. Counter: Ladder L1: specific, slightly surprising phrasing
-   and concrete facts are the direct counter.
+   Human text doesn't. **Now measured** (v2.2, `scripts/predictability.py`) —
+   see the model-channel note below. Counter: Ladder L1: specific, slightly
+   surprising phrasing and concrete facts are the direct counter.
 2. **The LLM lexicon.** A few hundred style words carry huge evidential
    weight: "meticulous" +34.7x, "commendable" +9.8x, "intricate" +11.2x in
    post-ChatGPT scientific text (Liang, 2403.07183); ~900 excess words
@@ -232,6 +233,32 @@ It also raises the cost of *over*-correction, since a rewrite that strips a
 writer's voice to pass a meter is a worse outcome than the tell it removed.
 That trade is why `references/overcorrection.md` exists and why the gate reports
 what it did not measure.
+
+## The model channel: token-predictability, without a shipped model
+
+The strongest signal in the table (feature 1) is the one a lexical linter cannot
+reach: whether a *model* finds the text predictable. DetectGPT and Binoculars read
+it from token log-probabilities. Zero Slop cannot — it ships no model, and it runs
+across harnesses where the model is Claude, whose API exposes no logprobs at all. So
+the predictability channel computes the same thing by generation instead of
+probability: it masks a spread of content words and asks the model *already running
+the skill* to guess each from context alone, then scores how often the guess lands on
+the word the author used (`scripts/predictability.py`). Machine text is easy to guess;
+human word choice is not.
+
+This is the DetectGPT insight — perturb, then ask the model how expected the original
+was — reduced to a cloze the host model can answer with generation alone. It works in
+any harness because it needs no logprobs and no bundled model; the scaffold (probe
+selection, scoring) is deterministic and offline, and only the guessing step needs the
+model, which the agent already is. A live check separates the extremes as expected: an
+AI-slop paragraph scored 66.7 predictability against 41.7 for a human bug-report of the
+same length. It is reported beside the surface score, never fused into it, so the
+0–100 score stays traceable to spans and this stays a second, independent opinion.
+
+The honest limit is calibration: the band cut-offs are set from small samples, not the
+tens of thousands of labelled documents the detection papers use, so read it as a
+corroborating signal, not a verdict — the same discipline the stylometric channels
+below are still waiting on.
 
 ## The roadmap channels, and why they are not shipped yet
 
