@@ -8,11 +8,11 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.2.0-2a78d6">
 </p>
 
-You used AI to help you write, and now the writing sounds like AI. You can hear it,
-and so can everyone who reads it. There is even a word for that sound: slop. On
-LinkedIn it gets you accused of not thinking for yourself.
+You used AI to help with your writing, and now it reads like a machine wrote every
+word. You can hear it, and so can everyone who reads it. There is even a word for that
+machine sound: slop. On LinkedIn, it gets you accused of not thinking for yourself.
 
-Zero Slop finds that sound in your draft and takes it out, without changing what you
+Zero Slop finds that slop in your draft and takes it out, without changing what you
 actually said. It gives the writing a score from 0 to 100, points at the exact words
 dragging it down, and rewrites them. Then it double-checks that it kept every fact
 you had and invented nothing.

@@ -1,10 +1,11 @@
 # Zero Slop
 
-You used AI to help you write, and now the writing sounds like AI. You can hear it,
-and so can everyone who reads it. There is a word for that sound now: slop.
+You used AI to help with your writing, and now it reads like a machine wrote every
+word. You can hear it, and so can everyone who reads it. There is a word for that
+machine sound now: slop.
 
-Zero Slop finds it in your draft and takes it out, without changing what you actually
-said. It scores the writing from 0 to 100, points at the exact words dragging it down,
+Zero Slop finds that slop in your draft and takes it out, without changing what you
+actually said. It scores the writing from 0 to 100, points at the exact words dragging it down,
 rewrites them, and then double-checks that it kept every fact you had and invented
 nothing.
 
