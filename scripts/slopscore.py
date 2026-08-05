@@ -719,6 +719,43 @@ def fidelity(before, after):
             "interior": new_interior}
 
 
+# The shared rewrite-quality objective. One definition of "a better rewrite",
+# used in two places: scripts/rerank.py picks the best of N candidates by it, and
+# bench/skillopt/reward.py tunes SKILL.md against it — so selecting a draft and
+# improving the instructions optimise the same thing. Fidelity is reported
+# alongside, never folded in, so a candidate can never win by dropping or
+# inventing a fact however clean it reads.
+RW_GATE = {"email": 35, "research": 40, "professional": 40}
+RW_GATE_DEFAULT = 25
+RW_FORMAL = {"research", "professional"}
+RW_WEIGHTS = {"deslop": 0.45, "gate": 0.25, "rhythm": 0.15, "length": 0.15}
+
+
+def rewrite_score(before_text, after_text, genre=None, data=None):
+    """Score one rewrite: a soft quality in [0,1] plus its fidelity flags."""
+    if data is None:
+        data = load_patterns()
+    formal = genre in RW_FORMAL
+    b = score_text(before_text, data, formal=formal)
+    a = score_text(after_text, data, formal=formal)
+    b_ai = b["ai_likelihood"] or 1e-9
+    clamp = lambda x: max(0.0, min(1.0, x))
+    deslop = clamp((b_ai - a["ai_likelihood"]) / b_ai)
+    gate = 1.0 if a["ai_likelihood"] <= RW_GATE.get(genre, RW_GATE_DEFAULT) else 0.0
+    rhythm = clamp(a.get("burstiness", 0.0) / 0.45)
+    bw, aw = len(before_text.split()), len(after_text.split())
+    length = 1.0 if not bw or aw / bw >= 0.6 else clamp((aw / bw) / 0.6)
+    soft = sum(RW_WEIGHTS[k] * v for k, v in
+               {"deslop": deslop, "gate": gate, "rhythm": rhythm, "length": length}.items())
+    fid = fidelity(before_text, after_text)
+    return {"soft": round(soft, 4), "deslop": round(deslop, 3), "gate": gate,
+            "rhythm": round(rhythm, 3), "length": round(length, 3),
+            "after_ai": a["ai_likelihood"], "before_ai": b["ai_likelihood"],
+            "burstiness": round(a.get("burstiness", 0.0), 3),
+            "high_tells": sum(1 for h in a.get("hits", []) if h.get("w", 0) >= 4),
+            "preserved": fid["preserved"], "invented": fid["invented"]}
+
+
 def render_fidelity(before, after):
     r = fidelity(before, after)
     out = ["", "  FIDELITY · facts in the draft vs the rewrite", ""]

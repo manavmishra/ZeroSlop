@@ -3,7 +3,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
@@ -177,6 +177,22 @@ the most reader value. `references/rewrite-moves.md` expands each rung.
 - **L6 — Formatting.** Em-dashes ≤1 per ~150 words (LinkedIn: zero). No bold
   spam, no emoji bullets, no hashtag clusters, no headers over two-sentence
   sections, bullets only where a list is truly a list.
+
+**Best of N.** One rewrite is a single sample. For anything that matters, produce
+two or three, written with genuinely different strategies — strip hard versus keep
+the warmth, reorder the argument versus leave it, lead with the claim versus the
+context — then let the meter choose, not the taste that wrote them:
+
+```
+python3 <skill-root>/scripts/rerank.py --original draft.md a.md b.md c.md
+```
+
+It ranks the candidates on the same objective the gate cares about and returns the
+winner, with one rule above all others: a candidate that invents a fact loses to any
+candidate that does not, however much cleaner it reads. Diverse candidates beat one
+candidate polished three times — the same reason the benchmark pools best-picks. Pick
+the winner, then run it through the gate below; reranking narrows the field, it does
+not replace the verify step.
 
 ### 4. Verify — quantitative gate
 

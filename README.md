@@ -2,10 +2,10 @@
 
 <p align="center">
   <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="tests" src="https://img.shields.io/badge/tests-65%20passing-1E7A4C">
+  <img alt="tests" src="https://img.shields.io/badge/tests-67%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.0.0-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.1.0-2a78d6">
 </p>
 
 You used AI to help you write, and now the writing sounds like AI. You can hear it,
@@ -151,6 +151,12 @@ work beat doing it all at once. The first strips the tells and changes nothing e
 second rebuilds what remains into the voice of someone who knows the subject, with the
 clutter gone so nothing can hide a thin point.
 
+It does not settle for one attempt, either. It writes a few rewrites with different
+strategies — strip hard, keep the warmth, reorder the argument — and keeps the cleanest
+one that loses no fact. A candidate that invents a detail loses to any that does not, no
+matter how well it reads, which is the whole point of choosing by the meter instead of
+by the taste that wrote them.
+
 ## It will not touch your facts
 
 This is where most humanizers fail. To sound more human they will invent a detail you
@@ -249,11 +255,12 @@ rewrites to fool them.
 
 ## Under the hood
 
-![How the engine works: a draft runs through four channels — only the pattern meter reads your wording — which fuse into a 0-100 score; the text is diagnosed, rewritten in two passes, then cleared only when all three verify checks pass: the numeric gate, a readalong that reads it aloud for stumbles, and a fidelity check. A reflect loop turns the edits you make into sharper patterns, and a tune loop lets SkillOpt improve the instructions themselves.](assets/engine.svg)
+![How the engine works: a draft runs through four channels — only the pattern meter reads your wording — which fuse into a 0-100 score; the text is diagnosed, rewritten in two passes as several candidates and reranked to the best faithful one, then cleared only when all three verify checks pass: the numeric gate, a readalong that reads it aloud for stumbles, and a fidelity check. A reflect loop turns the edits you make into sharper patterns, and a tune loop lets SkillOpt improve the instructions themselves.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
 scripts/slopscore.py        the scorer, plain Python, no libraries
+scripts/rerank.py           best of N — pick the cleanest faithful rewrite
 scripts/learn.py            the learning loop and your style profile
 scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
@@ -261,7 +268,7 @@ data/patterns.json          the 74 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
 references/readalong.md     the read-aloud pass the verify gate runs
 bench/skillopt/             the reward and harness for tuning SKILL.md
-tests/test_all.py           65 tests
+tests/test_all.py           67 tests
 ```
 
 Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The

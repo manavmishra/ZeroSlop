@@ -776,5 +776,47 @@ class Diagram(unittest.TestCase):
                         "diagram needs a descriptive aria-label for screen readers")
 
 
+class RerankBestOfN(unittest.TestCase):
+    """Best-of-N selection: fidelity outranks cleanliness, always. A candidate
+    that invents a fact must never win, even when it scores lower on the meter
+    than a faithful-but-sloppier one."""
+
+    ORIG = ("FlagShip raised a $4.2M seed led by Basis Ventures. "
+            "Setup time fell 40% in 18 months.")
+
+    def _rerank(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "rerank", ROOT / "scripts" / "rerank.py")
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return m
+
+    def test_invention_never_wins(self):
+        cands = {
+            "clean": ("FlagShip raised a $4.2M seed, led by Basis Ventures. "
+                      "Setup time dropped 40% over eighteen months."),
+            "invented": ("FlagShip raised a $4.2M seed, led by Basis Ventures. "
+                         "Setup dropped 40% over eighteen months, and churn fell 12%."),
+        }
+        ranked = self._rerank().rank(self.ORIG, cands)
+        self.assertNotEqual(ranked[0]["name"], "invented",
+                            "a fabricated candidate won the rerank")
+        self.assertTrue(ranked[-1]["invented"])
+
+    def test_cleanest_faithful_wins(self):
+        cands = {
+            "sloppy": ("We are thrilled to announce that FlagShip raised a "
+                       "game-changing $4.2M seed, led by the incredible team at "
+                       "Basis Ventures. In a testament to our journey, setup time "
+                       "fell 40% in 18 months."),
+            "clean": ("FlagShip raised a $4.2M seed, led by Basis Ventures. "
+                      "Setup time dropped 40% over eighteen months."),
+        }
+        ranked = self._rerank().rank(self.ORIG, cands)
+        self.assertEqual(ranked[0]["name"], "clean",
+                         "the cleaner faithful rewrite should win")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2, buffer=False)
