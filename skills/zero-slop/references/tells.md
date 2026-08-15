@@ -1,12 +1,15 @@
 # The Tell Taxonomy
 
-Sixty-seven tells in six families, merged from WP:AICATCH (Wikipedia's editor
+Eighty tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
-detector line, petergyang/no-ai-slop, blader/humanizer, and the academic
-lexicon studies (Kobak, Liang, Juzek & Ward). The scorer
+detector line, petergyang/no-ai-slop, blader/humanizer, the academic
+lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
+reader-reported tells. The scorer
 (`scripts/slopscore.py`) catches the lexically detectable ones; the rest need
 judgment. **Clusters convict, singles don't** — one "robust" in technical prose
-is nothing; five tells in one paragraph is a verdict.
+is nothing; five tells in one paragraph is a verdict. Shared idioms humans
+still use ("elephant in the room") carry low weights for exactly that reason:
+alone they prove nothing, five in a page is the machine's idiom autopilot.
 
 ## 1. Lexical
 
@@ -22,7 +25,12 @@ is nothing; five tells in one paragraph is a verdict.
 | Vague quantifiers: "a wide variety of", myriad, plethora, countless, numerous | The number, or "many", or cut |
 | Filler intensifiers: truly, genuinely, incredibly, undoubtedly | Cut; keep only when carrying real emphasis in the writer's voice |
 | Degree intensifiers (very, really + adj) | Weak signal alone; cut in clusters |
-| Business jargon: circle back, move the needle, low-hanging fruit, deep dive, double-click | The actual verb |
+| Business jargon: circle back, move the needle, low-hanging fruit, deep dive, double-click, boil the ocean, table stakes, north star, hit the ground running | The actual verb |
+| Amplified stats: a whopping, a staggering, jaw-dropping, mind-blowing, skyrocket | State the number plainly; it carries its own weight |
+| Catalog superlatives: unmatched, unrivaled, top-notch, industry-leading, must-have, hassle-free, second to none, look no further | One concrete differentiator, or nothing |
+| Startup-bio vocab: visionary, trailblazing, on a mission to, passionate about, at the intersection of, thought leader | Say what you build and for whom |
+| Travel-brochure vocab: picturesque, quintessential, captivating, in the heart of, perfect blend of, something for everyone | The specific detail a visitor would notice |
+| Idiom autopilot: double-edged sword, tip of the iceberg, elephant in the room, perfect storm, game changer, best of both worlds, win-win, paves the way, bridge the gap, at the forefront, uncharted territory, new normal, full circle, wild west | Pre-assembled phrase → disassemble: say the actual trade-off, risk, or change |
 | 2025+ era shift: emphasizing, enhance, highlight(ing), showcasing now outrank delve | Same fix; keep `data/learned.json` current |
 
 ## 2. Structural
@@ -42,6 +50,10 @@ is nothing; five tells in one paragraph is a verdict.
 | Transformation chains: "X becomes Y. Y becomes Z." | One plain causal sentence |
 | Synonym cycling (the agent/the assistant/the tool for one referent) | Repeat the clear word |
 | Stacked hedges: "might possibly", "could potentially perhaps" | One hedge or none |
+| Explainer stems: "in a nutshell", "simply put", "long story short", "when it comes to", "at its core", "in essence" | Cut the stem; start at the content |
+| "Here's how/why/a breakdown" stems | Start with the thing itself |
+| Imperative flip: "Stop X. Start Y.", "Do this instead" | Make the one claim, with the reason |
+| Forecast wrap-ups: "as we move forward", "the road ahead", "as technology continues to evolve" | End on the concrete point or consequence |
 
 ## 3. Rhetorical
 
@@ -58,6 +70,13 @@ is nothing; five tells in one paragraph is a verdict.
 | Corrective reveal: "You've been told X. Here's the truth" | Make the claim without the posture |
 | Binary contrast reveal: "The answer isn't X. It's Y." | "Y matters more than X" — and at most once per piece |
 | Negative parallelism family: "It's not just X, it's Y" / "No X. No Y. Just Z." / "It wasn't A. It wasn't B. It was C." | State the positive claim once |
+| Contrast reveal, extended: "isn't about X — it's about Y" (any subject, any separator), "less about X, more about Y", "didn't just X. We Y", "was never about X", "That's not X. That's Y.", "AI won't replace you. Someone using AI will." | State the positive claim once; the meter now catches every separator and subject |
+| Fake epiphany: "that's when it hit me", "little did I know", "changed everything", "the rest is history", "fate had other plans" | Tell the event; skip the drumroll |
+| Certainty theater: "cannot be overstated", "one thing is certain", "nothing could be further from the truth", "Full stop.", "Period.", "End of story.", "would be an understatement" | Assert it once, plainly; evidence over volume |
+| Non-conclusions: "only time will tell", "remains to be seen", "the jury is still out", "the possibilities are endless", "exciting times ahead" | Commit to the call the evidence supports, or cut |
+| Crowd priming: "sound familiar?", "we've all been there", "you might be wondering", "believe it or not", "trust me", "hear me out" | Respect the reader; make the claim |
+| Borrowed proverbs: "Rome wasn't built in a day", "the proof is in the pudding", "actions speak louder than words" | Your own words or nothing |
+| Manufactured-world openers: "Gone are the days", "In a world where", "Imagine a world where", "Picture this:", "It's 2026 and", "It's no secret that" | Start at the specific situation |
 | Forced profundity: "You can't have one without the other" | Earn it or cut it |
 | Calls to action: "Buckle up", "Let's dive in", "Stay tuned" | Cut |
 | Weasel attribution: "Experts agree", "Studies show", "Industry reports suggest" | Name the source or cut the claim; if no source exists, ask the author |
@@ -82,7 +101,10 @@ is nothing; five tells in one paragraph is a verdict.
 | Tell | Fix |
 |---|---|
 | Assistant voice: "Great question!", "I hope this helps", "I'd be happy to" | Delete |
+| Chatbot residue: "Would you like me to…", "Let me know if you'd like…", "my training data" | Delete — it is proof of paste, not style |
 | Knowledge-cutoff residue: "as of my last update", "not widely documented" | Delete; verify the claim |
+| Form-letter email: "wanted to reach out", "touch base", "don't hesitate to reach out" | Say the actual ask in the first sentence |
+| LinkedIn ritual: "some personal news", "a new chapter", "bittersweet", "couldn't be prouder", "this is your sign", "I'll go first", "today years old" | The fact, then stop; feeling shown through detail |
 | Promotional drift in neutral contexts | Neutral statement of fact |
 | Uniform flawless register (every sentence equally polished) | Vary: blunt next to careful, casual next to technical |
 | Excess positivity, joy-skewed affect | Allow doubt, irritation, dry humor where genuine |

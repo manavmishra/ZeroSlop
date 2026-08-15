@@ -97,5 +97,5 @@ list.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.2.0 · 74 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.3.0 · 75 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

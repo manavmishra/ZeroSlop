@@ -393,6 +393,9 @@ CAT_MEANING = {
     "artifact":      ("template artifact", "fill it in or remove it"),
     "overcorrection":("over-corrected, still slop", "edgy-slop is slop in a costume"),
     "spec-notation": ("spec notation in prose", "write it as a sentence"),
+    "cliche":        ("stock cliché", "disassemble it: say the actual trade-off or change"),
+    "rhetorical":    ("rhetorical device", "make the point without the setup"),
+    "email":         ("form-letter email phrase", "say the actual ask in the first sentence"),
     "misc":          ("machine phrasing", "rewrite plainly"),
 }
 

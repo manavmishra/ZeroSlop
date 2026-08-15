@@ -2,7 +2,7 @@
 
 <p align="center">
   <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="tests" src="https://img.shields.io/badge/tests-74%20passing-1E7A4C">
+  <img alt="tests" src="https://img.shields.io/badge/tests-75%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
   <img alt="version" src="https://img.shields.io/badge/version-2.2.0-2a78d6">
@@ -25,7 +25,7 @@ out, and one thing is left standing: setup time dropped 40%. That is what slop u
 is, once you look: a single real fact buried under decoration.
 
 Lower is better. Good human writing lands between 9 and 21, and the raw AI drafts we
-tested started around 70. Read the list of flagged phrases first; the number is just
+tested average 77. Read the list of flagged phrases first; the number is just
 the summary.
 
 ## Who it is for
@@ -134,7 +134,7 @@ thesaurus barely moves the score.
 
 | what it looks at | what gives you away |
 |---|---|
-| word choice | 74 known tell-phrases, a 55-word watchlist, and 13 words that only count in a salesy sentence |
+| word choice | 249 known tell-phrases, a 91-word watchlist, and 21 words that only count in a salesy sentence |
 | rhythm | sentences that are all the same length, paragraphs that march in step |
 | readability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
 | formatting | too many em-dashes, emoji, hashtags, bold everywhere |
@@ -289,11 +289,11 @@ scripts/rerank.py           best of N — pick the cleanest faithful rewrite
 scripts/learn.py            the learning loop and your style profile
 scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
-data/patterns.json          the 74 tells, the watchlist, the context words
+data/patterns.json          the 249 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
 references/readalong.md     the read-aloud pass the verify gate runs
 bench/skillopt/             the reward and harness for tuning SKILL.md
-tests/test_all.py           74 tests
+tests/test_all.py           75 tests
 ```
 
 Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The

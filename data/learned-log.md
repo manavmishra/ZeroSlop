@@ -210,6 +210,39 @@ example that motivated it.
   across several documents, not by one draft failing — the distinction step 6
   requires.
 
+- 2026-08-14 — v2.3.0, the coverage release. A 260-sentence audit battery of
+  tells named by WP:AICATCH, community taxonomies, and the detector-line
+  repos found 260 with ZERO pattern hits — including six variants of the
+  contrast family the skill already claimed to catch: "Success isn't about
+  talent. It's about consistency." (generic subject), "It's not just a
+  tool—it's a partner." (em-dash separator), and "It is not about speed; it
+  is about direction." (expanded contraction — the exact contraction-lock
+  bug the 2026-08-03 red-team fixed elsewhere, reintroduced in the newest
+  patterns). Fixed the four contrast regexes (any subject, any separator,
+  both contraction forms), extended fragment-question-pivot's noun set
+  (part/news/takeaway/lesson/mistake…), and added 175 patterns across
+  families that had no regex at all: fake epiphany ("that's when it hit
+  me", "little did I know"), certainty theater ("cannot be overstated",
+  "Full stop."), non-conclusions ("only time will tell"), manufactured-world
+  openers ("Gone are the days", "In a world where"), imperative flips
+  ("Stop X. Start Y."), cliché autopilot (double-edged sword, tip of the
+  iceberg, elephant in the room — low weights, shared with humans, clusters
+  convict), chatbot residue ("Would you like me to", "my training data"),
+  form-letter email, LinkedIn ritual ("some personal news", "today years
+  old"), and DM-funnel engagement ("comment X and I'll send"). Plus 36
+  lexicon terms (whopping, unsung→pattern, skyrocket, picturesque,
+  garner and bolster — named in tells.md since v1 but never implemented)
+  and 8 riders (emphasiz/enhanc/highlight per the 2025+ era-shift note).
+  Every addition cleared the 12-sample must-not-flag corpus with zero score
+  movement on any sample (checked to the decimal, not just under-gate), and
+  zero movement on this repo's own human docs. Coverage on the battery went
+  260 misses → 3, all deliberate ("no silver bullet", "eat our own dog
+  food" — genuine engineering idiom stays legal). Benchmark recall: 37/50
+  → 47/50 AI drafts flagged; human corpus range unchanged at 9.5–20.2.
+  ReflectLoop test fixtures moved off "moves the needle" because the meter
+  now catches it — the novelty gate correctly refused to re-mint it, which
+  is the learning loop working as specified.
+
 - 2026-08-04 — v1.5.0. Fidelity became a measured channel rather than a rule
   the agent was asked to honour, closing the one dimension the benchmark ranked
   the skill last on. False-positive rate on ordinary human prose went from 5-in-8

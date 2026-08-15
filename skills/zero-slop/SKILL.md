@@ -3,7 +3,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.2.0"
+  version: "2.3.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
 ---
@@ -89,8 +89,8 @@ Run the statistical scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (74 weighted tells plus
-a 55-term lexicon and 13 context-gated riders), rhythm and burstiness,
+Every channel runs on every draft: the pattern meter (249 weighted tells plus
+a 91-term lexicon and 21 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
 back as quoted spans, and the rhythm, followability and format channels report
@@ -493,9 +493,9 @@ out was a tell you missed. Capture it.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (61 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (80 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
-  implementation and carries 74 regexes, since some tells need more than one.
+  implementation and carries 249 regexes, since some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

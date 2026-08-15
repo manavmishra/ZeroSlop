@@ -93,6 +93,36 @@ class Detector(unittest.TestCase):
     def test_flags_obvious_slop(self):
         self.assertGreater(score(self.SLOP), 70)
 
+    def test_v23_tell_families_are_caught(self):
+        """The 2026-08 expansion: each family's canonical form must draw at
+        least one pattern hit. These were audited as 0-hit misses before
+        v2.3.0 — the contrast family was contraction- and separator-locked,
+        and whole families (fake epiphany, certainty theater, cliché
+        autopilot, chatbot residue) had no regex at all."""
+        data = slopscore.load_patterns()
+        canonical = [
+            "Success isn't about talent. It's about consistency.",
+            "It's not just a tool—it's a partner.",
+            "It is not about speed; it is about direction.",
+            "It's less about the code and more about the culture.",
+            "We didn't just build a product. We built a movement.",
+            "Stop chasing followers. Start building trust.",
+            "Gone are the days of manual deploys.",
+            "In a world where attention is currency, silence is strategy.",
+            "That's when it hit me.",
+            "The importance of onboarding cannot be overstated.",
+            "Only time will tell.",
+            "AI is a double-edged sword, and that's just the tip of the iceberg.",
+            "Would you like me to draft that for you?",
+            "This is your sign to take the leap.",
+            "The best part? It runs offline.",
+        ]
+        for s in canonical:
+            with self.subTest(s[:40]):
+                hits = [h for h in slopscore.score_text(s, data)["hits"]
+                        if h["cat"] not in ("lexicon", "rider")]
+                self.assertTrue(hits, f"no pattern hit on: {s!r}")
+
     def test_human_corpus_stays_clean(self):
         """The false-positive floor. Every one of these is real human writing."""
         for f in sorted(CORPUS.glob("*.txt")):
@@ -225,13 +255,13 @@ class ReflectLoop(unittest.TestCase):
     def test_single_document_cannot_mint_a_pattern(self):
         """The poisoning guard: one writer's idiosyncratic cut is not a tell."""
         before = len(self._learned())
-        self._pair("We shipped it. This moves the needle on latency for us.",
+        self._pair("We shipped it. This puts wood behind the arrow on latency for us.",
                    "We shipped it. Latency dropped.", "doc1")
         learn.promote(True, "test", 2.5)
         self.assertEqual(len(self._learned()), before)
 
     def test_promotes_only_after_threshold_documents(self):
-        txt = "We shipped it. This moves the needle on latency for us."
+        txt = "We shipped it. This puts wood behind the arrow on latency for us."
         cut = "We shipped it. Latency dropped."
         for i in range(learn.PROMOTE_AT):
             self._pair(txt, cut, f"doc{i}")
@@ -241,13 +271,13 @@ class ReflectLoop(unittest.TestCase):
         # Names are digests now — the readable phrase is the author's prose and
         # must not enter a tracked file. Assert on behaviour: some minted
         # pattern matches the span that recurred.
-        self.assertTrue(any(re.search(p["rx"], "this moves the needle on latency", re.I)
+        self.assertTrue(any(re.search(p["rx"], "this puts wood behind the arrow on latency", re.I)
                             for p in minted),
                         f"the recurring tell was not minted: {[p['name'] for p in minted]}")
 
     def test_same_document_counted_once(self):
         """Re-running reflect on one doc must not inflate its way to threshold."""
-        txt = "We shipped it. This moves the needle on latency for us."
+        txt = "We shipped it. This puts wood behind the arrow on latency for us."
         cut = "We shipped it. Latency dropped."
         for _ in range(5):
             self._pair(txt, cut, "same-doc")
@@ -293,7 +323,7 @@ class ReflectLoop(unittest.TestCase):
                          f"safety gate let a Gettysburg phrase through: {minted}")
 
     def test_promoted_pattern_carries_provenance(self):
-        txt = "We shipped it. This moves the needle on latency for us."
+        txt = "We shipped it. This puts wood behind the arrow on latency for us."
         cut = "We shipped it. Latency dropped."
         for i in range(learn.PROMOTE_AT):
             self._pair(txt, cut, f"doc{i}")
@@ -326,7 +356,7 @@ class ReflectLoop(unittest.TestCase):
                              f"user prose {secret!r} leaked into a tracked file")
 
     def test_promotion_is_not_repeated(self):
-        txt = "We shipped it. This moves the needle on latency for us."
+        txt = "We shipped it. This puts wood behind the arrow on latency for us."
         cut = "We shipped it. Latency dropped."
         for i in range(learn.PROMOTE_AT):
             self._pair(txt, cut, f"doc{i}")
@@ -337,7 +367,7 @@ class ReflectLoop(unittest.TestCase):
 
     def test_learned_pattern_does_not_break_the_human_corpus(self):
         """After learning, the whole safety corpus must still score clean."""
-        txt = "We shipped it. This moves the needle on latency for us."
+        txt = "We shipped it. This puts wood behind the arrow on latency for us."
         cut = "We shipped it. Latency dropped."
         for i in range(learn.PROMOTE_AT):
             self._pair(txt, cut, f"doc{i}")
@@ -449,7 +479,7 @@ class Scale(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         try:
             a, b = tmp / "a.md", tmp / "b.md"
-            a.write_text("This moves the needle on latency. " * 800)
+            a.write_text("This puts wood behind the arrow on latency. " * 800)
             b.write_text("Latency dropped. " * 800)
             saved = (learn.OBS,)
             learn.OBS = tmp / "obs.json"

@@ -10,7 +10,7 @@
     {
       "name": "zero-slop",
       "source": "./",
-      "description": "Removes the writing style language models acquire in post-training and proves it with before/after scores: 74-pattern detector, two-pass rewrite, quantitative gate, and a learning database. Offline, zero dependencies.",
+      "description": "Removes the writing style language models acquire in post-training and proves it with before/after scores: 249-pattern detector, two-pass rewrite, quantitative gate, and a learning database. Offline, zero dependencies.",
       "license": "MIT",
       "keywords": [
         "writing",
