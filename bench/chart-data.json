@@ -20,23 +20,23 @@
  "detector_panel": [
   [
    "original drafts",
-   76.9
+   77.1
   ],
   [
    "isatimur/de-slop",
-   27.4
+   28.2
   ],
   [
    "stacked pipeline",
-   22.7
+   23.6
   ],
   [
    "blader/humanizer",
-   21.7
+   22.2
   ],
   [
    "petergyang/no-ai-slop",
-   20.9
+   21.7
   ],
   [
    "hardikpandya/stop-slop",
@@ -44,7 +44,7 @@
   ],
   [
    "Zero Slop",
-   10.1
+   10.6
   ]
  ]
 }

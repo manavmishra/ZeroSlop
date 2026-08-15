@@ -4,10 +4,10 @@
   {
    "name": "hedge-stem",
    "cat": "hedging",
-   "rx": "\\bit(?:(?:'|\u2019)s| is| has) (?:worth noting|worth mentioning|important to (?:note|remember|understand)|crucial to)\\b",
+   "rx": "\\bit(?:(?:'|\u2019)s| is| has) (?:worth noting|worth mentioning|important to (?:note|remember|understand)|crucial to)\\b|\\bit should be noted\\b|\\bit bears mentioning\\b",
    "w": 4,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "hedge-stack",
@@ -109,10 +109,10 @@
   {
    "name": "spirit-of-transparency",
    "cat": "puffery",
-   "rx": "\\bin the spirit of (?:transparency|openness)\\b|\\ba significant portion of\\b|\\bthe short version is\\b",
+   "rx": "\\bin the spirit of (?:transparency|openness)\\b|\\ba significant portion of\\b|\\bthe short version is\\b|\\bfull transparency[,:]",
    "w": 3.5,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "emotional-labor",
@@ -157,10 +157,10 @@
   {
    "name": "performed-candor",
    "cat": "performed",
-   "rx": "\\b(?:let(?:(?:'|\u2019)s| us) be (?:honest|real|clear)|here(?:(?:'|\u2019)s| is) the (?:thing|truth|kicker|deal|catch)|i(?:'|\u2019)ll be honest|the (?:uncomfortable|hard) truth is|truth be told|no fluff|real talk|not gonna lie|if i(?:'|\u2019)m being honest)\\b",
+   "rx": "\\b(?:let(?:(?:'|\u2019)s| us) be (?:honest|real|clear)|here(?:(?:'|\u2019)s| is) the (?:thing|truth|kicker|deal|catch)|i(?:'|\u2019)ll be honest|the (?:uncomfortable|hard) truth is|truth be told|no fluff|real talk|not gonna lie|if i(?:'|\u2019)m being honest|let me be (?:crystal |perfectly )?clear)\\b",
    "w": 4,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "faux-insight",
@@ -261,26 +261,26 @@
   {
    "name": "rich-tapestry",
    "cat": "puffery",
-   "rx": "\\b(?:rich (?:tapestry|history|heritage)|vibrant (?:community|ecosystem|culture)|nestled (?:in|among|between)|breathtaking|must-(?:visit|see))\\b",
+   "rx": "\\b(?:rich (?:tapestry|history|heritage)|vibrant (?:community|ecosystem|culture)|nestled (?:in|among|between)|breathtaking|must-(?:visit|see))\\b|\\b(?:stunning )?natural beauty\\b",
    "w": 4,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "superficial-ing",
    "cat": "puffery",
-   "rx": ", (?:highlighting|underscoring|showcasing|reflecting|demonstrating|signaling|cementing|reinforcing) (?:the|its|their|a|how)\\b",
+   "rx": ", (?:highlighting|underscoring|showcasing|reflecting|demonstrating|signaling|cementing|reinforcing|ensuring|solidifying|marking|positioning) (?:the|its|their|a|how)\\b",
    "w": 4,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "weasel-attribution",
    "cat": "puffery",
-   "rx": "\\b(?:experts (?:agree|say|believe)|industry (?:reports|leaders) (?:suggest|agree)|studies (?:show|suggest)|many argue|widely (?:regarded|considered|seen) as|some critics argue)\\b",
+   "rx": "\\b(?:experts (?:agree|say|believe)|industry (?:reports|leaders) (?:suggest|agree)|studies (?:show|suggest)|many argue|widely (?:regarded|considered|seen) as|some critics argue|observers have (?:cited|noted)|research shows)\\b",
    "w": 4,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "marketing-register",
@@ -325,10 +325,10 @@
   {
    "name": "engagement-bait",
    "cat": "linkedin",
-   "rx": "\\b(?:agree\\?|thoughts\\?|what(?:(?:'|\u2019)s| is) your (?:take|experience)|drop a comment|let me know in the comments|share this with|share if you|tag someone|repost if|follow (?:me|for more)|sound off in|save this post|bookmark this|link in (?:bio|the )?(?:first )?comments?|dm me\\b|comment [\"\u201c']?\\w{1,15}[\"\u201d']? (?:below )?and i(?:'|\u2019)ll)\\b",
+   "rx": "\\b(?:agree\\?|thoughts\\?|what(?:(?:'|\u2019)s| is) your (?:take|experience)|drop a comment|let me know in the comments|share this with|share if you|tag someone|repost if|follow (?:me|for more)|sound off in|save this post|bookmark this|link in (?:bio|the )?(?:first )?comments?|dm me\\b|comment [\"\u201c']?\\w{1,15}[\"\u201d']? (?:below )?and i(?:'|\u2019)ll|my dms are (?:always )?open|what about you\\?)\\b",
    "w": 4.5,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "emoji-arrow-bullet",
@@ -374,10 +374,10 @@
   {
    "name": "emphasis-crutch",
    "cat": "drama",
-   "rx": "\\b(?:make no mistake|make it count|and (?:honestly|frankly)\\?|the result\\?|the outcome\\?|spoiler(?: alert)?:)",
+   "rx": "\\b(?:make no mistake|make it count|and (?:honestly|frankly)\\?|the result\\?|the outcome\\?|spoiler(?: alert)?:)|(?:^|\\. |\\n)Honestly\\? ",
    "w": 4,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "transformation-chain",
@@ -470,10 +470,10 @@
   {
    "name": "landscape-navigate",
    "cat": "misc",
-   "rx": "\\b(?:navigat(?:e|ing) the [\\w ]{0,20}landscape|the (?:\\w+ )?landscape (?:of|is|has)|in the (?:\\w+ )?space[,.])",
+   "rx": "\\b(?:navigat(?:e|ing) the [\\w ]{0,20}landscape|the (?:\\w+ )?landscape (?:of|is|has)|in the (?:\\w+ )?space[,.])|\\bin the world of\\b",
    "w": 3.5,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "key-takeaway-bold",
@@ -785,10 +785,10 @@
   {
    "name": "possibilities-endless",
    "cat": "marketing",
-   "rx": "\\bthe possibilities are (?:endless|limitless)\\b|\\bendless possibilities\\b",
+   "rx": "\\bthe possibilities are (?:endless|limitless)\\b|\\bendless possibilities\\b|\\bimplications are (?:far-reaching|profound|enormous)\\b",
    "w": 5,
    "first_seen": "2026-08-14",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "exciting-times",
@@ -985,10 +985,10 @@
   {
    "name": "paints-picture",
    "cat": "cliche",
-   "rx": "\\bpaints? a (?:\\w+ )?picture\\b|\\bspeaks? volumes\\b",
+   "rx": "\\bpaints? a (?:\\w+ )?picture\\b|\\bspeaks? volumes\\b|\\bthe (?:data|numbers) tells? (?:a|the|its own) story\\b",
    "w": 3.5,
    "first_seen": "2026-08-14",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "speaks-to-importance",
@@ -1041,10 +1041,10 @@
   {
    "name": "paves-the-way",
    "cat": "cliche",
-   "rx": "\\bpav(?:e|es|ed|ing) the way\\b",
+   "rx": "\\bpav(?:e|es|ed|ing) the way\\b|\\bset(?:s|ting)? the stage for\\b",
    "w": 3.5,
    "first_seen": "2026-08-14",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "bridge-the-gap",
@@ -1709,10 +1709,10 @@
   {
    "name": "chatgpt-artifact",
    "cat": "artifact",
-   "rx": "\\boaicite\\b|\\bciteturn\\d|\\butm_source=(?:chatgpt|openai)|:contentReference\\[|\\[cite: ?\\d|\\bturn\\d+(?:search|news|image|view)\\d+\\b",
+   "rx": "\\boaicite\\b|\\boai_citation\\b|\\bciteturn\\d|\\butm_source=(?:chatgpt|openai)|:contentReference\\[|\\[cite: ?\\d|\\bturn\\d+(?:search|news|image|view)\\d+\\b|\\[span_\\d|\\(start_span\\)|\\bgrok_(?:card|render)|\\bppl-ai-file-upload\\b|\\battached_file\\b",
    "w": 10,
    "first_seen": "2026-08-14",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "as-we-move-forward",
@@ -1830,10 +1830,10 @@
   {
    "name": "everyone-talking",
    "cat": "performed",
-   "rx": "\\b(?:everyone|everybody)(?:(?:(?:'|\u2019))s| is) talking about\\b|\\b(?:nobody|no one)(?:(?:(?:'|\u2019))s| is) talking about\\b",
+   "rx": "\\b(?:everyone|everybody)(?:(?:(?:'|\u2019))s| is) talking about\\b|\\b(?:nobody|no one)(?:(?:(?:'|\u2019))s| is)? talk(?:s|ing)? about\\b",
    "w": 3.5,
    "first_seen": "2026-08-14",
-   "last_confirmed": "2026-08-14"
+   "last_confirmed": "2026-08-15"
   },
   {
    "name": "while-everyone-else",
@@ -1890,6 +1890,144 @@
    "w": 2.5,
    "first_seen": "2026-08-14",
    "last_confirmed": "2026-08-14"
+  },
+  {
+   "name": "challenges-outlook",
+   "cat": "scaffolding",
+   "rx": "\\bchallenges and (?:future )?(?:prospects|outlook|opportunities)\\b|\\bfuture (?:outlook|prospects)\\b|\\bdespite (?:these|its|the) challenges\\b",
+   "w": 4,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "one-could-argue",
+   "cat": "hedging",
+   "rx": "\\bone (?:could|might) argue\\b",
+   "w": 3,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "not-all-created-equal",
+   "cat": "cliche",
+   "rx": "\\bnot all \\w+ (?:is|are) created equal\\b",
+   "w": 4,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "thats-where-comes-in",
+   "cat": "marketing",
+   "rx": "\\bthat(?:'|\u2019)s where [\\w '\u2019-]{2,30} comes? in\\b",
+   "w": 4,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "what-does-this-mean",
+   "cat": "scaffolding",
+   "rx": "\\bwhat does (?:this|that|it) mean for (?:you|your)\\b|\\bso,? what does (?:this|that) mean\\b",
+   "w": 4,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "why-it-matters",
+   "cat": "scaffolding",
+   "rx": "(?:^|\\n)Why (?:it|this) matters[:.]?(?:\\s|$)|\\bwhy (?:it|this) matters:",
+   "w": 3,
+   "m": true,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "counting-preamble",
+   "cat": "scaffolding",
+   "rx": "(?:^|\\. |\\n)(?:Two|Three|Four|Five) (?:factors|things|reasons|lessons|principles|constraints|trends) (?:explain|shape|define|drive|stand out)\\b",
+   "w": 3.5,
+   "m": true,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "whether-its-abc",
+   "cat": "scaffolding",
+   "rx": "\\bwhether it(?:'|\u2019)s [\\w '\u2019-]{2,30}, [\\w '\u2019-]{2,30},? or\\b",
+   "w": 3,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "false-vulnerability",
+   "cat": "linkedin",
+   "rx": "\\bnot saying this to brag\\b|\\bi(?:'|\u2019)ve been quiet about this\\b|\\bi do(?:n(?:'|\u2019)t| not) (?:usually|normally|often) (?:post|share|talk about)\\b",
+   "w": 4,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "told-me-impossible",
+   "cat": "linkedin",
+   "rx": "\\b(?:they|everyone|people) (?:told|said) (?:me|us) it (?:could|would)n(?:'|\u2019)t (?:be done|work)\\b",
+   "w": 4.5,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "first-and-foremost",
+   "cat": "scaffolding",
+   "rx": "\\bfirst and foremost\\b",
+   "w": 3,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "out-of-box-silos",
+   "cat": "cliche",
+   "rx": "\\bout.of.the.box (?:thinking|ideas)\\b|\\bbreak(?:ing)? down silos\\b|\\bthink(?:ing)? outside the box\\b",
+   "w": 3.5,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "with-the-advent",
+   "cat": "stakes",
+   "rx": "\\bwith the advent of\\b",
+   "w": 2.5,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "valuable-insights",
+   "cat": "marketing",
+   "rx": "\\bvaluable insights\\b",
+   "w": 3.5,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "key-turning-point",
+   "cat": "puffery",
+   "rx": "\\b(?:key|major|crucial) turning point\\b",
+   "w": 3.5,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "metaphor-of-family",
+   "cat": "puffery",
+   "rx": "\\ba (?:symphony|labyrinth|mosaic|kaleidoscope|constellation) of\\b|\\ba tapestry of\\b",
+   "w": 4,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "quietly-verbing",
+   "cat": "puffery",
+   "rx": "\\bquietly (?:becoming|building|shipping|winning|reshaping|revolutionizing|leading)\\b",
+   "w": 3.5,
+   "first_seen": "2026-08-15",
+   "last_confirmed": "2026-08-15"
   }
  ],
  "lexicon": {
@@ -1982,7 +2120,12 @@
   "hassle-free": 4,
   "game-changing": 5,
   "visionary": 2.5,
-  "industry-leading": 3
+  "industry-leading": 3,
+  "interplay": 3.5,
+  "insightful": 2.5,
+  "enduring": 2,
+  "results-driven": 3,
+  "customer-centric": 3
  },
  "riders": {
   "leverage": 2,
@@ -2005,7 +2148,11 @@
   "innovativ": 2,
   "comprehensive": 1.5,
   "embrac": 1.5,
-  "unpack": 2
+  "unpack": 2,
+  "nuanc": 1.5,
+  "catalys": 2,
+  "profound": 1.5,
+  "orchestrat": 2
  },
  "rider_triggers": [
   "seamless",

@@ -89,8 +89,8 @@ Run the statistical scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (249 weighted tells plus
-a 91-term lexicon and 21 context-gated riders), rhythm and burstiness,
+Every channel runs on every draft: the pattern meter (266 weighted tells plus
+a 96-term lexicon and 25 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
 back as quoted spans, and the rhythm, followability and format channels report
@@ -495,7 +495,7 @@ out was a tell you missed. Capture it.
 
 - `references/tells.md` — the master taxonomy (80 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
-  implementation and carries 249 regexes, since some tells need more than one.
+  implementation and carries 266 regexes, since some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

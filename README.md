@@ -134,7 +134,7 @@ thesaurus barely moves the score.
 
 | what it looks at | what gives you away |
 |---|---|
-| word choice | 249 known tell-phrases, a 91-word watchlist, and 21 words that only count in a salesy sentence |
+| word choice | 266 known tell-phrases, a 96-word watchlist, and 25 words that only count in a salesy sentence |
 | rhythm | sentences that are all the same length, paragraphs that march in step |
 | readability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
 | formatting | too many em-dashes, emoji, hashtags, bold everywhere |
@@ -289,7 +289,7 @@ scripts/rerank.py           best of N — pick the cleanest faithful rewrite
 scripts/learn.py            the learning loop and your style profile
 scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
-data/patterns.json          the 249 tells, the watchlist, the context words
+data/patterns.json          the 266 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
 references/readalong.md     the read-aloud pass the verify gate runs
 bench/skillopt/             the reward and harness for tuning SKILL.md

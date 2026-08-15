@@ -210,6 +210,25 @@ example that motivated it.
   across several documents, not by one draft failing — the distinction step 6
   requires.
 
+- 2026-08-15 — v2.3.0 research pass. A 20-source sweep (current WP:AICATCH,
+  Kobak's July-2025 ~900-word excess-vocab update, Juzek & Ward's RLHF-cause
+  papers, The Economist's 1.2M-word measured study, tropes.fyi, and
+  LinkedIn's own reach-penalty data) cross-checked against the day-old
+  coverage release: the big families all held, 17 gaps closed ("That's
+  where X comes in", the WP "despite challenges / future outlook" formula,
+  "not all X are created equal", counting preambles, false-vulnerability
+  hooks, "quietly reshaping", metaphor-of family), vendor paste-debris
+  extended to Gemini/Grok/Perplexity markers, and 5 lexicon + 4 rider
+  terms added. Notable calibration facts recorded from the sweep: LinkedIn
+  measures "Stop X. Start Y." as its steepest reach penalty (−6.7%) and
+  "It's not X, it's Y" at −4.9%; The Economist found only Claude-family
+  models over-use em-dashes (ChatGPT uses fewer than humans) — supports
+  keeping the em-dash term capped and corroboration-gated rather than
+  raising it; and construction tells persist across model generations
+  while word tells churn — which is the decay mechanism's design premise.
+  Gates: 12/12 corpus, zero drift on all 16 human docs, mean AI-draft
+  score 77.1, recall steady at 47/50.
+
 - 2026-08-14 — v2.3.0, the coverage release. A 260-sentence audit battery of
   tells named by WP:AICATCH, community taxonomies, and the detector-line
   repos found 260 with ZERO pattern hits — including six variants of the

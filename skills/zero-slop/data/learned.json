@@ -79,10 +79,10 @@
   {
    "name": "fragment-question-pivot",
    "cat": "rhetorical",
-   "rx": "(?:^|[.!?]\\s+|\\n)(?:And |But |Then )?(?:The|My|Our|His|Her|Their)\\s+(?:real\\s+|actual\\s+|best\\s+|worst\\s+|biggest\\s+|good\\s+|bad\\s+|craziest\\s+)?(?:kicker|twist|catch|issue|problem|result|point|irony|upshot|reality|truth|part|news|surprise|difference|takeaway|lesson|mistake|secret|beauty|verdict|answer)\\?\\s",
+   "rx": "(?:^|[.!?]\\s+|\\n)(?:And |But |Then )?(?:The|My|Our|His|Her|Their)\\s+(?:real\\s+|actual\\s+|best\\s+|worst\\s+|biggest\\s+|good\\s+|bad\\s+|craziest\\s+)?(?:kicker|twist|catch|issue|problem|result|point|irony|upshot|reality|truth|part|news|surprise|difference|takeaway|lesson|mistake|secret|beauty|verdict|answer|goal|advice)\\?\\s",
    "w": 5,
    "first_seen": "2026-08-04",
-   "last_confirmed": "2026-08-14",
+   "last_confirmed": "2026-08-15",
    "source": "community-taxonomy"
   },
   {
