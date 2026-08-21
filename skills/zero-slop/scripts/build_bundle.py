@@ -23,6 +23,8 @@ PARTS = [
     "references/rewrite-moves.md",
     "references/platforms.md",
     "references/overcorrection.md",
+    "references/readalong.md",
+    "references/copy-desk.md",
     "references/evidence.md",
 ]
 RULE = "=" * 72

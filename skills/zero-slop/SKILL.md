@@ -3,9 +3,9 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.3.0"
+  version: "2.3.1"
   author: manavmishra
-description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
+description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate) and finished by a professional grammar, spelling, and style copy desk. Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, copy-edits the final text, and learns new tells over time.
 ---
 
 # Zero Slop
@@ -297,6 +297,35 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   the text says "the ladder below," a section named the ladder must exist
   below, under that name
 
+**Final copy desk — the last editorial pass before final verification and
+Report.** Give the complete selected rewrite to a dedicated copy-editor agent
+with fresh eyes.
+The agent must correct the text itself, not merely list problems: spelling,
+grammar, punctuation, capitalization, agreement, tense, modifiers, diction,
+ambiguity, repetition, and awkward or unprofessional phrasing all belong in
+scope. The result should be tasteful, elegant, and professional for its actual
+genre, without sanding away the author's voice or making an informal piece
+corporate. Read and follow `references/copy-desk.md` for the full brief.
+
+When the harness supports subagents, delegate this pass so the writer is not
+grading its own work. Otherwise, perform a separate role-isolated copy-editing
+pass with fresh context. In either case, apply the corrected copy to the actual
+deliverable before returning it. Do not alter quoted material, code, names,
+links, facts, claims, or intentional genre-appropriate fragments; flag any
+ambiguity whose correction would require guessing.
+
+Then verify that exact copy-edited artifact: rerun the scorer and scripted
+fidelity check, and compare it directly with both the original and the selected
+rewrite for claims, qualifiers, intended voice, regional spelling, format, and
+non-prose structure. If verification requires any repair, send the repaired
+artifact through the copy desk again and repeat every final check. Continue
+until the same artifact passes the copy desk, semantic/format review, scorer,
+and fidelity gate together (maximum three loops; after that, return the best
+faithful version and flag the unresolved issue). Nothing reaches the user until
+the copy-edited text is the exact text that cleared every final check. The only
+exception is that three-loop fallback: its artifact must still have completed a
+copy-desk pass, and the unresolved gate or ambiguity must be stated plainly.
+
 Fail → iterate (max 3 passes). Still failing after 3 → keep the best version
 and flag it: "needs a real claim/detail, not better words."
 
@@ -309,7 +338,7 @@ the deliverable, the scorecard is the measurement, and the heatmap shows
 *where* the slop was, which is what teaches the writer rather than just
 fixing the draft.
 
-**(a) The rewritten text**, in full, **returned in the format it arrived
+**(a) The rewritten and copy-edited text**, in full, **returned in the format it arrived
 in.** This is not a stylistic preference — a user who hands you a .docx wants
 a .docx back, and pasting markdown into chat instead makes them do the
 conversion by hand. Match the input:
@@ -382,8 +411,9 @@ structural problem, not a word problem.
 The after-map should read `none carry tells`. Show both. A writer who sees
 which phrases were hot stops producing them, and that outlasts the rewrite.
 
-Then close with: a short **change log** naming the patterns fixed and the
-judgment calls made, including deliberate keeps; and **flags** — hollow
+Then close with: a short **change log** naming the patterns fixed, the
+copy-desk corrections applied, and the judgment calls made, including
+deliberate keeps; and **flags** — hollow
 spans, capped spans, and anything needing a real fact from the user. Never
 silently overwrite; the author decides.
 
@@ -502,6 +532,10 @@ out was a tell you missed. Capture it.
   research modules. Read the matching one whenever genre is known.
 - `references/overcorrection.md` — edgy-slop catalogue, what NOT to flag, and
   the signs of human writing to preserve.
+- `references/readalong.md` — the fresh-eyes read-aloud pass for flow,
+  cohesion, and stumbles that a numeric gate cannot hear.
+- `references/copy-desk.md` — the mandatory final grammar, spelling, and style
+  pass, including the dedicated copy-editor agent brief.
 - `references/evidence.md` — the research basis: papers, detector mechanics,
   and why each ladder rung is ordered where it is.
 
