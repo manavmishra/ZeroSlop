@@ -10,7 +10,8 @@
 
 You used AI to help with your writing, and now it reads like a machine wrote every
 word. You can hear it, and so can everyone who reads it. There is even a word for that
-machine sound: slop. On LinkedIn, it gets you accused of not thinking for yourself.
+machine sound: slop. On LinkedIn, that sound can get you accused of not thinking for
+yourself.
 
 Zero Slop finds the slop in your draft and removes it without changing what you
 actually said. It scores the writing from 0 to 100, points to the exact words
@@ -25,8 +26,8 @@ as it gets. Six phrases are doing the damage, and the tool names each one. Take 
 out, and one thing is left standing: setup time dropped 40%. That is what slop usually
 is, once you look: a single real fact buried under decoration.
 
-Lower is better. Good human writing lands between 9 and 21, while the raw AI drafts
-we tested average 77. Read the list of flagged phrases first; the number is only a
+Lower is better. In our test set, known-human writing lands between 9 and 21, while raw
+AI drafts averaged 77. Read the list of flagged phrases first; the number is only a
 summary.
 
 ## Who it is for
@@ -39,19 +40,27 @@ to still sound like you, this is for you.
 
 ## Why it matters now
 
-For a while, sounding like AI just cost you a little credibility with the people who
-noticed. That changed fast. During a two-week span in late July and August 2026, four
-platforms started acting on it. LinkedIn added a button that lets any reader flag a
-post as AI slop, and flagged posts stop reaching people outside your own network.
-Snapchat pulled fully AI-made videos out of its recommendations. YouTube stopped
-paying out on generic, mass-produced clips, and Substack shipped a detector that its
-readers can run on any post.
+For a while, sounding like AI mainly cost you credibility with the readers who
+noticed. Platforms have started attaching product and policy consequences to it. In
+July 2026, [LinkedIn added a “Seems like AI slop” reporting
+signal](https://techcrunch.com/2026/07/30/linkedin-adds-a-button-to-report-ai-generated-slop/),
+[Snap made wholly AI-generated Spotlight videos ineligible for
+recommendation](https://newsroom.snap.com/rewarding-authentic-creativity-on-spotlight),
+and [Substack gave readers a “Scan for AI text”
+tool](https://support.substack.com/hc/en-us/articles/50891130623508-How-can-I-detect-AI-on-Substack).
+[YouTube's monetization policy](https://support.google.com/youtube/answer/1311392?hl=en)
+had already clarified in July 2025 that repetitive or mass-produced content was
+ineligible under its existing rules.
 
-So the cost moved. It used to be about looking lazy; now it is about who sees your
-work at all. One study the platforms keep citing estimates that up to 40% of social
-media writing is already machine-made. When that much of a feed is slop, the systems
-that rank it learn to bury anything that smells the same. The writing that reads as
-human is what gets through.
+Those changes have different effects: Snap and YouTube govern recommendations or
+monetization, while LinkedIn and Substack give users new ways to report or assess
+content. They do not create one universal reach penalty. Pangram Labs, an AI-detection
+vendor, reported that 25.72% of long-form items in its
+[opt-in data set of 1,002,627 social posts](https://www.pangram.com/blog/ai-in-your-feed)
+were flagged as fully AI-generated; for long-form LinkedIn posts, the figure was over
+40%. This was not a platform census. The data came from browser-extension users who
+opted to share their scans. Still, the result helps explain why readers and platforms
+are reacting.
 
 ## Try it
 
@@ -64,9 +73,9 @@ add `--agent` and name one (`claude-code`, `codex`, `cursor`, `opencode`, `warp`
 `zed`), or drop `--global` to keep it to a single project.
 
 <details>
-<summary>Claude Code plugin · ChatGPT · Codex · claude.ai · manual clone</summary>
+<summary>Claude Code plugin · ChatGPT · Codex · Claude.ai · manual clone</summary>
 
-Claude Code and Cowork, as a plugin:
+For Claude Code and Cowork, install the plugin:
 
 ```
 /plugin marketplace add manavmishra/ZeroSlop
@@ -87,9 +96,9 @@ Codex: run this in your own project, not in a copy of this repo, because it writ
 curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
 ```
 
-claude.ai and Desktop need a zip that contains only this skill — not GitHub's green
-"Download ZIP" button, which packages the whole repository and gets rejected. Build the
-right zip with one command:
+Claude.ai and Claude Desktop need a zip that contains only this skill. GitHub's green
+"Download ZIP" button packages the whole repository, so Claude rejects it. Build the
+right zip with these commands:
 
 ```bash
 git clone https://github.com/manavmishra/ZeroSlop.git
@@ -100,7 +109,7 @@ Then upload `dist/zero-slop.zip` under Settings, Capabilities, Skills. The same 
 attached to the [latest release](https://github.com/manavmishra/ZeroSlop/releases/latest)
 if you would rather download it.
 
-By hand, in any tool:
+For a manual Claude-compatible install:
 
 ```bash
 git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
@@ -120,43 +129,42 @@ python3 scripts/slopscore.py --fidelity draft.md new.md  # check the rewrite kep
 python3 scripts/slopscore.py --voice you draft.md        # score against your own writing style
 ```
 
-No install, no account, no server. A single standard-library Python file does the
-scoring, and your writing never leaves your machine. If Python is unavailable, the
-skill still runs from its written rules — you only lose the number.
+The scorer needs no third-party packages, account, or server. A single
+standard-library Python file does the scoring, and your writing never leaves your
+machine. If Python is unavailable, the skill still runs from its written rules — you
+only lose the number.
 
 ## How it decides
 
-The first thing Zero Slop does is **measure**. It reads your draft through several
-independent channels and turns their signals into one score from 0 to 100. Every point
-traces back to a specific phrase you can see, so the number is never a black box you
-have to trust. Slop is not one thing. Only one channel looks at your actual words; the
-rest read the *shape* of the writing, which is why running a draft through a thesaurus
-barely moves the score.
+The first thing Zero Slop does is **measure**. Four surface channels turn a draft into
+a score from 0 to 100. Every point traces back to a quoted span or a document-level
+statistic you can inspect, so the number is never a black box you have to trust. Only
+one channel looks at your actual words; the rest read the *shape* of the writing. That
+is why running a draft through a thesaurus barely moves the score.
 
 | what it looks at | what gives you away |
 |---|---|
-| word choice | 266 known tell-phrases, a 96-word watchlist, and 25 words that only count in a salesy sentence |
+| word choice | 266 weighted patterns, a 96-word watchlist, and 25 words that only count in a salesy sentence |
 | rhythm | sentences that are all the same length, paragraphs that march in step |
-| readability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
-| formatting | too many em-dashes, emoji, hashtags, bold everywhere |
+| followability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
+| formatting + register | too many em dashes, emoji, hashtags, bold everywhere, machine-formal tone |
 
-The scorer is built to accuse slowly. A single em dash is not slop, and plenty of fine
-writing leans on one, so a habit like that carries weight only when the word choice
-agrees. Clusters convict; lone signals do not.
+The scorer is built to accuse slowly. A single em dash is not slop. Fine writing uses
+them, so they carry weight only when other signals agree. Clusters convict; lone
+signals do not.
 
-The last row of the table does more work than it seems to. Words like *leverage* or
-*robust* are ordinary in a runbook and turn into tells only when a marketing word shares
-the sentence. "Elevated write volume" in an engineering note is fine; "elevate your brand
-with our seamless platform" is not.
+The pattern meter does more work than a flat word list. Words like *leverage* or
+*robust* are ordinary in a runbook and turn into tells only when a marketing word
+shares the sentence. "Elevated write volume" in an engineering note is fine; "elevate
+your brand with our seamless platform" is not.
 
-There is a fifth signal the other four cannot see: whether a *model* finds the writing
-predictable. Detectors lean hardest on this signal because machine text sits where a
-model would have put the words. Zero Slop ships no model of its own, so it borrows the
-one already running it, the same assistant you are working in, and plays a quick
-fill-in-the-blank game. It masks a spread of words, predicts each one from its context,
-and counts how often the guess lands on the word you actually chose. Machine writing is
-easy to guess; human word choice surprises it. Because it uses the host model, it needs
-nothing installed and works the same whether that model is Claude or GPT.
+Zero Slop reports a fifth, model-based signal separately: predictability. Detectors
+lean hardest on this signal because machine text sits where a model would have put the
+words. Zero Slop ships no model of its own, so it borrows the assistant you are working
+with. It masks a sample of words, asks the host model for three likely completions per
+blank, and counts how often the original word appears among them. Machine writing is
+easy to guess; human word choice surprises it. This check needs no additional model and
+works whether the host is Claude or GPT.
 
 Scoring is only half the job. The rewrite runs in two passes; in testing, splitting the
 work beat doing it all at once. The first strips the tells and changes nothing else. The
@@ -169,13 +177,14 @@ one that loses no fact. A candidate that invents a detail loses to any that does
 matter how well it reads. That is the point of choosing by the meter: the taste that
 wrote the candidates does not get the final say.
 
-Before anything comes back to you, the winning rewrite goes through a final copy
-desk. When the host supports agents, a dedicated editor with fresh eyes corrects the
-text itself rather than returning a list of suggestions. It checks spelling, grammar,
-punctuation, syntax, consistency, and awkward phrasing while preserving the author's
-voice, facts, and format. That copy-edited artifact must then clear the scorer, a
-semantic and structural comparison, and the fidelity check. If a repair changes the
-text, the copy desk and every final check run again.
+Once the winning rewrite clears the numeric gate, the fresh-eyes read-aloud check, and
+the fidelity review, it goes to the final copy desk. When the host supports agents, a
+dedicated editor edits the text directly rather than returning a list of suggestions.
+The editor corrects spelling, grammar, punctuation, and syntax, resolves inconsistencies,
+and smooths awkward phrasing without disturbing the author's voice, facts, or format.
+Zero Slop then runs the scorer and scripted fidelity check on that exact artifact and
+reviews it again for meaning, voice, and structure. If a repair changes the text, the
+copy desk and every final check run again.
 
 ## It will not touch your facts
 
@@ -183,30 +192,33 @@ This is where most humanizers fail. To sound more human, they will invent a deta
 never wrote, or quietly drop a number to smooth a sentence. Zero Slop treats that as the
 one thing it must never do.
 
-Before it calls a rewrite finished, it inventories every figure, name, quote, and link
-in your original and confirms that each one survived and that nothing new appeared. The
-second half is what protects you: a dropped number you would catch, but an invented one
-reads perfectly and sails right past. The check exists because an early version of the
-tool did exactly that, handing a writer a feeling they never expressed.
+Before it calls a rewrite finished, the scripted fidelity check confirms that every
+figure, name, quote, and link in the original survived and that none was added. A
+separate judgment pass compares the claims, qualifiers, and interior states because
+software cannot reliably catch an invented feeling. Both checks matter: a dropped
+number is conspicuous, but an invented detail can read naturally enough to slip by.
+The safeguards exist because an early version of the tool did exactly that, handing a
+writer a feeling they never expressed.
 
 ## It gets sharper the more you use it
 
 After the rewrite comes the part most tools skip: it **reflects** on what you did next.
 Most tools are frozen the day they ship. This one learns from you.
 
-Here is exactly what that means. When Zero Slop hands a draft back and you edit it before
-publishing, it compares the two versions: a phrase you *cut* was a tell it should have
-caught, and a phrase it flagged that you *kept* was a false alarm. Both become evidence.
-Nothing changes on the strength of one document, though — a phrase becomes a new rule
-only after three different people have cut it from their drafts, so no single quirk
-hardens into a rule for everyone. The loop runs both ways: a rule you keep overriding
-loses weight, and one that stops catching anything ages out. That is how the meter gets
-sharper the more the tool is used, instead of staying frozen at whatever its author
-first guessed.
+Here is exactly what that means. When Zero Slop hands a draft back and you edit it
+before publishing, it compares the two versions. A phrase you *cut* may be a tell it
+missed; a flagged phrase you *kept* may be a false positive. Both become evidence, but
+nothing changes on the strength of one document. A phrase becomes a candidate rule only
+after independent cuts from three distinct documents, and promotion still requires
+review. Repeated false-positive evidence can lower a pattern's weight. Global patterns
+that go unconfirmed for more than 18 months can decay, while an author-specific voice
+profile suppresses terms found in that writer's own work. The loop learns in both
+directions instead of treating every edit as a universal rule.
 
 ```bash
 python3 scripts/learn.py --reflect --produced out.md --shipped final.md
 python3 scripts/learn.py --promote --apply     # turn agreed-on phrases into rules
+python3 scripts/learn.py --demote --apply      # lower repeatedly overruled patterns
 python3 scripts/learn.py --voice you --from ~/my-writing/   # teach it your style
 python3 scripts/learn.py --stats               # see what it has learned
 ```
@@ -215,38 +227,41 @@ It keeps itself current, too. Each session, it checks for a newer release and sh
 the one-line update if one exists — a version query and nothing else, so your writing
 still never leaves your machine.
 
-Better rewrite instructions make every de-slop that follows sharper. That tuning runs
-on a score, not on taste. It uses Microsoft's
+Better rewrite instructions improve every future rewrite. That tuning runs on a score,
+not on taste. It uses Microsoft's
 [SkillOpt](https://github.com/microsoft/SkillOpt), which treats `SKILL.md` — the rewrite
 instructions — as text it may edit. SkillOpt runs the skill on a batch of drafts,
 scores each rewrite with a reward shipped in this repo (`bench/skillopt/`), makes a
-small edit to the instructions, and runs them again. It keeps the edit only when it
+small edit to the instructions, and runs the skill again. It keeps the edit only when it
 *strictly improves* the score on a held-out set of drafts that the edit never saw. The
 reward keeps it honest: fidelity is a separate pass/fail signal, so an edit that
 de-slops harder by dropping or inventing a fact scores zero, however clean it reads.
-The output is `best_skill.md`, a better instruction set that lifts every future
-rewrite, not just one draft. This is a maintainer step because running the rewrites
-requires a model; it never touches your local, offline use. One loop sharpens what the
-meter catches, while this one sharpens how the fix is written.
+The output is `best_skill.md`, a better instruction set rather than a one-draft patch.
+SkillOpt tuning is a maintainer workflow because running the rewrites requires a model;
+it does not run during local, offline use. The learning loop sharpens the meter, while
+SkillOpt sharpens the rewrite instructions.
 
 ## Does it actually work
 
-We ran it head to head against the four tools it builds on: fifty AI-heavy drafts across
-six kinds of writing, each rewritten by every tool, then scored by judges who could not
-see which tool produced which version. Treat it as a careful study rather than a
-verdict. We reproduced the competitors' outputs from their published prompts instead
-of running their live products, and only our rewrites were tuned against a scorecard,
-so the field is not perfectly level.
+We ran it head to head against three of the four tools it builds on: fifty AI-heavy
+drafts across six kinds of writing, each rewritten by every tool, then scored by judges
+who could not see which tool produced which version. The fourth, stop-slop, appears in
+the detector comparison below but was not included in the blind judging packets. Treat
+this as a careful study rather than a verdict. We reproduced the competitors' outputs
+from their published prompts instead of running their live products, and only our
+rewrites were tuned against a scorecard, so the field is not perfectly level.
 
 Across 100 blind picks, judges preferred the Zero Slop version more often than any
 other.
 
 ![Best-picks, pooled over 100 blind verdicts: Zero Slop 55, blader 40, no-ai-slop 5, de-slop 0](assets/bench-bestpicks.png)
 
-The result is narrower than the bar looks. It clearly beat two of the four, and it tied
-the strongest of them, blader's humanizer. We ran two rounds with fresh judges, and
-they barely agreed on a winner — worth holding in mind before leaning on any single
-figure.
+The result is narrower than the bar looks. In the pooled count, Zero Slop led blader's
+humanizer 55 picks to 40 and clearly beat the other two. The two rounds told different
+stories, however: Zero Slop received 32 picks in the first and 23 in the second, while
+blader received 18 and 22. Winner agreement across rounds was 52% (Cohen's kappa 0.12),
+and the confidence intervals overlapped. Treat the pooled lead as suggestive, not
+decisive.
 
 A steadier measure is how much of the AI register each tool removes. This is scored by
 Zero Slop's own detector, so read it as register stripped, not an independent grade.
@@ -257,8 +272,8 @@ The last test is the one a writer should care about most: can the tool tell obvi
 slop from obvious human writing? Across LinkedIn, blogs, Reddit, newsletters, and short
 social posts it separated the two every time, with no overlap. We wrote both piles,
 though, so it shows the tool agreeing with an obvious call, not that it will judge every
-draft in the wild. It is also fast: around 1,100 documents a second, quick enough to sit
-inside a build unnoticed.
+draft in the wild. A separate 1,000-document performance test guards speed; CI fails if
+the batch takes longer than 60 seconds.
 
 
 ## Built on good work
@@ -268,28 +283,27 @@ worked out the craft first: [petergyang/no-ai-slop](https://github.com/petergyan
 [blader/humanizer](https://github.com/blader/humanizer),
 [isatimur/de-slop](https://github.com/isatimur/de-slop), and
 [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop). They proved that the
-sound can be removed, and their lists of tells seeded ours. What we added is the score,
-the fact-check, and the learning loop — the parts that let you measure a rewrite and
-trust it.
+sound can be removed, and their lists of tells seeded ours. We added the score, the
+fact-check, the final copy desk, and the learning loop — the parts that let you measure
+a rewrite and trust the finished copy.
 
-Worth heading off one confusion: detectors like Pangram and GPTZero serve a different
-purpose. They tell a teacher or an editor whether a machine wrote something, and they
-do that well. We are not trying to beat them, and we deliberately do not tune our
-rewrites to fool them.
+Worth heading off one confusion: detectors like Pangram and GPTZero answer a different
+question. They estimate whether a machine wrote something; Zero Slop measures the AI
+register left in the text. We do not tune rewrites to fool those detectors.
 
-## What is next
+## What's next
 
-- **A big, labeled test set.** It is what every accuracy claim here is waiting on.
+- **A big, labeled test set.** It is what the remaining accuracy claims need.
   RAID, HC3, M4, and AuTextification are free and cover email, social, and blogs.
 - **New signals that ignore vocabulary entirely.** The research
-  ([NEULIF](https://arxiv.org/abs/2511.21744)) points at how often certain small words
-  pair up, and how sentence lengths vary. Both are impossible to dodge with a thesaurus,
-  and both need the test set above to tune.
+  ([NEULIF](https://arxiv.org/abs/2511.21744)) points to how often certain small words
+  pair up and how sentence lengths vary. Neither can be removed simply with a
+  thesaurus, and both need the test set above to tune.
 - **Running the competitors live.** This will make the comparison a true head-to-head.
 
 ## Under the hood
 
-![How the engine works: a draft runs through four surface channels (only the pattern meter reads your wording) that fuse into a 0-100 score, plus a model channel that has the host model guess masked words and is reported beside it; the text is diagnosed, rewritten in two passes as several candidates and reranked to the best faithful one, then cleared only when all three verify checks pass: the numeric gate, a readalong that reads it aloud for stumbles, and a fidelity check. A reflect loop turns the edits you make into sharper patterns, and a tune loop lets SkillOpt improve the instructions themselves.](assets/engine.svg)
+![Zero Slop workflow: four surface channels produce a traceable score, while a fifth tests predictability. The draft is diagnosed, rewritten, reranked, checked for score, flow, and fidelity, copy-edited, then rechecked. Feedback and SkillOpt loops improve the meter and instructions.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
@@ -302,6 +316,7 @@ scripts/version_check.py    the once-a-session update check
 data/patterns.json          the 266 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
 references/readalong.md     the read-aloud pass the verify gate runs
+references/copy-desk.md     the final grammar, spelling, and style pass
 bench/skillopt/             the reward and harness for tuning SKILL.md
 tests/test_all.py           75 tests
 ```
@@ -314,16 +329,16 @@ none of your writing ever enters a tracked file.
 
 ## Thanks
 
-Zero Slop builds on the four projects above, all MIT;
-Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing);
+Zero Slop builds on the four MIT-licensed projects above,
+Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing),
 and Kagi's [SlopStop](https://help.kagi.com/kagi/features/slopstop.html), which landed on
 two of the same ideas: wait for a few tells before convicting, and let people appeal.
 The thirteen research papers behind the design are listed in
-[references/evidence.md](references/evidence.md). Three carry the most weight:
-the finding that detectors read a model's training style rather than the machine itself
+[references/evidence.md](references/evidence.md). Three carry the most weight: the
+finding that detectors read a model's training style rather than the machine itself
 (arXiv:2605.19516), the method for spotting overused words (Kobak et al.,
-arXiv:2406.07016), and the study showing detectors wrongly flag more than half of
-non-native English writers (arXiv:2304.02819), which is why a non-native sample sits in
-our safety set.
+arXiv:2406.07016), and the study showing that detectors wrongly flag more than half of
+non-native English writers (arXiv:2304.02819). That last finding is why a non-native
+sample sits in our safety set.
 
 MIT.
