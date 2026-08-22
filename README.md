@@ -2,10 +2,10 @@
 
 <p align="center">
   <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="tests" src="https://img.shields.io/badge/tests-75%20passing-1E7A4C">
+  <img alt="tests" src="https://img.shields.io/badge/tests-84%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.3.4-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.4.0-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every
@@ -259,41 +259,37 @@ writer a feeling they never expressed.
 After the rewrite comes the part most tools skip: it **reflects** on what you did next.
 Most tools are frozen the day they ship. This one learns from you.
 
+Zero Slop uses an evidence-gated online learning loop that learns from what writers
+publish, adapts the local detector in real time once repeated evidence clears its
+safety gates, and keeps shared updates behind review and regression testing.
+
 Here is exactly what that means. When Zero Slop hands a draft back and you edit it
 before publishing, it compares the two versions. A phrase you *cut* may be a tell it
 missed; a flagged phrase you *kept* may be a false positive. Both become evidence, but
 nothing changes on the strength of one document. A phrase becomes a candidate rule only
-after independent cuts from three distinct documents, and promotion still requires
-review. Repeated false-positive evidence can lower a pattern's weight. Global patterns
-that go unconfirmed for more than 18 months can decay, while an author-specific voice
-profile suppresses terms found in that writer's own work. The loop learns in both
-directions instead of treating every edit as a universal rule.
+after independent cuts from three distinct documents. At that point, the private
+detector updates immediately and the next score uses the new rule. Repeated
+false-positive evidence lowers a local pattern weight by the same route. Global
+patterns that go unconfirmed for more than 18 months can decay, while an
+author-specific voice profile suppresses terms found in that writer's own work. The
+loop learns in both directions instead of treating every edit as a universal rule.
+
+Private adaptation and shared learning are deliberately separate. Local rules live in
+`~/.zero-slop/adaptive.json`; they never enter git or leave the machine. Sharing is a
+maintainer workflow: export only corroborated evidence, review the exact payload,
+rebuild contributed regexes locally, and reject the combined update if it convicts any
+sample in the certified human-writing regression corpus.
 
 ```bash
 python3 scripts/learn.py --reflect --produced out.md --shipped final.md
-python3 scripts/learn.py --promote --apply     # turn agreed-on phrases into rules
-python3 scripts/learn.py --demote --apply      # lower repeatedly overruled patterns
 python3 scripts/learn.py --voice you --from ~/my-writing/   # teach it your style
 python3 scripts/learn.py --stats               # see what it has learned
+python3 scripts/learn.py --export --yes --out contribution.json  # optional sharing
 ```
 
 It keeps itself current, too. Each session, it checks for a newer release and shows you
 the one-line update if one exists — a version query and nothing else, so your writing
 still never leaves your machine.
-
-Better rewrite instructions improve every future rewrite. That tuning runs on a score,
-not on taste. It uses Microsoft's
-[SkillOpt](https://github.com/microsoft/SkillOpt), which treats `SKILL.md` — the rewrite
-instructions — as text it may edit. SkillOpt runs the skill on a batch of drafts,
-scores each rewrite with a reward shipped in this repo (`bench/skillopt/`), makes a
-small edit to the instructions, and runs the skill again. It keeps the edit only when it
-*strictly improves* the score on a held-out set of drafts that the edit never saw. The
-reward keeps it honest: fidelity is a separate pass/fail signal, so an edit that
-de-slops harder by dropping or inventing a fact scores zero, however clean it reads.
-The output is `best_skill.md`, a better instruction set rather than a one-draft patch.
-SkillOpt tuning is a maintainer workflow because running the rewrites requires a model;
-it does not run during local, offline use. The learning loop sharpens the meter, while
-SkillOpt sharpens the rewrite instructions.
 
 ## Does it actually work
 
@@ -357,7 +353,7 @@ register left in the text. We do not tune rewrites to fool those detectors.
 
 ## Under the hood
 
-![Zero Slop workflow: four surface channels produce a traceable score, while a fifth tests predictability. The draft is diagnosed, rewritten, reranked, checked for score and fidelity, copy-edited, finalized by a read-aloud editor, then rechecked. Feedback and SkillOpt loops improve the meter and instructions.](assets/engine.svg)
+![Zero Slop workflow: four surface channels produce a traceable score, while a fifth tests predictability. The draft is diagnosed, rewritten, reranked, checked for score and fidelity, copy-edited, finalized by a read-aloud editor, then rechecked. A private reflect loop adapts local scoring after corroboration, while shared updates require review and regression testing.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
@@ -369,10 +365,10 @@ scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
 data/patterns.json          the 266 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
+~/.zero-slop/adaptive.json  private rules loaded into the next local score
 references/readalong.md     the final pass for spoken flow and cohesion
 references/copy-desk.md     the grammar, spelling, and style pass before read-aloud finalization
-bench/skillopt/             the reward and harness for tuning SKILL.md
-tests/test_all.py           75 tests
+tests/test_all.py           the detector, learning, safety, and scale suite
 ```
 
 Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The tests

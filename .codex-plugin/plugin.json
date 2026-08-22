@@ -1,7 +1,7 @@
 {
   "name": "zero-slop",
-  "version": "2.3.4",
-  "description": "Turns AI-sounding drafts into professionally copy-edited expert prose and proves it: statistical scorer, evidence-ranked rewrite ladder, quantitative verify gate, continuous learning.",
+  "version": "2.4.0",
+  "description": "Turns AI-sounding drafts into professionally copy-edited expert prose and proves it: statistical scorer, evidence-ranked rewrite ladder, quantitative verify gate, and private evidence-gated online learning.",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"

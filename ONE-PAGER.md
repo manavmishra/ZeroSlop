@@ -45,7 +45,7 @@ are to read, and how heavily the page is formatted. Then it leans toward mercy. 
 em-dash is not slop; plenty of great writing leans on them. A tell only counts once the word
 choice backs it up, so a cluster convicts and a lone one does not. It adds a check no
 rulebook can: it asks the model running it to guess your words, and counts how often it
-can — machine writing is easy to predict, and yours should not be. Zero Slop ships no
+can: machine writing is easy to predict, and yours should not be. Zero Slop ships no
 model of its own; it borrows whichever one you are already in. When it rewrites, it
 writes several versions and keeps the cleanest one that changes no fact.
 
@@ -66,19 +66,18 @@ check exists.
 A tool that learns you. This is the part most tools skip. After it hands your draft back
 and you edit it, it compares the two: a phrase you cut was a tell it should have caught,
 and one it flagged that you kept was a false alarm. A phrase only becomes a new rule
-after three separate people's drafts have cut it, so no single quirk speaks for everyone
-— and the meter gets sharper the more the tool is used, instead of staying frozen. A
+after three independent documents have cut it, so no single draft controls the meter.
+The meter gets sharper the more the tool is used, instead of staying frozen. A
 sample of your own writing also teaches it which words are just how you talk.
 
-The tool even improves itself. The rewrite follows a page of written instructions, and
-those can be tuned like anything with a score. Microsoft's SkillOpt edits them, runs the
-edited version on a batch of drafts, and grades each result the way your writing is
-graded — how much slop came out, and whether every fact stayed in. It keeps an edit only
-when it beats the old instructions on drafts it has never seen, and discards the rest.
-Every accepted edit makes the next de-slop a little sharper, for everyone who uses the
-skill, not just one draft. It also keeps itself current: each session it checks for a
-newer release and points you at the one-line update, sending a version query and nothing
-of what you wrote.
+Zero Slop uses an evidence-gated online learning loop that learns from what writers
+publish. Once three independent documents support the same phrase or false-positive
+correction, the local detector adapts immediately and the next score uses the change.
+Those private rules stay on the writer's machine. Shared updates take a separate path:
+the evidence is exported without source text, reviewed by a maintainer, rebuilt into a
+safe regex, and tested against known human writing before it can reach the repository.
+It also keeps itself current: each session checks for a newer release and points you at
+the one-line update, sending a version query and nothing of what you wrote.
 
 ## Does it actually work
 
@@ -97,5 +96,5 @@ list.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.3.0 · 75 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.4.0 · 84 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

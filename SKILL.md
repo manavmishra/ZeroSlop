@@ -3,7 +3,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.3.4"
+  version: "2.4.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate), professionally copy-edited, and finalized by a fresh read-aloud editor. Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. It detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, corrects mechanics and spoken flow, and learns new tells over time.
 ---
@@ -440,10 +440,13 @@ needing a real fact from the user. Never silently overwrite; the author decides.
 
 ### 6. Learn
 
-This skill improves with use, and the strongest signal is the writer's own
-edit. If you hand back a rewrite and the author changes something before
-publishing, that change is a free label: what you left in that a human took
-out was a tell you missed. Capture it.
+Zero Slop uses an evidence-gated online learning loop that learns from what
+writers publish, adapts the local detector in real time once repeated evidence
+clears its safety gates, and keeps shared updates behind review and regression
+testing. The strongest signal is the writer's own edit. If you hand back a
+rewrite and the author changes something before publishing, that change is a
+free label: what you left in that a human took out was a tell you missed.
+Capture it.
 
 - **The reflect loop.** Whenever you can see both what the skill produced and
   what the author actually shipped — they paste the final version, they say
@@ -453,12 +456,13 @@ out was a tell you missed. Capture it.
   python3 scripts/learn.py --reflect --produced out.md --shipped final.md
   ```
 
-  This does **not** create a pattern. It records an observation. A span
-  becomes a pattern only after it has been independently cut from three
-  different documents, because a single diff cannot tell a stylistic tell
-  from an author trimming a sentence for length. Once a span clears that
-  bar, `--promote --apply` mints it, and the accuracy of the meter rises
-  with the number of people using it rather than with anyone's guesswork.
+  One document only records an observation. A span becomes a private local
+  pattern after it has been independently cut from three different documents,
+  because a single diff cannot tell a stylistic tell from an author trimming a
+  sentence for length. When a span clears that bar and the human-writing
+  regression gate, `--reflect` updates `~/.zero-slop/adaptive.json`
+  atomically. The next score loads that rule automatically. Repeated evidence
+  that writers kept a flagged span lowers its local weight by the same route.
 
   Three gates stand between an observation and a shipped pattern:
   recurrence (three distinct documents), novelty (not already scored), and
@@ -467,6 +471,13 @@ out was a tell you missed. Capture it.
   is absolute — a pattern that would convict Lincoln, an SRE runbook, or a
   non-native English speaker's email is rejected at any level of evidence.
   Learning that corrupts the meter is worse than not learning.
+
+  Private adaptation never leaves the machine. To contribute a corroborated
+  pattern upstream, run `learn.py --export`, inspect the complete payload, and
+  send that file for maintainer review. `learn.py --merge` rebuilds every regex
+  from the contributed span, repeats the safety checks, defaults to a dry run,
+  and writes the shared taxonomy only with `--apply` after the combined detector
+  clears the full regression corpus.
 
 - **New tell spotted** (a pattern readers call out as AI that the scorer
   missed) → add a regex + weight to `data/learned.json` (same schema as

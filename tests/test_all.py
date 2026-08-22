@@ -18,6 +18,7 @@ import tempfile
 import time
 import unittest
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -227,16 +228,21 @@ class ReflectLoop(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         shutil.copytree(DATA, self.tmp / "data")
-        self._save = (learn.DATA, learn.OBS, learn.CORPUS, learn.LOG)
+        self._save = (learn.DATA, learn.OBS, learn.CORPUS, learn.LOG, learn.HOME,
+                      learn.ADAPTIVE, learn.LOCK)
         learn.DATA = self.tmp / "data"
-        learn.OBS = learn.DATA / "reflections.json"
         learn.CORPUS = learn.DATA / "corpus" / "must-not-flag"
         learn.LOG = learn.DATA / "learned-log.md"
+        learn.HOME = self.tmp / "home"
+        learn.OBS = learn.HOME / "reflections.json"
+        learn.ADAPTIVE = learn.HOME / "adaptive.json"
+        learn.LOCK = learn.HOME / ".learning.lock"
         if learn.OBS.exists():
             learn.OBS.unlink()
 
     def tearDown(self):
-        learn.DATA, learn.OBS, learn.CORPUS, learn.LOG = self._save
+        (learn.DATA, learn.OBS, learn.CORPUS, learn.LOG, learn.HOME,
+         learn.ADAPTIVE, learn.LOCK) = self._save
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def _pair(self, produced, shipped, doc):
@@ -388,6 +394,168 @@ class ReflectLoop(unittest.TestCase):
         rx = learn.to_regex("at the end of the day")
         self.assertTrue(re.search(rx, "at the end of the day", re.I))
         self.assertTrue(re.search(rx, "at the very end of the day", re.I))
+
+
+# --------------------------------------------------------------------------
+class OnlineLearning(unittest.TestCase):
+    """Private adaptation is immediate at the evidence gate; sharing stays reviewed."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        shutil.copytree(DATA, self.tmp / "data")
+        self.home = self.tmp / "home"
+        self.home.mkdir()
+        self._learn = (learn.DATA, learn.CORPUS, learn.LOG, learn.HOME,
+                       learn.OBS, learn.ADAPTIVE, learn.LOCK)
+        self._score = (slopscore.DATA_DIR, slopscore.HOME)
+        learn.DATA = self.tmp / "data"
+        learn.CORPUS = learn.DATA / "corpus" / "must-not-flag"
+        learn.LOG = learn.DATA / "learned-log.md"
+        learn.HOME = self.home
+        learn.OBS = self.home / "reflections.json"
+        learn.ADAPTIVE = self.home / "adaptive.json"
+        learn.LOCK = self.home / ".learning.lock"
+        slopscore.DATA_DIR = learn.DATA
+        slopscore.HOME = self.home
+        self.produced = self.tmp / "produced.md"
+        self.shipped = self.tmp / "shipped.md"
+
+    def tearDown(self):
+        (learn.DATA, learn.CORPUS, learn.LOG, learn.HOME,
+         learn.OBS, learn.ADAPTIVE, learn.LOCK) = self._learn
+        slopscore.DATA_DIR, slopscore.HOME = self._score
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _pair(self, produced, shipped, doc):
+        self.produced.write_text(produced)
+        self.shipped.write_text(shipped)
+        learn.reflect(str(self.produced), str(self.shipped), doc)
+
+    def test_local_detector_adapts_when_recurrence_gate_clears(self):
+        produced = "We shipped it. This puts wood behind the arrow on latency for us."
+        shipped = "We shipped it. Latency dropped."
+        for i in range(learn.PROMOTE_AT - 1):
+            self._pair(produced, shipped, f"doc{i}")
+        self.assertFalse(learn.ADAPTIVE.exists(),
+                         "one or two documents must not change the detector")
+
+        self._pair(produced, shipped, "doc-final")
+        adaptive = json.loads(learn.ADAPTIVE.read_text())
+        self.assertTrue(adaptive["patterns"], "threshold did not update local rules")
+        loaded = slopscore.load_patterns()
+        self.assertTrue(any(p.get("source") == "reflect-local" for p in loaded["patterns"]))
+        hits = slopscore.score_text(produced, loaded)["hits"]
+        self.assertTrue(any(h["name"].startswith("learned-") for h in hits),
+                        "the next score did not use the local adaptation")
+
+    def test_writer_keeps_lower_a_local_false_positive(self):
+        text = "We are beyond excited to publish the release notes today."
+        base = slopscore.load_patterns()
+        hit = next(h for h in slopscore.score_text(text, base)["hits"]
+                   if h["cat"] not in ("lexicon", "rider"))
+        before = next(p["w"] for p in base["patterns"] if p["name"] == hit["name"])
+        for i in range(learn.PROMOTE_AT):
+            self._pair(text, text, f"kept-{i}")
+        after_data = slopscore.load_patterns()
+        after = next(p["w"] for p in after_data["patterns"]
+                     if p["name"] == hit["name"])
+        self.assertLess(after, before, "repeated writer overrides did not lower the rule")
+
+    def test_concurrent_reflections_do_not_lose_documents(self):
+        text = "We are beyond excited to publish the release notes today."
+        hit = next(h for h in slopscore.score_text(text, slopscore.load_patterns())["hits"]
+                   if h["cat"] not in ("lexicon", "rider"))
+        self.produced.write_text(text)
+        self.shipped.write_text(text)
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            list(pool.map(
+                lambda i: learn.reflect(str(self.produced), str(self.shipped), f"parallel-{i}"),
+                range(8),
+            ))
+        state = json.loads(learn.OBS.read_text())
+        self.assertEqual(state["false_positives"][hit["name"]]["count"], 8,
+                         "concurrent read-modify-write lost reflection evidence")
+
+    def test_malformed_local_state_degrades_to_shared_rules(self):
+        learn.ADAPTIVE.write_text("{not json")
+        data = slopscore.load_patterns()
+        self.assertTrue(data["patterns"])
+        self.assertGreater(slopscore.score_text(Detector.SLOP, data)["ai_likelihood"], 70)
+
+    def test_shared_layer_cannot_shadow_base_but_private_correction_can(self):
+        base = json.loads((learn.DATA / "patterns.json").read_text())
+        target = base["patterns"][0]
+        shared = json.loads((learn.DATA / "learned.json").read_text())
+        shared.setdefault("patterns", []).append({**target, "w": 0.01})
+        (learn.DATA / "learned.json").write_text(json.dumps(shared))
+
+        loaded = slopscore.load_patterns()
+        shared_weight = next(p["w"] for p in loaded["patterns"]
+                             if p["name"] == target["name"])
+        self.assertEqual(shared_weight, target["w"],
+                         "a shared learned rule shadowed the auditable base taxonomy")
+
+        learn.ADAPTIVE.write_text(json.dumps({
+            "schema": 1,
+            "patterns": [{**target, "w": 0.5, "source": "reflect-local-fp"}],
+            "riders": {},
+        }))
+        loaded = slopscore.load_patterns()
+        private_weight = next(p["w"] for p in loaded["patterns"]
+                              if p["name"] == target["name"])
+        self.assertEqual(private_weight, 0.5,
+                         "the private false-positive correction did not override locally")
+
+    def test_private_adaptation_rejects_certified_human_phrase(self):
+        produced = "We hold that all men are created equal here."
+        shipped = "We hold that."
+        for i in range(learn.PROMOTE_AT):
+            self._pair(produced, shipped, f"human-{i}")
+        if learn.ADAPTIVE.exists():
+            adaptive = json.loads(learn.ADAPTIVE.read_text())
+            self.assertFalse(any("created\\s+equal" in p.get("rx", "")
+                                 for p in adaptive.get("patterns", [])))
+        loaded = slopscore.load_patterns()
+        self.assertFalse(any(re.search(p["rx"], "that all men are created equal", re.I)
+                             and p.get("source") == "reflect-local"
+                             for p in loaded["patterns"]),
+                         "private learning bypassed the certified-human safety gate")
+
+    def test_shared_merge_is_reviewed_and_regression_gated(self):
+        contribution = self.tmp / "contribution.json"
+        contribution.write_text(json.dumps({
+            "schema": 1,
+            "spans": [{
+                "span": "puts wood behind the arrow",
+                "rx": "(a+)+$",
+                "documents": learn.PROMOTE_AT,
+                "month": "2026-08",
+            }],
+            "false_positives": [],
+        }))
+        before = (learn.DATA / "learned.json").read_text()
+        self.assertEqual(learn.merge(str(contribution), False, "contributed", 2.5), 0)
+        self.assertEqual((learn.DATA / "learned.json").read_text(), before,
+                         "a dry-run merge changed the shared detector")
+        self.assertEqual(learn.merge(str(contribution), True, "contributed", 2.5), 0)
+        shared = json.loads((learn.DATA / "learned.json").read_text())
+        self.assertTrue(any(p.get("source") == "contributed"
+                            for p in shared.get("patterns", [])))
+        self.assertFalse(any(p.get("rx") == "(a+)+$"
+                             for p in shared.get("patterns", [])),
+                         "the merge trusted a contributed regex instead of rebuilding it")
+        self.assertEqual(learn.shared_regression(shared), [],
+                         "the reviewed shared update fails the human-writing corpus")
+
+    def test_shared_merge_handles_malformed_untrusted_entries(self):
+        contribution = self.tmp / "malformed-contribution.json"
+        contribution.write_text(json.dumps({
+            "schema": 1,
+            "spans": ["not an object", {"span": 7}],
+            "false_positives": ["not an object", {"pattern": 7}],
+        }))
+        self.assertEqual(learn.merge(str(contribution), False, "contributed", 2.5), 0,
+                         "malformed untrusted evidence crashed the review path")
 
 
 # --------------------------------------------------------------------------
@@ -612,6 +780,18 @@ class DocsMatchReality(unittest.TestCase):
         v = _j.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
         self.assertIn(f'version: "{v}"', self.docs["SKILL.md"],
                       "SKILL.md version does not match the plugin manifest")
+
+    def test_skillopt_is_completely_removed(self):
+        self.assertFalse((ROOT / "bench" / "skillopt").exists())
+        self.assertFalse((ROOT / "data" / "zeroslop_split").exists())
+        needles = ("SkillOpt", "bench/skillopt", "best_skill.md")
+        for rel in ("README.md", "SKILL.md", "ONE-PAGER.md", "SECURITY.md",
+                    "references/evidence.md", "assets/engine.svg",
+                    "scripts/slopscore.py", "scripts/rerank.py"):
+            text = (ROOT / rel).read_text()
+            for needle in needles:
+                with self.subTest(f"{rel}: {needle}"):
+                    self.assertNotIn(needle, text)
 
 
 class Discrimination(unittest.TestCase):

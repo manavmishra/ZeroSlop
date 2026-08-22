@@ -29,7 +29,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.3.4"
+  version: "2.4.0"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate), professionally copy-edited, and finalized by a fresh read-aloud editor. Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. It detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, corrects mechanics and spoken flow, and learns new tells over time.
 ---
@@ -466,10 +466,13 @@ needing a real fact from the user. Never silently overwrite; the author decides.
 
 ### 6. Learn
 
-This skill improves with use, and the strongest signal is the writer's own
-edit. If you hand back a rewrite and the author changes something before
-publishing, that change is a free label: what you left in that a human took
-out was a tell you missed. Capture it.
+Zero Slop uses an evidence-gated online learning loop that learns from what
+writers publish, adapts the local detector in real time once repeated evidence
+clears its safety gates, and keeps shared updates behind review and regression
+testing. The strongest signal is the writer's own edit. If you hand back a
+rewrite and the author changes something before publishing, that change is a
+free label: what you left in that a human took out was a tell you missed.
+Capture it.
 
 - **The reflect loop.** Whenever you can see both what the skill produced and
   what the author actually shipped — they paste the final version, they say
@@ -479,12 +482,13 @@ out was a tell you missed. Capture it.
   python3 scripts/learn.py --reflect --produced out.md --shipped final.md
   ```
 
-  This does **not** create a pattern. It records an observation. A span
-  becomes a pattern only after it has been independently cut from three
-  different documents, because a single diff cannot tell a stylistic tell
-  from an author trimming a sentence for length. Once a span clears that
-  bar, `--promote --apply` mints it, and the accuracy of the meter rises
-  with the number of people using it rather than with anyone's guesswork.
+  One document only records an observation. A span becomes a private local
+  pattern after it has been independently cut from three different documents,
+  because a single diff cannot tell a stylistic tell from an author trimming a
+  sentence for length. When a span clears that bar and the human-writing
+  regression gate, `--reflect` updates `~/.zero-slop/adaptive.json`
+  atomically. The next score loads that rule automatically. Repeated evidence
+  that writers kept a flagged span lowers its local weight by the same route.
 
   Three gates stand between an observation and a shipped pattern:
   recurrence (three distinct documents), novelty (not already scored), and
@@ -493,6 +497,13 @@ out was a tell you missed. Capture it.
   is absolute — a pattern that would convict Lincoln, an SRE runbook, or a
   non-native English speaker's email is rejected at any level of evidence.
   Learning that corrupts the meter is worse than not learning.
+
+  Private adaptation never leaves the machine. To contribute a corroborated
+  pattern upstream, run `learn.py --export`, inspect the complete payload, and
+  send that file for maintainer review. `learn.py --merge` rebuilds every regex
+  from the contributed span, repeats the safety checks, defaults to a dry run,
+  and writes the shared taxonomy only with `--apply` after the combined detector
+  clears the full regression corpus.
 
 - **New tell spotted** (a pattern readers call out as AI that the scorer
   missed) → add a regex + weight to `data/learned.json` (same schema as
@@ -1462,21 +1473,24 @@ what readers detect. It tracks the register those authors are editing away
 from, which is the target, but it is a convenience sample and no substitute for
 the frequency work in `calibrate.py` against a real corpus.
 
-## Two learning axes: the meter and the instructions
+## Two learning loops: private adaptation and shared review
 
-The reflect loop tunes the *detector* — which spans the meter should catch. It
-leaves the other half alone: the rewrite *instructions* in SKILL.md, which decide
-how a flagged draft is repaired. Those are optimizable too, by the same
-discipline. Microsoft's SkillOpt treats a skill's markdown as trainable text,
-runs it on a task set, scores each rewrite, and keeps an edit only when a
-held-out validation score strictly improves. Zero Slop supplies the reward that
-makes this safe for de-slopping: fidelity is a separate hard signal, so an edit
-that de-slops harder by dropping or inventing a fact cannot win, however clean it
-reads. The harness is in `bench/skillopt/`; like the reflect loop it is
-validation-gated, and like every learning path here it is barred from raising a
-score by loosening a rule that matters.
+The private loop adapts the detector on the writer's machine. `--reflect`
+records both sides of the publish decision: spans the writer removed and
+flagged spans the writer kept. Nothing changes after one document. Once three
+independent documents corroborate a phrase or false positive, the local rule
+is updated atomically, and the next score loads it from
+`~/.zero-slop/adaptive.json`. New single-word riders require five documents
+because one word has a wider blast radius than a phrase.
 
-Source: <https://github.com/microsoft/SkillOpt>
+The shared loop is deliberately slower. Only corroborated evidence is
+exportable, the complete payload is shown before it is written, and source
+text, filenames, authors, and precise dates stay private. A maintainer reviews
+the contribution, rebuilds every regex locally, reruns novelty and overlap
+checks, and tests the combined taxonomy against the certified human-writing
+corpus. The merge is a dry run unless `--apply` is explicit. This separation
+lets a local detector respond to its writers without turning any one team's
+habits into a global rule.
 
 ## Practitioner corroboration: Kagi SlopStop
 

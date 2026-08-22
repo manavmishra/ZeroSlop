@@ -20,7 +20,7 @@ sentence for length. An early version of this script watched one writer delete
 tell; it was just content. So `--reflect` only *records an observation*. A span
 becomes a pattern when it has been independently cut PROMOTE_AT times across
 different documents, which is a property no single idiosyncratic edit can fake
-and that gets strictly better as more people use the skill.
+and that gets strictly better as the evidence grows.
 
 Three gates stand between an observation and a shipped pattern:
 
@@ -47,12 +47,16 @@ detector. See references/evidence.md.
 Stdlib only, no network, no subprocess — same contract as the rest of the repo.
 """
 import argparse
+import copy
 import difflib
 import hashlib
 import json
 import os
 import re
 import sys
+import tempfile
+import time
+from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
@@ -68,6 +72,8 @@ LOG = DATA / "learned-log.md"
 HOME = Path(os.environ.get("ZERO_SLOP_HOME",
                            Path.home() / ".zero-slop")).expanduser()
 OBS = HOME / "reflections.json"
+ADAPTIVE = HOME / "adaptive.json"
+LOCK = HOME / ".learning.lock"
 
 # An edit has to be worth generalizing. One-word cuts are usually taste; very
 # long ones are unique to the draft and would never fire twice.
@@ -93,12 +99,62 @@ would your""".split())
 
 
 def write_json(path, obj):
-    """Write via a temp file and rename, so a crash cannot truncate the taxonomy."""
+    """Durably replace JSON so a crash cannot truncate learning state."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(obj, indent=1) + "\n")
-    os.replace(tmp, path)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp",
+                                    dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(json.dumps(obj, indent=1) + "\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_name, path)
+        if hasattr(os, "O_DIRECTORY"):
+            dir_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
+    finally:
+        try:
+            Path(tmp_name).unlink()
+        except FileNotFoundError:
+            pass
+
+
+@contextmanager
+def learning_lock(timeout=10.0, stale_after=60.0):
+    """Serialize private learning updates across threads and processes.
+
+    Directory creation is atomic on every supported platform. A bounded wait
+    prevents a hung writer from blocking scoring, and stale locks left by a
+    terminated process are recoverable.
+    """
+    LOCK.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            LOCK.mkdir()
+            break
+        except FileExistsError:
+            try:
+                stale = time.time() - LOCK.stat().st_mtime > stale_after
+                if stale:
+                    LOCK.rmdir()
+                    continue
+            except FileNotFoundError:
+                continue
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"learning state is busy: {LOCK}")
+            time.sleep(0.01)
+    try:
+        yield
+    finally:
+        try:
+            LOCK.rmdir()
+        except FileNotFoundError:
+            pass
 
 
 def load(p, default=None):
@@ -307,11 +363,171 @@ def diff_spans(produced, shipped):
     return out
 
 
+def _taxonomy(base, shared, adaptive=None):
+    """Build the exact taxonomy the scorer will load, without touching disk."""
+    import slopscore
+    data = copy.deepcopy(base)
+    slopscore.merge_pattern_data(data, shared)
+    slopscore.merge_pattern_data(data, adaptive or {}, allow_name_overrides=True)
+    good, seen = [], set()
+    for p in reversed(data.get("patterns", [])):
+        try:
+            re.compile(p["rx"])
+        except (re.error, KeyError, TypeError):
+            continue
+        if p["rx"] in seen:
+            continue
+        seen.add(p["rx"])
+        good.append(p)
+    data["patterns"] = list(reversed(good))
+    return data
+
+
+def taxonomy_regression(shared, adaptive=None):
+    """Return certified-human samples a proposed taxonomy would convict."""
+    import slopscore
+    base = load(DATA / "patterns.json")
+    data = _taxonomy(base, shared, adaptive or {})
+    failures = []
+    for path in corpus_files():
+        score = slopscore.score_text(path.read_text(), data)["ai_likelihood"]
+        if score > 35:
+            failures.append({"file": path.name, "score": score})
+    return failures
+
+
+def shared_regression(shared):
+    """Public helper used by CI and maintainer-side merge tests."""
+    return taxonomy_regression(shared)
+
+
+def refresh_adaptive(obs, base, learned):
+    """Apply corroborated private evidence to the next local score.
+
+    Reflection is immediate, but adaptation remains gated: three independent
+    documents for phrase rules and false-positive overrides, five for a single
+    word. The private layer never enters git. Shared changes still travel
+    through export, maintainer review, merge, and the full regression corpus.
+    """
+    adaptive = load(ADAPTIVE, {
+        "_comment": "Private Zero Slop adaptations derived from publish decisions. "
+                    "This file stays under ZERO_SLOP_HOME and is never shared automatically.",
+        "schema": 1,
+        "patterns": [],
+        "riders": {},
+    })
+    if not isinstance(adaptive, dict):
+        adaptive = {"schema": 1, "patterns": [], "riders": {}}
+    adaptive.setdefault("patterns", [])
+    adaptive.setdefault("riders", {})
+
+    shared_patterns = base["patterns"] + learned.get("patterns", [])
+    current_patterns = shared_patterns + adaptive["patterns"]
+    lex = (list(base.get("lexicon", {})) + list(learned.get("lexicon", {}))
+           + list(adaptive.get("lexicon", {})))
+    by_name = {p["name"]: p for p in current_patterns}
+    today = str(date.today())
+    adapted_records, rider_records, demoted_records = [], [], []
+
+    for key, rec in sorted(obs.get("observations", {}).items()):
+        if rec.get("count", 0) < PROMOTE_AT or rec.get("adapted"):
+            continue
+        if already_caught(key, current_patterns, lex):
+            adapted_records.append((rec, "covered"))
+            continue
+        rx = to_regex(key)
+        if fp_gate(rx, key):
+            continue
+        digest = hashlib.sha256(key.encode()).hexdigest()
+        name = "learned-" + digest[:10]
+        candidate = {
+            "name": name,
+            "cat": "reflect-local",
+            "rx": rx,
+            "w": START_WEIGHT,
+            "first_seen": today,
+            "last_confirmed": today,
+            "source": "reflect-local",
+            "seen_in_docs": rec["count"],
+            "digest": digest[:12],
+        }
+        if name in by_name:
+            adaptive["patterns"] = [p for p in adaptive["patterns"]
+                                    if p.get("name") != name]
+        adaptive["patterns"].append(candidate)
+        by_name[name] = candidate
+        current_patterns.append(candidate)
+        adapted_records.append((rec, "added"))
+
+    for word, rec in sorted(obs.get("lexicon_candidates", {}).items()):
+        if rec.get("count", 0) < LEXICON_PROMOTE_AT or rec.get("adapted"):
+            continue
+        if fp_gate(r"\b" + re.escape(word) + r"\b"):
+            continue
+        adaptive["riders"][word] = round(START_WEIGHT / 2, 2)
+        rider_records.append(rec)
+
+    shared_by = {p["name"]: p for p in shared_patterns}
+    adaptive_by = {p["name"]: p for p in adaptive["patterns"]}
+    for name, rec in sorted(obs.get("false_positives", {}).items()):
+        rounds = rec.get("count", 0) // PROMOTE_AT
+        applied = rec.get("local_demotions", 0)
+        if rounds <= applied:
+            continue
+        source = adaptive_by.get(name, shared_by.get(name))
+        if not source:
+            continue
+        override = dict(source)
+        for _ in range(rounds - applied):
+            override["w"] = max(0.25, round(float(override.get("w", 0)) / 2, 2))
+        override["source"] = "reflect-local-fp"
+        override["demoted"] = today
+        override["kept_in_docs"] = rec["count"]
+        adaptive["patterns"] = [p for p in adaptive["patterns"]
+                                if p.get("name") != name]
+        adaptive["patterns"].append(override)
+        adaptive_by[name] = override
+        demoted_records.append((rec, rounds))
+
+    changed = adapted_records or rider_records or demoted_records
+    if not changed:
+        return {"patterns": 0, "riders": 0, "demotions": 0, "failures": []}
+
+    failures = taxonomy_regression(learned, adaptive)
+    if failures:
+        return {"patterns": 0, "riders": 0, "demotions": 0,
+                "failures": failures}
+
+    write_json(ADAPTIVE, adaptive)
+    for rec, result in adapted_records:
+        rec["adapted"] = today
+        rec["adaptation"] = result
+    for rec in rider_records:
+        rec["adapted"] = today
+        rec["adaptation"] = "local-rider"
+    for rec, rounds in demoted_records:
+        rec["local_demotions"] = rounds
+        rec["last_local_demotion"] = today
+    return {
+        "patterns": sum(1 for _, result in adapted_records if result == "added"),
+        "riders": len(rider_records),
+        "demotions": len(demoted_records),
+        "failures": [],
+    }
+
+
 def reflect(produced, shipped, doc_id):
+    with learning_lock():
+        return _reflect_unlocked(produced, shipped, doc_id)
+
+
+def _reflect_unlocked(produced, shipped, doc_id):
     base = load(DATA / "patterns.json")
     learned = load(DATA / "learned.json")
-    pats = base["patterns"] + learned.get("patterns", [])
-    lex = list(base.get("lexicon", {})) + list(learned.get("lexicon", {}))
+    adaptive = load(ADAPTIVE, {"patterns": [], "lexicon": {}, "riders": {}})
+    current = _taxonomy(base, learned, adaptive)
+    pats = current["patterns"]
+    lex = list(current.get("lexicon", {})) + list(current.get("riders", {}))
     obs = load(OBS, {"_comment": "Reflect-loop evidence. 'observations' are spans "
                                  "writers cut that the meter missed; 'false_positives' "
                                  "are patterns that fired on text the writer kept. "
@@ -332,6 +548,9 @@ def reflect(produced, shipped, doc_id):
     base_lex = {k.lower() for k in base.get("lexicon", {})}
     base_lex |= {k.lower() for k in base.get("riders", {})}
     base_lex |= {k.lower() for k in learned.get("lexicon", {})}
+    base_lex |= {k.lower() for k in learned.get("riders", {})}
+    base_lex |= {k.lower() for k in adaptive.get("lexicon", {})}
+    base_lex |= {k.lower() for k in adaptive.get("riders", {})}
     for w in lexicon_candidates(prod_text, ship_text):
         if any(w.startswith(t_) or t_.startswith(w) for t_ in base_lex):
             continue                        # the lexicon already speaks to this
@@ -383,6 +602,7 @@ def reflect(produced, shipped, doc_id):
         recorded += 1
         fresh.append((key, rec["count"]))
 
+    local = refresh_adaptive(obs, base, learned)
     write_json(OBS, obs)
 
     print(f"reflect: {Path(produced).name} → {Path(shipped).name}\n")
@@ -392,6 +612,13 @@ def reflect(produced, shipped, doc_id):
     print(f"  {recorded} missed-tell observation(s) recorded")
     print(f"  {len(fps)} pattern(s) fired on text the writer KEPT "
           f"(false-positive evidence)\n")
+    if local["patterns"] or local["riders"] or local["demotions"]:
+        print("  local detector updated for the next score: "
+              f"{local['patterns']} pattern(s), {local['riders']} rider(s), "
+              f"{local['demotions']} weight correction(s)\n")
+    elif local["failures"]:
+        print("  local update rejected by the human-writing regression gate: "
+              + ", ".join(f["file"] for f in local["failures"]) + "\n")
     for h in fps:
         rec = obs["false_positives"][h["pattern"]]
         state = "REVIEW" if rec["count"] >= PROMOTE_AT else f"{rec['count']}/{PROMOTE_AT}"
@@ -415,7 +642,8 @@ def reflect(produced, shipped, doc_id):
         print()
     ready = [k for k, v in obs["observations"].items() if v["count"] >= PROMOTE_AT]
     if ready:
-        print(f"\n  {len(ready)} span(s) at threshold. Run --promote to mint them.")
+        print(f"\n  {len(ready)} span(s) at threshold. Local scoring is already updated; "
+              "maintainers can review --promote before sharing them.")
     else:
         print(f"\n  nothing at threshold yet. Patterns need {PROMOTE_AT} "
               f"independent documents.")
@@ -423,6 +651,11 @@ def reflect(produced, shipped, doc_id):
 
 
 def promote(apply_, cat, weight):
+    with learning_lock():
+        return _promote_unlocked(apply_, cat, weight)
+
+
+def _promote_unlocked(apply_, cat, weight):
     """Mint patterns from observations that cleared recurrence, novelty and safety."""
     obs = load(OBS, {"observations": {}})
     base, learned = load(DATA / "patterns.json"), load(DATA / "learned.json")
@@ -496,12 +729,22 @@ def promote(apply_, cat, weight):
                       # put the author's own sentence into a tracked file while
                       # --export printed "no source text is included".
                       "digest": hashlib.sha256(key.encode()).hexdigest()[:12]})
-        rec["promoted"] = today
     learned.setdefault("patterns", []).extend(added)
     for w, r in lex_safe:
         # half the pattern start-weight: a single word convicts far more
         # text than a phrase, so it enters quieter and earns weight back
         learned.setdefault("riders", {})[w] = round(START_WEIGHT / 2, 2)
+
+    failures = shared_regression(learned)
+    if failures:
+        print("\n  REJECTED: the combined update convicts certified human writing:")
+        for failure in failures:
+            print(f"    {failure['file']} scored {failure['score']}")
+        return 1
+
+    for _, rec, _, _ in eligible:
+        rec["promoted"] = today
+    for _, r in lex_safe:
         r["promoted"] = today
     write_json(DATA / "learned.json", learned)
     write_json(OBS, obs)
@@ -523,6 +766,11 @@ def promote(apply_, cat, weight):
 
 
 def demote(apply_):
+    with learning_lock():
+        return _demote_unlocked(apply_)
+
+
+def _demote_unlocked(apply_):
     """Act on false-positive evidence: lower the weight of patterns humans overrule.
 
     A pattern that repeatedly convicts text writers then publish unchanged is
@@ -642,6 +890,11 @@ def export(out, yes):
 
 
 def merge(path, apply_, cat, weight):
+    with learning_lock():
+        return _merge_unlocked(path, apply_, cat, weight)
+
+
+def _merge_unlocked(path, apply_, cat, weight):
     """Maintainer side: fold a reviewed contribution into the shared taxonomy.
 
     Contributions are untrusted input. Every span is re-gated locally against
@@ -649,6 +902,9 @@ def merge(path, apply_, cat, weight):
     contributor's corpus may be older, smaller, or edited.
     """
     c = load(path)
+    if not isinstance(c, dict):
+        print("merge: contribution must be a JSON object")
+        return 1
     if c.get("schema") != 1:
         print(f"merge: unrecognised contribution schema {c.get('schema')!r}")
         return 1
@@ -658,7 +914,11 @@ def merge(path, apply_, cat, weight):
     pats = base["patterns"] + learned.get("patterns", [])
 
     accept, reject = [], []
-    for s in c.get("spans", []):
+    spans = c.get("spans", [])
+    if not isinstance(spans, list):
+        print("merge: spans must be a JSON array")
+        return 1
+    for s in spans:
         if not isinstance(s, dict) or not isinstance(s.get("span"), str):
             reject.append((str(s)[:40], "malformed entry")); continue
         # Never trust a contributed regex: rebuild it from the span locally, so
@@ -683,7 +943,14 @@ def merge(path, apply_, cat, weight):
         print(f"  reject  {span[:44]!r}  {why}")
     for s in accept:
         print(f"  accept  {s['span'][:44]!r}  seen in {s['documents']} documents")
-    for fp in c.get("false_positives", []):
+    false_positives = c.get("false_positives", [])
+    if not isinstance(false_positives, list):
+        false_positives = []
+    for fp in false_positives:
+        if (not isinstance(fp, dict)
+                or not isinstance(fp.get("pattern"), str)
+                or not isinstance(fp.get("kept_in_documents"), int)):
+            continue
         print(f"  note    writers kept text flagged by {fp['pattern']!r} "
               f"in {fp['kept_in_documents']} documents")
     if not accept or not apply_:
@@ -703,6 +970,12 @@ def merge(path, apply_, cat, weight):
                       "source": "contributed", "seen_in_docs": s["documents"],
                       "digest": hashlib.sha256(s["span"].encode()).hexdigest()[:12]})
     learned.setdefault("patterns", []).extend(added)
+    failures = shared_regression(learned)
+    if failures:
+        print("\n  REJECTED: the combined update convicts certified human writing:")
+        for failure in failures:
+            print(f"    {failure['file']} scored {failure['score']}")
+        return 1
     write_json(DATA / "learned.json", learned)
     with LOG.open("a") as fh:
         fh.write(f"\n- {today} — Merged a reflect-loop contribution: "
@@ -714,6 +987,11 @@ def merge(path, apply_, cat, weight):
 
 
 def confirm(target):
+    with learning_lock():
+        return _confirm_unlocked(target)
+
+
+def _confirm_unlocked(target):
     """Re-earn weight. Patterns that keep firing stay; the rest decay out."""
     p = DATA / "learned.json"
     d = load(p)
@@ -737,6 +1015,11 @@ def confirm(target):
 
 
 def build_voice(name, sample_path):
+    with learning_lock():
+        return _build_voice_unlocked(name, sample_path)
+
+
+def _build_voice_unlocked(name, sample_path):
     """Derive a personal profile from a sample of the author's real writing.
 
     Any lexicon or rider term the author uses in their own known-human writing

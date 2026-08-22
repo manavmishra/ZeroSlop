@@ -23,9 +23,10 @@ Usage (runnable from any cwd; data resolves relative to this script):
                                            # register is native there; gate on
                                            # tell density instead)
 
-Pattern/lexicon data lives beside this script in ../data/patterns.json and
-../data/learned.json (same schema; learned merges over base — this is the
-continuous-learning hook). Editing data files requires no code change.
+Pattern and lexicon data lives beside this script in ../data/patterns.json and
+../data/learned.json. Private, evidence-gated adaptations live in
+$ZERO_SLOP_HOME/adaptive.json. Each layer uses the same schema and merges over
+the one before it, so new evidence changes the next score without a code change.
 """
 import json
 import math
@@ -43,40 +44,68 @@ import os
 HOME = Path(os.environ.get("ZERO_SLOP_HOME", Path.home() / ".zero-slop")).expanduser()
 
 
+def merge_pattern_data(base, layer, allow_name_overrides=False):
+    """Merge one reviewed or private layer into a loaded taxonomy.
+
+    Shared learned patterns append and cannot shadow the auditable base
+    taxonomy. The private adaptive layer may override by name because a local
+    false-positive correction must lower a base rule without editing the repo.
+    Exact duplicate regexes are collapsed after all layers load, which prevents
+    a private rule from being counted twice after the same evidence is accepted
+    into the shared layer. Malformed entries are ignored individually.
+    """
+    if not isinstance(layer, dict):
+        return base
+    by_name = {q["name"]: q for q in base.get("patterns", [])
+               if isinstance(q, dict) and isinstance(q.get("name"), str)}
+    order = list(by_name)
+    for q in layer.get("patterns", []):
+        if not isinstance(q, dict) or not isinstance(q.get("name"), str):
+            continue
+        if q["name"] in by_name and not allow_name_overrides:
+            continue
+        if q["name"] not in by_name:
+            order.append(q["name"])
+        by_name[q["name"]] = q
+    base["patterns"] = [by_name[name] for name in order]
+    if isinstance(layer.get("lexicon"), dict):
+        base.setdefault("lexicon", {}).update(layer["lexicon"])
+    if isinstance(layer.get("riders"), dict):
+        base.setdefault("riders", {}).update(layer["riders"])
+    return base
+
+
 def load_patterns(voice=None):
     base = json.loads((DATA_DIR / "patterns.json").read_text())
-    learned_path = DATA_DIR / "learned.json"
-    if learned_path.exists():
+    layers = ((DATA_DIR / "learned.json", False),
+              (HOME / "adaptive.json", True))
+    for path, allow_name_overrides in layers:
+        if not path.exists():
+            continue
         try:
-            learned = json.loads(learned_path.read_text())
-            # Last-wins by name. Appending made --demote do the opposite of
-            # its name: a softened copy joined the original instead of
-            # replacing it, so halving a weight of 4 produced an effective 6.
-            _by = {q["name"]: q for q in base["patterns"]}
-            _order = [q["name"] for q in base["patterns"]]
-            for q in learned.get("patterns", []):
-                if q["name"] not in _by:
-                    _order.append(q["name"])
-                _by[q["name"]] = q
-            base["patterns"] = [_by[n] for n in _order]
-            base["lexicon"].update(learned.get("lexicon", {}))
-            # riders too: the reflect loop promotes single words as riders, and
-            # for a while it wrote them somewhere nothing ever read.
-            base.setdefault("riders", {}).update(learned.get("riders", {}))
-            # Drop entries whose regex will not compile. SECURITY.md promises a
-            # malformed learned file degrades to base patterns; that was only
-            # true for JSON errors — one bad `rx` raised re.error at scan time
-            # and took the scorer down with it.
-            good = []
-            for q in base["patterns"]:
-                try:
-                    re.compile(q["rx"])
-                    good.append(q)
-                except (re.error, KeyError, TypeError):
-                    pass
-            base["patterns"] = good
-        except Exception:
-            pass  # a malformed learned file must never break scoring
+            merge_pattern_data(base, json.loads(path.read_text()),
+                               allow_name_overrides=allow_name_overrides)
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError, TypeError):
+            continue
+
+    good = []
+    for q in base.get("patterns", []):
+        try:
+            re.compile(q["rx"])
+            good.append(q)
+        except (re.error, KeyError, TypeError):
+            pass
+    # Keep the latest layer's copy of an exact regex. This is separate from
+    # name-based overrides because reviewed contributions use a different name
+    # from the private rule they supersede.
+    seen_rx = set()
+    deduped = []
+    for q in reversed(good):
+        if q["rx"] in seen_rx:
+            continue
+        seen_rx.add(q["rx"])
+        deduped.append(q)
+    base["patterns"] = list(reversed(deduped))
     if voice:
         _apply_voice(base, voice)
     return base
@@ -722,12 +751,9 @@ def fidelity(before, after):
             "interior": new_interior}
 
 
-# The shared rewrite-quality objective. One definition of "a better rewrite",
-# used in two places: scripts/rerank.py picks the best of N candidates by it, and
-# bench/skillopt/reward.py tunes SKILL.md against it — so selecting a draft and
-# improving the instructions optimise the same thing. Fidelity is reported
-# alongside, never folded in, so a candidate can never win by dropping or
-# inventing a fact however clean it reads.
+# The shared rewrite-quality objective used by scripts/rerank.py to pick the
+# best of N candidates. Fidelity is reported alongside, never folded in, so a
+# candidate can never win by dropping or inventing a fact however clean it reads.
 RW_GATE = {"email": 35, "research": 40, "professional": 40}
 RW_GATE_DEFAULT = 25
 RW_FORMAL = {"research", "professional"}

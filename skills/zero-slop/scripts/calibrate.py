@@ -26,8 +26,10 @@ Provenance: every weight written carries `first_seen`, `last_confirmed`, and
 """
 import json
 import math
+import os
 import re
 import sys
+import tempfile
 from collections import Counter
 from datetime import date
 from pathlib import Path
@@ -37,6 +39,25 @@ WORD = re.compile(r"[a-z’']+")
 MIN_OBS = 5          # a term needs this many AI-side occurrences to earn a weight
 MAX_WEIGHT = 6.0     # cap so no single word can convict alone
 DECAY_MONTHS = 18    # unconfirmed patterns lose half their weight after this
+
+
+def write_json(path, obj):
+    """Atomically replace a calibration artifact."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp",
+                                    dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(json.dumps(obj, indent=1) + "\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_name, path)
+    finally:
+        try:
+            Path(tmp_name).unlink()
+        except FileNotFoundError:
+            pass
 
 
 def read_corpus(d):
@@ -151,7 +172,7 @@ def decay():
             pat["w"] = round(pat["w"] / 2, 2)
             pat["decayed"] = str(today)
             changed += 1
-    p.write_text(json.dumps(d, indent=1))
+    write_json(p, d)
     print(f"decayed {changed} pattern(s) unconfirmed for over {DECAY_MONTHS} months")
     return 0
 
@@ -172,6 +193,10 @@ def main():
     for t, v in sorted(weights.items(), key=lambda kv: -kv[1]["w"])[:25]:
         print(f"  {v['w']:4.1f}  {t:18s} {v['ratio']:6.1f}x  n={v['n_obs']}")
     out = Path(a[a.index("--out") + 1]) if "--out" in a else DATA / "calibrated.json"
+    if out.resolve() == (DATA / "learned.json").resolve():
+        print("refusing to overwrite data/learned.json directly; write a calibration "
+              "proposal, review it, and merge it after --selftest passes")
+        sys.exit(2)
     today = str(date.today())
     payload = {"_comment": "Weights derived from corpus excess frequency by "
                            "calibrate.py. Merge into learned.json after "
@@ -180,7 +205,7 @@ def main():
                "lexicon": {t: v["w"] for t, v in weights.items()},
                "provenance": {t: dict(v, first_seen=today, last_confirmed=today)
                               for t, v in weights.items()}}
-    out.write_text(json.dumps(payload, indent=1))
+    write_json(out, payload)
     print(f"\nwrote {out}")
     print("next: review, merge the lexicon into data/learned.json, then run "
           "`python3 calibrate.py --selftest` before shipping")

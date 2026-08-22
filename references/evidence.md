@@ -158,21 +158,24 @@ what readers detect. It tracks the register those authors are editing away
 from, which is the target, but it is a convenience sample and no substitute for
 the frequency work in `calibrate.py` against a real corpus.
 
-## Two learning axes: the meter and the instructions
+## Two learning loops: private adaptation and shared review
 
-The reflect loop tunes the *detector* — which spans the meter should catch. It
-leaves the other half alone: the rewrite *instructions* in SKILL.md, which decide
-how a flagged draft is repaired. Those are optimizable too, by the same
-discipline. Microsoft's SkillOpt treats a skill's markdown as trainable text,
-runs it on a task set, scores each rewrite, and keeps an edit only when a
-held-out validation score strictly improves. Zero Slop supplies the reward that
-makes this safe for de-slopping: fidelity is a separate hard signal, so an edit
-that de-slops harder by dropping or inventing a fact cannot win, however clean it
-reads. The harness is in `bench/skillopt/`; like the reflect loop it is
-validation-gated, and like every learning path here it is barred from raising a
-score by loosening a rule that matters.
+The private loop adapts the detector on the writer's machine. `--reflect`
+records both sides of the publish decision: spans the writer removed and
+flagged spans the writer kept. Nothing changes after one document. Once three
+independent documents corroborate a phrase or false positive, the local rule
+is updated atomically, and the next score loads it from
+`~/.zero-slop/adaptive.json`. New single-word riders require five documents
+because one word has a wider blast radius than a phrase.
 
-Source: <https://github.com/microsoft/SkillOpt>
+The shared loop is deliberately slower. Only corroborated evidence is
+exportable, the complete payload is shown before it is written, and source
+text, filenames, authors, and precise dates stay private. A maintainer reviews
+the contribution, rebuilds every regex locally, reruns novelty and overlap
+checks, and tests the combined taxonomy against the certified human-writing
+corpus. The merge is a dry run unless `--apply` is explicit. This separation
+lets a local detector respond to its writers without turning any one team's
+habits into a global rule.
 
 ## Practitioner corroboration: Kagi SlopStop
 

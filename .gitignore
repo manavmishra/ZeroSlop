@@ -12,3 +12,17 @@ reflections.json
 # built single-skill zip — a release artifact, never in the source tree
 # (otherwise the repo download contains a nested zip)
 dist/zero-slop.zip
+
+# Local website/build workspaces are kept separate from the portable skill.
+/ZSWebpage/
+/.next/
+/.quality/
+/.vinext/
+/.vite/
+/.wrangler/
+/dist/.openai/
+/dist/client/
+/dist/server/
+/node_modules/
+/tmp/
+/next-env.d.ts

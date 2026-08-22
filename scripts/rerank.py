@@ -5,8 +5,7 @@ A single rewrite is one sample from the model. Two or three, written with differ
 strategies (strip hard vs. keep the warmth, reorder vs. stay put), give the loop
 something to choose between — and the choice should be made by the meter, not by the
 same taste that wrote them. This ranks candidates for one draft and returns the
-winner, using the shared rewrite objective in slopscore (`rewrite_score`), the same
-one the SkillOpt reward tunes toward.
+winner, using the shared rewrite objective in slopscore (`rewrite_score`).
 
 The order is not negotiable on fidelity. A candidate that invents a fact loses to any
 candidate that does not, however much cleaner it reads, because inventing a detail is

@@ -49,6 +49,8 @@ are examples, not limits.
 - Run the validation used in CI before publishing:
   `python3 -c "import json; json.load(open('data/patterns.json'))"` and the
   scorer smoke test in `.github/workflows/validate.yml`.
-- Security posture in `SECURITY.md` is a contract: no network calls, no
-  subprocess, no eval, no writes outside `data/` learning files. Do not add
-  code that violates it.
+- Security posture in `SECURITY.md` is a contract: draft-handling code stays
+  offline, private learning stays under `$ZERO_SLOP_HOME`, shared taxonomy
+  writes require explicit review and regression gates, and no runtime path uses
+  eval or pickle. The optional version check is the only network path and sends
+  no draft content. Do not add code that violates these boundaries.
