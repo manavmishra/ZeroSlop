@@ -64,6 +64,12 @@ test("renders the Zero Slop landing page and its primary journey", async () => {
   assert.match(html, />Before</i);
   assert.match(html, />After</i);
   assert.match(html, /Context comes before a score./i);
+  assert.match(html, /The meter is only one layer\./i);
+  assert.match(html, /Deterministic measurement/i);
+  assert.match(html, /Contextual AI editing/i);
+  assert.match(html, /Final verification/i);
+  assert.match(html, /This does not retrain the host model\./i);
+  assert.doesNotMatch(html, /The score has four inputs\./i);
   assert.doesNotMatch(html, /accuse slowly|confession|clusters convict/i);
   assert.doesNotMatch(html, /codex-preview|SkeletonPreview|react-loading-skeleton/i);
 });

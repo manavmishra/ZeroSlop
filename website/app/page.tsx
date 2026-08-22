@@ -266,52 +266,99 @@ export default function Home() {
           aria-labelledby="method-title"
         >
           <div className="section-heading">
-            <h2 id="method-title">The score has four inputs.</h2>
+            <h2 id="method-title">The meter is only one layer.</h2>
             <p>
-              Swapping synonyms cannot fix the structure of a draft. Zero Slop
-              checks both its language and its shape.
+              Zero Slop pairs traceable local checks with the language model
+              already running in your agent. The meter finds evidence. The model
+              interprets the draft and edits it.
             </p>
           </div>
 
-          <div className="method-grid">
-            <article className="method-feature">
-              <p className="method-name">Pattern meter</p>
-              <h3>It points to the exact phrase.</h3>
+          <div
+            className="system-map"
+            aria-label="Zero Slop implementation layers"
+          >
+            <article className="system-layer meter-layer">
+              <div className="system-layer-heading">
+                <p className="method-name">Deterministic measurement</p>
+                <span>Local Python</span>
+              </div>
+              <h3>Find traceable surface evidence.</h3>
               <p>
-                The scorer checks 267 tell patterns, a 96-term watchlist, and
-                context-sensitive terms. Those terms count only when the
-                surrounding sentence makes them suspicious.
+                The scorer checks 267 weighted patterns. Separate channels
+                measure rhythm, density, formatting, and register. The result
+                includes quoted spans and document statistics, not an authorship
+                probability.
               </p>
-              <div className="signal-sample" aria-label="Example pattern finding">
-                <span>weighted tell</span>
-                <mark>generic sales phrase</mark>
+              <div className="meter-output" aria-label="Example local scorer output">
+                <span>surface evidence</span>
+                <strong>quoted phrase</strong>
+                <span>sentence statistics</span>
               </div>
             </article>
 
-            <article className="method-card rhythm-card">
-              <p className="method-name">Rhythm</p>
-              <h3>Sentence length should breathe.</h3>
-              <div className="rhythm-bars" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
+            <div className="system-connector" aria-hidden="true">
+              <span>guides</span>
+              <b>→</b>
+            </div>
+
+            <article className="system-layer agent-layer">
+              <div className="system-layer-heading">
+                <p className="method-name">Contextual AI editing</p>
+                <span>Host model</span>
               </div>
+              <h3>Interpret the draft before changing it.</h3>
+              <p>
+                Claude, GPT, or another host model evaluates substance, claims,
+                structure, audience, and voice. It rewrites and copy-edits the
+                draft, then reads it aloud and fixes its flow.
+              </p>
+              <ul className="agent-checks">
+                <li>Meaning and factual scope</li>
+                <li>Structure and audience</li>
+                <li>Voice and spoken flow</li>
+              </ul>
             </article>
 
-            <article className="method-card reading-card">
-              <p className="method-name">Readability</p>
-              <h3>It unpacks dense prose.</h3>
-              <p>The scorer flags comma pileups, clusters of long words, and sentences of 38 words or more.</p>
+            <div className="system-connector" aria-hidden="true">
+              <span>checks</span>
+              <b>→</b>
+            </div>
+
+            <article className="system-layer gate-layer">
+              <div className="system-layer-heading">
+                <p className="method-name">Final verification</p>
+                <span>Scripts + model</span>
+              </div>
+              <h3>Check the exact text you receive.</h3>
+              <p>
+                Scripts recheck the score, figures, names, quotations, and links.
+                The model rechecks meaning, qualifiers, voice, format, and flow.
+                Any change to the text sends it through both editorial passes
+                and every final check again.
+              </p>
             </article>
 
-            <article className="method-card format-card">
-              <p className="method-name">Formatting</p>
-              <h3>Formatting has tells too.</h3>
-              <p>Emoji, hashtag clusters, heavy bolding, and repeated em dashes count when they form a pattern.</p>
-            </article>
+            <aside className="learning-return">
+              <div>
+                <p className="method-name">Private feedback loop</p>
+                <h3>Published edits can improve the next run.</h3>
+                <p>
+                  Human edits can adjust local detector weights and save preferred
+                  fixes only after the evidence passes recurrence, novelty, and
+                  known-human safety checks. This does not retrain the host model.
+                </p>
+              </div>
+              <div className="learning-path" aria-label="Private learning path">
+                <span>Published edit</span>
+                <b aria-hidden="true">→</b>
+                <span>Evidence checks</span>
+                <b aria-hidden="true">→</b>
+                <span>Private overlay</span>
+                <b aria-hidden="true">→</b>
+                <span>Next draft</span>
+              </div>
+            </aside>
           </div>
         </section>
 
