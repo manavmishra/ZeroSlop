@@ -28,7 +28,7 @@ Lower is better. Good human writing lands between 9 and 21, and the raw AI draft
 tested average 77. Read the list of flagged phrases first; the number is just
 the summary.
 
-## Who it is for
+## Who is Zero Slop  for
 
 Anyone who creates content and would rather not sound like a robot. A
 founder shipping a launch post. A marketer with five posts due this week. A researcher
@@ -36,7 +36,7 @@ whose paper needs to stay formal, not get "humanized" into mush. An engineering 
 that wants slop to fail a check the way a bug does. If AI helps you write and you
 want the result to still sound like you, this is for you.
 
-## Why it matters now
+## Why Zero Slop matters now
 
 For a while, sounding like AI just cost you a little credibility with the people who
 noticed. That changed fast. In two weeks across late July and August 2026, four
@@ -123,7 +123,7 @@ No install, no account, no server. A single standard-library Python file does th
 scoring, and your writing never leaves your machine. If Python isn't there, the skill
 still runs from its written rules — you only lose the number.
 
-## How it decides
+## How it works
 
 The first thing Zero Slop does is **measure**. It reads your draft through several
 independent channels and turns them into one score from 0 to 100 — and every point of
@@ -132,14 +132,14 @@ box you have to trust. Slop is not one thing, so only one channel looks at your 
 words; the rest read the *shape* of the writing, which is why running a draft through a
 thesaurus barely moves the score.
 
-| what it looks at | what gives you away |
+| what ZS looks at | what are some of the Slop identifiers |
 |---|---|
 | word choice | 266 known tell-phrases, a 96-word watchlist, and 25 words that only count in a salesy sentence |
 | rhythm | sentences that are all the same length, paragraphs that march in step |
 | readability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
 | formatting | too many em-dashes, emoji, hashtags, bold everywhere |
 
-The scorer is built to accuse slowly. A single em-dash is not slop, and plenty of fine
+The scorer is built to be practical ib how  slowly. A single em-dash is not slop, and plenty of fine
 writing leans on it, so a habit like that carries weight only when the word choice
 agrees. Clusters convict; lone signals do not.
 
