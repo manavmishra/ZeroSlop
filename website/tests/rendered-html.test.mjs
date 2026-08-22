@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import test from "node:test";
+import { gzipSync } from "node:zlib";
 
 const projectRoot = new URL("../", import.meta.url);
 
@@ -31,7 +32,7 @@ test("renders the Zero Slop landing page and its primary journey", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Zero Slop \| Remove the AI accent from your writing<\/title>/i);
+  assert.match(html, /<title>Zero Slop: AI Writing Humanizer &amp; Anti-Slop Checker<\/title>/i);
   assert.match(html, /Make AI writing sound like you\./);
   assert.match(html, /Score the slop\. Keep the meaning\./);
   assert.match(html, /npx(?:<!-- -->)? skills(?:<!-- -->)? add/i);
@@ -70,11 +71,45 @@ test("ships complete search, answer-engine, and social metadata", async () => {
   assert.match(html, /<link rel="canonical" href="https:\/\/zero-slop\.ai\/?"/i);
   assert.match(html, /<meta property="og:title"/i);
   assert.match(html, /<meta property="og:description"/i);
-  assert.match(html, /<meta property="og:image" content="https:\/\/zero-slop\.ai\/og\.png"/i);
+  assert.match(html, /<meta property="og:url" content="https:\/\/zero-slop\.ai\/?"/i);
+  assert.match(html, /<meta property="og:site_name" content="Zero Slop"/i);
+  assert.match(html, /<meta property="og:image" content="https:\/\/zero-slop\.ai\/og\.jpg"/i);
+  assert.match(html, /<meta property="og:image:type" content="image\/jpeg"/i);
+  assert.match(html, /<meta property="og:image:width" content="1200"/i);
+  assert.match(html, /<meta property="og:image:height" content="630"/i);
   assert.match(html, /<meta name="twitter:card" content="summary_large_image"/i);
+  assert.match(html, /<meta name="twitter:title"/i);
+  assert.match(html, /<meta name="twitter:description"/i);
+  assert.match(html, /<meta name="twitter:image" content="https:\/\/zero-slop\.ai\/og\.jpg"/i);
   assert.match(html, /"@type":"SoftwareApplication"/i);
   assert.match(html, /"@type":"FAQPage"/i);
+  assert.match(html, /"@type":"WebSite"/i);
+  assert.match(html, /"@type":"Organization"/i);
+  assert.match(html, /"@type":"HowTo"/i);
   assert.match(html, /"isAccessibleForFree":true/i);
+});
+
+test("keeps the launch payload within a fast mobile budget", async () => {
+  const cssDirectory = new URL("dist/static/_next/static/css/", projectRoot);
+  const [html, cssNames, heroImage, socialImage] = await Promise.all([
+    readFile(new URL("dist/static/index.html", projectRoot), "utf8"),
+    readdir(cssDirectory),
+    stat(new URL("public/demo-384.avif", projectRoot)),
+    stat(new URL("public/og.jpg", projectRoot)),
+  ]);
+
+  const cssBuffers = await Promise.all(
+    cssNames.filter((name) => name.endsWith(".css")).map((name) => readFile(new URL(name, cssDirectory))),
+  );
+  const compressedCssBytes = cssBuffers.reduce((total, buffer) => total + gzipSync(buffer).byteLength, 0);
+
+  assert.doesNotMatch(html, /<script[^>]+src=/i);
+  assert.doesNotMatch(html, /rel="modulepreload"/i);
+  assert.match(html, /data-zero-slop-ui/);
+  assert.ok(gzipSync(html).byteLength <= 30_000, `compressed HTML budget exceeded: ${gzipSync(html).byteLength} bytes`);
+  assert.ok(compressedCssBytes <= 8_000, `compressed CSS budget exceeded: ${compressedCssBytes} bytes`);
+  assert.ok(heroImage.size <= 16_000, `mobile hero image is too large: ${heroImage.size} bytes`);
+  assert.ok(socialImage.size <= 500_000, `social preview is too large: ${socialImage.size} bytes`);
 });
 
 test("keeps the final UI accessible, responsive, and free of template residue", async () => {

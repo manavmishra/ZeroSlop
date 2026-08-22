@@ -1,5 +1,3 @@
-@import "tailwindcss";
-
 :root {
   color-scheme: light dark;
   --canvas: #f3f4ef;
@@ -10,8 +8,8 @@
   --soft: #7b847d;
   --line: #d5dad3;
   --line-strong: #b9c1ba;
-  --accent: #0c7c59;
-  --accent-hover: #096a4c;
+  --accent: #087052;
+  --accent-hover: #075e45;
   --accent-soft: #dceee5;
   --accent-ink: #f5fff9;
   --mark: #e8e66d;
@@ -296,6 +294,7 @@ h1 {
   gap: clamp(0.8rem, 2vw, 1.5rem);
   background: var(--workbench-panel);
 }
+.example-panel[hidden] { display: none; }
 .example-pane { min-width: 0; display: flex; flex-direction: column; }
 .example-pane > header {
   min-height: 3.25rem;

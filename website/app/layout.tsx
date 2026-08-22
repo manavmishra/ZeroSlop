@@ -12,9 +12,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const title = "Zero Slop | Remove the AI accent from your writing";
+const title = "Zero Slop: AI Writing Humanizer & Anti-Slop Checker";
 const description =
-  "Zero Slop is an open-source AI writing humanizer and anti-slop checker that scores machine-like writing patterns, rewrites drafts, and verifies factual fidelity.";
+  "Score and rewrite AI-sounding prose without losing facts. Zero Slop is a free, open-source humanizer with local scoring and fidelity checks.";
+const socialTitle = "Zero Slop: Remove the AI accent. Keep every fact.";
+const socialDescription =
+  "A free, open-source writing tool that scores AI-like patterns, rewrites the draft, and checks figures, names, quotes, and links.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zero-slop.ai"),
@@ -30,6 +33,12 @@ export const metadata: Metadata = {
     "Zero Slop",
   ],
   applicationName: "Zero Slop",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   authors: [{ name: "Zero Slop contributors", url: "https://github.com/manavmishra/ZeroSlop" }],
   creator: "Zero Slop contributors",
   publisher: "Zero Slop",
@@ -48,24 +57,26 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    locale: "en_US",
     url: "/",
     siteName: "Zero Slop",
-    title,
-    description,
+    title: socialTitle,
+    description: socialDescription,
     images: [
       {
-        url: "/og.png",
-        width: 1731,
-        height: 909,
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        type: "image/jpeg",
         alt: "Zero Slop. Make AI writing sound like you.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title,
-    description,
-    images: ["/og.png"],
+    title: socialTitle,
+    description: socialDescription,
+    images: ["/og.jpg"],
   },
   icons: {
     icon: "/favicon.svg",
@@ -90,6 +101,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="preload"
+          as="image"
+          href="/demo-384.avif"
+          type="image/avif"
+          media="(max-width: 767px)"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/demo.avif"
+          type="image/avif"
+          media="(min-width: 768px)"
+          fetchPriority="high"
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>

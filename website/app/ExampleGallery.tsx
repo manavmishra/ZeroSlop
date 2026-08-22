@@ -1,7 +1,3 @@
-"use client";
-
-import { useRef, useState, type KeyboardEvent } from "react";
-
 type SampleCopy = {
   title?: string;
   paragraphs?: string[];
@@ -125,6 +121,38 @@ const examples: Example[] = [
   },
 ];
 
+const galleryScript = String.raw`(() => {
+  const root = document.currentScript?.closest("[data-example-gallery]");
+  if (!root || root.dataset.ready === "true") return;
+  root.dataset.ready = "true";
+  const tabs = [...root.querySelectorAll('[role="tab"]')];
+  const panels = [...root.querySelectorAll('[role="tabpanel"]')];
+  const activate = (index, moveFocus = false) => {
+    tabs.forEach((tab, tabIndex) => {
+      const selected = tabIndex === index;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    });
+    panels.forEach((panel, panelIndex) => {
+      panel.hidden = panelIndex !== index;
+    });
+    if (moveFocus) tabs[index]?.focus();
+  };
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => activate(index));
+    tab.addEventListener("keydown", (event) => {
+      let nextIndex = index;
+      if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+      else if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      activate(nextIndex, true);
+    });
+  });
+})();`;
+
 function CopySurface({
   sample,
   example,
@@ -165,26 +193,8 @@ function CopySurface({
 }
 
 export function ExampleGallery() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const tabs = useRef<Array<HTMLButtonElement | null>>([]);
-  const active = examples[activeIndex];
-
-  function selectByKeyboard(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    let nextIndex = index;
-
-    if (event.key === "ArrowRight") nextIndex = (index + 1) % examples.length;
-    else if (event.key === "ArrowLeft") nextIndex = (index - 1 + examples.length) % examples.length;
-    else if (event.key === "Home") nextIndex = 0;
-    else if (event.key === "End") nextIndex = examples.length - 1;
-    else return;
-
-    event.preventDefault();
-    setActiveIndex(nextIndex);
-    tabs.current[nextIndex]?.focus();
-  }
-
   return (
-    <div className="example-workbench">
+    <div className="example-workbench" data-example-gallery>
       <div className="example-workbench-bar">
         <span>Sample rewrites</span>
         <span>lower is better</span>
@@ -196,15 +206,10 @@ export function ExampleGallery() {
             <button
               role="tab"
               aria-controls={`example-panel-${example.id}`}
-              aria-selected={activeIndex === index}
+              aria-selected={index === 0}
               id={`example-tab-${example.id}`}
               key={example.id}
-              onClick={() => setActiveIndex(index)}
-              onKeyDown={(event) => selectByKeyboard(event, index)}
-              ref={(node) => {
-                tabs.current[index] = node;
-              }}
-              tabIndex={activeIndex === index ? 0 : -1}
+              tabIndex={index === 0 ? 0 : -1}
               type="button"
             >
               <span aria-hidden="true">{example.format}</span>
@@ -214,46 +219,50 @@ export function ExampleGallery() {
         </div>
       </div>
 
-      <div
-        aria-labelledby={`example-tab-${active.id}`}
-        className="example-panel"
-        id={`example-panel-${active.id}`}
-        key={active.id}
-        role="tabpanel"
-        tabIndex={0}
-      >
-        <div className="example-pane">
-          <header>
-            <span>Before</span>
-            <span className="sample-score sample-score-before">
-              <strong>{active.beforeScore}</strong>
-              <span>/100</span>
-            </span>
-          </header>
-          <CopySurface sample={active.before} example={active} side="before" />
-        </div>
+      {examples.map((example, index) => (
+        <div
+          aria-labelledby={`example-tab-${example.id}`}
+          className="example-panel"
+          hidden={index !== 0}
+          id={`example-panel-${example.id}`}
+          key={example.id}
+          role="tabpanel"
+          tabIndex={0}
+        >
+          <div className="example-pane">
+            <header>
+              <span>Before</span>
+              <span className="sample-score sample-score-before">
+                <strong>{example.beforeScore}</strong>
+                <span>/100</span>
+              </span>
+            </header>
+            <CopySurface sample={example.before} example={example} side="before" />
+          </div>
 
-        <div className="rewrite-mark" aria-hidden="true">
-          <span />
-          <b>to</b>
-          <span />
-        </div>
+          <div className="rewrite-mark" aria-hidden="true">
+            <span />
+            <b>to</b>
+            <span />
+          </div>
 
-        <div className="example-pane">
-          <header>
-            <span>After</span>
-            <span className="sample-score sample-score-after">
-              <strong>{active.afterScore}</strong>
-              <span>/100</span>
-            </span>
-          </header>
-          <CopySurface sample={active.after} example={active} side="after" />
+          <div className="example-pane">
+            <header>
+              <span>After</span>
+              <span className="sample-score sample-score-after">
+                <strong>{example.afterScore}</strong>
+                <span>/100</span>
+              </span>
+            </header>
+            <CopySurface sample={example.after} example={example} side="after" />
+          </div>
         </div>
-      </div>
+      ))}
 
       <p className="example-note">
         The sample scores come from the open-source Zero Slop scorer. Each rewrite keeps the main claim from its draft.
       </p>
+      <script data-zero-slop-ui dangerouslySetInnerHTML={{ __html: galleryScript }} />
     </div>
   );
 }
