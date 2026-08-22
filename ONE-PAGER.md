@@ -81,20 +81,23 @@ retrain the host model. Shared changes still require review, tests, versioning, 
 release. Each session can check for a newer release with a metadata-only version query.
 That query never sends the draft.
 
-## Does it actually work
+## What we tested
 
-We ran it head to head against three of the four projects it builds on: 50 AI-heavy
-drafts across six kinds of writing. Judges reviewed the rewrites blind. Across 100
-picks, they chose the Zero Slop version most often, 55 to humanizer's 40; no-ai-slop
-received five and de-slop received none. The lead over humanizer was suggestive, not
-decisive. Zero Slop also separated obvious slop from known-human writing with no overlap
-in our test set. A separate 1,000-document test guards speed; CI fails if the batch
-takes longer than 60 seconds.
+We wrote 50 AI-heavy drafts and compared four rewrites of each. No human raters took
+part. The records identify the evaluators only as LLM runs from one model family. Each
+of the two passes used five separate runs. The method names were hidden; the model saw the
+brief, source draft, factual inventory, and four rewrites, then rated human-likeness,
+voice, fidelity, craft, and platform fit.
 
-The caveat matters: our accuracy numbers all come from test writing we created
-ourselves, so they show the tool agreeing with an obvious call, not that it will judge
-every draft reliably. A trustworthy estimate needs about a thousand hand-labeled
-samples, and building that set is next on the list.
+The results moved between passes. The model selected Zero Slop for 32 of 50 drafts in
+the first and 23 in the second; it selected blader/humanizer for 18 and 22. The pooled
+counts were 55 and 40, but the passes agreed on a winner for only 26 drafts, and the
+head-to-head difference was not statistically significant. The public harness also
+omits the exact model, settings, and full prompt. The results show that the two systems
+were competitive on our synthetic set, not that either is generally better. We also
+wrote the scorer's discrimination set, so it serves as a regression check rather than a
+real-world accuracy estimate. A 1,000-document speed check runs in CI and must finish
+within 60 seconds.
 
 ---
 

@@ -93,18 +93,19 @@ a { color: var(--accent); }
 <div class="sheet">
 <p class="eyebrow">Evaluation report · 2026-08-03</p>
 <h1>Zero Slop: what survived testing</h1>
-<p class="dek">Six methods, 50 drafts, two independent judging passes, an adversarial red-team, and a replication that broke the headline number. Everything below is measured, including the parts that went badly.</p>
+<p class="dek">Six methods, 50 drafts, two repeated LLM rating passes, an adversarial red-team, and a replication that broke the headline number. Everything below is measured, including the parts that went badly.</p>
 
 <div class="metrics">
   <div class="metric"><div class="v acc">55/100</div><div class="l">best-picks, pooled</div></div>
-  <div class="metric"><div class="v bad">0.12</div><div class="l">judge kappa</div></div>
+  <div class="metric"><div class="v bad">0.12</div><div class="l">LLM-pass kappa</div></div>
   <div class="metric"><div class="v good">9.5</div><div class="l">v1.2 detector score</div></div>
   <div class="metric"><div class="v good">6</div><div class="l">red-team holes closed</div></div>
 </div>
 
 <h2><span class="n">01</span>The finding that matters most</h2>
-<p>The first blind judging pass gave Zero Slop 32 of 50 best-picks. We then re-ran the identical pass — same rewrites, same shuffled labels, five fresh judges — and got 23 of 50. An eighteen-point swing on unchanged text.</p>
-<p>Cohen's kappa on the winner choice is <b>0.12</b>, with per-item agreement at 52 percent. Judges barely agree on which rewrite is best. That means every single-run headline in this product category, including the one we published first, is noise dressed as a result.</p>
+<p>No human raters took part. Each pass used five fresh LLM judge runs from the same model family, one for each ten-draft packet. The model saw the writing brief, source draft, factual inventory, and four rewrites behind shuffled labels. It rated human-likeness, voice, fidelity, craft, and platform fit, flagged fabrication, and selected the best and worst version.</p>
+<p>The first pass gave Zero Slop 32 of 50 best-picks. Repeating the pass with the same text and label mapping but fresh model runs produced 23 of 50. Cohen's kappa on the winner choice is <b>0.12</b>, with per-item agreement at 52 percent. The ratings are unstable enough that a single-pass result should not be treated as a ranking.</p>
+<p class="fine">The public harness preserves the packets, shuffle key, raw scores, and aggregation code. It does not preserve the exact judge model and version, inference settings, or full evaluation prompt, so the LLM ratings cannot be reproduced exactly.</p>
 <div class="callout">
 <p><b>What survives replication.</b> Pooled across 100 verdicts: Zero Slop 55, blader/humanizer 40, petergyang/no-ai-slop 5, isatimur/de-slop 0. Zero Slop wins the plurality against a 25 percent chance rate (p = 1.7 × 10<sup>-10</sup>). Against blader specifically it is <b>not statistically separable</b> (p = 0.15). The ranking order held in both runs; only the margin moved.</p>
 </div>
@@ -188,14 +189,14 @@ a { color: var(--accent); }
 </table>
 </div>
 
-<p><b>Read the word count column.</b> Every other method shrinks the draft: stop-slop by 27 percent, the stacked pipeline by 28. Zero Slop v1.2 lands at the original's exact length while removing every tell. That is the difference between replacing slop with substance and deleting until the tells are gone, and it is the one metric that separates editing from compression.</p>
+<p><b>Read the word count column.</b> Every other method shrinks the draft: stop-slop by 27 percent, the stacked pipeline by 28. Zero Slop v1.2 has the same mean length as the originals. That shows its lower detector score did not come from aggregate shortening; it does not, by itself, establish better substance.</p>
 
-<h2><span class="n">03</span>Where the judges disagreed with the meter</h2>
-<p>The most aggressive cutter removes the most surface tells and still finished last with judges: stop-slop scored 17.4 on the detector and took 27 worst-picks. Surface-clean and well-written are different properties, which is the entire argument for keeping a judgment pass alongside the meter.</p>
+<h2><span class="n">03</span>Where the LLM ratings disagreed with the meter</h2>
+<p>de-slop received 27 worst-picks in the first LLM pass even though it removed many surface tells. Surface cleanliness and writing quality are different measurements; neither the meter nor the model ratings should stand in for the other.</p>
 
 <figure>
-<figcaption>Figure 3 · Judge dimension means, run one</figcaption>
-<svg viewBox="0 0 640 658" role="img" aria-label="Judge dimension means, round one" class="chart">
+<figcaption>Figure 3 · LLM rating means, run one</figcaption>
+<svg viewBox="0 0 640 658" role="img" aria-label="LLM rating dimension means, round one" class="chart">
 <line x1="257.5" y1="24" x2="257.5" y2="624" class="grid"/>
 <text x="257.5" y="642" class="axis" text-anchor="middle">2</text>
 <line x1="365.0" y1="24" x2="365.0" y2="624" class="grid"/>
@@ -304,12 +305,12 @@ a { color: var(--accent); }
 
 <h2><span class="n">05</span>Takeaways</h2>
 <ul class="rules">
-<li><b>Publish the disagreement.</b> A benchmark that replicates itself and reports the swing is worth more than one that crowns its author. This is the only evaluation in the category that did.</li>
-<li><b>Trust computed metrics over judged ones.</b> Kappa 0.12 versus deterministic scores that never move. Use judges for direction, meters for magnitude.</li>
-<li><b>Length preservation is the honest signal.</b> Anyone can hit a low tell count by cutting. Hitting it at the original length is the harder and more useful result.</li>
-<li><b>Every tool in this category is under-tested.</b> None of the five alternatives ships an evaluation at all. The bar to clear is low; the bar worth setting is not.</li>
-<li><b>The failures taught more than the wins.</b> A fabricated feeling caught by two independent judges, a scorer that convicted Lincoln, an evasion the skill's own rules encouraged — each became a rule that now runs on every draft.</li>
+<li><b>Report the disagreement.</b> The same rewrites produced materially different best-pick counts in two LLM passes.</li>
+<li><b>Keep the measurements separate.</b> The meter is repeatable but narrow. The LLM ratings cover broader qualities but were unstable.</li>
+<li><b>Check for deletion.</b> Word count helps reveal a rewrite that lowers its tell count mainly by cutting, but preserved length does not prove preserved substance.</li>
+<li><b>Use a larger external corpus next.</b> Fifty synthetic drafts from the project author cannot support a general accuracy or quality claim.</li>
+<li><b>Turn failures into tests.</b> A fabricated feeling flagged in both LLM passes, a scorer that convicted Lincoln, and a scoring-evasion bug each led to a regression check.</li>
 </ul>
 
-<footer>Zero Slop evaluation · harness, corpus, judge packets and scripts ship in the repository · MIT</footer>
+<footer>Zero Slop evaluation · harness, corpus, LLM rating packets and scripts ship in the repository · MIT</footer>
 </div>

@@ -315,40 +315,53 @@ sends the draft.
 Online learning changes only private detection evidence, preferred fixes, and personal
 voice profiles. It does not rewrite `SKILL.md` or silently alter the shared skill.
 
-## Does it actually work
+## What the benchmark can and cannot show
 
-We ran it head to head against three of the four projects it builds on: 50 AI-heavy
-drafts across six kinds of writing, each rewritten by Zero Slop and those three tools,
-then scored by judges who could not see which tool produced which version. The fourth,
-stop-slop, appears in the detector comparison below but was not included in the blind
-judging packets. Treat this as a careful study rather than a verdict. We reproduced the
-competitors' outputs from their published prompts instead of running their live
-products, and only our rewrites were tuned against a scorecard, so the field is not
-perfectly level.
+This is a small, synthetic comparison, not proof that one tool is best. We wrote 50
+AI-heavy drafts across six kinds of writing and produced four rewrites of each: Zero
+Slop, blader/humanizer, petergyang/no-ai-slop, and isatimur/de-slop. We recreated the
+other projects' outputs from their published prompts instead of running their live
+products. Only the Zero Slop rewrites were tuned against this benchmark's scorecard.
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) appears in the
+detector chart below but was not part of the blinded comparison.
 
-Across 100 blind picks, judges preferred the Zero Slop version more often than any
-other.
+### Who did the judging
 
-![Best-picks, pooled over 100 blind verdicts: Zero Slop 55, blader 40, no-ai-slop 5, de-slop 0](assets/bench-bestpicks.png)
+No human raters took part. The benchmark records identify the evaluators only as LLM
+runs from one model family. Each of the two passes used five separate runs, one for each
+ten-draft packet. The model received the writing brief, source draft, factual inventory,
+and four rewrites labeled A through D. The method names were shuffled and hidden. It
+scored each rewrite from 1 to 10 for human-likeness, voice, fidelity, writing craft, and
+platform fit. It also flagged fabrication and selected the best and worst version. The
+second pass used the same text and label mapping but fresh model runs.
 
-The result is narrower than the bar looks. In the pooled count, Zero Slop led blader's
-humanizer 55 picks to 40 and clearly beat the other two. The two rounds told different
-stories, however: Zero Slop received 32 picks in the first and 23 in the second, while
-blader received 18 and 22. Winner agreement across rounds was 52% (Cohen's kappa 0.12),
-and the confidence intervals overlapped. Treat the pooled lead as suggestive, not
-decisive.
+The repository includes the packets, shuffle key, and resulting scores. It does not
+preserve the exact judge model and version, inference settings, or full evaluation
+prompt. That omission prevents an exact reproduction of the judging and limits what
+the result can support.
 
-A steadier measure is how much of the AI register each tool removes. This is scored by
-Zero Slop's own detector, so read it as register stripped, not an independent grade.
+The model selected Zero Slop as best for 32 of 50 drafts in the first pass and 23 in
+the second. It selected blader/humanizer for 18 and 22. Across both passes, the counts
+were 55 and 40, but the passes chose the same winner on only 26 of 50 drafts. Cohen's
+kappa was 0.12, the confidence intervals overlapped, and the head-to-head difference
+was not statistically significant (p = 0.15). These data show that the two systems were
+competitive in this setup. They do not establish a general winner.
+
+![Versions selected as best across two blinded LLM passes: Zero Slop 55, blader 40, no-ai-slop 5, de-slop 0](assets/bench-bestpicks.png)
+
+The second chart measures how much of the AI register each rewrite leaves behind. Zero
+Slop's own detector produces these numbers, so they are useful for checking the meter's
+target, not for independently grading Zero Slop against other tools.
 
 ![AI register remaining after de-slop, lower is cleaner: Zero Slop 9.8 versus 15.7 to 23.4 for others, from 69.0 for the raw drafts](assets/bench-detector.png)
 
-The last test is the one a writer should care about most: can the tool tell obvious
-slop from obvious human writing? Across LinkedIn, blogs, Reddit, newsletters, and short
-social posts it separated the two every time, with no overlap. We wrote both piles,
-though, so it shows the tool agreeing with an obvious call, not that it will judge every
-draft in the wild. A separate 1,000-document performance test guards speed; CI fails if
-the batch takes longer than 60 seconds.
+In a separate discrimination test across LinkedIn, blogs, Reddit, newsletters, and
+short social posts, the scorer separated the obvious-slop samples from the known-human
+samples without overlap. We wrote that test set ourselves. It is a regression check for
+easy cases, not an accuracy estimate for writing in the wild. A separate 1,000-document
+test guards speed; CI fails if the batch takes longer than 60 seconds. The full inputs,
+rewrites, anonymized packets, raw ratings, and analysis scripts are in the
+[benchmark harness](bench/).
 
 ## Built on good work
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replication analysis: does 32/50 hold when independent judges re-score
+"""Replication analysis: does 32/50 hold when fresh LLM judge runs re-score
 the identical rewrites with the identical shuffled labels?
 
 Reports run-to-run best-pick tallies, per-item agreement (how often the two
@@ -66,7 +66,7 @@ r1_picks, r1_dims, r1_fabs, n1 = load("")
 r2_picks, r2_dims, r2_fabs, n2 = load("rep2-")
 
 print("=" * 66)
-print("REPLICATION: same 50 rewrites, same shuffled labels, fresh judges")
+print("REPLICATION: same 50 rewrites and labels, fresh LLM judge runs")
 print("=" * 66)
 t1 = tally(r1_picks)
 print(f"\nRun 1 best-picks (n={n1}): {t1}")
