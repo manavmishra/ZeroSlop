@@ -495,7 +495,7 @@ Capability presence is not effectiveness proof. The blind review above remains t
 head-to-head result in this repository, and it found Zero Slop and blader/humanizer
 competitive in that setup (p = 0.15). The matrix below answers a narrower question:
 what each pinned repository documents and ships. We audited Zero Slop at
-[`2de02d1ee7c8`](https://github.com/manavmishra/ZeroSlop/tree/2de02d1ee7c80200af48f33f9ef92c0485b301e2),
+[`cc41ad688d99`](https://github.com/manavmishra/ZeroSlop/tree/cc41ad688d997f0c4a1d2970ce7f097d18fc3305),
 blader/humanizer at
 [`e2e92e7b4b82`](https://github.com/blader/humanizer/tree/e2e92e7b4b8229253ed5c8e81dc65463fdeddda5),
 and petergyang/no-ai-slop at
