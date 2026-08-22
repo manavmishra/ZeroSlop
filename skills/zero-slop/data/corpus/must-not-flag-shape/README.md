@@ -17,6 +17,6 @@ with a special case, because a metric that quietly excuses its failures is
 worse than one that names them.
 
 This costs little in practice. Shape is reported as its own axis and never
-folded into the AI-likelihood score, so a false positive costs the author one
+folded into the heuristic surface score, so a false positive costs the author one
 advisory line rather than a wrong verdict — and lyrics declared as a social
 post is a mis-declared genre to begin with.

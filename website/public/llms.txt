@@ -23,4 +23,4 @@ Zero Slop is not an authorship detector. It is an editorial quality tool. It mea
 
 ## Examples on the website
 
-The website includes before-and-after sample rewrites for a LinkedIn post, blog introduction, strategy document, X thread, and PowerPoint slide. The displayed likelihood scores come from the open-source Zero Slop scorer, and lower scores indicate fewer AI-like writing patterns.
+The website includes before-and-after sample rewrites for a LinkedIn post, blog introduction, strategy document, X thread, and PowerPoint slide. The displayed surface scores come from the open-source Zero Slop scorer. They are heuristic editorial measurements, not calibrated authorship probabilities; lower scores mean fewer tracked AI-like writing patterns.

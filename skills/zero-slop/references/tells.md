@@ -6,7 +6,7 @@ detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
 reader-reported tells. The scorer
 (`scripts/slopscore.py`) catches the lexically detectable ones; the rest need
-judgment. **Clusters convict, singles don't** — one "robust" in technical prose
+judgment. **Require corroboration** — one "robust" in technical prose
 is nothing; five tells in one paragraph is a verdict. Shared idioms humans
 still use ("elephant in the room") carry low weights for exactly that reason:
 alone they prove nothing, five in a page is the machine's idiom autopilot.

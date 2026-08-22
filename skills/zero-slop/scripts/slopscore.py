@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""slopscore — statistical AI-slop scorer for the zero-slop skill.
+"""slopscore — heuristic AI-slop surface scorer for the zero-slop skill.
 
-Computes an AI-likelihood score (0-100) for a piece of prose from measurable
+Computes a heuristic surface score (0-100) for a piece of prose from measurable
 features: pattern-tell density, lexical over-representation, rhythm uniformity
 (anti-burstiness), punctuation/formatting densities, and register signals.
 
@@ -41,42 +41,83 @@ SHAPE_SOLO_THRESHOLD = 0.62  # calibrated, see calibrate.py --shape
 # user's own writing. One file per author, git-ignored by construction.
 import os
 HOME = Path(os.environ.get("ZERO_SLOP_HOME", Path.home() / ".zero-slop")).expanduser()
+VOICE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
+
+
+def _voice_path(name):
+    """Resolve a profile name without letting it become a filesystem path."""
+    if not VOICE_NAME.fullmatch(name or "") or name in (".", ".."):
+        raise ValueError(
+            "voice name must be 1-64 letters, digits, dots, underscores, or hyphens"
+        )
+    root = (HOME / "voices").resolve()
+    path = (root / f"{name}.json").resolve()
+    try:
+        path.relative_to(root)
+    except ValueError as exc:  # defense in depth if the name rule changes
+        raise ValueError("voice profile resolves outside the voice directory") from exc
+    return path
+
+
+def _merge_learned(base, learned_path):
+    """Merge one validated layer; malformed entries never break scoring."""
+    if not learned_path.exists():
+        return
+    try:
+        learned = json.loads(learned_path.read_text())
+        if not isinstance(learned, dict):
+            raise ValueError("learned data must be an object")
+        raw_patterns = learned.get("patterns", [])
+        if not isinstance(raw_patterns, list):
+            raise ValueError("learned patterns must be a list")
+        valid_patterns = []
+        for q in raw_patterns:
+            if not isinstance(q, dict):
+                continue
+            name, rx, weight, category = (q.get("name"), q.get("rx"),
+                                          q.get("w"), q.get("cat"))
+            if (not isinstance(name, str) or not 1 <= len(name) <= 128
+                    or not isinstance(category, str) or not 1 <= len(category) <= 64
+                    or not isinstance(rx, str)
+                    or not isinstance(weight, (int, float))
+                    or isinstance(weight, bool)
+                    or not math.isfinite(weight) or not 0 <= weight <= 10
+                    or len(rx) > 2000
+                    or re.search(r"\\[1-9]|\(\?<*[=!]|\([^()]*[+*][^()]*\)[+*]", rx)):
+                continue
+            try:
+                re.compile(rx)
+            except re.error:
+                continue
+            valid_patterns.append(q)
+
+        # Later layers win by name. This is how a private false-positive update
+        # can lower one shared weight without editing the installed taxonomy.
+        by_name = {q["name"]: q for q in base["patterns"]}
+        order = [q["name"] for q in base["patterns"]]
+        for q in valid_patterns:
+            if q["name"] not in by_name:
+                order.append(q["name"])
+            by_name[q["name"]] = q
+        base["patterns"] = [by_name[name] for name in order]
+        for field in ("lexicon", "riders"):
+            raw = learned.get(field, {})
+            if not isinstance(raw, dict):
+                continue
+            clean = {term: weight for term, weight in raw.items()
+                     if isinstance(term, str) and 1 <= len(term) <= 80
+                     and isinstance(weight, (int, float))
+                     and not isinstance(weight, bool)
+                     and math.isfinite(weight) and 0 <= weight <= 10}
+            base.setdefault(field, {}).update(clean)
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError, ValueError, TypeError):
+        return
 
 
 def load_patterns(voice=None):
     base = json.loads((DATA_DIR / "patterns.json").read_text())
-    learned_path = DATA_DIR / "learned.json"
-    if learned_path.exists():
-        try:
-            learned = json.loads(learned_path.read_text())
-            # Last-wins by name. Appending made --demote do the opposite of
-            # its name: a softened copy joined the original instead of
-            # replacing it, so halving a weight of 4 produced an effective 6.
-            _by = {q["name"]: q for q in base["patterns"]}
-            _order = [q["name"] for q in base["patterns"]]
-            for q in learned.get("patterns", []):
-                if q["name"] not in _by:
-                    _order.append(q["name"])
-                _by[q["name"]] = q
-            base["patterns"] = [_by[n] for n in _order]
-            base["lexicon"].update(learned.get("lexicon", {}))
-            # riders too: the reflect loop promotes single words as riders, and
-            # for a while it wrote them somewhere nothing ever read.
-            base.setdefault("riders", {}).update(learned.get("riders", {}))
-            # Drop entries whose regex will not compile. SECURITY.md promises a
-            # malformed learned file degrades to base patterns; that was only
-            # true for JSON errors — one bad `rx` raised re.error at scan time
-            # and took the scorer down with it.
-            good = []
-            for q in base["patterns"]:
-                try:
-                    re.compile(q["rx"])
-                    good.append(q)
-                except (re.error, KeyError, TypeError):
-                    pass
-            base["patterns"] = good
-        except Exception:
-            pass  # a malformed learned file must never break scoring
+    _merge_learned(base, DATA_DIR / "learned.json")       # reviewed, shared
+    _merge_learned(base, HOME / "learned.json")           # private, live
     if voice:
         _apply_voice(base, voice)
     return base
@@ -88,14 +129,19 @@ def _apply_voice(base, name):
     author's own voice stops reading as slop while every other user's meter is
     unchanged. A writing sample outranks a global rule — that is the whole point
     of a linter you can teach rather than one you fight."""
-    prof_path = HOME / "voices" / f"{name}.json"
+    prof_path = _voice_path(name)
     if not prof_path.exists():
         return
     try:
         prof = json.loads(prof_path.read_text())
-    except (json.JSONDecodeError, UnicodeDecodeError):
+        if not isinstance(prof, dict):
+            return
+        keep_raw, mute_raw = prof.get("keep", []), prof.get("mute", [])
+        if not isinstance(keep_raw, list) or not isinstance(mute_raw, list):
+            return
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError, TypeError):
         return
-    keep = {k.lower() for k in prof.get("keep", [])}   # words this author owns
+    keep = {k.lower() for k in keep_raw if isinstance(k, str)}
     for term in list(base.get("lexicon", {})):
         if term.lower() in keep:
             base["lexicon"][term] = 0
@@ -103,7 +149,7 @@ def _apply_voice(base, name):
         if term.lower() in keep:
             base["riders"][term] = 0
     for pat in base["patterns"]:
-        if pat["name"] in prof.get("mute", []):
+        if pat["name"] in {m for m in mute_raw if isinstance(m, str)}:
             pat["w"] = 0
 
 
@@ -203,11 +249,14 @@ def score_text(text, data, formal=False):
         max(0.0, (0.42 - burstiness)) * 35 * length_conf)
 
     # 4. Punctuation / formatting densities (per 100 words)
-    emdash = 100.0 * len(re.findall(r"—|--", raw)) / max(n_words, 120)
+    # Fenced code is not prose. Counting CLI flags such as `--gate` as dash-heavy
+    # style made technical READMEs look machine-written, so formatting channels
+    # operate on the same code-stripped text as the language channels.
+    emdash = 100.0 * len(re.findall(r"—|--", text)) / max(n_words, 120)
     # Capped: dash-heavy but otherwise excellent prose (Lincoln, Dickinson)
     # must not be convicted on punctuation alone.
     emdash_penalty = min(max(0.0, emdash - 0.6) * 6, 8.0)
-    emoji = len(re.findall(r"[\U0001F300-\U0001FAFF✅✨⚡\U0001F449\U0001F447\U0001F680\U0001F525]", raw))
+    emoji = len(re.findall(r"[\U0001F300-\U0001FAFF✅✨⚡\U0001F449\U0001F447\U0001F680\U0001F525]", text))
     emoji_penalty = min(emoji * 2.0, 12)
     # Bold as mid-sentence emphasis is the tell (WP:AICATCH); bold used as a
     # label at the start of a line/list item is ordinary document formatting.
@@ -215,7 +264,7 @@ def score_text(text, data, formal=False):
                if not re.match(r"[\s>*#-]*(?:\d+\.\s*)?$",
                                raw[raw.rfind("\n", 0, m.start()) + 1:m.start()]))
     bold_penalty = min(max(0, bold - 1) * 1.5, 9)
-    hashtags = len(re.findall(r"(?<!\S)#\w+", raw))
+    hashtags = len(re.findall(r"(?<!\S)#\w+", text))
     hashtag_penalty = min(hashtags * 1.2, 8)
 
     # 5. Register: contraction scarcity in casual genres reads machine-formal.
@@ -274,6 +323,8 @@ def score_text(text, data, formal=False):
         cats[h["cat"]] = round(cats.get(h["cat"], 0) + h["w"], 1)
 
     return {
+        "score_kind": "heuristic_surface_meter",
+        "calibrated_probability": False,
         "ai_likelihood": ai_likelihood,
         "evidence": round(evidence, 2),
         "tell_density_per_100w": round(tell_density, 2),
@@ -350,25 +401,6 @@ def band(score):
     if score < 75:
         return "slop-likely"
     return "slop"
-
-
-def sentence_map(text, data, formal=False):
-    """Every sentence with its attributed weight — the heatmap's data layer."""
-    clean = strip_noise(text)
-    doc = score_text(text, data, formal=formal)
-    rows = []
-    for s in sentences(clean):
-        w, names = 0.0, []
-        _sl = s.lower()   # hoisted out of the hit loop: this was
-                          # recomputed once per hit, giving O(sentences x hits)
-        for h in doc["hits"]:
-            q = h["quote"].lower()
-            if q and q in _sl:
-                w += h["w"]
-                names.append(h["name"])
-        rows.append({"sentence": s, "weight": round(w, 1),
-                     "tells": sorted(set(names))})
-    return rows
 
 
 # Plain-English names and fixes, keyed by pattern category. The internal
@@ -466,40 +498,6 @@ def render_heatmap(text, data, formal=False, max_rows=8, width=8):
     out.append(f'  by paragraph  {" ".join(shape)}   █ heavy  ▓ moderate  '
                f'▒ mild  · clean')
     return out
-
-
-def worst_sentences(text, data, formal=False, k=3):
-    """Per-sentence heatmap, worst first.
-
-    Attributes the *document's* hits to the sentence containing them rather
-    than re-scoring each sentence alone. Scoring in isolation makes every
-    sentence look like the start of a document, so start-anchored patterns
-    fire on all of them — a heatmap that reports tells the document scan
-    never found is worse than no heatmap.
-    """
-    clean = strip_noise(text)
-    doc = score_text(text, data, formal=formal)
-    sents = sentences(clean)
-    spans, cursor = [], 0
-    for s in sents:
-        i = clean.find(s[:40], cursor)
-        if i < 0:
-            i = cursor
-        spans.append((i, i + len(s), s))
-        cursor = i + len(s)
-    rows = []
-    for start, end, s in spans:
-        w, names = 0.0, []
-        _sl = s.lower()   # hoisted out of the hit loop: this was
-                          # recomputed once per hit, giving O(sentences x hits)
-        for h in doc["hits"]:
-            q = h["quote"].lower()
-            if q and q in _sl:
-                w += h["w"]
-                names.append(h["name"])
-        if w > 0:
-            rows.append((w, s, names))
-    return sorted(rows, key=lambda x: -x[0])[:k]
 
 
 def gate_value():
@@ -723,11 +721,9 @@ def fidelity(before, after):
 
 
 # The shared rewrite-quality objective. One definition of "a better rewrite",
-# used in two places: scripts/rerank.py picks the best of N candidates by it, and
-# bench/skillopt/reward.py tunes SKILL.md against it — so selecting a draft and
-# improving the instructions optimise the same thing. Fidelity is reported
-# alongside, never folded in, so a candidate can never win by dropping or
-# inventing a fact however clean it reads.
+# used by scripts/rerank.py to pick the best of N candidates. Fidelity is
+# reported alongside, never folded in, so a candidate can never win by dropping
+# or inventing a fact however clean it reads.
 RW_GATE = {"email": 35, "research": 40, "professional": 40}
 RW_GATE_DEFAULT = 25
 RW_FORMAL = {"research", "professional"}
@@ -855,7 +851,10 @@ def main():
     if "--voice" in sys.argv:
         try: voice = sys.argv[sys.argv.index("--voice") + 1]
         except IndexError: pass
-    data = load_patterns(voice=voice)
+    try:
+        data = load_patterns(voice=voice)
+    except ValueError as exc:
+        sys.exit(str(exc))
 
     if "--fidelity" in sys.argv:
         if len(args) < 2:
@@ -902,7 +901,8 @@ def main():
         # failing document, so a broken gate silently passed every build.
         sh_j = shape_metrics(text, genre=genre)
         sys.exit(0 if (r["ai_likelihood"] <= gv and not sh_j.get("broetry")) else 1)
-    print(f"AI-likelihood: {r['ai_likelihood']}/100  [{band(r['ai_likelihood'])}]")
+    print(f"Surface score: {r['ai_likelihood']}/100  [{band(r['ai_likelihood'])}]")
+    print("  score type    : heuristic meter, not a calibrated probability")
     print(f"  tell density : {r['tell_density_per_100w']:.2f} weighted hits /100w "
           f"({r['n_words']} words)")
     print(f"  burstiness   : {r['burstiness']:.3f}  (human prose usually > 0.45)")
@@ -929,14 +929,14 @@ def main():
           + ("" if sh["measured"] else ", shape"))
     if explain:
         if r["hits"]:
-            print(f"\n  charged spans ({len(r['hits'])}), heaviest first:")
+            print(f"\n  weighted tells ({len(r['hits'])}), highest weight first:")
             for h in sorted(r["hits"], key=lambda h: -h["w"]):
                 print(f"    {h['w']:>4}  {h['cat']:<14} {h['name']:<22} {h['quote']!r}")
             print(f"    {'':>4}  {'':14} {'':22} "
                   f"= {sum(h['w'] for h in r['hits']):g} weighted, "
                   f"{r['tell_density_per_100w']:.2f} per 100 words")
         else:
-            print("\n  charged spans: none — the score is rhythm and format only")
+            print("\n  weighted tells: none — the score is rhythm and format only")
     if "--heatmap" in sys.argv or explain:
         for line in render_heatmap(text, data, formal=formal):
             print(line)

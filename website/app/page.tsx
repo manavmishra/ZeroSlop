@@ -61,7 +61,7 @@ const softwareJsonLd = {
   codeRepository: githubUrl,
   featureList: [
     "AI writing pattern scoring",
-    "Faithful rewrites for social posts, articles, documents, and presentations",
+    "Meaning-preserving rewrites for social posts, articles, documents, and presentations",
     "Local offline scoring",
     "Figure, name, quote, and link fidelity checks",
   ],
@@ -147,7 +147,7 @@ export default function Home() {
               />
               <img
                 src="/demo.png"
-                alt="Zero Slop scores an AI-heavy sentence at 100 and its faithful rewrite at 9.5"
+                alt="Zero Slop gives an AI-heavy sentence a surface score of 100 and its clearer rewrite a score of 9.5"
                 width="1500"
                 height="800"
                 loading="eager"
@@ -160,16 +160,16 @@ export default function Home() {
 
         <section className="metrics section-shell" aria-label="Project facts">
           <div>
-            <strong>75</strong>
-            <span>tests passing</span>
+            <strong>CI</strong>
+            <span>gated checks</span>
           </div>
           <div>
             <strong>0</strong>
             <span>third-party packages</span>
           </div>
           <div>
-            <strong>No</strong>
-            <span>network required</span>
+            <strong>Offline</strong>
+            <span>scoring available</span>
           </div>
           <div>
             <strong>MIT</strong>
@@ -260,26 +260,49 @@ export default function Home() {
         <section className="process section-block" aria-labelledby="process-title">
           <div className="section-shell process-inner">
             <div>
-              <h2 id="process-title">Rewrite, then prove it.</h2>
+              <h2 id="process-title">Two loops. One finished draft.</h2>
               <p>
-                Zero Slop removes stock language, revises the structure and
-                wording, then checks the result against the original.
+                The editorial loop finishes today&apos;s draft. The private learning
+                loop uses reviewed edits to improve detection and fixing on the
+                next run.
               </p>
             </div>
-            <ol className="process-list">
-              <li>
-                <span>Measure</span>
-                <p>Record the tells, rhythm, formatting, and readability before editing.</p>
-              </li>
-              <li>
-                <span>Rewrite</span>
-                <p>Keep every claim while changing the language that carries it.</p>
-              </li>
-              <li>
-                <span>Verify</span>
-                <p>Re-score the draft, read it aloud, and run the fidelity check.</p>
-              </li>
-            </ol>
+            <div className="process-loops">
+              <div>
+                <p className="process-label">Loop 1: Editorial delivery</p>
+                <ol className="process-list">
+                  <li>
+                    <span>Measure and diagnose</span>
+                    <p>Find the tells, rhythm, formatting, and readability problems.</p>
+                  </li>
+                  <li>
+                    <span>Rewrite and copy edit</span>
+                    <p>Keep the substance, rebuild weak passages, and correct the mechanics.</p>
+                  </li>
+                  <li>
+                    <span>Read aloud and verify</span>
+                    <p>Fix spoken flow, then recheck the exact deliverable against the original.</p>
+                  </li>
+                </ol>
+              </div>
+              <div>
+                <p className="process-label">Loop 2: Online learning</p>
+                <ol className="process-list">
+                  <li>
+                    <span>Observe and gate</span>
+                    <p>Compare reviewed, published edits and require repeated evidence.</p>
+                  </li>
+                  <li>
+                    <span>Update privately</span>
+                    <p>Adjust detector weights and save recurring human fixes for the next run.</p>
+                  </li>
+                  <li>
+                    <span>Reconfirm or decay</span>
+                    <p>Keep useful guidance current and retire stale local rules.</p>
+                  </li>
+                </ol>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -366,11 +389,11 @@ export default function Home() {
         >
           <div className="install-copy">
             <p className="section-kicker">Works where you write.</p>
-            <h2 id="install-title">One install. Every compatible agent.</h2>
+            <h2 id="install-title">One skill. Your compatible agent.</h2>
             <p>
-              Install Zero Slop once, then use it in Codex, Claude Code, Cursor,
-              Gemini CLI, OpenCode, Warp, or Zed. It also works in any agent that
-              reads SKILL.md files.
+              Install Zero Slop in Codex, Claude Code, Cursor, Gemini CLI,
+              OpenCode, Warp, or Zed. It also works in any agent that reads
+              SKILL.md files.
             </p>
             <div className="install-actions">
               <a className="button button-primary" href={githubUrl} target="_blank" rel="noreferrer">

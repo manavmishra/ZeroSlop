@@ -10,8 +10,8 @@ prints what to run if a newer one exists.
     python3 scripts/version_check.py --quiet    # print only if an update exists (step 0)
     python3 scripts/version_check.py --json      # machine-readable
 
-Two promises this keeps. It sends **only a version query** — never a draft, never a
-word of your writing — so "your writing never leaves your machine" still holds. And
+Two promises this keeps. It sends **only a version query** — never a draft or any
+word from it — so the check does not expose writing. And
 it fails open: no network, a timeout, any error, and it exits 0 with a quiet note,
 because a de-slop run must never break over a missing changelog. Set
 `ZS_NO_UPDATE_CHECK=1` to skip it entirely.

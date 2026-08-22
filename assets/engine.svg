@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 632" width="900" height="632" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop engine. A draft is measured by four surface channels: a pattern meter of 266 weighted patterns with a 96-term lexicon and 25 context-gated riders, plus rhythm, followability, and formatting with register. Only the pattern meter matches specific wording; the other three surface channels use structural counts and rates. Paragraph shape is reported separately for social writing. A fifth model channel called predictability asks the host model to guess masked words, ships no model of its own, and is reported beside the score rather than fused into it. Evidence fusion produces an AI-likelihood score from 0 to 100 in which every point is traceable. Diagnose finds hollow spans, inventories facts, and marks the author's voice. A two-pass rewrite strips tells, rebuilds toward an expert register, produces two or three candidates, and reranks them with fidelity ahead of the meter. Initial verification requires the numeric gate and a fidelity check. The selected rewrite then enters a dedicated copy desk for grammar, spelling, punctuation, consistency, and style. A fresh read-aloud editor directly fixes flow, cohesion, and stumbles in the copy-edited artifact. That exact read-aloud-finalized artifact is rechecked for score, fidelity, meaning, voice, format, and structure; a repair loops through both editorial passes and final checks up to three times, while an earlier gate failure loops back to the rewrite. Passing emits the finalized text with a scorecard and heatmap. Below runs the reflect loop: when you publish an edited version, a span you cut becomes a candidate tell and a flagged span you kept becomes false-positive evidence. Neither changes the meter until three distinct documents corroborate the evidence and corpus-safety checks pass; new candidate tells must also be novel. Learned patterns can then be promoted or demoted, and stale learned tells can decay, sharpening the meter. A separate tune band shows SkillOpt optimizing the SKILL.md instructions against an eval harness of de-slop gain, fidelity, and the gate, keeping a candidate only when a held-out validation score improves; this is a maintainer step and runs offline of the user.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 548" width="900" height="548" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two operational loops. Editorial delivery measures a draft with four surface channels and a separate host-model predictability probe, diagnoses hollow spans, rewrites in two passes, copy-edits the result, reads it aloud, and verifies the final text for score, fidelity, meaning, voice, format, and structure. The score is a traceable heuristic surface meter, not a calibrated probability. Online learning observes what the writer later cuts or keeps. One edit cannot change the meter. A phrase needs recurrence across three content-distinct edit pairs, novelty, and the human-corpus safety gate; single words need five pairs. Eligible evidence updates a private overlay that reloads on the next run. The overlay feeds both the pattern meter and the rewrite guide, so it adapts detection and fixing. Repeated false-positive evidence can lower a local weight, later evidence reconfirms useful guidance, stale detector rules decay, and stale fix preferences retire.">
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#8A939F"/>
@@ -6,40 +6,31 @@
     <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#8A4FA3"/>
     </marker>
-    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#C9A227"/>
-    </marker>
     <style>
       .surface { fill:#F7F8FA; stroke:#C9CED6; stroke-width:1.2 }
       .ch { fill:#EEF3FA; stroke:#2A78D6; stroke-width:1.2 }
       .hi { fill:#E8F3EC; stroke:#1E7A4C; stroke-width:1.4 }
       .lr { fill:#F4EEF8; stroke:#8A4FA3; stroke-width:1.2 }
-      .tn { fill:#FBF6E7; stroke:#C9A227; stroke-width:1.2 }
       .t  { font-size:12px; fill:#1B1D22 }
       .m  { font-size:10px; fill:#5B6270 }
       .h  { font-size:10.5px; fill:#5B6270; letter-spacing:.06em }
       .hp { font-size:10.5px; fill:#8A4FA3; letter-spacing:.06em }
-      .ht { font-size:10.5px; fill:#B8860B; letter-spacing:.06em }
       .lb { font-size:9.5px; fill:#8A4FA3 }
       .lg { font-size:9.5px; fill:#5B6270 }
       .ln { stroke:#8A939F; stroke-width:1.3; fill:none }
       .lp { stroke:#8A4FA3; stroke-width:1.3; fill:none; stroke-dasharray:4 3 }
-      .lt { stroke:#C9A227; stroke-width:1.3; fill:none }
       .grp{ fill:none; stroke:#C9CED6; stroke-width:1; stroke-dasharray:3 3 }
       .grl{ fill:none; stroke:#8A4FA3; stroke-width:1; stroke-dasharray:3 3 }
-      .grt{ fill:none; stroke:#C9A227; stroke-width:1; stroke-dasharray:3 3 }
       @media (prefers-color-scheme: dark) {
         svg { color-scheme: dark }
         .surface { fill:#1E2128; stroke:#3A404B }
         .ch { fill:#16233A; stroke:#4B90E2 }
         .hi { fill:#14291D; stroke:#3FA872 }
         .lr { fill:#241B2E; stroke:#A972C4 }
-        .tn { fill:#2A2417; stroke:#C9A227 }
         .t  { fill:#E8EAED }
         .m  { fill:#9AA2AE }
         .h  { fill:#9AA2AE }
         .hp { fill:#A972C4 }
-        .ht { fill:#D6B84A }
         .lb { fill:#A972C4 }
         .lg { fill:#9AA2AE }
         .ln { stroke:#6B7280 }
@@ -48,7 +39,7 @@
     </style>
   </defs>
 
-  <text x="16" y="20" class="h">MEASURE · 4 surface channels · 1 phrase matcher · tunable per author</text>
+  <text x="16" y="20" class="h">LOOP 1 · EDITORIAL DELIVERY · measure → diagnose → rewrite → copy edit → read aloud → verify</text>
   <rect x="14" y="28" width="300" height="190" rx="8" class="grp"/>
 
   <rect x="26" y="40" width="276" height="36" rx="6" class="ch"/>
@@ -77,14 +68,14 @@
 
   <rect x="120" y="226" width="194" height="58" rx="6" class="ch"/>
   <text x="132" y="245" class="t">Predictability</text>
-  <text x="132" y="259" class="m">the model channel</text>
-  <text x="132" y="273" class="m">reported beside the score</text>
+  <text x="132" y="259" class="m">host-model probe</text>
+  <text x="132" y="273" class="m">reported separately</text>
   <path d="M106 255 L118 255" class="ln" marker-end="url(#a)"/>
 
   <path d="M314 123 L342 123" class="ln" marker-end="url(#a)"/>
 
   <rect x="344" y="101" width="196" height="44" rx="6" class="surface"/>
-  <text x="356" y="120" class="t">Evidence fusion</text>
+  <text x="356" y="120" class="t">Surface score</text>
   <text x="356" y="134" class="m">0–100, every point traceable</text>
 
   <path d="M442 145 L442 161" class="ln" marker-end="url(#a)"/>
@@ -94,12 +85,12 @@
 
   <path d="M442 207 L442 225" class="ln" marker-end="url(#a)"/>
   <rect x="344" y="227" width="196" height="44" rx="6" class="surface"/>
-  <text x="356" y="246" class="t">Two-pass rewrite ×N</text>
-  <text x="356" y="260" class="m">strip, build, then rerank</text>
+  <text x="356" y="246" class="t">Rewrite 2–3 ways</text>
+  <text x="356" y="260" class="m">strip, build, then choose</text>
 
   <path d="M540 249 L560 249" class="ln" marker-end="url(#a)"/>
 
-  <text x="566" y="194" class="h">VERIFY · final artifact clears every check</text>
+  <text x="566" y="194" class="h">VERIFY · final output clears every check</text>
   <rect x="560" y="200" width="330" height="180" rx="8" class="grp"/>
   <rect x="570" y="206" width="310" height="24" rx="5" class="hi"/>
   <text x="578" y="222" class="m">Numeric gate · score + burstiness</text>
@@ -119,49 +110,31 @@
   <text x="800" y="329" class="lg">repair ≤ 3×</text>
   <text x="628" y="394" class="lg">pass → finalized text · scorecard · heatmap</text>
 
-  <text x="16" y="432" class="hp">REFLECT · what you changed teaches the meter</text>
+  <text x="16" y="432" class="hp">LOOP 2 · ONLINE LEARNING · observe → gate evidence → update private overlay → reconfirm / decay</text>
   <rect x="14" y="440" width="852" height="92" rx="8" class="grl"/>
 
   <path d="M725 380 L725 420 L718 420 L718 457" class="lp" marker-end="url(#b)"/>
   <text x="600" y="416" class="lb">you publish an edited version</text>
 
   <rect x="584" y="460" width="268" height="58" rx="6" class="lr"/>
-  <text x="596" y="480" class="t">Your edit</text>
+  <text x="596" y="480" class="t">Observe published edit</text>
   <text x="596" y="494" class="m">cut a span → candidate tell</text>
   <text x="596" y="508" class="m">kept a flagged one → false positive</text>
 
   <path d="M584 489 L546 489" class="lp" marker-end="url(#b)"/>
   <rect x="300" y="460" width="244" height="58" rx="6" class="lr"/>
-  <text x="312" y="480" class="t">Evidence review</text>
-  <text x="312" y="494" class="m">3 documents agree · corpus-safe</text>
-  <text x="312" y="508" class="m">new tells must also be novel</text>
+  <text x="312" y="480" class="t">Evidence gate</text>
+  <text x="312" y="494" class="m">3 unique pairs · novel · corpus-safe</text>
+  <text x="312" y="508" class="m">one edit pair cannot change the meter</text>
 
   <path d="M300 489 L262 489" class="lp" marker-end="url(#b)"/>
   <rect x="20" y="460" width="240" height="58" rx="6" class="lr"/>
-  <text x="32" y="480" class="t">learned.json</text>
-  <text x="32" y="494" class="m">promote or demote patterns</text>
-  <text x="32" y="508" class="m">stale learned tells decay</text>
+  <text x="32" y="480" class="t">Private learning overlay</text>
+  <text x="32" y="494" class="m">detector weights + fix preferences</text>
+  <text x="32" y="508" class="m">reload · reconfirm · decay / retire</text>
 
   <path d="M20 489 L8 489 L8 58 L23 58" class="lp" marker-end="url(#b)"/>
-  <text x="16" y="452" class="lb">sharpens the meter</text>
+  <path d="M140 460 L140 414 L442 414 L442 274" class="lp" marker-end="url(#b)"/>
+  <text x="16" y="452" class="lb">adapts detection + fixing</text>
 
-  <text x="16" y="550" class="ht">TUNE · SkillOpt rewrites the instructions to score higher · a build step, not a user step</text>
-  <rect x="14" y="558" width="852" height="66" rx="8" class="grt"/>
-
-  <rect x="20" y="572" width="196" height="42" rx="6" class="tn"/>
-  <text x="32" y="591" class="t">SKILL.md</text>
-  <text x="32" y="605" class="m">the rewrite instructions</text>
-
-  <path d="M216 593 L250 593" class="lt" marker-end="url(#c)"/>
-  <rect x="252" y="572" width="286" height="42" rx="6" class="tn"/>
-  <text x="264" y="591" class="t">Run + reward</text>
-  <text x="264" y="605" class="m">run drafts · reward.py: fidelity + de-slop</text>
-
-  <path d="M538 593 L572 593" class="lt" marker-end="url(#c)"/>
-  <rect x="574" y="572" width="286" height="42" rx="6" class="tn"/>
-  <text x="586" y="591" class="t">best_skill.md</text>
-  <text x="586" y="605" class="m">kept only if the val score rises</text>
-
-  <path d="M717 572 L717 566 L118 566 L118 572" class="lt" marker-end="url(#c)"/>
-  <text x="360" y="562" class="lg">commit the winner · gated on a held-out split</text>
 </svg>

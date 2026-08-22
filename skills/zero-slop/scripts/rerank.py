@@ -5,13 +5,12 @@ A single rewrite is one sample from the model. Two or three, written with differ
 strategies (strip hard vs. keep the warmth, reorder vs. stay put), give the loop
 something to choose between — and the choice should be made by the meter, not by the
 same taste that wrote them. This ranks candidates for one draft and returns the
-winner, using the shared rewrite objective in slopscore (`rewrite_score`), the same
-one the SkillOpt reward tunes toward.
+winner, using the shared rewrite objective in slopscore (`rewrite_score`).
 
-The order is not negotiable on fidelity. A candidate that invents a fact loses to any
-candidate that does not, however much cleaner it reads, because inventing a detail is
-the one thing hard rule 1 forbids. Among the faithful candidates, the best de-slop
-quality wins.
+The order is not negotiable on fidelity. A version that invents a fact loses to any
+version that does not, however much cleaner it reads, because inventing a detail is
+the one thing hard rule 1 forbids. Of the versions that preserve the source, the
+cleanest one wins.
 
     python3 scripts/rerank.py --original draft.md cand1.md cand2.md cand3.md
     python3 scripts/rerank.py --original draft.md --candidates cands.json   # {name: text}
@@ -39,7 +38,7 @@ def rank(original, candidates, genre=None):
     """candidates: {name: text}. Returns them scored and sorted, best first.
 
     Sort key: fidelity tier first (a fabrication can never win), then soft quality,
-    then the tie-breaks the verify gate cares about — lower AI-likelihood, more
+    then the tie-breaks the verify gate cares about — lower surface score, more
     burstiness, fewer high-weight tells.
     """
     import slopscore
@@ -65,10 +64,16 @@ def render(scored):
     win = scored[0]
     out.append("")
     if _tier(win) == 0:
-        out.append(f"  winner: {win['name']} — faithful and cleanest of {len(scored)}.")
+        out.append(
+            f"  winner: {win['name']} — cleanest of {len(scored)} versions "
+            "that preserve the source."
+        )
     else:
-        out.append(f"  winner: {win['name']} — but NO candidate was fully faithful "
-                   f"({labels[_tier(win)]}). Regenerate or fix the fact before shipping.")
+        out.append(
+            f"  winner: {win['name']} — but every version changed or dropped "
+            f"source material ({labels[_tier(win)]}). Regenerate or fix the fact "
+            "before shipping."
+        )
     return "\n".join(out)
 
 

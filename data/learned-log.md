@@ -69,7 +69,7 @@ example that motivated it.
   blocks) stays structured, and each form is held to what a skilled human
   author would produce in that form. Step 0 gains a form inventory.
 - 2026-08-03 — Product requirement from live use: every run must end with
-  a before/after scorecard (fixed table shape: AI-likelihood + band,
+  a before/after scorecard (fixed table shape: surface score + band,
   weighted tells, formatting counts, burstiness, followability, words,
   gate verdict, facts-preserved count). Encoded as a template in SKILL.md
   step 5; no longer left to the executing model's formatting judgment.

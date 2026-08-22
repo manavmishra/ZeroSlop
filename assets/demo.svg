@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 800" width="1500" height="800" role="img" aria-label="A Zero Slop terminal demonstration. A marketing sentence receives a heuristic surface score of 100 with six weighted tells. The rewritten sentence, We cut onboarding setup time by 40 percent using AI, receives a surface score of 9.5 with no weighted tells.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101720"/>
+      <stop offset="1" stop-color="#080c12"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".35"/>
+    </filter>
+    <style>
+      .mono { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
+      .cmd { font-size:24px; fill:#D7DEE8 }
+      .muted { font-size:22px; fill:#8A97A8 }
+      .body { font-size:22px; fill:#B9C4D1 }
+      .green { fill:#4FD18B }
+      .blue { fill:#64A9FF }
+      .red { fill:#FF6474 }
+      .amber { fill:#FFBE4F }
+    </style>
+  </defs>
+
+  <rect width="1500" height="800" fill="#070A0E" class="grp"/>
+  <rect x="30" y="26" width="1440" height="748" rx="20" fill="url(#bg)" stroke="#243140" filter="url(#shadow)" class="grp"/>
+  <rect x="30" y="26" width="1440" height="54" rx="20" fill="#18212C" class="grp"/>
+  <rect x="30" y="60" width="1440" height="20" fill="#18212C" class="grp"/>
+  <circle cx="62" cy="53" r="8" fill="#FF605C"/>
+  <circle cx="88" cy="53" r="8" fill="#FFBD44"/>
+  <circle cx="114" cy="53" r="8" fill="#00CA4E"/>
+  <text x="750" y="60" text-anchor="middle" class="mono muted">zero-slop · before / after</text>
+
+  <text x="60" y="122" class="mono cmd"><tspan class="green">$</tspan><tspan> pbpaste | </tspan><tspan class="blue">slopscore --explain</tspan></text>
+  <text x="74" y="164" class="mono body">“We’re thrilled to announce that our team has leveraged cutting-edge AI</text>
+  <text x="74" y="196" class="mono body">to deliver a seamless onboarding experience, cutting setup 40%.”</text>
+
+  <text x="60" y="244" class="mono cmd">Surface score: <tspan class="red">100.0</tspan>/100  <tspan class="red">[slop]</tspan></text>
+  <text x="74" y="278" class="mono muted">weighted tells (6), highest weight first:</text>
+  <text x="88" y="316" class="mono body">5  linkedin     announce-excited   <tspan class="amber">“We’re thrilled to”</tspan></text>
+  <text x="88" y="350" class="mono body">4  marketing    marketing-register <tspan class="amber">“cutting-edge”</tspan></text>
+  <text x="88" y="384" class="mono body">4  marketing    marketing-register <tspan class="amber">“seamless”</tspan></text>
+  <text x="88" y="418" class="mono body">4  lexicon      cutting-edge       <tspan class="amber">“cutting-edge”</tspan></text>
+  <text x="88" y="452" class="mono body">4  lexicon      seamless           <tspan class="amber">“seamless”</tspan></text>
+  <text x="88" y="486" class="mono body">2  rider        leverage           <tspan class="amber">“leveraged”</tspan></text>
+
+  <line x1="60" y1="524" x2="1440" y2="524" stroke="#273443"/>
+
+  <text x="60" y="570" class="mono cmd"><tspan class="green">$</tspan><tspan> deslopp | </tspan><tspan class="blue">slopscore --explain</tspan></text>
+  <text x="74" y="612" class="mono body">“We cut onboarding setup time by 40% using AI.”</text>
+  <text x="60" y="660" class="mono cmd">Surface score: <tspan class="green">9.5</tspan>/100  <tspan class="green">[clean]</tspan></text>
+  <text x="74" y="698" class="mono muted">weighted tells: <tspan class="green">none</tspan> · score is rhythm and format only</text>
+</svg>

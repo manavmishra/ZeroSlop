@@ -7,7 +7,7 @@ working in or executing this repository.
 
 A portable agent skill. The runtime artifact is `SKILL.md` (YAML frontmatter
 + the detect → rewrite → verify → learn loop). `scripts/slopscore.py` is an
-optional statistical scorer — stdlib-only Python, offline, read-only. There
+optional heuristic surface scorer — stdlib-only Python, offline, read-only. There
 is no build step. Keep all wording harness-neutral: Claude Code and Codex
 are examples, not limits.
 
@@ -27,8 +27,10 @@ are examples, not limits.
 
 - `SKILL.md` — source of truth for behavior.
 - `data/patterns.json` + `data/learned.json` — the weighted tell database;
-  learned merges over base at runtime. `data/learned-log.md` — dated log of
-  every taxonomy change.
+  reviewed shared rules merge over base at runtime. Private online learning
+  lives under `$ZERO_SLOP_HOME` (default `~/.zero-slop`) and loads last, so an
+  install or update never overwrites it. `data/learned-log.md` is the dated log
+  of reviewed shared taxonomy changes.
 - No trained model ships. One was built and cut for being confidently wrong on
   current-era text; `references/evidence.md` documents that negative result.
   Do not reintroduce a trained channel without a transfer test on drafts from
@@ -39,9 +41,10 @@ are examples, not limits.
 
 ## Maintenance contract
 
-- New tells go in `data/learned.json` with a dated line in
-  `data/learned-log.md`. Pattern-weight fixes for false positives go in
-  `data/patterns.json` (learned patterns append; they cannot override).
+- Reviewed shared tells go in `data/learned.json` with a dated line in
+  `data/learned-log.md`. Private reflect-loop tells and false-positive overrides
+  stay under `$ZERO_SLOP_HOME`; never copy them into the repository without the
+  explicit export, review, and merge path.
 - `SKILL.md`, `README.md`, `.claude-plugin/plugin.json`, and
   `.codex-plugin/plugin.json` versions bump together.
 - Every regex must compile under Python `re` AND stay JS-compatible where
@@ -49,6 +52,8 @@ are examples, not limits.
 - Run the validation used in CI before publishing:
   `python3 -c "import json; json.load(open('data/patterns.json'))"` and the
   scorer smoke test in `.github/workflows/validate.yml`.
-- Security posture in `SECURITY.md` is a contract: no network calls, no
-  subprocess, no eval, no writes outside `data/` learning files. Do not add
-  code that violates it.
+- Security posture in `SECURITY.md` is a contract. Runtime scripts never transmit
+  drafts; the optional version check is the sole metadata request.
+  Runtime writes are limited to explicit outputs, `$ZERO_SLOP_HOME`, and the
+  maintainer-only shared merge/calibration paths. Do not add `eval`, `exec`,
+  pickle, or subprocess execution to runtime scripts.

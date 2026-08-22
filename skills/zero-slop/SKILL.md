@@ -1,11 +1,10 @@
 ---
 name: zero-slop
 license: MIT
-compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.3.4"
+  version: "2.4.0"
   author: manavmishra
-description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate), professionally copy-edited, and finalized by a fresh read-aloud editor. Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. It detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, corrects mechanics and spoken flow, and learns new tells over time.
+description: Turn drafts into sharp, natural prose with a transparent heuristic surface scorer, an evidence-ranked rewrite, quantitative verification, a dedicated copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, remove AI-sounding phrasing, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts and format, reports before-and-after evidence, and learns from later human edits through a private evidence-gated overlay.
 ---
 
 # Zero Slop
@@ -16,10 +15,10 @@ are measurable, so measure them, fix them, and show the numbers.
 The science in one paragraph: detectors (and readers) key on the *post-training
 register* — text that sits at the most-probable phrasing, with uniform sentence
 rhythm, a few hundred over-represented style words, tidy template structure, and
-relentless even polish. Every one of those signals lives in the surface
-realization of the text, which means every one is removable while preserving
-meaning exactly. `references/evidence.md` has the citations; the ladder below is
-ordered by measured signal strength, strongest first.
+relentless even polish. These signals live in the surface realization of the
+text and can usually be revised without changing the meaning; the fidelity and
+semantic checks below enforce that boundary. `references/evidence.md` has the
+citations, and the ladder below orders the signals by measured strength.
 
 ## Hard rules (non-negotiable)
 
@@ -83,7 +82,7 @@ the general ladder prescribes.
 
 ### 1. Measure
 
-Run the statistical scorer on the draft:
+Run the heuristic surface scorer on the draft:
 
 ```
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
@@ -108,17 +107,18 @@ register that is native there. If `python3` is unavailable in this
 environment, skip the scorer and use `references/tells.md` plus the step-4
 self-rubric as the gate — never fail the task over a missing interpreter.
 
-Record the baseline: AI-likelihood (0–100), burstiness (sentence-length CV),
+Record the baseline: surface score (0–100), burstiness (sentence-length CV),
 tell density, and every hit. The score is a surface meter, not a verdict — a
 clean score with hollow content is still slop, and one flagged word in honest
-technical prose is not. Clusters convict; singles don't.
+technical prose is not. Treat an isolated hit cautiously; act when independent
+signals agree.
 
-**The model channel (predictability).** The four channels above read the surface.
-This one reads the thing detectors key on hardest: whether a *model* finds the
-prose predictable, because machine text sits where a model would have put the
-words. Zero Slop ships no model — it uses **you**, the model running this skill,
-so the channel works the same in every harness (Claude, GPT, …) with nothing to
-install:
+**The host-model probe (predictability).** The four channels above read the surface.
+This optional channel asks whether the host model finds the prose predictable.
+Zero Slop ships no model; it uses **you**, the model running this skill, with
+nothing else to install. Probe selection and scoring are deterministic, but the
+guesses can vary by model and run, so report this as a separate diagnostic rather
+than a calibrated or directly comparable measure:
 
 ```
 python3 <skill-root>/scripts/predictability.py --probes <file> > probes.json
@@ -162,6 +162,18 @@ Per paragraph, four judgments the regex cannot make:
   itself.
 
 ### 3. Rewrite — the evidence ladder, in two passes
+
+Load any private rewrite preferences learned from the writer's earlier published
+edits:
+
+```
+python3 <skill-root>/scripts/learn.py --guide
+```
+
+Treat this output as evidence, never as an unconditional substitution. Use a
+preferred fix only where it preserves the present sentence's meaning, facts,
+qualifiers, voice, and grammar. A local replacement that does not fit the current
+context is ignored.
 
 Run the ladder as two separate passes with different mindsets — benchmarking
 showed a strip-then-build sequence beats one do-everything rewrite, because
@@ -236,7 +248,7 @@ not replace the verify step.
 
 Re-run the scorer. The rewrite passes only when ALL hold:
 
-- AI-likelihood ≤ 25 (transactional email: ≤ 35; research/professional
+- surface score ≤ 25 (transactional email: ≤ 35; research/professional
   genres: score with `--formal` and gate on tell density ≈ 0 plus zero
   high-weight hits instead — the composite penalizes formal register itself)
 - burstiness ≥ 0.45 (texts ≥ 8 sentences; waived where the platform module
@@ -342,9 +354,11 @@ send the repaired artifact through the copy desk and final read-aloud pass again
 then repeat every final check. Continue until the same artifact clears the copy
 desk, final read-aloud pass, semantic and format review, scorer, and fidelity gate.
 Limit this repair loop to three rounds. If a problem still cannot be resolved
-without guessing, return the best faithful version that completed both editorial
-passes and state the unresolved issue and failed check plainly. Nothing reaches
-the user until the exact artifact being returned has cleared every final check.
+without guessing, return the best source-preserving version that completed both
+editorial passes and state the unresolved issue and failed check plainly. Outside
+that explicit three-round fallback, nothing reaches the user until the exact artifact
+being returned has cleared every final check. A fallback still must have completed the
+copy desk and read-aloud pass; never describe it as fully verified.
 
 Initial gate failure → rewrite and recheck (max 3 passes). Final verification
 repair → copy desk, read-aloud pass, and every check again (max 3 rounds). If the
@@ -391,7 +405,7 @@ same fields as plain lines where tables don't render):
 ```
 | Metric                    | Before        | After        |
 |---------------------------|---------------|--------------|
-| AI-likelihood             | 45.7 suspect  | 9.5 clean ✓  |
+| Surface score             | 45.7 suspect  | 9.5 clean ✓  |
 | Weighted tells            | 6             | 0            |
 | Em-dashes / emoji / tags  | 0 / 1 / 3     | 0 / 0 / 0    |
 | Burstiness (≥0.45)        | 0.65          | 0.67         |
@@ -438,49 +452,53 @@ and read-aloud corrections applied, and the judgment calls made, including
 deliberate keeps. Add **flags** for hollow spans, capped spans, and anything
 needing a real fact from the user. Never silently overwrite; the author decides.
 
-### 6. Learn
+### 6. Learn — private post-deployment online learning
 
-This skill improves with use, and the strongest signal is the writer's own
-edit. If you hand back a rewrite and the author changes something before
-publishing, that change is a free label: what you left in that a human took
-out was a tell you missed. Capture it.
+The strongest feedback is the writer's own edit after Zero Slop returns a draft.
+This is post-deployment, human-in-the-loop online learning: the detector updates
+external, interpretable rules from later edits. It is not RLHF and does not retrain
+the host model or rewrite this `SKILL.md`.
 
 - **The reflect loop.** Whenever you can see both what the skill produced and
   what the author actually shipped — they paste the final version, they say
   "I cut X", you edit a file they later revise — record it:
 
   ```
-  python3 scripts/learn.py --reflect --produced out.md --shipped final.md
+  python3 scripts/learn.py --reflect --produced out.md --shipped final.md --auto-apply
   ```
 
-  This does **not** create a pattern. It records an observation. A span
-  becomes a pattern only after it has been independently cut from three
-  different documents, because a single diff cannot tell a stylistic tell
-  from an author trimming a sentence for length. Once a span clears that
-  bar, `--promote --apply` mints it, and the accuracy of the meter rises
-  with the number of people using it rather than with anyone's guesswork.
+  Reflection records evidence immediately. A span becomes eligible only after
+  the same cut appears across three content-distinct edit pairs; a single word
+  needs five. `--auto-apply` activates eligible evidence only after the novelty
+  and human-corpus safety gates pass. The result goes to the private live overlay
+  at `~/.zero-slop/learned.json`, which the scorer reloads on its next run. It
+  does not edit the installed or shared taxonomy. When the writer repeatedly
+  replaces the same tell in the same way, the overlay also records that private
+  rewrite preference after the replacement recurs in three content-distinct edit
+  pairs; `learn.py --guide` makes it available to the next rewrite. Later matching
+  edits reconfirm it, and 18 months without confirmation retires it from guidance.
 
   Three gates stand between an observation and a shipped pattern:
-  recurrence (three distinct documents), novelty (not already scored), and
+  recurrence (three content-distinct edit pairs), novelty (not already scored), and
   safety (must not fire on, or borrow four consecutive words from, the
   certified human writing in `data/corpus/must-not-flag/`). The safety gate
-  is absolute — a pattern that would convict Lincoln, an SRE runbook, or a
+  is absolute — a pattern that would flag Lincoln, an SRE runbook, or a
   non-native English speaker's email is rejected at any level of evidence.
   Learning that corrupts the meter is worse than not learning.
 
 - **New tell spotted** (a pattern readers call out as AI that the scorer
-  missed) → add a regex + weight to `data/learned.json` (same schema as
-  `data/patterns.json`; the scorer merges it automatically) and log one line
-  in `data/learned-log.md` with the date and the example.
+  missed) → use the reflect loop for private adaptation. A maintainer may merge
+  reviewed contributions into `data/learned.json`, with a dated entry in
+  `data/learned-log.md`, only after export review, local regex regeneration,
+  the safety corpus, and the full test suite pass.
 - **Never tune to pass the draft in front of you.** Weight changes are for
   patterns that misfire across *many* texts, and they get logged with the
   examples that motivated them. Lowering a weight because this draft failed
   is self-dealing, not learning, and it corrupts every future run.
-- **False positive** (the scorer flags honest prose repeatedly) → for
-  lexicon terms, re-add the term in `data/learned.json` with a lower weight
-  (lexicon entries override the base); for regex patterns, lower the weight
-  directly in `data/patterns.json` — learned patterns append, they cannot
-  override. Log either change.
+- **False positive** (the scorer flags honest prose repeatedly) → kept flagged
+  text is recorded as negative evidence. After three content-distinct documents,
+  `learn.py --demote --apply` writes a lower-weight override to the private live
+  overlay. Shared weights change only through reviewed repository work.
 - **User voice feedback** ("I'd never say X", "keep my Y") → this is now a
   built mechanism, not a note. Build the profile from a sample of their real
   writing once:
@@ -518,7 +536,7 @@ out was a tell you missed. Capture it.
   which scores a corpus of writing that must never be flagged
   (`data/corpus/must-not-flag/`, 12 samples): dash-heavy 19th-century oratory, dense
   technical prose, terse engineering notes, business memos, human press
-  copy, and non-native English. A pattern that convicts any of them is
+  copy, and non-native English. A pattern that flags any of them is
   rejected before it ships. Add a sample to that corpus whenever you find
   honest writing the meter got wrong — that is how a false positive becomes
   permanent protection rather than a one-time fix, and it is the most useful
@@ -532,15 +550,12 @@ out was a tell you missed. Capture it.
   context-dependent, move it to `riders` rather than lowering its weight
   globally.
 
-- **Patterns carry provenance and decay.** Every pattern records
-  `first_seen`/`last_confirmed`; `calibrate.py --decay` halves the weight of
-  anything unconfirmed for 18 months, so a 2024 tell fades on its own instead
-  of accumulating forever. The other half is re-earning weight:
-  `learn.py --confirm <dir>` bumps `last_confirmed` on every pattern that
-  fires against known slop, so a tell that keeps catching things stays sharp
-  while one the models have moved past ages out by itself. Run
-  `learn.py --stats` to see the taxonomy's age, sources, and what is pending
-  promotion.
+- **Patterns carry provenance and decay.** Every learned pattern records
+  `first_seen` and `last_confirmed`. `learn.py --confirm <dir>` refreshes local
+  patterns that still fire against known slop; `learn.py --decay` halves a local
+  weight after 18 unconfirmed months. Maintainers use `calibrate.py --decay` for
+  the reviewed shared layer. Run `learn.py --stats` to see shared rules, local
+  rules, pending evidence, confirmations, and the live-overlay path.
 
 ## References
 
@@ -562,13 +577,13 @@ out was a tell you missed. Capture it.
 
 ## Worked example (LinkedIn)
 
-**Before (AI-likelihood 100):**
+**Before (surface score 100):**
 > 🚀 I'm beyond excited to announce that after 18 months of hard work, we've
 > raised $4.2M to transform how teams ship software! This wasn't just a
 > milestone — it's a testament to our incredible team. Here are 3 lessons I
 > learned along the way… Agree? 👇
 
-**After (AI-likelihood 9.5):**
+**After (surface score 9.5):**
 > We raised $4.2M. It took 18 months, and for the first six of them the demo
 > crashed on stage more often than it ran.
 >

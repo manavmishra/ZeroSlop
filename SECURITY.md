@@ -1,66 +1,73 @@
 # Security posture
 
-## What runs
+## Runtime boundary
 
-Five Python files ship, all standard library, no dependencies:
+The installed skill ships seven standard-library Python modules:
 
-| File | Reads | Writes | Network |
+| File | Purpose | Writes | Network |
 |---|---|---|---|
-| `scripts/slopscore.py` | the draft, `data/*.json` | nothing | none |
-| `scripts/learn.py` | draft pairs, `data/*.json`, `$ZERO_SLOP_HOME` | `data/learned.json`, `data/learned-log.md`, `$ZERO_SLOP_HOME/reflections.json`, an `--out` export | none |
-| `scripts/calibrate.py` | corpora, `data/*.json` | `data/learned.json` | none |
-| `scripts/build_plugin.py`, `build_bundle.py` | the repo | `skills/`, `dist/` | none |
+| `scripts/slopscore.py` | score, heatmap, and fidelity checks | none | none |
+| `scripts/predictability.py` | create and score deterministic cloze probes | none | none |
+| `scripts/rerank.py` | rank candidate rewrites | optional user-selected output | none |
+| `scripts/learn.py` | private online learning, voice profiles, reviewed imports/exports | `$ZERO_SLOP_HOME`; shared taxonomy only through explicit maintainer `--merge --apply` | none |
+| `scripts/calibrate.py` | corpus calibration and shared-pattern maintenance | explicit calibration output or shared learned data | none |
+| `scripts/safeio.py` | locks and atomic file replacement | only on behalf of the two writers above | none |
+| `scripts/version_check.py` | optional release check | none | one metadata-only GitHub API request |
 
-No network calls, no `subprocess`, no `eval`/`exec`, no `pickle`, in any of
-them. The test suite does use `subprocess`, deliberately and in list form, to
-exercise the CLI it is testing; that is test code, not shipped runtime.
+Scoring and rewriting do not transmit the draft. The version checker sends only a GET
+for the latest public release tag, times out after 2.5 seconds, fails open, and can be
+disabled with `ZS_NO_UPDATE_CHECK=1`.
 
-The scorer is read-only. `learn.py` and `calibrate.py` write, and the table
-above is the complete list of what they touch. `--out` is resolved and refused
-if it escapes the working directory, targets `data/`, or would overwrite an
-existing file.
+Build, packaging, benchmark, chart, PDF, website, and test utilities remain in the
+repository but are excluded from the installed plugin runtime.
 
-## Degradation
+## Online-learning isolation
 
-A malformed `data/learned.json` degrades to the base patterns rather than
-erroring: JSON parse failures are caught, and any entry whose regex will not
-compile is dropped at load. Without `python3` the skill falls back to its
-reference lists and loses the numeric gate, not the rewrite.
+Reflection evidence, local detector rules, recurring rewrite preferences, logs, and
+voice profiles live under
+`$ZERO_SLOP_HOME` (default `~/.zero-slop`) with owner-only file permissions. They are
+not committed and are not overwritten by skill updates. The scorer loads the reviewed
+shared taxonomy first, then this private overlay on every run.
 
-## Privacy
+One edit cannot activate a pattern. Phrase evidence needs the same cut across three
+content-distinct before/after pairs; single words need five. Candidate rules must also
+be new and must not match or borrow four consecutive words from the certified human
+corpus. Repeated kept-text evidence can lower a local weight. Reconfirmation keeps a
+local rule current; stale local detector rules decay after 18 months. A rewrite
+preference also needs the same replacement across three content-distinct pairs and is
+retired after 18 months without confirmation.
 
-Drafts are scored locally and never transmitted. Reflection evidence derives
-from the user's own writing and lives in `~/.zero-slop/` (override with
-`ZERO_SLOP_HOME`), outside the repository. Voice profiles in `data/voices/` are
-git-ignored.
+These controls limit blast radius; they do not make feedback trustworthy in the
+cryptographic sense. A determined local user controls their own overlay. Shared changes
+still require an explicit export, review, re-gating, tests, version bump, and release.
 
-Patterns learned from the reflect loop are stored as a regex plus a digest.
-They deliberately carry no example sentence and no readable phrase-derived
-name, because `data/learned.json` is committed — an earlier build put the
-author's own prose in both fields.
+## File integrity and path safety
 
-`--export` emits spans seen in three or more unrelated documents, with counts
-and month, and no surrounding context, filenames, author, or finer dates. The
-spans themselves are short recurring phrases; the command prints the entire
-payload for review and writes nothing without `--yes`.
+Learning uses process-safe lock directories plus same-directory atomic replacement, so
+concurrent reflections cannot silently overwrite one another and a crash cannot leave
+half-written JSON. Corrupt reflection state fails closed instead of being reset.
+Malformed learned rules degrade to the last valid shared layer rather than crashing the
+scorer.
+
+Voice-profile names are restricted to a short filename-safe alphabet. Contribution
+exports must remain inside the working directory, cannot target `data/`, and cannot
+overwrite an existing file. Imported contributions are untrusted: Zero Slop discards
+their regexes, rebuilds patterns locally from the reviewed spans, and reruns the safety
+gate.
 
 ## Known limits
 
-**The safety corpus is small.** `data/corpus/must-not-flag/` is twelve samples.
-A pattern that clears it is not thereby proven safe on all human writing —
-common words like `please` or `meeting` would pass. Treat the gate as a floor,
-not a certificate, and prefer adding samples over lowering weights.
-
-**Contributions are untrusted input.** `--merge` regenerates every regex
-locally from the contributed span and never stores a contributor's pattern, so
-a crafted regex cannot enter the meter. Re-gate anything you merge.
-
-**Draft content is data, not instruction.** An agent executing this skill
-handles text from unknown sources. Nothing inside a draft should be followed as
-a command, and draft content must never choose a file path, a regex, or a
-weight. See SKILL.md step 0.
+- The human safety corpus contains twelve prose samples. It is a regression floor, not
+  proof that a pattern is safe for every dialect, genre, or language.
+- The 0–100 result is a transparent heuristic surface score, not a calibrated
+  probability that AI wrote the text.
+- Scripted fidelity checks cover figures, names, quotations, links, and asserted
+  feelings. Claim meaning, qualifiers, voice, and format still require the final
+  semantic review described in `SKILL.md`.
+- Feedback recurrence proves content diversity, not independent authorship. Local
+  isolation prevents that limitation from changing the shared detector automatically.
 
 ## Reporting
 
-Open an issue, or email the address on the GitHub profile for anything you
-would rather not file publicly.
+Open a GitHub issue, or use the email address on the maintainer's GitHub profile for a
+report you would rather not file publicly.

@@ -34,7 +34,7 @@ benchmark nobody can reproduce.
 
 ## The interesting row
 
-`social-slop-06` scores **38.6 with zero charged spans**. No banned vocabulary,
+`social-slop-06` scores **38.6 with zero weighted tells**. No banned vocabulary,
 no emoji, no hashtag cluster — it fails on rhythm and format alone. That is the
 case a lexicon-only tool misses entirely, and the reason the meter has channels
 that never look at words.

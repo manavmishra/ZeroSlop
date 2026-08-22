@@ -1,31 +1,33 @@
 # Zero Slop
 
 You used AI to help with your writing, and now it reads like a machine wrote every
-word. You can hear it, and so can everyone who reads it. There is a word for that
-machine sound now: slop.
+word. You can hear it, and so can everyone who reads it. That machine sound has a
+name: slop.
 
-Zero Slop finds that slop in your draft and takes it out, without changing what you
-actually said. It scores the writing from 0 to 100, points at the exact words dragging it down,
-rewrites them, and then double-checks that it kept every fact you had and invented
-nothing.
+Zero Slop finds that slop in your draft and takes it out without changing what you
+said. Its transparent surface score runs from 0 to 100 and shows which phrases and
+document-level signals contributed to it. After the rewrite, a copy editor fixes the
+mechanics. A second editor reads the result aloud and fixes its flow; the final checks
+make sure the facts survived.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Then say "de-slop this" in any agent. No account, no server, and your writing never
-leaves your machine.
+Then open your agent and say "de-slop this." The Python scorer needs no account or
+server and does not transmit your writing.
 
 ![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
 
 ## Why it matters now
 
-Sounding like AI used to just cost you a little credibility. Now it costs you reach.
-Over two weeks in mid-2026, LinkedIn, Snapchat, YouTube, and Substack all started acting
-on slop. On LinkedIn, a flagged post now stops reaching anyone outside your own network.
-One study the platforms keep citing estimates that up to 40% of social-media writing is
-already machine-made. When a feed is that full of slop, the systems ranking it bury
-anything that smells the same, and human-sounding writing is what gets through.
+Sounding like AI can cost credibility, and platforms are adding ways to report,
+classify, or limit repetitive machine-made material. LinkedIn added an AI-slop report
+signal; Snap and YouTube apply recommendation or monetization rules to some synthetic
+or mass-produced content; Substack lets readers scan text for AI signals. Those are
+different policies, not proof of one universal reach penalty. The practical point is
+simpler: readers notice generic machine prose, and writers deserve a way to inspect and
+fix it before publishing.
 
 ## Who it is for
 
@@ -36,66 +38,66 @@ the way a bug does.
 
 ## How it decides
 
-First, it measures. Zero Slop scores your draft from 0 to 100, and every point of that
-score points back at a phrase you can see, so the number is never a black box. Slop is
-not one thing, so it weighs several signals, and only the first pays attention to your
-actual words. That is the point: you cannot dodge it with a thesaurus, because most of
-what it measures is the shape of the writing, not the vocabulary. It weighs the words you chose, but also the rhythm of your sentences, how hard they
-are to read, and how heavily the page is formatted. Then it leans toward mercy. One
-em-dash is not slop; plenty of great writing leans on them. A tell only counts once the word
-choice backs it up, so a cluster convicts and a lone one does not. It adds a check no
-rulebook can: it asks the model running it to guess your words, and counts how often it
-can — machine writing is easy to predict, and yours should not be. Zero Slop ships no
-model of its own; it borrows whichever one you are already in. When it rewrites, it
-writes several versions and keeps the cleanest one that changes no fact.
+First, it measures. Four surface channels examine known phrases, sentence rhythm,
+followability, and a combined formatting-and-register signal. The result is a
+heuristic surface score, not the probability that AI wrote the text. Most signals
+describe structure, so a synonym swap cannot resolve the structural issues. One em
+dash carries little weight; clusters of independent signals matter more. A separate
+predictability probe asks your assistant to guess masked words and reports how often
+the original word appears among its top three guesses. Zero Slop ships no model of its
+own. For important work, it drafts two or three approaches, rejects any that add or
+lose a fact, and sends the cleanest version through the copy desk and read-aloud pass.
 
 ## What makes it different
 
 It is built on four open-source projects that worked out this craft first: no-ai-slop,
-humanizer, de-slop, and stop-slop. It adds three things a plain rewriter cannot.
+humanizer, de-slop, and stop-slop. It adds three things a plain rewrite lacks.
 
-A score you can trust and check. It comes from rules you can read, not a black box, so
-every point traces to a phrase you can see, and it can go straight into a build.
+A score you can inspect. The rules and structural measures are visible, and the same
+threshold check can run in a build. It is a repeatable editorial meter, not authorship
+proof.
 
-A promise about your facts. Most "humanizer" tools will invent a detail or drop a number
-to make a sentence flow. Zero Slop lists every figure, name, quote, and link in your
-original and fails a rewrite that loses one or adds one. A missing number you would
-catch; an invented one reads perfectly and slips right past, which is exactly why the
-check exists.
+A promise about your facts. A rewrite can invent a detail or drop a number to make a
+sentence flow. Zero Slop lists every figure, name, quote, and link in your original and
+rejects a version that loses one or adds one. A missing number may be obvious; an
+invented one can read naturally enough to go unnoticed, which is why the check exists.
 
-A tool that learns you. This is the part most tools skip. After it hands your draft back
-and you edit it, it compares the two: a phrase you cut was a tell it should have caught,
-and one it flagged that you kept was a false alarm. A phrase only becomes a new rule
-after three separate people's drafts have cut it, so no single quirk speaks for everyone
-— and the meter gets sharper the more the tool is used, instead of staying frozen. A
-sample of your own writing also teaches it which words are just how you talk.
+A tool that learns from later edits. The editorial loop handles the current draft. A
+separate private learning loop can compare the delivered version with a later edit: a
+phrase you cut may be a tell it missed, while flagged text you keep may be a false alarm.
+No detection rule or preferred fix becomes active after a single edit pair.
+A potential phrase rule needs the same cut in three content-distinct edit pairs,
+followed by a novelty check and a safety check against reference human writing; single
+words need five edit pairs. Repeated replacements can also become private rewrite
+guidance after the same replacement recurs in three content-distinct edit pairs. The
+private learning file loads on the next run. Later evidence reconfirms detection rules
+and preferred fixes; without reconfirmation, stale detection rules decay and stale
+preferred fixes retire.
 
-The tool even improves itself. The rewrite follows a page of written instructions, and
-those can be tuned like anything with a score. Microsoft's SkillOpt edits them, runs the
-edited version on a batch of drafts, and grades each result the way your writing is
-graded — how much slop came out, and whether every fact stayed in. It keeps an edit only
-when it beats the old instructions on drafts it has never seen, and discards the rest.
-Every accepted edit makes the next de-slop a little sharper, for everyone who uses the
-skill, not just one draft. It also keeps itself current: each session it checks for a
-newer release and points you at the one-line update, sending a version query and nothing
-of what you wrote.
+This is post-deployment, human-in-the-loop online learning. It adapts detection and
+fixing through inspectable local rules and preferences. Human corrections provide
+feedback, but Zero Slop does not perform reinforcement learning or RLHF, nor does it
+retrain the host model. Shared changes still require review, tests, versioning, and a
+release. Each session can check for a newer release with a metadata-only version query.
+That query never sends the draft.
 
 ## Does it actually work
 
-We ran it head to head against the four tools it builds on: 50 AI-heavy drafts, six kinds
-of writing, judged blind. Across 100 picks, judges chose the Zero Slop version most often,
-55 to humanizer's 40, with the other two far back. It clearly beat two of them, and tied
-the strongest. It also cleanly separates obvious slop from genuine human writing, with no
-overlap, at about 1,100 documents a second.
+We ran it head to head against three of the four projects it builds on: 50 AI-heavy
+drafts across six kinds of writing. Judges reviewed the rewrites blind. Across 100
+picks, they chose the Zero Slop version most often, 55 to humanizer's 40; no-ai-slop
+received five and de-slop received none. The lead over humanizer was suggestive, not
+decisive. Zero Slop also separated obvious slop from known-human writing with no overlap
+in our test set. A separate 1,000-document test guards speed; CI fails if the batch
+takes longer than 60 seconds.
 
-The honest caveat, which the full README does not bury: our accuracy numbers all come
-from test writing we created ourselves, so they show the tool agreeing with an obvious
-call, not that it will nail every draft in the wild. A number you could really trust needs
-about a thousand hand-labeled samples, and building that set is the next thing on the
-list.
+The caveat matters: our accuracy numbers all come from test writing we created
+ourselves, so they show the tool agreeing with an obvious call, not that it will judge
+every draft reliably. A trustworthy estimate needs about a thousand hand-labeled
+samples, and building that set is next on the list.
 
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.3.0 · 75 tests · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.4.0 · CI-gated · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

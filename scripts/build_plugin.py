@@ -26,8 +26,12 @@ DEST = ROOT / "skills" / "zero-slop"
 # What constitutes the skill. Docs, benchmarks and manifests stay at the root:
 # a plugin payload should carry the runtime, not the marketing.
 ITEMS = ["SKILL.md", "references", "scripts", "data"]
-# Never mirror: personal voice profiles, caches, or this script's own output.
-EXCLUDE = {"voices", "__pycache__", "build_plugin.py"}
+# Never mirror personal state, caches, or maintainer/build utilities. The plugin
+# carries only files the installed skill can execute at runtime.
+EXCLUDE = {
+    "voices", "__pycache__", "build_plugin.py", "build_bundle.py",
+    "build_onepager_pdf.py", "build_skill_zip.py", "check_svg.py",
+}
 
 
 def wanted(src: Path):
@@ -64,6 +68,17 @@ def build(check=False):
                     stale.append(str(p.relative_to(ROOT)) + " (orphan)")
                 else:
                     p.unlink()
+        if not check:
+            # Remove directories left empty when a source subtree is retired.
+            # Deepest-first order keeps the mirror free of obsolete names.
+            directories = sorted(
+                (p for p in DEST.rglob("*") if p.is_dir()),
+                key=lambda p: len(p.parts),
+                reverse=True,
+            )
+            for directory in directories:
+                if not any(directory.iterdir()):
+                    directory.rmdir()
     if check:
         if stale:
             print("plugin mirror is out of date:")

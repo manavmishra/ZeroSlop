@@ -72,7 +72,7 @@ Apply the corrected version to the deliverable, then send that exact artifact
 through the final read-aloud pass in `references/readalong.md`. Verify the
 artifact returned by the read-aloud editor:
 
-1. Rerun the statistical scorer and scripted fidelity check.
+1. Rerun the heuristic surface scorer and scripted fidelity check.
 2. Compare it directly with both the original and selected rewrite for preserved
    claims, qualifiers, intended voice, regional spelling, format, and non-prose
    structure. The script cannot detect every semantic or stylistic change.
@@ -82,6 +82,6 @@ artifact returned by the read-aloud editor:
 
 Stop only when the same artifact clears the copy desk, final read-aloud pass,
 semantic and format review, scorer, and fidelity check. Limit this repair loop to
-three rounds. If an issue still cannot be resolved without guessing, return the
-best faithful version that completed both editorial passes and flag the unresolved
-span and failed check plainly.
+three rounds. If an issue still cannot be resolved without guessing, return the best
+source-preserving version that completed both editorial passes, flag the unresolved
+span and failed check plainly, and do not describe the fallback as fully verified.

@@ -39,7 +39,7 @@ HOW TO USE
   Codex                     : save as AGENTS.md in your project.
   Anything else             : paste it. It is self-contained.
 
-The statistical scorer needs a shell and is not included here. With Code
+The heuristic surface scorer needs a shell and is not included here. With Code
 Interpreter enabled you can also upload scripts/slopscore.py from the repo to
 get the numbers; without it, the reference lists below are the gate.
 

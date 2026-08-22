@@ -79,7 +79,7 @@ Apply the returned artifact to the actual deliverable before verification.
 
 Verify the exact artifact returned by the read-aloud editor:
 
-1. Rerun the statistical scorer and scripted fidelity check.
+1. Rerun the heuristic surface scorer and scripted fidelity check.
 2. Compare it directly with the original and selected rewrite for claims,
    qualifiers, intended voice, regional spelling, format, and non-prose structure.
 3. If any check requires a textual repair, apply it, run the copy desk again, run
@@ -88,8 +88,8 @@ Verify the exact artifact returned by the read-aloud editor:
 Stop only when the same artifact has cleared the copy desk, final read-aloud pass,
 semantic and format review, scorer, and fidelity check. Limit this repair loop to
 three rounds. If an issue still cannot be resolved without guessing, return the best
-faithful artifact that completed both editorial passes and state the unresolved span
-and failed check plainly.
+source-preserving version that completed both editorial passes, state the unresolved
+span and failed check plainly, and do not describe the fallback as fully verified.
 
 ## Why it is separate
 

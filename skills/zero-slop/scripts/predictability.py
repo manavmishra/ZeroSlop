@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""predictability — the model channel, powered by whatever model is running the skill.
+"""predictability — a host-model probe powered by the model running the skill.
 
 The strongest signal that a machine wrote something is that a machine finds it
 predictable: the words sit where a language model would have put them. Detectors
@@ -20,10 +20,11 @@ The protocol is three steps, so any agent can drive it:
     # 2. the agent fills {id: [top-3 guesses]} from each context, into preds.json
     python3 scripts/predictability.py --score draft.md preds.json         # 3. reading
 
-Deterministic end to end (fixed probe selection, no randomness), so the Python is fully
-testable; only the middle step needs the model. It is a corroborating channel reported
-beside the surface score, never folded into it — the surface score stays traceable to
-spans, and this says whether a model finds the prose predictable.
+Probe selection and scoring are deterministic, so the Python is fully testable. The
+model's three guesses can vary unless the host provides deterministic generation. It is
+a corroborating channel reported beside the surface score, never folded into it — the
+surface score stays traceable to spans, and this says whether a model finds the prose
+predictable.
 """
 import json
 import re
@@ -43,9 +44,17 @@ some few many much one two three""".split())
 
 def _words(text):
     """(word, start, end) for alphabetic tokens, code and quotes stripped out."""
-    text = re.sub(r"```.*?```", " ", text, flags=re.S)
-    text = re.sub(r"`[^`]*`", " ", text)
+    # Preserve character offsets while blanking code. Probe contexts slice this
+    # cleaned text; shrinking a fenced block made every later offset point into
+    # the wrong word in the original document.
+    text = re.sub(r"```.*?```", lambda m: " " * len(m.group(0)), text, flags=re.S)
+    text = re.sub(r"`[^`]*`", lambda m: " " * len(m.group(0)), text)
     return [(m.group(0), m.start(), m.end()) for m in re.finditer(r"[A-Za-z][A-Za-z'-]+", text)]
+
+
+def _without_code(text):
+    text = re.sub(r"```.*?```", lambda m: " " * len(m.group(0)), text, flags=re.S)
+    return re.sub(r"`[^`]*`", lambda m: " " * len(m.group(0)), text)
 
 
 def _norm(w):
@@ -60,7 +69,8 @@ def probes(text, k=12, window=45):
     whole piece, and the selection is a pure function of the text — same input, same
     probes, which is what makes the score reproducible and the scorer testable.
     """
-    ws = _words(text)
+    clean = _without_code(text)
+    ws = _words(clean)
     eligible = [i for i, (w, s, e) in enumerate(ws)
                 if len(_norm(w)) >= 4 and _norm(w) not in STOP and i > 0]
     if not eligible:
@@ -72,7 +82,7 @@ def probes(text, k=12, window=45):
     out = []
     for pid, wi in enumerate(picks):
         w, s, e = ws[wi]
-        before = text[:s]
+        before = clean[:s]
         ctx_words = re.findall(r"\S+", before)[-window:]
         context = " ".join(ctx_words) + " ___"
         out.append({"id": pid, "context": context, "answer": _norm(w)})
@@ -95,9 +105,10 @@ def _hit(answer, guesses):
 def score(text, predictions, k=12):
     """predictions: {id: [top guesses]}. Returns the predictability reading.
 
-    predictability = share of masked words the model's guesses recovered, 0–100.
-    Higher means more machine-predictable. The band is calibrated on the corpora in
-    bench/ and reported, never silently folded into the surface score.
+    predictability = share of masked words the model's top-three guesses recovered,
+    0–100. Higher means more machine-predictable. The descriptive bands are operating
+    thresholds, not calibrated probabilities, and the result is never silently folded
+    into the surface score.
     """
     pr = probes(text, k=k)
     if not pr:
@@ -109,7 +120,9 @@ def score(text, predictions, k=12):
         g = preds.get(p["id"], [])
         if isinstance(g, str):
             g = [g]
-        if _hit(p["answer"], g):
+        if not isinstance(g, list):
+            g = []
+        if _hit(p["answer"], g[:3]):
             hits += 1
     total = len(pr)
     val = round(100 * hits / total, 1)

@@ -4,7 +4,7 @@ Every sample here is writing a human would recognise as human. No pattern in
 `data/patterns.json` or `data/learned.json` may fire on any of them, and
 `calibrate.py --selftest` fails the build if one does. `learn.py` consults the
 same directory before minting anything from the reflect loop, so a pattern
-learned from one writer's edit can never start convicting the writing below.
+learned from one writer's edit can never start flagging the writing below.
 
 The corpus is the meter's conscience. Adding to it is the single most useful
 contribution to this repo: when you find honest writing the scorer got wrong,
@@ -15,7 +15,7 @@ can never recur.
 
 | Sample | The false positive it prevents |
 |---|---|
-| `gettysburg.txt` | Dash-heavy 19th-century oratory. An early build convicted it at 88.9 on em-dash density alone. |
+| `gettysburg.txt` | Dash-heavy 19th-century oratory. An early build misclassified it at 88.9 on em-dash density alone. |
 | `federalist.txt` | Long periodic sentences and formal abstraction that predate the machines by 240 years. |
 | `ml-methods.txt` | Academic methods prose. Passive voice and nominalisation are correct register here, not tells. |
 | `grant-abstract.txt` | Research proposal register — hypothesis framing and hedged claims that the general ladder would wrongly strip. |

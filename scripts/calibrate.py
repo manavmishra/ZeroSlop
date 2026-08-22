@@ -32,6 +32,8 @@ from collections import Counter
 from datetime import date
 from pathlib import Path
 
+from safeio import atomic_write_text, file_locks
+
 DATA = Path(__file__).resolve().parent.parent / "data"
 WORD = re.compile(r"[a-z’']+")
 MIN_OBS = 5          # a term needs this many AI-side occurrences to earn a weight
@@ -138,20 +140,28 @@ def selftest(fp_dir=None):
 def decay():
     """Halve the weight of patterns not re-confirmed within DECAY_MONTHS."""
     p = DATA / "learned.json"
-    d = json.loads(p.read_text())
-    today = date.today()
-    changed = 0
-    for pat in d.get("patterns", []):
-        lc = pat.get("last_confirmed")
-        if not lc:
-            continue
-        y, m, _ = (int(x) for x in lc.split("-"))
-        months = (today.year - y) * 12 + (today.month - m)
-        if months > DECAY_MONTHS and pat.get("w", 0) > 0.5:
-            pat["w"] = round(pat["w"] / 2, 2)
-            pat["decayed"] = str(today)
-            changed += 1
-    p.write_text(json.dumps(d, indent=1))
+    with file_locks([p]):
+        d = json.loads(p.read_text())
+        today = date.today()
+        changed = 0
+        for pat in d.get("patterns", []):
+            lc = pat.get("last_confirmed")
+            if not lc:
+                continue
+            try:
+                y, m, _ = (int(x) for x in lc.split("-"))
+            except (AttributeError, TypeError, ValueError):
+                continue
+            months = (today.year - y) * 12 + (today.month - m)
+            weight = pat.get("w", 0)
+            if (not isinstance(weight, (int, float)) or isinstance(weight, bool)
+                    or not math.isfinite(weight)):
+                continue
+            if months > DECAY_MONTHS and weight > 0.5:
+                pat["w"] = round(weight / 2, 2)
+                pat["decayed"] = str(today)
+                changed += 1
+        atomic_write_text(p, json.dumps(d, indent=1) + "\n")
     print(f"decayed {changed} pattern(s) unconfirmed for over {DECAY_MONTHS} months")
     return 0
 
@@ -180,7 +190,8 @@ def main():
                "lexicon": {t: v["w"] for t, v in weights.items()},
                "provenance": {t: dict(v, first_seen=today, last_confirmed=today)
                               for t, v in weights.items()}}
-    out.write_text(json.dumps(payload, indent=1))
+    with file_locks([out]):
+        atomic_write_text(out, json.dumps(payload, indent=1) + "\n")
     print(f"\nwrote {out}")
     print("next: review, merge the lexicon into data/learned.json, then run "
           "`python3 calibrate.py --selftest` before shipping")

@@ -84,7 +84,7 @@ perplexity relative to formal boilerplate), maximal-strength claims without
 overclaiming, qualification as precision. Wikipedia's WP:AICATCH — the
 largest human-curated corpus of caught-in-the-wild AI text — converges on the
 same tell families and adds the cluster rule this skill inherits: one tell is
-coincidence; many tells, repeatedly, convict.
+coincidence; repeated agreement across several tells is meaningful.
 
 ## Negative results: trained classifiers
 
@@ -132,7 +132,7 @@ design. Two consequences are load-bearing rather than decorative. Burstiness
 and followability are scored as *bands*, not as "more is better", so plain
 sentences are never evidence on their own. And
 `data/corpus/must-not-flag/esl-engineer-email.txt` is in the corpus every new
-pattern must clear, so the reflect loop cannot learn a rule that convicts
+pattern must clear, so the reflect loop cannot learn a rule that flags
 competent non-native writing however many people cut the phrase.
 
 ## The reflect loop: why recurrence is the gate
@@ -158,31 +158,15 @@ what readers detect. It tracks the register those authors are editing away
 from, which is the target, but it is a convenience sample and no substitute for
 the frequency work in `calibrate.py` against a real corpus.
 
-## Two learning axes: the meter and the instructions
-
-The reflect loop tunes the *detector* — which spans the meter should catch. It
-leaves the other half alone: the rewrite *instructions* in SKILL.md, which decide
-how a flagged draft is repaired. Those are optimizable too, by the same
-discipline. Microsoft's SkillOpt treats a skill's markdown as trainable text,
-runs it on a task set, scores each rewrite, and keeps an edit only when a
-held-out validation score strictly improves. Zero Slop supplies the reward that
-makes this safe for de-slopping: fidelity is a separate hard signal, so an edit
-that de-slops harder by dropping or inventing a fact cannot win, however clean it
-reads. The harness is in `bench/skillopt/`; like the reflect loop it is
-validation-gated, and like every learning path here it is barred from raising a
-score by loosening a rule that matters.
-
-Source: <https://github.com/microsoft/SkillOpt>
-
 ## Practitioner corroboration: Kagi SlopStop
 
 Kagi ships a production system for the same problem at web scale, and it
 converged on three of the design decisions here independently, which is the
 closest thing to external validation this architecture has.
 
-**Corroboration before conviction.** A domain is downranked when it is *mostly*
+**Corroboration before classification.** A domain is downranked when it is *mostly*
 AI-generated, typically above 80% of its pages, rather than on a single hit.
-That is the same principle as "clusters convict, singles don't", arrived at from
+That is the same principle as requiring several signals to agree, arrived at from
 ranking rather than from linting.
 
 **Multiple reports accelerate review.** Kagi's community reporting treats
@@ -227,14 +211,14 @@ detector on any fixed lexicon.
 cost credibility with the people who noticed. Now it costs distribution to
 everyone. That raises the value of catching the structural tells, which is where
 a lexicon-only tool fails: the discrimination corpus contains a post scoring
-38.6 with zero charged spans, caught on rhythm and shape alone.
+38.6 with zero weighted tells, caught on rhythm and shape alone.
 
 It also raises the cost of *over*-correction, since a rewrite that strips a
 writer's voice to pass a meter is a worse outcome than the tell it removed.
 That trade is why `references/overcorrection.md` exists and why the gate reports
 what it did not measure.
 
-## The model channel: token-predictability, without a shipped model
+## The host-model probe: token predictability without a shipped model
 
 The strongest signal in the table (feature 1) is the one a lexical linter cannot
 reach: whether a *model* finds the text predictable. DetectGPT and Binoculars read

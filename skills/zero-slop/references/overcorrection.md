@@ -44,7 +44,7 @@ experience — these alone are NOT evidence of AI:
 - Calibrated hedging in research/medical/legal writing
 - Text merely being unsourced (check it, don't flag it)
 
-Clusters convict. A paragraph needs multiple independent tells, or a failed
+Require corroboration. A paragraph needs multiple independent tells, or a failed
 removal test, before it's slop.
 
 ## Signs of human writing — preserve on sight

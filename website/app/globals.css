@@ -454,6 +454,8 @@ h1 {
 .process-inner { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: clamp(3rem, 8vw, 10rem); align-items: start; }
 .process h2 { max-width: 9ch; }
 .process-inner > div > p { max-width: 31rem; margin: 1.5rem 0 0; color: var(--muted); font-size: 1.05rem; line-height: 1.65; }
+.process-loops { display: grid; gap: 3rem; }
+.process-label { margin: 0 0 1.4rem; color: var(--accent); font-family: var(--font-geist-mono), monospace; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .process-list { margin: 0; padding: 0; list-style: none; counter-reset: process; }
 .process-list li { counter-increment: process; display: grid; grid-template-columns: 1fr 1.45fr; gap: 1.5rem; padding: 1.6rem 0; border-bottom: 1px solid var(--line-strong); }
 .process-list li:first-child { padding-top: 0; }

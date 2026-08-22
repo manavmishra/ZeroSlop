@@ -10,6 +10,7 @@ can verify the whole thing. Tests that write data operate on a temp copy of
 data/ so a failing run can never corrupt the shipped taxonomy.
 """
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -18,6 +19,7 @@ import tempfile
 import time
 import unittest
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -26,6 +28,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 DATA = ROOT / "data"
 CORPUS = DATA / "corpus" / "must-not-flag"
 SCORER = ROOT / "scripts" / "slopscore.py"
+LEARNER = ROOT / "scripts" / "learn.py"
 
 import learn  # noqa: E402
 import slopscore  # noqa: E402
@@ -37,7 +40,7 @@ def run(args, stdin=None):
 
 
 def score(text):
-    """AI-likelihood for a string, via the library path."""
+    """Heuristic surface score for a string, via the library path."""
     data = slopscore.load_patterns()
     return slopscore.score_text(text, data)["ai_likelihood"]
 
@@ -208,16 +211,28 @@ class CLI(unittest.TestCase):
     def test_json_is_valid_and_has_contract_keys(self):
         r = run([str(SCORER), "--json", str(CORPUS / "gettysburg.txt")])
         d = json.loads(r.stdout)
-        for k in ("ai_likelihood", "burstiness", "n_words", "hits"):
+        for k in ("score_kind", "calibrated_probability", "ai_likelihood",
+                  "burstiness", "n_words", "hits"):
             self.assertIn(k, d)
+        self.assertEqual(d["score_kind"], "heuristic_surface_meter")
+        self.assertFalse(d["calibrated_probability"])
 
     def test_reads_stdin(self):
         r = run([str(SCORER)], stdin="A short honest sentence about nothing.")
-        self.assertIn("AI-likelihood", r.stdout)
+        self.assertIn("Surface score", r.stdout)
 
     def test_unicode_does_not_crash(self):
         r = run([str(SCORER)], stdin="Ünïcödé — emoji 🚀 中文 العربية\n")
         self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_code_fences_do_not_charge_cli_formatting(self):
+        data = slopscore.load_patterns()
+        plain = "A direct technical note about the release."
+        fenced = plain + "\n\n```bash\ncommand --flag --another #tag 🚀\n```"
+        a = slopscore.score_text(plain, data)
+        b = slopscore.score_text(fenced, data)
+        for field in ("emdash_per_100w", "emoji_count", "hashtags"):
+            self.assertEqual(a[field], b[field], f"code changed {field}")
 
 
 # --------------------------------------------------------------------------
@@ -227,29 +242,43 @@ class ReflectLoop(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         shutil.copytree(DATA, self.tmp / "data")
-        self._save = (learn.DATA, learn.OBS, learn.CORPUS, learn.LOG)
+        self._save = (learn.DATA, learn.OBS, learn.CORPUS, learn.SHARED,
+                      learn.SHARED_LOG, learn.LOCAL, learn.LOCAL_LOG)
         learn.DATA = self.tmp / "data"
-        learn.OBS = learn.DATA / "reflections.json"
         learn.CORPUS = learn.DATA / "corpus" / "must-not-flag"
-        learn.LOG = learn.DATA / "learned-log.md"
-        if learn.OBS.exists():
-            learn.OBS.unlink()
+        learn.SHARED = learn.DATA / "learned.json"
+        learn.SHARED_LOG = learn.DATA / "learned-log.md"
+        private = self.tmp / "private"
+        learn.OBS = private / "reflections.json"
+        learn.LOCAL = private / "learned.json"
+        learn.LOCAL_LOG = private / "learned-log.md"
 
     def tearDown(self):
-        learn.DATA, learn.OBS, learn.CORPUS, learn.LOG = self._save
+        (learn.DATA, learn.OBS, learn.CORPUS, learn.SHARED,
+         learn.SHARED_LOG, learn.LOCAL, learn.LOCAL_LOG) = self._save
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def _pair(self, produced, shipped, doc):
         a, b = self.tmp / "p.md", self.tmp / "s.md"
-        a.write_text(produced)
-        b.write_text(shipped)
+        # Distinct surrounding content makes these distinct edit pairs. The
+        # learning loop deliberately ignores caller-supplied IDs for recurrence.
+        prefix = f"memo {doc}. "
+        a.write_text(prefix + produced)
+        b.write_text(prefix + shipped)
         learn.reflect(str(a), str(b), doc)
 
     def _obs(self):
         return json.loads(learn.OBS.read_text())["observations"]
 
     def _learned(self):
-        return json.loads((learn.DATA / "learned.json").read_text())["patterns"]
+        if not learn.LOCAL.exists():
+            return []
+        return json.loads(learn.LOCAL.read_text())["patterns"]
+
+    def _overlay(self):
+        if not learn.LOCAL.exists():
+            return learn.empty_learned("local")
+        return json.loads(learn.LOCAL.read_text())
 
     # -- recurrence ------------------------------------------------------
     def test_single_document_cannot_mint_a_pattern(self):
@@ -274,6 +303,44 @@ class ReflectLoop(unittest.TestCase):
         self.assertTrue(any(re.search(p["rx"], "this puts wood behind the arrow on latency", re.I)
                             for p in minted),
                         f"the recurring tell was not minted: {[p['name'] for p in minted]}")
+        preferred = [p for p in self._overlay().get("fix_preferences", [])
+                     if p.get("preferred_fix") == "latency dropped"]
+        self.assertTrue(preferred, "recurring human replacement did not reach fix memory")
+        self.assertGreaterEqual(preferred[0].get("seen_in_pairs", 0), learn.PROMOTE_AT)
+
+    def test_existing_detector_tell_can_teach_the_fix_memory(self):
+        for i in range(learn.PROMOTE_AT):
+            self._pair("We're thrilled to announce the release.",
+                       "The release is live.", f"known-{i}")
+        learn.promote(True, "test", 2.5)
+        prefs = self._overlay().get("fix_preferences", [])
+        self.assertTrue(any(p.get("source_span") == "we're thrilled to announce"
+                            and p.get("preferred_fix") == "the release is live"
+                            for p in prefs), prefs)
+        obs = json.loads(learn.OBS.read_text())
+        self.assertNotIn("thrilled", obs.get("lexicon_candidates", {}))
+        self.assertNotIn("announce", obs.get("lexicon_candidates", {}))
+        self._pair("We're thrilled to announce the release.",
+                   "The release is live.", "known-refresh")
+        learn.promote(True, "test", 2.5)
+        refreshed = next(p for p in self._overlay()["fix_preferences"]
+                         if p["source_span"] == "we're thrilled to announce")
+        self.assertEqual(refreshed["seen_in_pairs"], learn.PROMOTE_AT + 1)
+        self.assertTrue(refreshed["active"])
+
+    def test_stale_fix_preference_is_retired(self):
+        old = str(date.today() - timedelta(days=30 * (learn.DECAY_MONTHS + 2)))
+        overlay = learn.empty_learned("local")
+        overlay["fix_preferences"] = [{
+            "source_span": "we're thrilled to announce",
+            "preferred_fix": "the release is live",
+            "seen_in_pairs": 3,
+            "last_confirmed": old,
+            "active": True,
+        }]
+        learn.write_json(learn.LOCAL, overlay, private=True)
+        learn.decay_local()
+        self.assertFalse(self._overlay()["fix_preferences"][0]["active"])
 
     def test_same_document_counted_once(self):
         """Re-running reflect on one doc must not inflate its way to threshold."""
@@ -345,15 +412,15 @@ class ReflectLoop(unittest.TestCase):
         prose into a tracked file while --export printed "no source text is
         included". Names are digests now and there is no example field.
         """
-        txt = "We shipped it. Quietly winding down enterprise sales was the call."
-        cut = "We shipped it. That was the call."
+        shared_before = learn.SHARED.read_text()
+        txt = "We shipped it. This puts wood behind the arrow on latency for us."
+        cut = "We shipped it. Latency dropped."
         for i in range(learn.PROMOTE_AT):
             self._pair(txt, cut, f"doc{i}")
         learn.promote(True, "test", 2.5)
-        blob = (learn.DATA / "learned.json").read_text().lower()
-        for secret in ("quietly", "winding", "enterprise sales"):
-            self.assertNotIn(secret, blob,
-                             f"user prose {secret!r} leaked into a tracked file")
+        self.assertEqual(learn.SHARED.read_text(), shared_before,
+                         "private online learning changed the tracked taxonomy")
+        self.assertTrue(learn.LOCAL.exists(), "live learning overlay was not written")
 
     def test_promotion_is_not_repeated(self):
         txt = "We shipped it. This puts wood behind the arrow on latency for us."
@@ -433,6 +500,151 @@ class Decay(unittest.TestCase):
         finally:
             calibrate.DATA = saved
 
+
+class OnlineLearningSafety(unittest.TestCase):
+    """Live adaptation is private, atomic, path-safe, and process-safe."""
+
+    def test_local_overlay_is_loaded_on_the_next_score(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_home = slopscore.HOME
+        try:
+            slopscore.HOME = tmp
+            (tmp / "learned.json").write_text(json.dumps({
+                "patterns": [{"name": "local-test", "cat": "test",
+                              "rx": r"\bwood behind the arrow\b", "w": 4.0}],
+                "lexicon": {}, "riders": {}
+            }))
+            data = slopscore.load_patterns()
+            hits = slopscore.score_text(
+                "This puts wood behind the arrow today.", data)["hits"]
+            self.assertTrue(any(h["name"] == "local-test" for h in hits))
+        finally:
+            slopscore.HOME = old_home
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_malformed_local_overlay_degrades_to_shared_rules(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_home = slopscore.HOME
+        try:
+            slopscore.HOME = tmp
+            (tmp / "learned.json").write_text(json.dumps({
+                "patterns": [
+                    {"w": "bad"},
+                    {"name": "missing-category", "rx": "plain", "w": 2.0},
+                ]
+            }))
+            result = slopscore.score_text("A plain sentence.", slopscore.load_patterns())
+            self.assertIn("ai_likelihood", result)
+        finally:
+            slopscore.HOME = old_home
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_pathological_local_regex_is_ignored(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_home = slopscore.HOME
+        try:
+            slopscore.HOME = tmp
+            (tmp / "learned.json").write_text(json.dumps({
+                "patterns": [{"name": "nested-quantifier", "cat": "test",
+                              "rx": r"(a+)+$", "w": 4.0}],
+                "lexicon": {}, "riders": {},
+            }))
+            names = {p["name"] for p in slopscore.load_patterns()["patterns"]}
+            self.assertNotIn("nested-quantifier", names)
+        finally:
+            slopscore.HOME = old_home
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_voice_names_cannot_escape_the_private_directory(self):
+        for name in ("../outside", "/tmp/outside", "a/b"):
+            with self.subTest(name):
+                with self.assertRaises(ValueError):
+                    slopscore.load_patterns(voice=name)
+                with self.assertRaises(SystemExit):
+                    learn.safe_voice_name(name)
+
+    def test_export_containment_rejects_prefix_siblings(self):
+        root = Path("/tmp/zero-slop")
+        self.assertFalse(learn.is_within(Path("/tmp/zero-slop-escape/x"), root))
+        self.assertTrue(learn.is_within(root / "x", root))
+
+    def test_corrupt_reflection_store_is_not_silently_overwritten(self):
+        tmp = Path(tempfile.mkdtemp())
+        p = tmp / "reflections.json"
+        p.write_text("not json")
+        try:
+            with self.assertRaises(SystemExit):
+                learn.load(p, {"observations": {}})
+            self.assertEqual(p.read_text(), "not json")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_invalid_reflection_schema_fails_closed(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_obs = learn.OBS
+        try:
+            learn.OBS = tmp / "reflections.json"
+            learn.OBS.write_text(json.dumps({"observations": []}))
+            with self.assertRaises(SystemExit):
+                learn.load_observations()
+            self.assertEqual(json.loads(learn.OBS.read_text()), {"observations": []})
+        finally:
+            learn.OBS = old_obs
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_nonfinite_weights_are_rejected_at_the_cli(self):
+        for value in ("nan", "inf", "-1", "10.1"):
+            with self.subTest(value):
+                r = run([str(LEARNER), "--stats", "--weight", value])
+                self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+    def test_malformed_contributions_fail_cleanly(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            not_object = tmp / "list.json"
+            not_object.write_text("[]")
+            self.assertEqual(learn.merge(str(not_object), False, "test", 2.5), 1)
+
+            bad_count = tmp / "bad-count.json"
+            bad_count.write_text(json.dumps({
+                "schema": 1,
+                "spans": [{"span": "wood behind the arrow", "documents": "many"}],
+                "false_positives": [],
+            }))
+            self.assertEqual(learn.merge(str(bad_count), False, "test", 2.5), 0)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_concurrent_reflections_do_not_lose_updates(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            env = dict(os.environ, ZERO_SLOP_HOME=str(tmp / "state"))
+
+            def one(i):
+                produced = tmp / f"produced-{i}.md"
+                shipped = tmp / f"shipped-{i}.md"
+                produced.write_text(
+                    f"memo {i}. We shipped it. This puts wood behind the arrow "
+                    "on latency for us.")
+                shipped.write_text(f"memo {i}. We shipped it. Latency dropped.")
+                return subprocess.run(
+                    [sys.executable, str(ROOT / "scripts" / "learn.py"),
+                     "--reflect", "--produced", str(produced), "--shipped",
+                     str(shipped), "--doc-id", f"doc-{i}"],
+                    cwd=ROOT, env=env, capture_output=True, text=True)
+
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                results = list(pool.map(one, range(8)))
+            self.assertTrue(all(r.returncode == 0 for r in results),
+                            "\n".join(r.stderr for r in results))
+            state = json.loads((tmp / "state" / "reflections.json").read_text())
+            counts = [v["count"] for v in state["observations"].values()]
+            self.assertIn(8, counts, counts)
+            if os.name != "nt":
+                mode = (tmp / "state" / "reflections.json").stat().st_mode & 0o777
+                self.assertEqual(mode, 0o600)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
 
 # --------------------------------------------------------------------------
 class Scale(unittest.TestCase):
@@ -609,9 +821,51 @@ class DocsMatchReality(unittest.TestCase):
 
     def test_no_stale_version_references(self):
         import json as _j
-        v = _j.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+        claude = _j.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
+        codex = _j.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())
+        v = claude["version"]
+        self.assertEqual(v, codex["version"], "plugin manifests disagree on version")
         self.assertIn(f'version: "{v}"', self.docs["SKILL.md"],
                       "SKILL.md version does not match the plugin manifest")
+        self.assertIn(f"version-{v}", self.docs["README.md"],
+                      "README badge does not match the plugin manifest")
+        self.assertIn(f"v{v}", self.docs["ONE-PAGER.md"],
+                      "one-pager does not match the plugin manifest")
+
+    def test_skill_frontmatter_uses_supported_keys(self):
+        header = self.docs["SKILL.md"].split("---", 2)[1]
+        top = {m.group(1) for line in header.splitlines()
+               if (m := re.match(r"^([a-z][a-z-]*):", line))}
+        self.assertLessEqual(top, {"name", "description", "license", "metadata",
+                                   "allowed-tools"})
+
+    def test_plugin_manifests_have_required_identity(self):
+        for folder in (".claude-plugin", ".codex-plugin"):
+            manifest = json.loads((ROOT / folder / "plugin.json").read_text())
+            with self.subTest(folder):
+                for field in ("name", "version", "description", "author", "license"):
+                    self.assertTrue(manifest.get(field), f"{folder} missing {field}")
+                self.assertEqual(manifest["name"], "zero-slop")
+
+    def test_removed_optimizer_is_absent(self):
+        """The retired instruction optimizer must not survive in any runtime,
+        generated bundle, document, benchmark, or filename."""
+        banned = "skill" + "opt"
+        roots = [ROOT / p for p in (
+            "README.md", "SKILL.md", "ONE-PAGER.md", "SECURITY.md", "AGENTS.md",
+            "references", "scripts", "data", "bench", "skills", "dist", "assets")]
+        hits = []
+        for root in roots:
+            paths = [root] if root.is_file() else root.rglob("*") if root.exists() else []
+            for path in paths:
+                if banned in path.as_posix().lower():
+                    hits.append(str(path.relative_to(ROOT)))
+                    continue
+                if path.is_file() and path.suffix.lower() in {
+                        ".md", ".py", ".json", ".jsonl", ".yaml", ".yml", ".svg", ".txt"}:
+                    if banned in path.read_text(errors="ignore").lower():
+                        hits.append(str(path.relative_to(ROOT)))
+        self.assertEqual(hits, [], f"retired optimizer still ships: {hits}")
 
 
 class Discrimination(unittest.TestCase):
@@ -794,10 +1048,33 @@ class Diagram(unittest.TestCase):
         r = run([str(ROOT / "scripts" / "build_plugin.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_plugin_runtime_contains_only_runtime_modules(self):
+        shipped = {p.name for p in (ROOT / "skills" / "zero-slop" / "scripts").glob("*.py")}
+        self.assertEqual(shipped, {
+            "calibrate.py", "learn.py", "predictability.py", "rerank.py",
+            "safeio.py", "slopscore.py", "version_check.py",
+        })
+
     def test_engine_svg_has_no_overflow(self):
         r = run([str(ROOT / "scripts" / "check_svg.py"),
                  str(ROOT / "assets" / "engine.svg")])
         self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_demo_svg_has_no_overflow(self):
+        r = run([str(ROOT / "scripts" / "check_svg.py"),
+                 str(ROOT / "assets" / "demo.svg")])
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_engine_svg_names_both_operational_loops(self):
+        src = (ROOT / "assets" / "engine.svg").read_text().lower()
+        for phrase in (
+                "editorial delivery", "measure", "diagnose", "rewrite",
+                "copy edit", "read aloud", "verify", "online learning",
+                "observe", "gate evidence", "update private overlay",
+                "reconfirm / decay", "detector weights + fix preferences",
+                "adapts detection + fixing"):
+            with self.subTest(phrase):
+                self.assertIn(phrase, src)
 
     def test_engine_svg_is_theme_aware(self):
         src = (ROOT / "assets" / "engine.svg").read_text()
@@ -888,6 +1165,23 @@ class PredictabilityChannel(unittest.TestCase):
             self.assertNotIn(p["answer"], m._norm(p["context"]).split())
             self.assertTrue(p["context"].endswith("___"))
 
+    def test_only_three_guesses_count(self):
+        m = self._mod()
+        pr = m.probes(self.TEXT, k=1)
+        guesses = {pr[0]["id"]: ["wrong", "stillwrong", "nope", pr[0]["answer"]]}
+        self.assertEqual(m.score(self.TEXT, guesses, k=1)["predictability"], 0.0)
+
+    def test_code_blocks_do_not_shift_probe_contexts(self):
+        m = self._mod()
+        text = ("A useful opening sentence.\n\n```python\nsecret_token = value\n```\n\n"
+                "The service recovered quickly after the database restart.")
+        probes = m.probes(text, k=4)
+        self.assertTrue(probes)
+        contexts = " ".join(p["context"] for p in probes)
+        self.assertNotIn("secret_token", contexts)
+        self.assertTrue(any("service" in p["context"].lower() or
+                            "database" in p["context"].lower() for p in probes))
+
     def test_too_short_degrades_cleanly(self):
         m = self._mod()
         r = m.score("Hi there.", {}, k=6)
@@ -903,12 +1197,12 @@ class CliStdin(unittest.TestCase):
     def test_stdin_with_no_arg(self):
         r = run([str(SCORER), "--explain"], stdin=self.SLOP)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("AI-likelihood", r.stdout)
+        self.assertIn("Surface score", r.stdout)
 
     def test_dash_means_stdin(self):
         r = run([str(SCORER), "--explain", "-"], stdin=self.SLOP)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("AI-likelihood", r.stdout)
+        self.assertIn("Surface score", r.stdout)
 
 
 if __name__ == "__main__":
