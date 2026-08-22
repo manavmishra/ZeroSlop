@@ -128,8 +128,8 @@ def render(datasets):
     out = []
     out.append(_hbar(
         ASSETS / "bench-bestpicks.png",
-        "Versions selected as best in two LLM passes",
-        "50 synthetic drafts; five LLM judge runs per pass; no human raters. Higher is better.",
+        "Blind LLM-as-a-judge selections",
+        "50 synthetic drafts; five judge runs per pass; no human raters. Higher is better.",
         datasets["best_picks"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-detector.png",

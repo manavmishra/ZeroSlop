@@ -325,29 +325,30 @@ products. Only the Zero Slop rewrites were tuned against this benchmark's scorec
 [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) appears in the
 detector chart below but was not part of the blinded comparison.
 
-### Who did the judging
+### How the blind LLM-as-a-judge review worked
 
-No human raters took part. The benchmark records identify the evaluators only as LLM
-runs from one model family. Each of the two passes used five separate runs, one for each
-ten-draft packet. The model received the writing brief, source draft, factual inventory,
-and four rewrites labeled A through D. The method names were shuffled and hidden. It
-scored each rewrite from 1 to 10 for human-likeness, voice, fidelity, writing craft, and
-platform fit. It also flagged fabrication and selected the best and worst version. The
-second pass used the same text and label mapping but fresh model runs.
+No human raters took part. The benchmark used a blind LLM-as-a-judge review: the model
+saw four versions labeled A through D, not the names of the tools that produced them.
+The records say only that every judging run used the same model family; they do not name
+it. Each of the two passes used five separate runs, one for each ten-draft packet. The
+model received the writing brief, source draft, factual inventory, and four rewrites.
+It scored each rewrite from 1 to 10 for human-likeness, voice, fidelity, writing craft,
+and platform fit. It also flagged fabrication and selected the best and worst version.
+The second pass used the same text and label mapping but fresh model runs.
 
 The repository includes the packets, shuffle key, and resulting scores. It does not
-preserve the exact judge model and version, inference settings, or full evaluation
-prompt. That omission prevents an exact reproduction of the judging and limits what
-the result can support.
+preserve the model name and version, inference settings, or full evaluation prompt.
+That omission prevents an exact reproduction of the judging and limits what the result
+can support.
 
-The model selected Zero Slop as best for 32 of 50 drafts in the first pass and 23 in
-the second. It selected blader/humanizer for 18 and 22. Across both passes, the counts
-were 55 and 40, but the passes chose the same winner on only 26 of 50 drafts. Cohen's
-kappa was 0.12, the confidence intervals overlapped, and the head-to-head difference
-was not statistically significant (p = 0.15). These data show that the two systems were
-competitive in this setup. They do not establish a general winner.
+The first blind LLM-as-a-judge pass selected Zero Slop for 32 of 50 drafts and
+blader/humanizer for 18. The second selected them for 23 and 22. Across both passes,
+the counts were 55 and 40, but the passes chose the same winner on only 26 of 50 drafts.
+Cohen's kappa was 0.12, the confidence intervals overlapped, and the head-to-head
+difference was not statistically significant (p = 0.15). These data show that the two
+systems were competitive in this setup. They do not establish a general winner.
 
-![Versions selected as best across two blinded LLM passes: Zero Slop 55, blader 40, no-ai-slop 5, de-slop 0](assets/bench-bestpicks.png)
+![Versions selected as best in a blind LLM-as-a-judge review: Zero Slop 55, blader 40, no-ai-slop 5, de-slop 0](assets/bench-bestpicks.png)
 
 The second chart measures how much of the AI register each rewrite leaves behind. Zero
 Slop's own detector produces these numbers, so they are useful for checking the meter's
