@@ -4,7 +4,8 @@
 The charts in the README are computed, not hand-drawn. This reads the same sources
 the tables do — replication.json for the pooled best-picks, the raw method outputs
 re-scored by the current detector for the register panel, and the search-informed
-regression results — then draws three bar charts in assets/ and writes a small
+regression results, plus the version-pinned competitor capability audit — then draws
+three bar charts and one capability matrix in assets/ and writes a small
 chart-data.json manifest.
 
     python3 bench/make_charts.py            # regenerate the PNGs and the manifest
@@ -28,6 +29,7 @@ ROOT = BENCH.parent
 ASSETS = ROOT / "assets"
 MANIFEST = BENCH / "chart-data.json"
 SEARCH_RESULTS = BENCH / "search-corpus" / "results.json"
+CAPABILITY_AUDIT = BENCH / "competitor-capabilities.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 
 # Where each method's rewrites live, and the label shown on the chart. The panel
@@ -78,8 +80,22 @@ def compute():
         (genre, row["mean_surface_score"])
         for genre, row in sorted(search["by_genre"].items())
     ]
+    audit = json.loads(CAPABILITY_AUDIT.read_text())
+    products = ["zero_slop", "blader", "no_ai_slop"]
+    capability_matrix = {
+        "audited_on": audit["audited_on"],
+        "products": [
+            [key, audit["products"][key]["label"], audit["products"][key]["commit"]]
+            for key in products
+        ],
+        "rows": [
+            [row["label"], *[row[key] for key in products]]
+            for row in audit["capabilities"]
+        ],
+    }
     return {"best_picks": best, "detector_panel": panel,
-            "search_corpus": search_panel}
+            "search_corpus": search_panel,
+            "capability_matrix": capability_matrix}
 
 
 # ---- rendering (Pillow) --------------------------------------------------
@@ -131,6 +147,65 @@ def _hbar(path, title, subtitle, rows, ours_label):
     return path.name
 
 
+def _capability_matrix(path, audit):
+    """Render a presence matrix without turning capabilities into a quality score."""
+    from PIL import Image, ImageDraw
+    W, left, top, rowh = 1240, 620, 168, 43
+    products = audit["products"]
+    rows = audit["rows"]
+    centers = [750, 940, 1120]
+    H = top + len(rows) * rowh + 112
+    img = Image.new("RGB", (W, H), (255, 255, 255))
+    d = ImageDraw.Draw(img)
+    d.text((44, 28), "Documented editorial system capabilities",
+           font=_font(27, True), fill=INK)
+    d.text((44, 66), "Repository audit at pinned commits. Presence is not effectiveness proof.",
+           font=_font(15), fill=MUTE)
+    d.text((44, 96), "Native = dedicated component or named gate. Guided = instruction or self-check.",
+           font=_font(13), fill=MUTE)
+
+    for x, (_, label, commit) in zip(centers, products):
+        d.text((x, 125), label, font=_font(13, label == "Zero Slop"),
+               fill=INK if label == "Zero Slop" else MUTE, anchor="ma")
+        d.text((x, 145), commit[:8], font=_font(10), fill=MUTE, anchor="ma")
+
+    for i, row in enumerate(rows):
+        y = top + i * rowh
+        if i % 2 == 0:
+            d.rounded_rectangle([32, y, W - 32, y + rowh - 2], 5,
+                                fill=(247, 248, 250))
+        d.text((44, y + rowh // 2), row[0], font=_font(14), fill=INK, anchor="lm")
+        for x, status in zip(centers, row[1:]):
+            cy, r = y + rowh // 2, 8
+            if status == "native":
+                d.ellipse([x - r, cy - r, x + r, cy + r], fill=BRAND)
+            elif status == "guided":
+                d.pieslice([x - r, cy - r, x + r, cy + r], 90, 270,
+                           fill=(230, 168, 63))
+                d.ellipse([x - r, cy - r, x + r, cy + r], outline=(184, 136, 48), width=2)
+            else:
+                d.ellipse([x - r, cy - r, x + r, cy + r], outline=MUTEDBAR, width=2)
+
+    legend_y = top + len(rows) * rowh + 34
+    legend = [
+        (BRAND, "Native"),
+        ((230, 168, 63), "Guided"),
+        (None, "Not documented"),
+    ]
+    x = 44
+    for color, label in legend:
+        if color:
+            d.ellipse([x, legend_y - 7, x + 14, legend_y + 7], fill=color)
+        else:
+            d.ellipse([x, legend_y - 7, x + 14, legend_y + 7], outline=MUTEDBAR, width=2)
+        d.text((x + 24, legend_y), label, font=_font(12), fill=MUTE, anchor="lm")
+        x += 132 if label != "Not documented" else 190
+    d.text((W - 44, legend_y), f"Audited {audit['audited_on']}",
+           font=_font(11), fill=MUTE, anchor="rm")
+    img.save(path)
+    return path.name
+
+
 def render(datasets):
     ASSETS.mkdir(exist_ok=True)
     out = []
@@ -151,6 +226,9 @@ def render(datasets):
         "18 anonymous paraphrases, three per genre. Higher means more tracked surface slop; "
         "this is a regression check, not field accuracy.",
         datasets["search_corpus"], None))
+    out.append(_capability_matrix(
+        ASSETS / "competitor-capabilities.png",
+        datasets["capability_matrix"]))
     return out
 
 

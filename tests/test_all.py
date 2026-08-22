@@ -1074,6 +1074,34 @@ class Personalization(unittest.TestCase):
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
 
+    def test_competitor_capability_audit_is_pinned_and_caveated(self):
+        """The README comparison must be reproducible and must not turn a
+        repository feature audit into an effectiveness claim."""
+        audit_path = ROOT / "bench" / "competitor-capabilities.json"
+        self.assertTrue(audit_path.exists(), "competitor capability audit is missing")
+        audit = json.loads(audit_path.read_text())
+        self.assertEqual(
+            audit["products"]["blader"]["commit"],
+            "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5",
+        )
+        self.assertEqual(
+            audit["products"]["no_ai_slop"]["commit"],
+            "d30eddb9e04562234f2070b5ee63ca4649d9a05e",
+        )
+        self.assertGreaterEqual(len(audit["capabilities"]), 10)
+        for row in audit["capabilities"]:
+            with self.subTest(row=row["id"]):
+                self.assertEqual(row["zero_slop"], "native")
+                self.assertIn(row["blader"], {"guided", "not_documented"})
+                self.assertIn(row["no_ai_slop"], {"guided", "not_documented"})
+
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn("assets/competitor-capabilities.png", readme)
+        self.assertIn("Capability presence is not effectiveness proof", readme)
+        self.assertIn(audit["products"]["blader"]["commit"][:12], readme)
+        self.assertIn(audit["products"]["no_ai_slop"]["commit"][:12], readme)
+        self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
+
     def test_benchmark_charts_are_current(self):
         """The README charts are computed from the benchmark data; a re-run or a
         scorer change that would move a bar fails until they are regenerated."""

@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "audited_on": "2026-08-22",
+  "method": "Repository audit of the pinned commits. Native means a dedicated script, stored artifact, or named workflow gate. Guided means an instruction or self-check without a dedicated executable component. Not documented means the capability was not found in the audited repository; it does not prove the product cannot do it.",
+  "products": {
+    "zero_slop": {
+      "label": "Zero Slop",
+      "repository": "https://github.com/manavmishra/ZeroSlop",
+      "commit": "2de02d1ee7c80200af48f33f9ef92c0485b301e2"
+    },
+    "blader": {
+      "label": "blader/humanizer",
+      "repository": "https://github.com/blader/humanizer",
+      "commit": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5"
+    },
+    "no_ai_slop": {
+      "label": "petergyang/no-ai-slop",
+      "repository": "https://github.com/petergyang/no-ai-slop",
+      "commit": "d30eddb9e04562234f2070b5ee63ca4649d9a05e"
+    }
+  },
+  "capabilities": [
+    {
+      "id": "detect_report",
+      "label": "Detect-only evidence report",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "guided"
+    },
+    {
+      "id": "numeric_meter",
+      "label": "Traceable numeric surface meter",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "structural_statistics",
+      "label": "Statistical rhythm and format signals",
+      "zero_slop": "native",
+      "blader": "guided",
+      "no_ai_slop": "guided"
+    },
+    {
+      "id": "fidelity_gate",
+      "label": "Scripted fact and claim check",
+      "zero_slop": "native",
+      "blader": "guided",
+      "no_ai_slop": "guided"
+    },
+    {
+      "id": "candidate_rerank",
+      "label": "Best-of-N candidate reranking",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "separate_editors",
+      "label": "Separate copy desk and read-aloud gates",
+      "zero_slop": "native",
+      "blader": "guided",
+      "no_ai_slop": "guided"
+    },
+    {
+      "id": "portfolio_probe",
+      "label": "Cross-draft portfolio probe",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "private_learning",
+      "label": "Private evidence-gated learning",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "fix_memory",
+      "label": "Recurring rewrite-fix memory",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "decay",
+      "label": "Evidence reconfirmation and decay",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "voice_profile",
+      "label": "External voice sample or profile",
+      "zero_slop": "native",
+      "blader": "guided",
+      "no_ai_slop": "not_documented"
+    },
+    {
+      "id": "public_evaluation",
+      "label": "Public outcome regression harness",
+      "zero_slop": "native",
+      "blader": "not_documented",
+      "no_ai_slop": "not_documented"
+    }
+  ]
+}

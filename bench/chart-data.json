@@ -72,5 +72,99 @@
    "x",
    73.3
   ]
- ]
+ ],
+ "capability_matrix": {
+  "audited_on": "2026-08-22",
+  "products": [
+   [
+    "zero_slop",
+    "Zero Slop",
+    "2de02d1ee7c80200af48f33f9ef92c0485b301e2"
+   ],
+   [
+    "blader",
+    "blader/humanizer",
+    "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5"
+   ],
+   [
+    "no_ai_slop",
+    "petergyang/no-ai-slop",
+    "d30eddb9e04562234f2070b5ee63ca4649d9a05e"
+   ]
+  ],
+  "rows": [
+   [
+    "Detect-only evidence report",
+    "native",
+    "not_documented",
+    "guided"
+   ],
+   [
+    "Traceable numeric surface meter",
+    "native",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Statistical rhythm and format signals",
+    "native",
+    "guided",
+    "guided"
+   ],
+   [
+    "Scripted fact and claim check",
+    "native",
+    "guided",
+    "guided"
+   ],
+   [
+    "Best-of-N candidate reranking",
+    "native",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Separate copy desk and read-aloud gates",
+    "native",
+    "guided",
+    "guided"
+   ],
+   [
+    "Cross-draft portfolio probe",
+    "native",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Private evidence-gated learning",
+    "native",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Recurring rewrite-fix memory",
+    "native",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Evidence reconfirmation and decay",
+    "native",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "External voice sample or profile",
+    "native",
+    "guided",
+    "not_documented"
+   ],
+   [
+    "Public outcome regression harness",
+    "native",
+    "not_documented",
+    "not_documented"
+   ]
+  ]
+ }
 }

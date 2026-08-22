@@ -388,6 +388,46 @@ A separate 1,000-document test guards speed; CI fails if the batch takes longer 
 seconds. The full inputs, rewrites, anonymized packets, raw ratings, challenge corpus,
 and analysis scripts are in the [benchmark harness](bench/).
 
+## What Zero Slop adds
+
+[blader/humanizer](https://github.com/blader/humanizer) is a broad editing guide with
+35 named pattern families, voice-sample matching, and a strict no-fabrication check.
+[petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) has a clean detect
+mode, protects the writer's rough edges, and asks for the minimum effective edit. Zero
+Slop works on the same editorial problem. It also measures the draft, verifies the
+rewrite, checks related drafts for repeated templates, and learns from published edits.
+
+Capability presence is not effectiveness proof. The blind review above remains the
+head-to-head result in this repository, and it found Zero Slop and blader/humanizer
+competitive in that setup (p = 0.15). The matrix below answers a narrower question:
+what each pinned repository documents and ships. We audited Zero Slop at
+[`2de02d1ee7c8`](https://github.com/manavmishra/ZeroSlop/tree/2de02d1ee7c80200af48f33f9ef92c0485b301e2),
+blader/humanizer at
+[`e2e92e7b4b82`](https://github.com/blader/humanizer/tree/e2e92e7b4b8229253ed5c8e81dc65463fdeddda5),
+and petergyang/no-ai-slop at
+[`d30eddb9e045`](https://github.com/petergyang/no-ai-slop/tree/d30eddb9e04562234f2070b5ee63ca4649d9a05e)
+on August 22, 2026.
+
+![Repository capability audit. Zero Slop ships a detect-only evidence report, a numeric meter, statistical signals, and a scripted fidelity check. It also ships candidate selection, separate final editing gates, a portfolio probe, private learning, recurring fix memory, evidence decay, external voice profiles, and a public regression harness. The two comparison projects document several instruction-guided editing checks but not the wider measured system.](assets/competitor-capabilities.png)
+
+| Area | Zero Slop | blader/humanizer | petergyang/no-ai-slop |
+|---|---|---|---|
+| Modes | Metered findings, rewrite, and a separate 3+ draft portfolio probe. | Rewrite workflow. | Edit and detect workflows. |
+| Measurement | Traceable surface score with statistical and context-gated signals. | Pattern review in the skill instructions. | Named findings. The detect mode explicitly does not score. |
+| Fact protection | Scripted fact inventory plus claim review. | No-fabrication instruction and final claim check. | Preserve-facts instruction and self-check. |
+| Selection and finish | Best-of-N reranker. Copy desk. Fresh read-aloud pass. Then every gate runs again. | Draft, read aloud, then check patterns and claims. | Minimum effective edit plus a written self-evaluation. |
+| Personalization | Private voice profile from the writer's samples. | Matches a supplied writing sample. | Preserves voice found in the current draft. |
+| Cross-draft diagnosis | Reused openings and phrases across 3+ related drafts. | Not documented in the pinned repository. | Not documented in the pinned repository. |
+| Learning | Private pattern weights and fix memory. Evidence thresholds, reconfirmation, and decay govern updates. | Not documented in the pinned repository. | Not documented in the pinned repository. |
+| Published evaluation | Raw blind-review records. Regression corpora. Speed gate. Scripts and explicit limits. | No outcome benchmark found in the pinned repository. | No outcome benchmark found in the pinned repository. |
+
+In the graphic, **Native** means a dedicated script, stored artifact, or named workflow
+gate. **Guided** means an instruction or self-check without a dedicated executable
+component. **Not documented** means we did not find the capability at that commit; it
+does not prove the project cannot do it. The audit data live in
+[`bench/competitor-capabilities.json`](bench/competitor-capabilities.json), and the chart
+is regenerated with the other benchmark graphics.
+
 ## Built on good work
 
 Zero Slop did not invent any of this. It builds on four open-source projects that
