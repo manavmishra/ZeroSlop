@@ -1,0 +1,6 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "zero-slop",
+  "compatibility_date": "2026-08-21",
+  "pages_build_output_dir": "dist/static"
+}

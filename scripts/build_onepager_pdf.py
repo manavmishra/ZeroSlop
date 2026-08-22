@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""build_onepager_pdf — render ONE-PAGER.md to a styled PDF for sharing/download.
+"""Render ONE-PAGER.md to a styled PDF for sharing or download.
 
 Keeps the PDF in step with the markdown so the two never drift: it parses
 ONE-PAGER.md (headings, paragraphs, the demo image, the install command, the
@@ -31,7 +31,7 @@ def main():
         from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
                                         Image, HRFlowable, Preformatted)
     except ImportError:
-        print("reportlab not installed — run: pip install reportlab")
+        print("reportlab not installed; run: pip install reportlab")
         return 1
 
     BRAND = colors.HexColor("#2B5BC7")
@@ -107,7 +107,7 @@ def main():
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     SimpleDocTemplate(
-        str(OUT), pagesize=letter, title="Zero Slop — One-Pager",
+        str(OUT), pagesize=letter, title="Zero Slop - One-Pager",
         author="Manav Mishra", leftMargin=0.85 * inch, rightMargin=0.85 * inch,
         topMargin=0.7 * inch, bottomMargin=0.6 * inch,
     ).build(story)

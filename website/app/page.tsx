@@ -27,12 +27,12 @@ const faqs = [
   {
     question: "Will it change my facts?",
     answer:
-      "The fidelity check is designed to prevent that. It inventories figures, names, quotes, and links, then fails if the rewrite drops one or introduces a new one. You still make the final editorial call.",
+      "Zero Slop is designed to prevent that. It inventories figures, names, quotes, and links, then rejects a rewrite that drops one or adds a new one. You still make the final editorial call.",
   },
   {
     question: "Does the scorer send my writing anywhere?",
     answer:
-      "No. The scorer is a local Python script that uses only the standard library; it works offline and needs no account, server, or network connection. The skill itself runs inside the coding or writing agent you already use.",
+      "No. The scorer is a local Python script that uses only the standard library. It works offline and needs no account, server, or network connection. The skill itself runs inside the coding or writing agent you already use.",
   },
   {
     question: "Where can I use it?",
@@ -49,6 +49,7 @@ const faqs = [
 const softwareJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
+  "@id": "https://zero-slop.ai/#software",
   name: "Zero Slop",
   url: "https://zero-slop.ai/",
   downloadUrl: githubUrl,
@@ -59,6 +60,7 @@ const softwareJsonLd = {
   isAccessibleForFree: true,
   license: "https://opensource.org/license/mit",
   codeRepository: githubUrl,
+  provider: { "@id": "https://zero-slop.ai/#organization" },
   featureList: [
     "AI writing pattern scoring",
     "Meaning-preserving rewrites for social posts, articles, documents, and presentations",
@@ -75,6 +77,7 @@ const softwareJsonLd = {
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
+  "@id": "https://zero-slop.ai/#faq",
   mainEntity: faqs.map((faq) => ({
     "@type": "Question",
     name: faq.question,
@@ -83,6 +86,61 @@ const faqJsonLd = {
       text: faq.answer,
     },
   })),
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://zero-slop.ai/#organization",
+  name: "Zero Slop",
+  url: "https://zero-slop.ai/",
+  logo: "https://zero-slop.ai/favicon.svg",
+  sameAs: [githubUrl],
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://zero-slop.ai/#website",
+  name: "Zero Slop",
+  alternateName: "Zero Slop AI Writing Humanizer",
+  url: "https://zero-slop.ai/",
+  description:
+    "A free, open-source AI writing humanizer and anti-slop checker with local scoring and factual fidelity checks.",
+  publisher: { "@id": "https://zero-slop.ai/#organization" },
+  about: { "@id": "https://zero-slop.ai/#software" },
+  inLanguage: "en-US",
+};
+
+const howToJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "@id": "https://zero-slop.ai/#how-to",
+  name: "How to remove AI writing patterns with Zero Slop",
+  description:
+    "Install Zero Slop, ask your writing agent to revise a draft, then review its score and compare the rewrite with the original.",
+  supply: [{ "@type": "HowToSupply", name: "A draft to revise" }],
+  tool: [{ "@type": "HowToTool", name: "A compatible writing or coding agent" }],
+  step: [
+    {
+      "@type": "HowToStep",
+      name: "Install Zero Slop",
+      text: "Run npx skills add manavmishra/ZeroSlop --global in your terminal.",
+      url: "https://zero-slop.ai/#install",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Rewrite the draft",
+      text: "Give the draft to a compatible agent and ask it to use Zero Slop.",
+      url: "https://zero-slop.ai/#how-it-works",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Review the proof",
+      text: "Check the before-and-after scores, read the rewrite aloud, and compare it with the original before publishing.",
+      url: "https://zero-slop.ai/#proof",
+    },
+  ],
 };
 
 export default function Home() {
@@ -165,7 +223,7 @@ export default function Home() {
           </div>
           <div>
             <strong>0</strong>
-            <span>third-party packages</span>
+            <span>third-party scorer packages</span>
           </div>
           <div>
             <strong>Offline</strong>
@@ -178,12 +236,12 @@ export default function Home() {
         </section>
 
         <section className="intro section-shell section-block">
-          <p className="section-kicker">Fidelity comes first.</p>
+          <p className="section-kicker">The facts come first.</p>
           <h2>Score the slop. Keep the meaning.</h2>
           <p>
             A rewrite can remove stock phrases and still fail if it fakes
-            candor, chops every sentence short, or invents details. Zero Slop changes
-            the surface and protects the substance.
+            candor, chops every sentence short, or invents details. Zero Slop
+            fixes the wording without changing what the draft says.
           </p>
         </section>
 
@@ -221,8 +279,8 @@ export default function Home() {
               <h3>It points to the exact phrase.</h3>
               <p>
                 The scorer checks 266 tell patterns, a 96-term watchlist, and
-                context-sensitive terms scored only when the surrounding
-                sentence makes them suspicious.
+                context-sensitive terms. Those terms count only when the
+                surrounding sentence makes them suspicious.
               </p>
               <div className="signal-sample" aria-label="Example pattern finding">
                 <span>weighted tell</span>
@@ -281,7 +339,7 @@ export default function Home() {
                   </li>
                   <li>
                     <span>Read aloud and verify</span>
-                    <p>Fix spoken flow, then recheck the exact deliverable against the original.</p>
+                    <p>Fix spoken flow, then recheck the final text against the original.</p>
                   </li>
                 </ol>
               </div>
@@ -349,7 +407,7 @@ export default function Home() {
                 <source type="image/avif" srcSet="/bench-detector.avif" />
                 <img
                   src="/bench-detector.png"
-                  alt="AI-register scores after rewriting: Zero Slop 10.6, below comparison tools ranging from 16.7 to 28.2"
+                  alt="AI-register scores after rewriting: Zero Slop scored 10.6, below comparison tools ranging from 16.7 to 28.2"
                   width="1240"
                   height="530"
                   loading="lazy"
@@ -365,9 +423,9 @@ export default function Home() {
           <div className="honesty-statement">
             <h2 id="honesty-title">Context comes before a score.</h2>
             <p>
-              One phrase can affect the score, but it is not enough to judge a
-              draft. Zero Slop considers patterns across the full draft and does
-              not penalize formal writing merely for being formal.
+              One em dash does not make a draft machine-written. Formal prose is
+              not automatically AI-made. Zero Slop weighs patterns, not isolated
+              signals.
             </p>
           </div>
           <div className="honesty-notes">
@@ -482,6 +540,18 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
     </>
   );

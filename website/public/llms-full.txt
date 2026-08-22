@@ -1,0 +1,44 @@
+# Zero Slop product reference
+
+Canonical website: https://zero-slop.ai/
+Source and documentation: https://github.com/manavmishra/ZeroSlop
+Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
+
+## Direct answer
+
+Zero Slop is a free, open-source AI writing humanizer and anti-slop checker. It identifies familiar AI writing patterns, rewrites the draft, and checks figures, names, quotes, and links against the original. Its heuristic surface scorer runs locally with Python's standard library and does not send the draft to a server.
+
+Zero Slop is not an authorship detector. It evaluates the surface patterns of a draft rather than claiming who or what wrote it.
+
+## Install
+
+`npx skills add manavmishra/ZeroSlop --global`
+
+## Workflow
+
+Zero Slop has two operational loops.
+
+1. Editorial delivery measures and diagnoses the current draft, rewrites it, copy-edits it, reads it aloud, and verifies the final text against the original.
+2. Online learning observes later published edits, gates repeated evidence, updates a private detector-and-fix overlay, and then reconfirms useful guidance or decays and retires stale guidance.
+
+The private overlay loads on the next run and adapts both detection and fixing. It does not retrain the host model or perform reinforcement learning or RLHF.
+
+## Supported environments
+
+Zero Slop works with agents that read SKILL.md files, including Codex, Claude Code, Cursor, Gemini CLI, OpenCode, Warp, and Zed. The repository also documents setup for ChatGPT and claude.ai.
+
+## Writing formats
+
+The same workflow can be used for LinkedIn posts, blog articles, strategy documents, X threads, presentations, newsletters, emails, and research abstracts.
+
+## Cost, license, and privacy
+
+- Price: Free
+- License: MIT
+- Scorer dependencies: None beyond Python's standard library
+- Network required by the scorer: No
+- Account required by the scorer: No
+
+## Evidence
+
+The public repository contains the scorer, benchmark data, blind-judging results, evaluation notes, and documented limitations. The website shows before-and-after examples with scores produced by the open-source scorer.
