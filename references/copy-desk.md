@@ -21,6 +21,9 @@ list items, table labels, calls to action, and user-authored alt text. Correct:
 - broken parallelism, unclear antecedents, misplaced clauses, and ambiguity;
 - awkward syntax, needless repetition, imprecise diction, and choppy transitions;
 - phrasing that is stiff, clumsy, fussy, unintentionally casual, or unprofessional;
+- internal scoring, editing, or workflow labels that have leaked into reader-facing
+  prose; replace each with plain language unless the audience needs the technical
+  term;
 - inconsistencies in terminology, headings, labels, voice, and editorial style.
 
 Aim for tasteful, elegant, professional prose in the register the piece calls
@@ -54,10 +57,12 @@ known voice signals, and immutable facts when available. Then use this brief:
 > genuine error in spelling, grammar, punctuation, capitalization, agreement,
 > tense, modifiers, syntax, diction, consistency, and usage. Improve awkward,
 > unclear, repetitive, clumsy, or unprofessional phrasing where the meaning is
-> certain. Make the prose tasteful, elegant, precise, natural, and appropriate
-> for its genre and audience. Preserve the author's voice, regional spelling,
-> facts, claims, qualifiers, names, numbers, links, structure, and intentional
-> fragments. Do not add detail, hype, certainty, or generic polish. Do not alter
+> certain. Remove internal evaluation or workflow language from outward-facing
+> prose when plain language says the same thing. Make the prose tasteful, elegant,
+> precise, natural, and appropriate for its genre and audience. Preserve the
+> author's voice, regional spelling, facts, claims, qualifiers, names, numbers,
+> links, structure, and intentional fragments. Do not add detail, hype, certainty,
+> or generic polish. Do not alter
 > quotations, code, commands, identifiers, or data. If a correction would
 > require guessing what the author means, leave that span unchanged and flag it.
 > Return: (1) the fully corrected text, not a list of suggestions; and (2) a

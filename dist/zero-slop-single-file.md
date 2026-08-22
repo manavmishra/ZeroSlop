@@ -29,7 +29,7 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.3.3"
+  version: "2.3.4"
   author: manavmishra
 description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate), professionally copy-edited, and finalized by a fresh read-aloud editor. Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. It detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, corrects mechanics and spoken flow, and learns new tells over time.
 ---
@@ -170,7 +170,7 @@ the surface score stands alone, exactly as before.
 
 ### 2. Diagnose
 
-Per paragraph, three judgments the regex cannot make:
+Per paragraph, four judgments the regex cannot make:
 
 - **Claim check (removal test):** delete the paragraph mentally — is anything
   lost? Nothing lost → *hollow* → flag, don't rewrite.
@@ -179,6 +179,13 @@ Per paragraph, three judgments the regex cannot make:
 - **Voice signals:** note 3–5 things that are genuinely this writer's (cadence,
   humor, bluntness, pet phrases, digressions). These survive too. A user
   writing sample outranks every style rule in this skill.
+- **Reader-language check:** find terms that describe the writing machinery
+  instead of the thing the reader cares about. In outward-facing prose,
+  "faithful candidate," "selected rewrite," and "exact artifact" are internal
+  evaluation language. Replace them with plain language: "keeps every fact,"
+  "the version we chose," or "the text you receive." Keep genuine technical terms
+  when the audience needs them; the problem is leaked process jargon, not jargon
+  itself.
 
 ### 3. Rewrite — the evidence ladder, in two passes
 
@@ -224,7 +231,9 @@ the most reader value. `references/rewrite-moves.md` expands each rung.
   (the read-aloud test — rewrite anything you wouldn't say), calibrated hedges
   only ("I doubt this generalises" yes, "it's worth noting" no), real affect
   range including irritation and doubt. De-nominalize: "made a decision" →
-  "decided". Kill participial openers ("Leveraging X, …").
+  "decided". Kill participial openers ("Leveraging X, …"). Translate internal
+  workflow labels into plain language; never let evaluator or harness language
+  leak into reader-facing prose.
 - **L5 — Lexicon & patterns.** Strip the tell vocabulary and constructions —
   the scorer's hit list plus `references/tells.md`. Replace with plain words,
   never equally pompous synonyms. At most one "not X, it's Y" per piece; usually
@@ -835,6 +844,11 @@ Breaking it matters more than any word swap.
 - **De-nominalize.** "made an assessment of" → "assessed"; "provides
   optimization of" → "optimizes". Kill participial sentence openers
   ("Leveraging X, the system…" → "The system uses X to…").
+- **Hide the machinery.** Outward-facing prose should not sound like the scoring
+  or editing harness that produced it. Use plain language instead: "keeps every
+  fact" rather than "faithful candidate," "the version we chose" rather than
+  "selected rewrite," and "the text you receive" rather than "exact artifact."
+  Keep a technical term only when the reader needs that concept.
 - **Widen affect.** Allow irritation, doubt, amusement where genuine. AI
   affect is uniformly upbeat-neutral; one honestly grumpy sentence is worth
   ten vocabulary fixes.
@@ -1117,6 +1131,10 @@ safe correction for:
   to sound accidental.
 - **Register slips.** Rewrite sudden marketing gloss, generic formality, or folksy
   filler to match the document's established voice.
+- **Process-language leaks.** In outward-facing prose, replace internal labels such
+  as "faithful candidate," "selected rewrite," or "exact artifact" with plain
+  language. Keep those labels only when the document explains the machinery itself
+  and needs the terms.
 - **Number and antecedent snags.** Clarify singular/plural mismatches and pronouns or
   references whose meaning becomes uncertain when heard aloud.
 - **Clarity.** Unpack anything a smart first-time reader would not follow in one
@@ -1149,10 +1167,12 @@ use this brief:
 > complete copy-edited artifact aloud in your head, from title to final line.
 > Edit it directly. Fix every genuine stumble, cold transition, unclear antecedent,
 > accidental repetition, register slip, overloaded sentence, clarity failure, and
-> break in cohesion. Preserve the writer's voice, regional spelling, facts, claims,
-> qualifiers, names, numbers, links, quotations, code, commands, identifiers, data,
-> and non-prose structure. Do not add detail, hype, certainty, or generic polish. If
-> a correction would require guessing, leave that span unchanged and flag it.
+> break in cohesion. Remove internal scoring, editing, or workflow language that has
+> leaked into outward-facing prose; prefer plain descriptions of what the text does.
+> Preserve the writer's voice, regional spelling, facts, claims, qualifiers, names,
+> numbers, links, quotations, code, commands, identifiers, data, and non-prose
+> structure. Do not add detail, hype, certainty, or generic polish. If a correction
+> would require guessing, leave that span unchanged and flag it.
 > Return: (1) the complete corrected artifact in the same format, not an audit or
 > list of suggestions; and (2) a terse note only for unresolved ambiguities or
 > unusual forms deliberately kept.
@@ -1212,6 +1232,9 @@ list items, table labels, calls to action, and user-authored alt text. Correct:
 - broken parallelism, unclear antecedents, misplaced clauses, and ambiguity;
 - awkward syntax, needless repetition, imprecise diction, and choppy transitions;
 - phrasing that is stiff, clumsy, fussy, unintentionally casual, or unprofessional;
+- internal scoring, editing, or workflow labels that have leaked into reader-facing
+  prose; replace each with plain language unless the audience needs the technical
+  term;
 - inconsistencies in terminology, headings, labels, voice, and editorial style.
 
 Aim for tasteful, elegant, professional prose in the register the piece calls
@@ -1245,10 +1268,12 @@ known voice signals, and immutable facts when available. Then use this brief:
 > genuine error in spelling, grammar, punctuation, capitalization, agreement,
 > tense, modifiers, syntax, diction, consistency, and usage. Improve awkward,
 > unclear, repetitive, clumsy, or unprofessional phrasing where the meaning is
-> certain. Make the prose tasteful, elegant, precise, natural, and appropriate
-> for its genre and audience. Preserve the author's voice, regional spelling,
-> facts, claims, qualifiers, names, numbers, links, structure, and intentional
-> fragments. Do not add detail, hype, certainty, or generic polish. Do not alter
+> certain. Remove internal evaluation or workflow language from outward-facing
+> prose when plain language says the same thing. Make the prose tasteful, elegant,
+> precise, natural, and appropriate for its genre and audience. Preserve the
+> author's voice, regional spelling, facts, claims, qualifiers, names, numbers,
+> links, structure, and intentional fragments. Do not add detail, hype, certainty,
+> or generic polish. Do not alter
 > quotations, code, commands, identifiers, or data. If a correction would
 > require guessing what the author means, leave that span unchanged and flag it.
 > Return: (1) the fully corrected text, not a list of suggestions; and (2) a

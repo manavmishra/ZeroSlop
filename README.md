@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-75%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.3.3-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.3.4-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every
@@ -16,9 +16,9 @@ yourself.
 Zero Slop finds the slop in your draft and removes it without changing what you
 actually said. It scores the writing from 0 to 100, points to the exact words
 dragging it down, and rewrites them. A copy desk fixes grammar, spelling,
-punctuation, and awkward phrasing. A fresh read-aloud editor then fixes flow and
-cohesion in the actual deliverable before Zero Slop double-checks that every fact
-survived and nothing new slipped in.
+punctuation, and awkward phrasing. A second editor then reads the copy aloud and
+fixes its flow and cohesion before Zero Slop double-checks that every fact survived
+and nothing new slipped in.
 
 ![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
 
@@ -212,31 +212,33 @@ runbook but can become useful signals in promotional copy. "Elevated write volum
 normal engineering language. The phrase "elevate
 your brand with our seamless platform" is not.
 
-The fifth probe measures predictability and reports it separately from the 0-to-100
-surface score. Detectors often rely on this signal because models can guess
-machine-written text more easily. The probe masks a sample of words, asks the host
-assistant for three likely completions at each blank, and counts how often the original
-word appears among those three guesses. It uses the assistant already running the
-skill, whether Claude or GPT, so it needs no additional model.
+Predictability sits outside the main score. Zero Slop hides a handful of words and asks
+the assistant you are already using — Claude, GPT, or another supported model — to
+guess each one from the preceding text. When the original word keeps appearing among
+the top three guesses, the prose is following a path a model would readily predict.
+This can expose polished, generic writing that slipped past the pattern meter, without
+calling a second model or sending the draft to another service.
 
-Rewriting happens in two passes. The first removes flagged wording and formatting
-without changing the substance. The second revises the order, rhythm, and register to
-shape what remains into a clear expert voice. Separating the passes keeps structural
-revision out of the initial wording cleanup.
+Editing starts with subtraction. The first pass removes stock phrases and fussy
+formatting while leaving the substance alone. The second works on the argument and the
+voice: what should lead, where a sentence needs room to breathe, and whether the result
+sounds like an expert speaking to peers. Giving those jobs separate passes keeps a
+wording cleanup from turning into a needless rewrite.
 
-For work that matters, Zero Slop produces two or three candidates with distinct
-approaches: cutting harder, preserving more warmth, or reordering the argument.
-Fidelity ranks ahead of the meter, so a candidate that drops or invents a fact cannot
-beat a faithful one. Among faithful candidates, the reranker favors the cleaner
-version, which must still pass the full verification that follows.
+For important pieces, Zero Slop tries two or three different edits. One may
+cut harder, another may keep more warmth, and a third may change the opening or order.
+Any version that drops a fact or adds one is out. From the versions left, Zero Slop
+chooses the cleanest and runs the full verification.
 
-The selected rewrite first clears the numeric gate and fidelity check. A dedicated copy
-editor then corrects grammar, spelling, punctuation, consistency, and awkward phrasing
-in the actual deliverable. A fresh read-aloud editor follows, fixing flow and cohesion
-directly in that same artifact. Zero Slop then checks the exact artifact again for
-score, fidelity, meaning, voice, format, and structure. If any final check requires a
-textual change, the revised deliverable goes back through both the copy desk and the
-read-aloud pass before every final check runs again.
+Before Zero Slop returns anything, it checks that the names, numbers, quotations, links,
+and claims still match the original. A copy editor fixes grammar, spelling, punctuation,
+consistency, and awkward phrasing. A second editor then reads the copy aloud and fixes
+anything that still sounds stiff, repetitive, or poorly joined. The finished piece is
+scored and compared with the original once more. If a late fix changes the wording,
+both editors see it again and all the checks run again. This repair loop stops after
+three rounds. If a check still cannot pass without guessing, Zero Slop returns the
+strongest version that keeps the original meaning, and tells you exactly what remains
+unresolved.
 
 ## It will not touch your facts
 

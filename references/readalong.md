@@ -27,6 +27,10 @@ safe correction for:
   to sound accidental.
 - **Register slips.** Rewrite sudden marketing gloss, generic formality, or folksy
   filler to match the document's established voice.
+- **Process-language leaks.** In outward-facing prose, replace internal labels such
+  as "faithful candidate," "selected rewrite," or "exact artifact" with plain
+  language. Keep those labels only when the document explains the machinery itself
+  and needs the terms.
 - **Number and antecedent snags.** Clarify singular/plural mismatches and pronouns or
   references whose meaning becomes uncertain when heard aloud.
 - **Clarity.** Unpack anything a smart first-time reader would not follow in one
@@ -59,10 +63,12 @@ use this brief:
 > complete copy-edited artifact aloud in your head, from title to final line.
 > Edit it directly. Fix every genuine stumble, cold transition, unclear antecedent,
 > accidental repetition, register slip, overloaded sentence, clarity failure, and
-> break in cohesion. Preserve the writer's voice, regional spelling, facts, claims,
-> qualifiers, names, numbers, links, quotations, code, commands, identifiers, data,
-> and non-prose structure. Do not add detail, hype, certainty, or generic polish. If
-> a correction would require guessing, leave that span unchanged and flag it.
+> break in cohesion. Remove internal scoring, editing, or workflow language that has
+> leaked into outward-facing prose; prefer plain descriptions of what the text does.
+> Preserve the writer's voice, regional spelling, facts, claims, qualifiers, names,
+> numbers, links, quotations, code, commands, identifiers, data, and non-prose
+> structure. Do not add detail, hype, certainty, or generic polish. If a correction
+> would require guessing, leave that span unchanged and flag it.
 > Return: (1) the complete corrected artifact in the same format, not an audit or
 > list of suggestions; and (2) a terse note only for unresolved ambiguities or
 > unusual forms deliberately kept.

@@ -92,6 +92,11 @@ Breaking it matters more than any word swap.
 - **De-nominalize.** "made an assessment of" → "assessed"; "provides
   optimization of" → "optimizes". Kill participial sentence openers
   ("Leveraging X, the system…" → "The system uses X to…").
+- **Hide the machinery.** Outward-facing prose should not sound like the scoring
+  or editing harness that produced it. Use plain language instead: "keeps every
+  fact" rather than "faithful candidate," "the version we chose" rather than
+  "selected rewrite," and "the text you receive" rather than "exact artifact."
+  Keep a technical term only when the reader needs that concept.
 - **Widen affect.** Allow irritation, doubt, amusement where genuine. AI
   affect is uniformly upbeat-neutral; one honestly grumpy sentence is worth
   ten vocabulary fixes.
