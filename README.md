@@ -497,88 +497,99 @@ does not prove the project cannot do it. The audit data live in
 [`bench/competitor-capabilities.json`](bench/competitor-capabilities.json), and the chart
 is regenerated with the other benchmark graphics.
 
-## Built on good work
+## Prior work and scope
 
-Zero Slop did not invent any of this. It builds on four open-source projects that
-worked out the craft first: [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop),
+Four MIT-licensed editing projects informed Zero Slop's initial taxonomy and rewrite
+guidance: [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop),
 [blader/humanizer](https://github.com/blader/humanizer),
-[isatimur/de-slop](https://github.com/isatimur/de-slop), and
-[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop). They proved that the
-sound can be removed, and their lists of tells seeded ours. We added the score, the
-fact-check, the copy desk, the read-aloud editor, and the learning loop — the parts
-that let you measure a rewrite and trust the finished copy.
+[isatimur/de-slop](https://github.com/isatimur/de-slop) and
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop). Their pattern
+catalogs shaped the first version of this skill. Zero Slop adds a traceable meter and
+scripted fact checks, then carries each revision through copy-editing and a separate
+read-aloud pass. It also checks batches for repeated templates and can learn privately
+from later human edits.
 
-One distinction matters: detectors like Pangram and GPTZero answer a different question.
-They estimate whether a machine wrote something; Zero Slop measures the AI register
-left in the text. We do not tune rewrites to fool those detectors.
+It is an editor, not an authorship detector. Pangram and GPTZero estimate whether a
+machine wrote a passage. Zero Slop asks a narrower question: how much of the tracked
+AI register remains in the prose? It never rewrites text to evade an authorship test.
 
-## What's next
+## Open work
 
-- **A big, labeled test set.** It is what the remaining accuracy claims need.
-  RAID, HC3, M4, and AuTextification are free and cover email, social, and blogs.
-  The AIStoryHub taxonomy and checker add useful external coverage, but neither
-  replaces representative labeled prose and independent human review.
-- **New signals that ignore vocabulary entirely.** The research
-  ([NEULIF](https://arxiv.org/abs/2511.21744)) points to how often certain small words
-  pair up and how sentence lengths vary. Neither can be removed simply with a
-  thesaurus, and both need the test set above to tune.
-- **Running the competitors live.** This will make the comparison a true head-to-head.
+Three gaps remain:
 
-## Under the hood
+1. **Field evaluation.** Accuracy requires representative positive and negative prose,
+   plus independent human reviews of quality and fidelity. RAID, HC3, M4 and
+   AuTextification are possible starting points. The AIStoryHub taxonomy and public
+   checker add external coverage, but they do not replace that evaluation.
+2. **Signals beyond word choice.** [NEULIF](https://arxiv.org/abs/2511.21744) points to
+   function-word pairings and sentence-length distributions. Zero Slop will not weight
+   either signal until it has been tuned on labeled data and tested across current model
+   generations.
+3. **Live competitor runs.** The comparison above replays pinned instruction sets in one
+   Codex session. A true product comparison requires fresh live runs with the model,
+   settings and prompts recorded.
 
-Zero Slop has two operational loops. Editorial delivery turns the current draft into
-finished copy. For batches of three or more related drafts, a separate portfolio probe
-also finds repeated openings and shared phrases without changing the surface score.
-Online learning observes later published edits, checks the evidence against its
-thresholds, and updates a private learning layer. Later evidence reconfirms detection
-patterns and preferred fixes; without it, stale patterns decay and stale fixes retire.
-The learning layer feeds both the pattern meter and the rewrite guide, so it adapts
-slop detection and fixing. A separate maintainer lane reviews new external taxonomies
-against the known-human corpus before a versioned release; it is maintenance, not a
-third operational loop and not automatic self-modification.
+## System design
 
-![Zero Slop has two operational loops. Editorial delivery measures a draft, runs separate predictability and cross-draft portfolio diagnostics when applicable, diagnoses information utility, integrity, structure, delivery, and voice, then rewrites, copy-edits, reads aloud, and verifies the final text. Online learning observes later published edits, checks the evidence against its thresholds, and updates a private learning layer. Later evidence reconfirms detection patterns and preferred fixes; stale patterns decay, and stale fixes retire. The private layer feeds both the pattern meter and the rewrite pass. A separate maintainer lane reviews external taxonomies against the human regression corpus before a versioned release; it is not a runtime loop.](assets/engine.svg)
+Zero Slop runs two loops:
 
+- **Editorial delivery** measures the current draft, diagnoses the problems, rewrites
+  it, copy-edits the result, reads it aloud and verifies the text that will be returned.
+- **Private online learning** compares that result with later human edits. The same
+  change must recur across unrelated edit pairs before it can affect a local weight or
+  become a preferred fix. Reconfirmation keeps useful rules active; stale evidence
+  decays.
+
+The predictability and portfolio probes are diagnostics attached to editorial delivery;
+neither changes the main surface score. External taxonomies sit outside both runtime
+loops. Maintainers review them against the known-human corpus before a tested, versioned
+release. They cannot modify an installed skill on their own.
+
+![System diagram showing the editorial delivery and private online learning loops, with a separate maintainer release path.](assets/engine.svg)
+
+### Repository map
+
+| Path | Role |
+|---|---|
+| `SKILL.md` | Runtime instructions, editorial stages and verification gates |
+| `scripts/` | Local scorer, fidelity check, reranker, learning tools and package builders |
+| `data/` | The 267 weighted rules, context terms and known-human safety corpus |
+| `references/` | Tell taxonomy, rewrite guidance, platform rules and editorial briefs |
+| `bench/` | Corpora, method comparisons, raw observations, charts and analysis scripts |
+| `tests/test_all.py` | Correctness, safety, concurrency, packaging and performance checks |
+
+Run the release checks locally:
+
+```bash
+python3 -m unittest -v tests.test_all
+python3 scripts/calibrate.py --selftest
 ```
-SKILL.md                    the instructions the AI agent follows
-scripts/slopscore.py        the scorer, plain Python, no libraries
-scripts/predictability.py   host-model predictability probe, reported separately
-scripts/rerank.py           best of N — choose the cleanest version that keeps the source intact
-scripts/learn.py            the learning loop and your style profile
-scripts/calibrate.py        retune from a corpus; retire stale tells
-scripts/version_check.py    the once-a-session update check
-data/patterns.json          the base tells, watchlist, and context words (267 weighted rules with the reviewed overlay)
-data/corpus/must-not-flag/  human writing the tool must never flag
-bench/search-corpus/        18 anonymous cross-genre slop regression cases
-references/readalong.md     the final pass for spoken flow and cohesion
-references/copy-desk.md     the grammar, spelling, and style pass before read-aloud finalization
-tests/test_all.py           correctness, safety, concurrency, packaging, and speed tests
-```
 
-Run `python3 tests/test_all.py` and `python3 scripts/calibrate.py --selftest`. The tests
-cover the scorer, the learning safeguards, the retirement of old tells, and speed.
-Each requirement slipped once, so a set of tripwires now checks that the numbers here
-match the data, the charts match the benchmark, the packaged copies stay current, and
-none of your writing ever enters a tracked file.
+CI also verifies that documented counts match the data, charts match their inputs,
+packaged copies match the source and private writing stays out of tracked files.
 
-## Thanks
+## Sources and acknowledgments
 
-Zero Slop builds on the four MIT-licensed projects above,
-Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing),
-and Kagi's [SlopStop](https://help.kagi.com/kagi/features/slopstop.html), which landed on
-two of the same ideas: require several signals before judging, and let people appeal.
-The research behind the design is listed in
-[references/evidence.md](references/evidence.md). Three findings carry the most weight. One
-study finds that detectors read a model's training style rather than the machine itself
-(arXiv:2605.19516). Kobak et al. describe a method for spotting overused words
-(arXiv:2406.07016). A third study shows that detectors wrongly flag more than half of
-non-native English writers (arXiv:2304.02819). That last finding is why a non-native
-sample sits in our safety set.
+The tell taxonomy also draws on Wikipedia's
+[Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
+Kagi's [SlopStop](https://help.kagi.com/kagi/features/slopstop.html) independently uses
+two safeguards that matter here: it requires corroborating signals and lets users
+reverse a bad judgment.
 
-The v2.4.2 portfolio diagnostic and passage-level quality review also draw on [The Slop
-Index](https://github.com/hgaddipati1118/slop-index) and [*Measuring AI “Slop” in
-Text*](https://arxiv.org/abs/2509.19163). Together, they support one practical rule:
-cross-draft repetition is useful evidence, but binary judgments and automatic quality
-metrics are not reliable enough to become an unqualified verdict.
+The full research trail is in [references/evidence.md](references/evidence.md). The
+design relies most heavily on four findings:
+
+- instruction tuning creates a detectable register even when base-model text is rated
+  as human ([arXiv:2605.19516](https://arxiv.org/abs/2605.19516));
+- model-assisted prose overuses a measurable vocabulary
+  ([Kobak et al., arXiv:2406.07016](https://arxiv.org/abs/2406.07016));
+- commercial detectors disproportionately misclassify writing by non-native English
+  speakers ([arXiv:2304.02819](https://arxiv.org/abs/2304.02819)); and
+- cross-draft repetition is useful evidence, while binary slop judgments remain
+  unreliable ([The Slop Index](https://github.com/hgaddipati1118/slop-index),
+  [*Measuring AI “Slop” in Text*](https://arxiv.org/abs/2509.19163)).
+
+Those findings explain the cluster rule, the known-human safety corpus, the separate
+portfolio diagnostic and the refusal to present the 0-to-100 meter as a probability.
 
 MIT.
