@@ -29,9 +29,9 @@ name: zero-slop
 license: MIT
 compatibility: Works in any Agent Skills-compatible harness (Claude Code, Codex, OpenCode, etc.). The statistical scorer uses python3 (stdlib only) and is optional — the skill degrades gracefully to its reference lists and self-rubric without it.
 metadata:
-  version: "2.3.0"
+  version: "2.3.2"
   author: manavmishra
-description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate). Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, and learns new tells over time.
+description: Turn any draft — LinkedIn post, article, blog, newsletter, tweet, email, research abstract — into prose that reads as written by a sharp human, verified by a statistical scorer with before/after metrics (the only de-slop skill with a quantitative gate) and finished by a professional grammar, spelling, and style copy desk. Use whenever the user asks to humanize, de-slop, "make this not sound like AI", remove AI slop, fix a draft that "reads like ChatGPT", polish outward-facing writing, or draft social/LinkedIn content; also run it as a quality gate on prose you generated yourself before presenting it. Detects with a statistical scorer, rewrites by an evidence-ranked ladder, verifies against quantitative thresholds, copy-edits the final text, and learns new tells over time.
 ---
 
 # Zero Slop
@@ -323,6 +323,35 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   the text says "the ladder below," a section named the ladder must exist
   below, under that name
 
+**Final copy desk — the last editorial pass before final verification and
+Report.** Give the complete selected rewrite to a dedicated copy-editor agent
+with fresh eyes.
+The agent must correct the text itself, not merely list problems: spelling,
+grammar, punctuation, capitalization, agreement, tense, modifiers, diction,
+ambiguity, repetition, and awkward or unprofessional phrasing all belong in
+scope. The result should be tasteful, elegant, and professional for its actual
+genre, without sanding away the author's voice or making an informal piece
+corporate. Read and follow `references/copy-desk.md` for the full brief.
+
+When the harness supports subagents, delegate this pass so the writer is not
+grading its own work. Otherwise, perform a separate role-isolated copy-editing
+pass with fresh context. In either case, apply the corrected copy to the actual
+deliverable before returning it. Do not alter quoted material, code, names,
+links, facts, claims, or intentional genre-appropriate fragments; flag any
+ambiguity whose correction would require guessing.
+
+Then verify that exact copy-edited artifact: rerun the scorer and scripted
+fidelity check, and compare it directly with both the original and the selected
+rewrite for claims, qualifiers, intended voice, regional spelling, format, and
+non-prose structure. If verification requires any repair, send the repaired
+artifact through the copy desk again and repeat every final check. Continue
+until the same artifact passes the copy desk, semantic/format review, scorer,
+and fidelity gate together (maximum three loops; after that, return the best
+faithful version and flag the unresolved issue). Nothing reaches the user until
+the copy-edited text is the exact text that cleared every final check. The only
+exception is that three-loop fallback: its artifact must still have completed a
+copy-desk pass, and the unresolved gate or ambiguity must be stated plainly.
+
 Fail → iterate (max 3 passes). Still failing after 3 → keep the best version
 and flag it: "needs a real claim/detail, not better words."
 
@@ -335,7 +364,7 @@ the deliverable, the scorecard is the measurement, and the heatmap shows
 *where* the slop was, which is what teaches the writer rather than just
 fixing the draft.
 
-**(a) The rewritten text**, in full, **returned in the format it arrived
+**(a) The rewritten and copy-edited text**, in full, **returned in the format it arrived
 in.** This is not a stylistic preference — a user who hands you a .docx wants
 a .docx back, and pasting markdown into chat instead makes them do the
 conversion by hand. Match the input:
@@ -408,8 +437,9 @@ structural problem, not a word problem.
 The after-map should read `none carry tells`. Show both. A writer who sees
 which phrases were hot stops producing them, and that outlasts the rewrite.
 
-Then close with: a short **change log** naming the patterns fixed and the
-judgment calls made, including deliberate keeps; and **flags** — hollow
+Then close with: a short **change log** naming the patterns fixed, the
+copy-desk corrections applied, and the judgment calls made, including
+deliberate keeps; and **flags** — hollow
 spans, capped spans, and anything needing a real fact from the user. Never
 silently overwrite; the author decides.
 
@@ -528,6 +558,10 @@ out was a tell you missed. Capture it.
   research modules. Read the matching one whenever genre is known.
 - `references/overcorrection.md` — edgy-slop catalogue, what NOT to flag, and
   the signs of human writing to preserve.
+- `references/readalong.md` — the fresh-eyes read-aloud pass for flow,
+  cohesion, and stumbles that a numeric gate cannot hear.
+- `references/copy-desk.md` — the mandatory final grammar, spelling, and style
+  pass, including the dedicated copy-editor agent brief.
 - `references/evidence.md` — the research basis: papers, detector mechanics,
   and why each ladder rung is ordered where it is.
 
@@ -1036,6 +1070,171 @@ damage:
 Run the finished rewrite through the scorer and this file once more. If your
 rewrite added any catalogue item above, you traded costumes. Prefer the
 smaller edit: the best de-slop is usually deletion of the hedge plus nothing.
+
+
+========================================================================
+# FILE: references/readalong.md
+========================================================================
+
+# The readalong pass
+
+The scorer reads wording. Three of its four channels are wording-blind, and none
+of them reads the document the way a person does — start to finish, one sentence
+handing off to the next. That is where the failures a clean score cannot see
+live: a sentence you trip over, a section that arrives cold, a caveat performed
+three times in a row, one word drummed twice in a breath. A draft can pass every
+threshold and still stumble when read aloud. This pass catches that.
+
+Run it on every rewrite. On anything past ~400 words, run it as a **dedicated
+pass with fresh eyes** — a subagent whose only job is to read aloud and flag
+stumbles (brief below) — because the pass that just wrote the text has gone blind
+to it.
+
+## What to listen for
+
+Read the whole rewrite aloud, top to bottom. Flag every spot that makes you
+stumble, re-read, or wince. Quote the exact phrase and give a specific fix.
+
+- **Stumbles.** Any sentence you trip over or must re-read: run-ons, garden
+  paths ("if Python is missing the skill" reads as *missing the skill* until you
+  back up), a heavy clause stack, an ungrammatical tail bolted onto a strong
+  short clause.
+- **Cold transitions.** A sentence or section that does not connect to the one
+  before it — a topic that arrives with no hinge, a pivot the reader has to
+  supply themselves.
+- **Performed candor.** Announcing your own honesty ("honestly," "to be fair,"
+  "the honest reading is") instead of just saying the thing. One earned caveat
+  is disclosure; four in a row is throat-clearing, and throat-clearing is a
+  machine tell.
+- **Repetition.** A word or idea repeated too close together — across the whole
+  document, not just within a paragraph. "Quick … quick" in one sentence;
+  "rule" four times in six lines.
+- **Register slips.** The expert voice dropping into folksy filler ("you just do
+  without the number") or a proverb ("better to catch it than pretend it can't
+  happen"), or overreaching into hype.
+- **Number and antecedent snags you only hear aloud.** "A single em-dash … leans
+  on them"; "One you keep overriding" before the reader knows what *one* is.
+- **Clarity.** Anything a smart first-time reader would not follow on one pass.
+- **Cohesion.** Places where two adjacent sections read as if different people
+  wrote them, or where a name or claim is inconsistent across the document (a
+  tool called "humanizer" in one paragraph and "blader" in the next).
+
+Return a prioritized list, worst offenders first, then a per-section A–F grade on
+read-aloud flow with the single highest-impact fix for each. Only flag what needs
+work; say nothing about a sentence that already lands.
+
+## The subagent brief
+
+When the harness has subagents, hand the rewrite to one with this prompt. Fresh
+eyes are the point — do not have the writing pass grade its own flow.
+
+> You are a ruthless read-aloud editor. Below is [what it is] that must sound like
+> one expert human wrote it — clear, confident, precise, naturally flowing when
+> spoken, no marketing gloss, no AI slop, cohesive from section to section. Read
+> it aloud in your head, top to bottom, and find every place it stumbles. For
+> each problem, quote the exact phrase and give a specific fix. Hunt for:
+> stumbles, cold transitions, AI/marketing tells, performed candor, register
+> slips, repetition across the whole piece, clarity failures, and cohesion
+> breaks. Then rate each section A–F on read-aloud flow with the single
+> highest-impact fix for each. Only flag what needs work. Prioritized list, worst
+> first.
+>
+> [paste the rewrite]
+
+Apply the fixes, then re-run the scorer (the readalong can reintroduce a tell —
+verify the number held) and confirm the fixes did not drop or invent a fact.
+
+## Why it is separate from the gate
+
+The numeric gate and the readalong catch different failures, so both run. The
+gate rejects tells, uniform rhythm, and compression the reader can measure; the
+readalong rejects the stumble, the cold pivot, and the performed caveat that no
+threshold can. A rewrite passes only when both are clean.
+
+
+========================================================================
+# FILE: references/copy-desk.md
+========================================================================
+
+# The final copy desk
+
+Run this pass on every deliverable after the rewrite, readalong, and initial
+verification work. It is the last editorial pass before final verification and
+Report. Its job is to return publication-ready copy, not an assessment of copy
+that still needs work.
+
+Use a dedicated copy-editor agent with fresh eyes when the harness supports
+subagents. Otherwise, set aside the writing mindset and perform the same review
+as a separate, role-isolated pass. Either way, apply every accepted correction
+to the actual deliverable before it reaches the user.
+
+## What to correct
+
+Read the complete piece from title to final line, including headings, captions,
+list items, table labels, calls to action, and user-authored alt text. Correct:
+
+- spelling, typos, duplicated or missing words, and inconsistent regional usage;
+- grammar, agreement, tense, articles, prepositions, pronouns, and modifiers;
+- punctuation, capitalization, quotation marks, hyphenation, and compound terms;
+- broken parallelism, unclear antecedents, misplaced clauses, and ambiguity;
+- awkward syntax, needless repetition, imprecise diction, and choppy transitions;
+- phrasing that is stiff, clumsy, fussy, unintentionally casual, or unprofessional;
+- inconsistencies in terminology, headings, labels, voice, and editorial style.
+
+Aim for tasteful, elegant, professional prose in the register the piece calls
+for. Elegance means precise, natural, and restrained. It does not mean ornate,
+formal, promotional, or generic. Preserve warmth, humor, contractions, fragments,
+dialect, and technical language when they are intentional and suit the genre.
+Keep the author's regional spelling unless the user or publication specifies a
+different house style.
+
+## Boundaries
+
+- Preserve every fact, claim, qualifier, number, name, date, link, and source.
+- Do not invent detail, strengthen certainty, soften a warranted conclusion, or
+  change the author's position for smoother prose.
+- Do not edit quotations, code, commands, identifiers, file paths, data, legal
+  boilerplate, or proper names unless the user explicitly asks.
+- Preserve the input format and all non-prose structure. Correct content inside
+  a structured form without changing the form itself.
+- Do not replace a distinctive human phrase merely because a more conventional
+  phrase exists. Correct errors and genuine awkwardness, not personality.
+- When a sentence is ambiguous and the intended meaning cannot be recovered
+  safely, leave it unchanged and flag the ambiguity instead of guessing.
+
+## Copy-editor agent brief
+
+Give the agent the genre, intended audience, original draft, selected rewrite,
+known voice signals, and immutable facts when available. Then use this brief:
+
+> You are the final copy editor for a publication-ready piece. Edit the complete
+> text directly and return the corrected version in the same format. Fix every
+> genuine error in spelling, grammar, punctuation, capitalization, agreement,
+> tense, modifiers, syntax, diction, consistency, and usage. Improve awkward,
+> unclear, repetitive, clumsy, or unprofessional phrasing where the meaning is
+> certain. Make the prose tasteful, elegant, precise, natural, and appropriate
+> for its genre and audience. Preserve the author's voice, regional spelling,
+> facts, claims, qualifiers, names, numbers, links, structure, and intentional
+> fragments. Do not add detail, hype, certainty, or generic polish. Do not alter
+> quotations, code, commands, identifiers, or data. If a correction would
+> require guessing what the author means, leave that span unchanged and flag it.
+> Return: (1) the fully corrected text, not a list of suggestions; and (2) a
+> terse note only for unresolved ambiguities or unusual forms deliberately kept.
+
+Apply the corrected version to the deliverable. Then verify that exact artifact:
+
+1. Rerun the statistical scorer and scripted fidelity check.
+2. Compare it directly with both the original and selected rewrite for preserved
+   claims, qualifiers, intended voice, regional spelling, format, and non-prose
+   structure. The script cannot detect every semantic or stylistic change.
+3. If either check requires a repair, apply it, send the repaired text through
+   the copy desk again, and repeat all final checks.
+
+Stop only when the same artifact passes copy editing, semantic/format review,
+the scorer, and fidelity checks together. Limit the loop to three rounds; if an
+issue still cannot be resolved without guessing, return the best faithful version
+that has completed a copy-desk pass, and flag the unresolved span and failed gate
+plainly.
 
 
 ========================================================================

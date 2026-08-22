@@ -1,7 +1,7 @@
 {
   "name": "zero-slop",
-  "version": "2.2.0",
-  "description": "Turns AI-sounding drafts into expert human prose and proves it: statistical scorer, evidence-ranked rewrite ladder, quantitative verify gate, continuous learning.",
+  "version": "2.3.2",
+  "description": "Turns AI-sounding drafts into professionally copy-edited expert prose and proves it: statistical scorer, evidence-ranked rewrite ladder, quantitative verify gate, continuous learning.",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"
@@ -17,11 +17,11 @@
     "linkedin",
     "expert voice"
   ],
-  "skills": "./",
+  "skills": "./skills/",
   "interface": {
     "displayName": "Zero-Slop",
-    "shortDescription": "Kill the AI accent. Keep every fact. Prove it with numbers.",
-    "longDescription": "The only de-slop skill with a quantitative gate: it measures a draft (weighted tell density, burstiness, LLM lexicon), rewrites it in two passes (strip, then build toward an expert practitioner voice), verifies against hard thresholds, and learns new tells over time. Benchmarked blind against every major alternative \u2014 methodology and scorecard in the repo. Fully offline: the scorer is ~200 lines of stdlib Python, no network, no dependencies.",
+    "shortDescription": "Kill the AI accent. Copy-edit the result. Keep every fact. Prove it with numbers.",
+    "longDescription": "The only de-slop skill with a quantitative gate: it measures a draft (weighted tell density, burstiness, LLM lexicon), rewrites it in two passes (strip, then build toward an expert practitioner voice), runs a dedicated final copy desk, verifies the exact finished text against hard thresholds, and learns new tells over time. Benchmarked blind against every major alternative \u2014 methodology and scorecard in the repo. Fully offline: the scorer is ~200 lines of stdlib Python, no network, no dependencies.",
     "developerName": "Manav Mishra",
     "category": "Productivity",
     "capabilities": [
