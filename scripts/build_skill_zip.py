@@ -18,9 +18,11 @@ compression) so --check can byte-compare it, the same contract as the bundle and
 plugin-mirror guards. Run build_plugin.py first if the mirror is stale; this reads
 from it.
 """
+import argparse
 import sys
 import zipfile
 from pathlib import Path
+from safeio import atomic_write_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILL_DIR = ROOT / "skills" / "zero-slop"
@@ -32,16 +34,23 @@ EXCLUDE = {"__pycache__", ".DS_Store"}
 def _files():
     return sorted(
         p for p in SKILL_DIR.rglob("*")
-        if p.is_file() and not any(part in EXCLUDE for part in p.parts))
+        if p.is_file() and not p.is_symlink()
+        and not any(part in EXCLUDE for part in p.parts))
+
+
+def _symlinks():
+    return sorted(path for path in SKILL_DIR.rglob("*") if path.is_symlink())
 
 
 def build_bytes():
     """Return the deterministic zip as bytes (folder 'zero-slop/...' at the root)."""
     import io
+    if not SKILL_DIR.is_dir() or SKILL_DIR.is_symlink() or _symlinks():
+        raise ValueError("skill source is missing or contains symlinks")
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for f in _files():
-            arc = "zero-slop/" + str(f.relative_to(SKILL_DIR))
+            arc = "zero-slop/" + f.relative_to(SKILL_DIR).as_posix()
             info = zipfile.ZipInfo(arc, date_time=FIXED_DATE)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
@@ -49,12 +58,28 @@ def build_bytes():
     return buf.getvalue()
 
 
-def main():
-    if not SKILL_DIR.exists():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args(argv)
+    if not SKILL_DIR.is_dir() or SKILL_DIR.is_symlink():
         print("skills/zero-slop/ is missing — run: python3 scripts/build_plugin.py")
         return 1
-    data = build_bytes()
-    check = "--check" in sys.argv
+    links = _symlinks()
+    if links:
+        print(f"skill package refuses symlinked input: {links[0]}")
+        return 1
+    files = _files()
+    skill_files = [path for path in files if path.name == "SKILL.md"]
+    if (len(skill_files) != 1 or skill_files[0] != SKILL_DIR / "SKILL.md"):
+        print(f"skill package needs exactly one SKILL.md, found {len(skill_files)}")
+        return 1
+    try:
+        data = build_bytes()
+    except (OSError, ValueError) as exc:
+        print(f"cannot build skill package: {exc}", file=sys.stderr)
+        return 1
+    check = args.check
     if check:
         if not OUT.exists() or OUT.read_bytes() != data:
             print("dist/zero-slop.zip is out of date — run: python3 scripts/build_skill_zip.py")
@@ -62,8 +87,12 @@ def main():
         print("dist/zero-slop.zip is current")
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_bytes(data)
-    n = len(_files())
+    try:
+        atomic_write_bytes(OUT, data)
+    except OSError as exc:
+        print(f"cannot write {OUT}: {exc}", file=sys.stderr)
+        return 1
+    n = len(files)
     print(f"wrote {OUT.relative_to(ROOT)} ({n} files, one skill, {len(data):,} bytes)")
     return 0
 

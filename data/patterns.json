@@ -85,10 +85,10 @@
   {
    "name": "placeholder",
    "cat": "artifact",
-   "rx": "\\[(?:first name|your name|company|name|insert[^\\]]*)\\]",
+   "rx": "\\[(?:first name|your name|company(?: name)?|name|date|recipient|sender|topic|subject|salutation|closing|position|department|project name|insert[^\\]]*|fill in[^\\]]*|add[^\\]]*|todo[^\\]]*|tbd[^\\]]*)\\]",
    "w": 7,
    "first_seen": "2026-08-03",
-   "last_confirmed": "2026-08-03"
+   "last_confirmed": "2026-08-22"
   },
   {
    "name": "walk-away-with",
@@ -1709,10 +1709,19 @@
   {
    "name": "chatgpt-artifact",
    "cat": "artifact",
-   "rx": "\\boaicite\\b|\\boai_citation\\b|\\bciteturn\\d|\\butm_source=(?:chatgpt|openai)|:contentReference\\[|\\[cite: ?\\d|\\bturn\\d+(?:search|news|image|view)\\d+\\b|\\[span_\\d|\\(start_span\\)|\\bgrok_(?:card|render)|\\bppl-ai-file-upload\\b|\\battached_file\\b",
+   "rx": "\\boaicite\\b|\\boai_citation\\b|\\bciteturn\\d|\\butm_source=(?:chatgpt(?:\\.com)?|openai)\\b|:contentReference\\[|\\battributableIndex\\b|\\[cite: ?\\d|\\bturn\\d+(?:search|news|image|view)\\d+\\b|\\[span_\\d|\\(start_span\\)|\\bgrok_(?:card|render)|\\bppl-ai-file-upload\\b|\\battached_file\\b",
    "w": 10,
    "first_seen": "2026-08-14",
-   "last_confirmed": "2026-08-15"
+   "last_confirmed": "2026-08-22"
+  },
+  {
+   "name": "regenerate-response-artifact",
+   "cat": "artifact",
+   "rx": "(?:^|\\n)[ \\t]*Regenerate response[ \\t]*(?:$|\\n)",
+   "w": 10,
+   "m": true,
+   "first_seen": "2026-08-22",
+   "last_confirmed": "2026-08-22"
   },
   {
    "name": "as-we-move-forward",

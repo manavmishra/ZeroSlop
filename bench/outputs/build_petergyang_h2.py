@@ -1,4 +1,9 @@
-import json, os
+import json
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+from safeio import atomic_write_text  # noqa: E402
 
 out = {}
 
@@ -265,10 +270,8 @@ For legal teams, that means starting with high-volume, lower-risk workflows like
 
 What's your team's experience with AI in legal ops? I'd love to hear it in the comments."""
 
-path = "/private/tmp/claude-501/-Users-manav-Coding-Legal-Agent/db22184e-14cc-4774-85a9-20c701b2d692/scratchpad/eval/outputs/petergyang_h2.json"
-os.makedirs(os.path.dirname(path), exist_ok=True)
-with open(path, "w", encoding="utf-8") as f:
-    json.dump(out, f, ensure_ascii=False, indent=1)
+path = Path(__file__).resolve().parent / "petergyang_h2.json"
+atomic_write_text(path, json.dumps(out, ensure_ascii=False, indent=1) + "\n")
 
 # Verify
 with open(path, encoding="utf-8") as f:

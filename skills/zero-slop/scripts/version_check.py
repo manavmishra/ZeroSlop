@@ -16,6 +16,7 @@ it fails open: no network, a timeout, any error, and it exits 0 with a quiet not
 because a de-slop run must never break over a missing changelog. Set
 `ZS_NO_UPDATE_CHECK=1` to skip it entirely.
 """
+import argparse
 import json
 import os
 import re
@@ -30,13 +31,17 @@ TIMEOUT = 2.5
 
 def local_version():
     """The version this copy declares, from SKILL.md's frontmatter."""
-    text = (ROOT / "SKILL.md").read_text()
+    try:
+        text = (ROOT / "SKILL.md").read_text()
+    except (OSError, UnicodeDecodeError):
+        return None
     m = re.search(r'^\s*version:\s*"?([\d.]+)"?', text, re.M)
     return m.group(1) if m else None
 
 
 def _tuple(v):
-    return tuple(int(x) for x in re.findall(r"\d+", v or ""))
+    match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)(?:[-+][0-9A-Za-z.-]+)?", v or "")
+    return tuple(int(match.group(i)) for i in range(1, 4)) if match else None
 
 
 def latest_version():
@@ -45,7 +50,7 @@ def latest_version():
     Sends one GET to the public releases API and reads the tag. No auth, no body,
     nothing about the draft — just 'what is the latest tag'.
     """
-    if os.getenv("ZS_NO_UPDATE_CHECK"):
+    if os.getenv("ZS_NO_UPDATE_CHECK", "").lower() in {"1", "true", "yes", "on"}:
         return None
     try:
         req = urllib.request.Request(RELEASES, headers={"Accept": "application/vnd.github+json",
@@ -67,22 +72,29 @@ def install_hint():
 def check():
     local = local_version()
     latest = latest_version()
-    behind = bool(local and latest and _tuple(latest) > _tuple(local))
+    local_semver, latest_semver = _tuple(local), _tuple(latest)
+    behind = bool(local_semver and latest_semver and latest_semver > local_semver)
     return {"local": local, "latest": latest, "update_available": behind,
             "command": install_hint() if behind else None,
             "checked": latest is not None}
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--quiet", action="store_true")
+    mode.add_argument("--json", action="store_true")
+    args = parser.parse_args(argv)
     r = check()
-    if "--json" in sys.argv:
+    if args.json:
         print(json.dumps(r))
         return 0
     if r["update_available"]:
         print(f"Zero Slop {r['latest']} is out — you have {r['local']}. Update:\n  {r['command']}")
-    elif "--quiet" not in sys.argv:
+    elif not args.quiet:
         if not r["checked"]:
-            print(f"Zero Slop {r['local']} — could not check for updates (offline or rate-limited).")
+            local = r["local"] or "version unknown"
+            print(f"Zero Slop {local} — could not check for updates (offline or rate-limited).")
         else:
             print(f"Zero Slop {r['local']} is the latest release.")
     return 0

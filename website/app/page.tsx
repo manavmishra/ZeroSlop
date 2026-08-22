@@ -278,7 +278,7 @@ export default function Home() {
               <p className="method-name">Pattern meter</p>
               <h3>It points to the exact phrase.</h3>
               <p>
-                The scorer checks 266 tell patterns, a 96-term watchlist, and
+                The scorer checks 267 tell patterns, a 96-term watchlist, and
                 context-sensitive terms. Those terms count only when the
                 surrounding sentence makes them suspicious.
               </p>

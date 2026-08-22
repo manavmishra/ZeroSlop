@@ -177,6 +177,10 @@ class Detector(unittest.TestCase):
                 self.assertGreaterEqual(s, 0)
                 self.assertLessEqual(s, 100)
 
+    def test_empty_input_reports_zero_words(self):
+        result = slopscore.score_text("", slopscore.load_patterns())
+        self.assertEqual(result["n_words"], 0)
+
     def test_formal_mode_relaxes_register(self):
         """Research register is native in a journal abstract, not a tell."""
         abstract = ((CORPUS / "ml-methods.txt").read_text())
@@ -190,6 +194,40 @@ class Detector(unittest.TestCase):
         bare = "We leveraged a robust seamless solution to elevate the platform."
         ticked = "We leveraged a `robust` `seamless` solution to elevate the platform."
         self.assertGreater(score(ticked), score(bare) * 0.5)
+
+    def test_model_tracking_url_artifact_survives_url_stripping(self):
+        data = slopscore.load_patterns()
+        text = "Source: https://example.com/paper?utm_source=chatgpt.com"
+        hits = slopscore.score_text(text, data)["hits"]
+        self.assertTrue(any(h["name"] == "chatgpt-artifact" for h in hits))
+
+    def test_ordinary_url_remains_noise(self):
+        data = slopscore.load_patterns()
+        plain = slopscore.score_text("Source:", data)
+        linked = slopscore.score_text(
+            "Source: https://example.com/robust-seamless-tapestry", data
+        )
+        self.assertEqual(plain["hits"], linked["hits"])
+
+    def test_attributable_index_artifact_is_caught(self):
+        data = slopscore.load_patterns()
+        text = '<span data-attributableIndex="12">The museum opened.</span>'
+        hits = slopscore.score_text(text, data)["hits"]
+        self.assertTrue(any(h["name"] == "chatgpt-artifact" for h in hits))
+
+    def test_export_placeholders_are_caught(self):
+        data = slopscore.load_patterns()
+        text = "Dear [Recipient], join [Company Name] on [Date]."
+        hits = slopscore.score_text(text, data)["hits"]
+        placeholders = [h for h in hits if h["name"] == "placeholder"]
+        self.assertEqual(len(placeholders), 3)
+
+    def test_regenerate_response_ui_leak_is_caught(self):
+        data = slopscore.load_patterns()
+        hits = slopscore.score_text("Regenerate response", data)["hits"]
+        self.assertTrue(any(
+            h["name"] == "regenerate-response-artifact" for h in hits
+        ))
 
 
 # --------------------------------------------------------------------------
@@ -233,6 +271,26 @@ class CLI(unittest.TestCase):
         b = slopscore.score_text(fenced, data)
         for field in ("emdash_per_100w", "emoji_count", "hashtags"):
             self.assertEqual(a[field], b[field], f"code changed {field}")
+
+    def test_invalid_options_fail_cleanly(self):
+        cases = [
+            ["--gate"], ["--gate", "nan"], ["--gate", "101"],
+            ["--genre"], ["--unknown"],
+            ["--portfolio", "/path/that/does/not/exist/zero-slop"],
+        ]
+        for args in cases:
+            with self.subTest(args=args):
+                result = run([str(SCORER), *args])
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("Traceback", result.stderr)
+
+    def test_empty_batch_and_portfolio_fail_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            for mode in ("--batch", "--portfolio"):
+                with self.subTest(mode=mode):
+                    result = run([str(SCORER), mode, td])
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertNotIn("Traceback", result.stderr)
 
 
 # --------------------------------------------------------------------------
@@ -342,6 +400,35 @@ class ReflectLoop(unittest.TestCase):
         learn.decay_local()
         self.assertFalse(self._overlay()["fix_preferences"][0]["active"])
 
+    def test_local_decay_is_idempotent_until_reconfirmed(self):
+        old = str(date.today() - timedelta(days=30 * (learn.DECAY_MONTHS + 2)))
+        overlay = learn.empty_learned("local")
+        overlay["patterns"] = [{
+            "name": "stale", "cat": "test", "rx": r"\bstale phrase\b",
+            "w": 4.0, "last_confirmed": old,
+        }]
+        learn.write_json(learn.LOCAL, overlay, private=True)
+        learn.decay_local()
+        once = self._overlay()["patterns"][0]["w"]
+        learn.decay_local()
+        twice = self._overlay()["patterns"][0]["w"]
+        self.assertEqual((once, twice), (2.0, 2.0))
+
+    def test_confirmation_clears_the_decay_marker(self):
+        old = str(date.today() - timedelta(days=30 * (learn.DECAY_MONTHS + 2)))
+        overlay = learn.empty_learned("local")
+        overlay["patterns"] = [{
+            "name": "stale", "cat": "test", "rx": r"\bstale phrase\b",
+            "w": 2.0, "last_confirmed": old, "decayed": str(date.today()),
+        }]
+        learn.write_json(learn.LOCAL, overlay, private=True)
+        sample = self.tmp / "confirm.md"
+        sample.write_text("This stale phrase appeared again.")
+        learn.confirm(sample)
+        pattern = self._overlay()["patterns"][0]
+        self.assertNotIn("decayed", pattern)
+        self.assertEqual(pattern["last_confirmed"], str(date.today()))
+
     def test_same_document_counted_once(self):
         """Re-running reflect on one doc must not inflate its way to threshold."""
         txt = "We shipped it. This puts wood behind the arrow on latency for us."
@@ -369,6 +456,19 @@ class ReflectLoop(unittest.TestCase):
             with self.subTest(phrase):
                 self.assertIsNotNone(learn.fp_gate(learn.to_regex(phrase)),
                                      f"gate failed to protect {src}")
+
+    def test_fp_gate_fails_closed_without_its_corpus(self):
+        old = learn.CORPUS
+        learn.CORPUS = self.tmp / "missing-safety-corpus"
+        try:
+            self.assertIn("missing", learn.fp_gate(r"\bnew phrase\b"))
+        finally:
+            learn.CORPUS = old
+
+    def test_lexicon_coverage_uses_word_boundaries(self):
+        self.assertIsNone(learn.already_caught("partial result", [], ["art"]))
+        self.assertEqual(learn.already_caught("artistic result", [], ["art"]),
+                         "lexicon:art")
 
     def test_gate_rejects_pattern_matching_certified_human_writing(self):
         """The gate that matters. A span lifted verbatim from the certified
@@ -500,6 +600,97 @@ class Decay(unittest.TestCase):
         finally:
             calibrate.DATA = saved
 
+    def test_shared_decay_is_idempotent(self):
+        import calibrate
+        saved = calibrate.DATA
+        calibrate.DATA = self.tmp / "data"
+        try:
+            p = calibrate.DATA / "learned.json"
+            d = json.loads(p.read_text())
+            d["patterns"][0]["last_confirmed"] = str(
+                date.today() - timedelta(days=30 * 25))
+            d["patterns"][0].pop("decayed", None)
+            p.write_text(json.dumps(d, indent=1))
+            calibrate.decay()
+            once = json.loads(p.read_text())["patterns"][0]["w"]
+            calibrate.decay()
+            twice = json.loads(p.read_text())["patterns"][0]["w"]
+            self.assertEqual(once, twice)
+        finally:
+            calibrate.DATA = saved
+
+    def test_malformed_shared_pattern_fails_closed(self):
+        import calibrate
+        saved = calibrate.DATA
+        calibrate.DATA = self.tmp / "data"
+        try:
+            path = calibrate.DATA / "learned.json"
+            data = json.loads(path.read_text())
+            data["patterns"].append("not-a-pattern")
+            path.write_text(json.dumps(data))
+            with self.assertRaises(SystemExit):
+                calibrate.decay()
+        finally:
+            calibrate.DATA = saved
+
+
+class CalibrationInputs(unittest.TestCase):
+    """Calibration must fail closed instead of learning from empty or malformed data."""
+
+    def test_missing_and_empty_corpora_are_rejected(self):
+        import calibrate
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            with self.assertRaises(ValueError):
+                calibrate.read_corpus(tmp / "missing")
+            empty = tmp / "empty"
+            empty.mkdir()
+            with self.assertRaises(ValueError):
+                calibrate.read_corpus(empty)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_mixed_json_ignores_non_text_values(self):
+        import calibrate
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            (tmp / "corpus.json").write_text(json.dumps([
+                {"draft": "Useful prose here."}, 7, None, True,
+                {"draft": 99}, "Second useful sample.",
+            ]))
+            self.assertEqual(calibrate.read_corpus(tmp),
+                             ["Useful prose here.", "Second useful sample."])
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_invalid_json_is_not_scored_as_prose(self):
+        import calibrate
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            (tmp / "broken.json").write_text("{not valid json}")
+            with self.assertRaises(ValueError):
+                calibrate.read_corpus(tmp)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_calibration_refuses_to_overwrite_detector_state(self):
+        import calibrate
+        tmp = Path(tempfile.mkdtemp())
+        old_data = calibrate.DATA
+        try:
+            calibrate.DATA = tmp / "data"
+            calibrate.DATA.mkdir()
+            human, ai = tmp / "human", tmp / "ai"
+            human.mkdir(); ai.mkdir()
+            (human / "a.txt").write_text("A plain human sentence with enough words.")
+            (ai / "a.txt").write_text("Seamless seamless seamless seamless seamless output.")
+            with self.assertRaises(SystemExit):
+                calibrate.main(["--human", str(human), "--ai", str(ai),
+                                "--out", str(calibrate.DATA / "learned.json")])
+        finally:
+            calibrate.DATA = old_data
+            shutil.rmtree(tmp, ignore_errors=True)
+
 
 class OnlineLearningSafety(unittest.TestCase):
     """Live adaptation is private, atomic, path-safe, and process-safe."""
@@ -592,6 +783,107 @@ class OnlineLearningSafety(unittest.TestCase):
             learn.OBS = old_obs
             shutil.rmtree(tmp, ignore_errors=True)
 
+    def test_reflection_counts_must_equal_unique_evidence_documents(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_obs = learn.OBS
+        try:
+            learn.OBS = tmp / "reflections.json"
+            for docs, count in [(["same", "same"], 2), (["one"], 7)]:
+                with self.subTest(docs=docs, count=count):
+                    learn.OBS.write_text(json.dumps({
+                        "observations": {"a recurring phrase": {
+                            "count": count, "docs": docs, "examples": [],
+                        }},
+                        "false_positives": {}, "lexicon_candidates": {},
+                        "fix_observations": {},
+                    }))
+                    with self.assertRaises(SystemExit):
+                        learn.load_observations()
+        finally:
+            learn.OBS = old_obs
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_invalid_confirmation_counter_fails_closed(self):
+        tmp = Path(tempfile.mkdtemp())
+        overlay = tmp / "learned.json"
+        overlay.write_text(json.dumps({
+            "patterns": [{
+                "name": "bad-counter", "cat": "test", "rx": "plain",
+                "w": 2.0, "confirmations": "many",
+            }],
+            "lexicon": {}, "riders": {}, "fix_preferences": [],
+        }))
+        try:
+            with self.assertRaises(SystemExit):
+                learn.load_learned(overlay, "local")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_nested_fix_documents_must_be_strings(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_obs = learn.OBS
+        try:
+            learn.OBS = tmp / "reflections.json"
+            learn.OBS.write_text(json.dumps({
+                "observations": {}, "false_positives": {},
+                "lexicon_candidates": {},
+                "fix_observations": {"tell": {
+                    "count": 1, "docs": ["outer"],
+                    "replacements": {"fix": {"count": 1, "docs": [7]}},
+                }},
+            }))
+            with self.assertRaises(SystemExit):
+                learn.load_observations()
+        finally:
+            learn.OBS = old_obs
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_false_positive_weights_and_applied_fix_counts_are_bounded(self):
+        tmp = Path(tempfile.mkdtemp())
+        old_obs = learn.OBS
+        try:
+            learn.OBS = tmp / "reflections.json"
+            malformed = [
+                {
+                    "observations": {},
+                    "false_positives": {"rule": {
+                        "count": 1, "docs": ["doc"], "quotes": [], "weight": "high",
+                    }},
+                    "lexicon_candidates": {}, "fix_observations": {},
+                },
+                {
+                    "observations": {}, "false_positives": {},
+                    "lexicon_candidates": {},
+                    "fix_observations": {"tell": {
+                        "count": 1, "docs": ["doc"], "applied_count": 2,
+                        "replacements": {"fix": {"count": 1, "docs": ["doc"]}},
+                    }},
+                },
+            ]
+            for payload in malformed:
+                with self.subTest(payload=payload):
+                    learn.OBS.write_text(json.dumps(payload))
+                    with self.assertRaises(SystemExit):
+                        learn.load_observations()
+        finally:
+            learn.OBS = old_obs
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_missing_confirmation_and_voice_paths_fail_closed(self):
+        with self.assertRaises(SystemExit):
+            learn.confirm("/path/that/does/not/exist/zero-slop-confirm")
+        with self.assertRaises(SystemExit):
+            learn.build_voice("test", "/path/that/does/not/exist/zero-slop-voice")
+
+    def test_missing_reflection_inputs_fail_without_traceback(self):
+        result = run([
+            str(LEARNER), "--reflect", "--produced",
+            "/path/that/does/not/exist/produced.md", "--shipped",
+            "/path/that/does/not/exist/shipped.md",
+        ])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+
     def test_nonfinite_weights_are_rejected_at_the_cli(self):
         for value in ("nan", "inf", "-1", "10.1"):
             with self.subTest(value):
@@ -612,6 +904,17 @@ class OnlineLearningSafety(unittest.TestCase):
                 "false_positives": [],
             }))
             self.assertEqual(learn.merge(str(bad_count), False, "test", 2.5), 0)
+
+            duplicate = tmp / "duplicate.json"
+            duplicate.write_text(json.dumps({
+                "schema": 1,
+                "spans": [
+                    {"span": "wood behind the arrow", "documents": 3},
+                    {"span": "Wood behind the arrow", "documents": 3},
+                ],
+                "false_positives": [],
+            }))
+            self.assertEqual(learn.merge(str(duplicate), False, "test", 2.5), 0)
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
@@ -885,6 +1188,27 @@ class SearchCorpus(unittest.TestCase):
         r = run([str(ROOT / "bench" / "search-corpus" / "evaluate.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_same_corpus_comparison_is_current(self):
+        r = run([str(ROOT / "bench" / "search-corpus" / "compare.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+        results = json.loads((self.PATH.parent / "comparison-results.json").read_text())
+        self.assertEqual(set(results["methods"]),
+                         {"zero-slop", "no-ai-slop", "humanizer", "de-slop",
+                          "stop-slop"})
+        for method, row in results["methods"].items():
+            with self.subTest(method):
+                self.assertEqual(row["automated_fact_check_passes"], 18)
+        self.assertEqual(results["methods"]["zero-slop"]["combined_passes"], 18)
+
+    def test_comparison_outputs_cover_the_same_anonymous_ids(self):
+        expected = {row["id"] for row in json.loads(self.PATH.read_text())}
+        for path in sorted((self.PATH.parent / "outputs").glob("*.json")):
+            with self.subTest(path.name):
+                outputs = json.loads(path.read_text())
+                self.assertEqual(set(outputs), expected)
+                for text in outputs.values():
+                    self.assertFalse(re.search(r"https?://|www\.|@[A-Za-z0-9_]", text))
+
     def test_corpus_is_anonymous_and_covers_every_platform_module(self):
         rows = json.loads(self.PATH.read_text())
         self.assertEqual(len(rows), 18)
@@ -899,11 +1223,92 @@ class SearchCorpus(unittest.TestCase):
                 self.assertFalse({"author", "username", "handle", "source_url"} & row.keys())
 
     def test_benchmark_scripts_are_portable(self):
-        for path in (ROOT / "bench").glob("*.py"):
-            with self.subTest(path.name):
+        for path in (ROOT / "bench").rglob("*.py"):
+            with self.subTest(path.relative_to(ROOT)):
                 source = path.read_text()
                 self.assertNotIn("/Users/", source)
                 self.assertNotIn("\\\\Users\\\\", source)
+                self.assertNotIn("/private/tmp/", source)
+
+
+class AIStoryHubCorpusAudit(unittest.TestCase):
+    """External taxonomy coverage stays reproducible without bundling it."""
+
+    SCRIPT = ROOT / "bench" / "aistoryhub-corpus" / "audit.py"
+    PIN = ROOT / "bench" / "aistoryhub-corpus" / "source.json"
+    RESULT = ROOT / "bench" / "aistoryhub-corpus" / "results.json"
+
+    def test_committed_result_is_labeled_as_coverage_not_accuracy(self):
+        result = json.loads(self.RESULT.read_text())
+        self.assertEqual(result["audit_kind"], "external_taxonomy_probe_coverage")
+        self.assertFalse(result["calibrated_accuracy"])
+        hard = result["probe"]["by_lifecycle"]["hard_evidence"]
+        self.assertEqual(hard["surface_rule_hit"], hard["testable"])
+        guard = result["false_positive_guard"]
+        self.assertEqual(guard["passes"], guard["documents"])
+
+    def test_source_is_pinned_but_not_redistributed(self):
+        pin = json.loads(self.PIN.read_text())
+        self.assertEqual(pin["version"], "1.8")
+        self.assertEqual(pin["entry_count"], 758)
+        self.assertRegex(pin["sha256"], r"\A[0-9a-f]{64}\Z")
+        self.assertFalse(
+            (ROOT / "bench" / "aistoryhub-corpus" / "ai-cliches-corpus.json").exists()
+        )
+
+    def test_local_source_write_and_hash_mismatch_fail_closed(self):
+        document = {
+            "version": "test-1",
+            "generated": "2026-08-22",
+            "entry_count": 1,
+            "entries": [{
+                "term": "delve",
+                "category": "Words & phrases",
+                "category_key": "words_and_phrases",
+                "confidence": "red",
+                "lifecycle": "live",
+                "strength_score": 99,
+                "example": None,
+            }],
+        }
+        raw = json.dumps(document, separators=(",", ":")).encode()
+        import hashlib
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            source = root / "source.json"
+            pin = root / "pin.json"
+            output = root / "result.json"
+            source.write_bytes(raw)
+            pin.write_text(json.dumps({
+                "source_url": "https://example.invalid/corpus.json",
+                "version": document["version"],
+                "generated": document["generated"],
+                "entry_count": 1,
+                "sha256": hashlib.sha256(raw).hexdigest(),
+            }))
+            result = run([
+                str(self.SCRIPT), "--source", str(source), "--pin", str(pin),
+                "--output", str(output), "--write", "--show-misses", "0",
+            ])
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(output.exists())
+            source.write_bytes(raw + b"\n")
+            result = run([
+                str(self.SCRIPT), "--source", str(source), "--pin", str(pin),
+                "--output", str(output), "--check", "--show-misses", "0",
+            ])
+            self.assertEqual(result.returncode, 2)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_empty_pin_strings_fail_closed(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("aistoryhub_audit", self.SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        pin = json.loads(self.PIN.read_text())
+        pin["source_url"] = "   "
+        with self.assertRaises(ValueError):
+            module.validate_pin(pin)
 
 
 class PortfolioDiagnostic(unittest.TestCase):
@@ -930,6 +1335,27 @@ class PortfolioDiagnostic(unittest.TestCase):
         result = slopscore.portfolio_metrics([("a", "One draft."), ("b", "Two drafts.")])
         self.assertFalse(result["measured"])
         self.assertIn("at least 3", result["reason"])
+
+    def test_duplicate_document_names_are_rejected(self):
+        with self.assertRaises(ValueError):
+            slopscore.portfolio_metrics([("same", "First draft."),
+                                         ("same", "Second draft."),
+                                         ("third", "Third draft.")])
+
+
+class ShapeDiagnostic(unittest.TestCase):
+    """Excluded structure cannot leak back into the social-post shape verdict."""
+
+    def test_short_bullets_do_not_manufacture_a_fragment_run(self):
+        prose = [
+            f"Paragraph {i} explains the release in enough detail for a reader to follow it."
+            for i in range(8)
+        ]
+        text = "\n\n".join(prose + ["- Cut now.", "- Ship soon.", "- Read twice."])
+        result = slopscore.shape_metrics(text, genre="social")
+        self.assertTrue(result["measured"])
+        self.assertEqual(result["max_fragment_run"], 0)
+        self.assertFalse(result["broetry"])
 
 
 class Fidelity(unittest.TestCase):
@@ -967,6 +1393,45 @@ class Fidelity(unittest.TestCase):
                                "It works. Read the docs.")
         self.assertTrue(r["preserved"])
         self.assertFalse(r["invented"])
+
+    def test_ordered_list_markers_are_not_figures(self):
+        before = "Three points:\n1. Keep the fact.\n2. Cut filler.\n3. Read it aloud."
+        after = "Three points: keep the fact, cut filler, and read it aloud."
+        r = slopscore.fidelity(before, after)
+        self.assertTrue(r["preserved"])
+        self.assertFalse(r["invented"])
+
+    def test_common_corpus_openers_are_not_names(self):
+        before = ("Welcome back. Artificial intelligence is changing. "
+                  "Despite the limits, researchers continue. Bookmark this. "
+                  "Unpopular opinion: the test helps.")
+        after = ("AI is changing. Researchers continue despite the limits. "
+                 "Save this. The test helps.")
+        r = slopscore.fidelity(before, after)
+        self.assertTrue(r["preserved"])
+        self.assertFalse(r["invented"])
+
+    def test_partial_entity_rename_is_caught(self):
+        result = slopscore.fidelity("Basis Ventures led the round.",
+                                   "Basis Labs led the round.")
+        self.assertFalse(result["preserved"])
+        self.assertTrue(result["invented"])
+
+    def test_common_title_case_run_is_not_an_entity(self):
+        result = slopscore.fidelity("Shipped Tuesday.",
+                                   "Tuesday was the ship date.")
+        self.assertTrue(result["preserved"])
+        self.assertFalse(result["invented"])
+
+    def test_interior_paraphrases_are_canonicalized(self):
+        pairs = [
+            ("I was very nervous.", "I felt extremely nervous."),
+            ("We recalled the launch.", "We remembered the launch."),
+        ]
+        for before, after in pairs:
+            with self.subTest(after=after):
+                result = slopscore.fidelity(before, after)
+                self.assertFalse(result["invented"], result)
 
     # Rates over a battery, not sentence-by-sentence. A regression is a change
     # in the aggregate, which is how you tell a real drop from a noisy example.
@@ -1113,6 +1578,10 @@ class Diagram(unittest.TestCase):
         r = run([str(ROOT / "scripts" / "build_bundle.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_one_pager_pdf_is_current(self):
+        r = run([str(ROOT / "scripts" / "build_onepager_pdf.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
     def test_skill_zip_is_one_clean_skill(self):
         """The claude.ai upload zip must hold exactly one SKILL.md and no nested
         zip. Built fresh here so the test never depends on a committed artifact —
@@ -1149,6 +1618,21 @@ class Diagram(unittest.TestCase):
                  str(ROOT / "assets" / "demo.svg")])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_svg_checker_handles_unnamespaced_overflow_and_relative_paths(self):
+        with tempfile.TemporaryDirectory() as td:
+            overflow = Path(td) / "overflow.svg"
+            overflow.write_text(
+                '<svg viewBox="0 0 100 100"><text x="95" y="20">too wide</text></svg>'
+            )
+            result = run([str(ROOT / "scripts" / "check_svg.py"), str(overflow)])
+            self.assertEqual(result.returncode, 1, result.stdout)
+            relative = Path(td) / "relative.svg"
+            relative.write_text(
+                '<svg viewBox="0 0 100 100"><path class="ln" d="m 0 0 l 20 20"/></svg>'
+            )
+            result = run([str(ROOT / "scripts" / "check_svg.py"), str(relative)])
+            self.assertEqual(result.returncode, 1, result.stdout)
+
     def test_engine_svg_names_both_operational_loops(self):
         src = (ROOT / "assets" / "engine.svg").read_text().lower()
         for phrase in (
@@ -1157,7 +1641,9 @@ class Diagram(unittest.TestCase):
                 "portfolio probe",
                 "observe", "gate evidence", "update private overlay",
                 "reconfirm / decay", "detector weights + fix preferences",
-                "adapts detection + fixing"):
+                "adapts detection + fixing", "not a runtime loop",
+                "external taxonomy", "human-corpus regression",
+                "versioned release"):
             with self.subTest(phrase):
                 self.assertIn(phrase, src)
 
@@ -1209,6 +1695,18 @@ class RerankBestOfN(unittest.TestCase):
         self.assertEqual(ranked[0]["name"], "clean",
                          "the cleaner faithful rewrite should win")
 
+    def test_invalid_candidate_shapes_are_rejected(self):
+        m = self._rerank()
+        for candidates in ([], {"one": 7}, {"": "text"}):
+            with self.subTest(candidates=candidates):
+                with self.assertRaises(ValueError):
+                    m.rank(self.ORIG, candidates)
+
+    def test_cli_reports_missing_option_values_without_traceback(self):
+        r = run([str(ROOT / "scripts" / "rerank.py"), "--original"])
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn("Traceback", r.stderr)
+
 
 class PredictabilityChannel(unittest.TestCase):
     """The model channel: a deterministic cloze scaffold the harness model answers.
@@ -1240,9 +1738,9 @@ class PredictabilityChannel(unittest.TestCase):
 
     def test_morphology_counts_as_a_hit(self):
         m = self._mod()
-        pr = m.probes(self.TEXT, k=6)
-        stem = m.score(self.TEXT, {p["id"]: [p["answer"][:4]] for p in pr}, k=6)
-        self.assertEqual(stem["predictability"], 100.0)
+        self.assertTrue(m._hit("raised", ["raise"]))
+        self.assertTrue(m._hit("quickly", ["quick"]))
+        self.assertFalse(m._hit("station", ["statue"]))
 
     def test_context_never_contains_the_answer(self):
         m = self._mod()
@@ -1272,6 +1770,24 @@ class PredictabilityChannel(unittest.TestCase):
         r = m.score("Hi there.", {}, k=6)
         self.assertIsNone(r["predictability"])
 
+    def test_invalid_prediction_shapes_are_rejected(self):
+        m = self._mod()
+        for predictions in ([], {"bad-id": ["guess"]}, {"0": [7]},
+                            {"999": ["guess"]}, {}):
+            with self.subTest(predictions=predictions):
+                with self.assertRaises(ValueError):
+                    m.score(self.TEXT, predictions, k=2)
+
+    def test_nonpositive_probe_count_is_rejected(self):
+        m = self._mod()
+        with self.assertRaises(ValueError):
+            m.probes(self.TEXT, k=0)
+
+    def test_cli_reports_missing_option_values_without_traceback(self):
+        r = run([str(ROOT / "scripts" / "predictability.py"), "--score"])
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn("Traceback", r.stderr)
+
 
 class CliStdin(unittest.TestCase):
     """The scorer reads stdin with no file argument and with the conventional '-',
@@ -1288,6 +1804,34 @@ class CliStdin(unittest.TestCase):
         r = run([str(SCORER), "--explain", "-"], stdin=self.SLOP)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("Surface score", r.stdout)
+
+
+class VersionCheck(unittest.TestCase):
+    """Version comparison is strict semver and the CLI rejects ambiguity."""
+
+    def _mod(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "version_check", ROOT / "scripts" / "version_check.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_semver_parser_does_not_invent_components(self):
+        module = self._mod()
+        self.assertEqual(module._tuple("v2.4.10"), (2, 4, 10))
+        self.assertEqual(module._tuple("2.4.2-beta.1"), (2, 4, 2))
+        self.assertIsNone(module._tuple("2.4"))
+        self.assertIsNone(module._tuple("release-2.4.2"))
+
+    def test_unknown_and_conflicting_options_fail_before_network(self):
+        script = ROOT / "scripts" / "version_check.py"
+        for args in (["--unknown"], ["--quiet", "--json"]):
+            with self.subTest(args=args):
+                result = run([str(script), *args])
+                self.assertEqual(result.returncode, 2)
+                self.assertNotIn("Traceback", result.stderr)
 
 
 if __name__ == "__main__":

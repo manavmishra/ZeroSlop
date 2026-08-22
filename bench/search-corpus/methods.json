@@ -1,0 +1,33 @@
+{
+ "generated_at": "2026-08-22",
+ "generator": "one host Codex session replaying each method's instructions",
+ "prompt": "Edit each item for its named genre. Preserve every claim and fact. Add nothing. Return only the final rewritten text.",
+ "methods": {
+  "zero-slop": {
+   "label": "Zero Slop",
+   "source": "repository SKILL.md",
+   "revision": "2.4.2"
+  },
+  "no-ai-slop": {
+   "label": "no-ai-slop",
+   "source": "https://github.com/petergyang/no-ai-slop",
+   "revision": "d30eddb9e04562234f2070b5ee63ca4649d9a05e"
+  },
+  "humanizer": {
+   "label": "humanizer",
+   "source": "https://github.com/blader/humanizer",
+   "revision": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5",
+   "version": "2.11.2"
+  },
+  "de-slop": {
+   "label": "de-slop",
+   "source": "https://github.com/isatimur/de-slop",
+   "revision": "4349a8af4116d6f02b38d62f4b19e66108c4aada"
+  },
+  "stop-slop": {
+   "label": "stop-slop",
+   "source": "https://github.com/hardikpandya/stop-slop",
+   "revision": "8da1f030185bdfe8471220585162991eaeb970e9"
+  }
+ }
+}

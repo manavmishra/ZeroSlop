@@ -4,8 +4,8 @@
 The charts in the README are computed, not hand-drawn. This reads the same sources
 the tables do — replication.json for the pooled best-picks, the raw method outputs
 re-scored by the current detector for the register panel, and the search-informed
-regression results, plus the version-pinned competitor capability audit — then draws
-three bar charts and one capability matrix in assets/ and writes a small
+regression and rewrite results, plus the version-pinned competitor capability audit.
+It draws six bar charts and one capability matrix in assets/ and writes a small
 chart-data.json manifest.
 
     python3 bench/make_charts.py            # regenerate the PNGs and the manifest
@@ -22,6 +22,7 @@ not, so CI can verify freshness even where Pillow is absent.
 import json
 import sys
 import statistics as st
+from io import BytesIO
 from pathlib import Path
 
 BENCH = Path(__file__).resolve().parent
@@ -30,7 +31,9 @@ ASSETS = ROOT / "assets"
 MANIFEST = BENCH / "chart-data.json"
 SEARCH_RESULTS = BENCH / "search-corpus" / "results.json"
 CAPABILITY_AUDIT = BENCH / "competitor-capabilities.json"
+SEARCH_COMPARISON = BENCH / "search-corpus" / "comparison-results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
+from safeio import atomic_write_bytes, atomic_write_text  # noqa: E402
 
 # Where each method's rewrites live, and the label shown on the chart. The panel
 # re-scores these with the live detector, so the numbers track the current meter.
@@ -48,7 +51,7 @@ BEST_LABELS = {"zeroslop": "Zero Slop", "blader": "blader/humanizer",
 
 
 def compute():
-    """Return the three chart datasets, computed from the benchmark data."""
+    """Return the five chart datasets, computed from the benchmark data."""
     import slopscore
     data = slopscore.load_patterns()
 
@@ -71,9 +74,18 @@ def compute():
             docs = {}
             for f in files:
                 p = BENCH / "outputs" / f
-                if p.exists():
-                    docs.update(json.loads(p.read_text()))
-            scores = [slopscore.score_text(t, data)["ai_likelihood"] for t in docs.values()]
+                if not p.exists():
+                    raise ValueError(f"missing benchmark output: {p}")
+                part = json.loads(p.read_text())
+                overlap = set(docs) & set(part)
+                if overlap:
+                    raise ValueError(f"duplicate benchmark ids in {p.name}: {sorted(overlap)}")
+                docs.update(part)
+            expected = {row["id"] for row in ex}
+            if set(docs) != expected:
+                raise ValueError(f"{label}: output ids do not match examples.json")
+            scores = [slopscore.score_text(docs[row["id"]], data)["ai_likelihood"]
+                      for row in ex]
         panel.append((label, round(st.mean(scores), 1)))
     search = json.loads(SEARCH_RESULTS.read_text())
     search_panel = [
@@ -93,8 +105,34 @@ def compute():
             for row in audit["capabilities"]
         ],
     }
+    comparison = json.loads(SEARCH_COMPARISON.read_text())
+    comparison_order = ["zero-slop", "no-ai-slop", "humanizer",
+                        "de-slop", "stop-slop"]
+    rewrite_scores = [("Original drafts",
+                       comparison["original_mean_surface_score"])]
+    rewrite_scores.extend(
+        (comparison["methods"][method]["label"],
+         comparison["methods"][method]["mean_surface_score"])
+        for method in comparison_order
+    )
+    rewrite_passes = [("Original drafts",
+                       comparison["original_combined_pass_rate"])]
+    rewrite_passes.extend(
+        (comparison["methods"][method]["label"],
+         comparison["methods"][method]["combined_pass_rate"])
+        for method in comparison_order
+    )
+    external_order = ["original", *comparison_order]
+    external_clean = [
+        (comparison["external_cross_meter"]["methods"][method]["label"],
+         comparison["external_cross_meter"]["methods"][method]["reads_clean_rate"])
+        for method in external_order
+    ]
     return {"best_picks": best, "detector_panel": panel,
             "search_corpus": search_panel,
+            "search_rewrite_scores": rewrite_scores,
+            "search_rewrite_passes": rewrite_passes,
+            "external_checker_clean": external_clean,
             "capability_matrix": capability_matrix}
 
 
@@ -143,7 +181,9 @@ def _hbar(path, title, subtitle, rows, ours_label):
         d.rounded_rectangle([x0, y + 8, x0 + max(bw, 3), y + rowh - 14], 4, fill=col)
         d.text((x0 + bw + 10, y + rowh // 2 - 10), f"{val:g}", font=_font(15, True),
                fill=col if ours else MUTE)
-    img.save(path)
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    atomic_write_bytes(path, buffer.getvalue())
     return path.name
 
 
@@ -226,6 +266,23 @@ def render(datasets):
         "18 anonymous paraphrases, three per genre. Higher means more tracked surface slop; "
         "this is a regression check, not field accuracy.",
         datasets["search_corpus"], None))
+    out.append(_hbar(
+        ASSETS / "bench-search-rewrites.png",
+        "Surface score after instruction replay",
+        "Same 18 paraphrases and one host model. Lower is cleaner. Zero Slop's meter, "
+        "not an independent judge.",
+        datasets["search_rewrite_scores"], "Zero Slop"))
+    out.append(_hbar(
+        ASSETS / "bench-search-passrate.png",
+        "Clean-and-fact-checked pass rate",
+        "Genre score gate plus automated fact check. Not semantic or field accuracy.",
+        datasets["search_rewrite_passes"], "Zero Slop"))
+    out.append(_hbar(
+        ASSETS / "bench-external-checker.png",
+        "Reads-clean rate on the public AIStoryHub checker",
+        "Corpus v1.8; item-level browser checks; eligible items only (20-word minimum). "
+        "Higher is better; 0-4 abstentions per method.",
+        datasets["external_checker_clean"], "Zero Slop"))
     out.append(_capability_matrix(
         ASSETS / "competitor-capabilities.png",
         datasets["capability_matrix"]))
@@ -249,7 +306,7 @@ def main():
         print("benchmark charts are current")
         return 0
     names = render(fresh)
-    MANIFEST.write_text(json.dumps(fresh, indent=1) + "\n")
+    atomic_write_text(MANIFEST, json.dumps(fresh, indent=1) + "\n")
     print(f"wrote {', '.join(names)} and {MANIFEST.name} from the benchmark data")
     return 0
 

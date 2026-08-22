@@ -10,8 +10,10 @@ figure became 54, because nothing regenerated it and nothing checked.
     python3 scripts/build_bundle.py           # rebuild
     python3 scripts/build_bundle.py --check   # fail if stale (CI)
 """
+import argparse
 import sys
 from pathlib import Path
+from safeio import atomic_write_text
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "dist" / "zero-slop-single-file.md"
@@ -56,19 +58,27 @@ def build():
     out = [HEADER]
     for rel in PARTS:
         p = ROOT / rel
-        if not p.exists():
-            print(f"missing source: {rel}", file=sys.stderr)
+        if not p.is_file() or p.is_symlink():
+            print(f"missing or unsafe source: {rel}", file=sys.stderr)
+            return None
+        try:
+            text = p.read_text()
+        except (OSError, UnicodeDecodeError) as exc:
+            print(f"cannot read source {rel}: {exc}", file=sys.stderr)
             return None
         out.append(f"\n\n{RULE}\n# FILE: {rel}\n{RULE}\n\n")
-        out.append(p.read_text().rstrip() + "\n")
+        out.append(text.rstrip() + "\n")
     return "".join(out)
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args(argv)
     text = build()
     if text is None:
         return 1
-    check = "--check" in sys.argv
+    check = args.check
     current = OUT.read_text() if OUT.exists() else ""
     if check:
         if current != text:
@@ -77,7 +87,11 @@ def main():
         print("dist bundle is current")
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(text)
+    try:
+        atomic_write_text(OUT, text)
+    except OSError as exc:
+        print(f"cannot write {OUT}: {exc}", file=sys.stderr)
+        return 1
     print(f"wrote {OUT.relative_to(ROOT)} "
           f"({len(text.splitlines()):,} lines, {len(text):,} chars, "
           f"{len(PARTS)} sources)")

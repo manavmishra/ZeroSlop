@@ -1,0 +1,12 @@
+{
+ "name": "The Corpus of AI Cliches",
+ "source_url": "https://aistoryhub.co/ai-cliches-corpus.json",
+ "catalog_url": "https://aistoryhub.co/corpus",
+ "checker_url": "https://aistoryhub.co/slop-checker",
+ "version": "1.8",
+ "generated": "2026-07-18",
+ "entry_count": 758,
+ "sha256": "5ac1dd1cd3c42e1e99170025b6f252fd311e0360a7852e738a2165df06036675",
+ "retrieved": "2026-08-22",
+ "redistribution": "The source advertises a public JSON download but states no corpus-specific redistribution licence. Zero Slop fetches the pinned source for maintainer audits and does not bundle the source entries."
+}

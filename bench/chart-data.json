@@ -73,6 +73,84 @@
    73.3
   ]
  ],
+ "search_rewrite_scores": [
+  [
+   "Original drafts",
+   78.2
+  ],
+  [
+   "Zero Slop",
+   13.7
+  ],
+  [
+   "no-ai-slop",
+   29.7
+  ],
+  [
+   "humanizer",
+   28.4
+  ],
+  [
+   "de-slop",
+   27.1
+  ],
+  [
+   "stop-slop",
+   29.9
+  ]
+ ],
+ "search_rewrite_passes": [
+  [
+   "Original drafts",
+   0.0
+  ],
+  [
+   "Zero Slop",
+   100.0
+  ],
+  [
+   "no-ai-slop",
+   66.7
+  ],
+  [
+   "humanizer",
+   66.7
+  ],
+  [
+   "de-slop",
+   72.2
+  ],
+  [
+   "stop-slop",
+   61.1
+  ]
+ ],
+ "external_checker_clean": [
+  [
+   "Original drafts",
+   16.7
+  ],
+  [
+   "Zero Slop",
+   82.4
+  ],
+  [
+   "no-ai-slop",
+   75.0
+  ],
+  [
+   "humanizer",
+   73.3
+  ],
+  [
+   "de-slop",
+   75.0
+  ],
+  [
+   "stop-slop",
+   78.6
+  ]
+ ],
  "capability_matrix": {
   "audited_on": "2026-08-22",
   "products": [

@@ -6,22 +6,30 @@ ONE-PAGER.md (headings, paragraphs, the demo image, the install command, the
 footer) and lays it out with reportlab in the project's brand colour. Re-run it
 whenever the one-pager changes.
 
-    python3 scripts/build_onepager_pdf.py     # writes assets/Zero-Slop-One-Pager.pdf
+    python3 scripts/build_onepager_pdf.py           # rebuild
+    python3 scripts/build_onepager_pdf.py --check   # fail if stale (CI)
 
 Needs reportlab (the only script here that does); everything user-facing stays
 stdlib-only. If reportlab is missing it says so and exits cleanly.
 """
+import argparse
+import io
 import re
 import sys
 from pathlib import Path
+from safeio import atomic_write_bytes, is_within
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "ONE-PAGER.md"
 OUT = ROOT / "assets" / "Zero-Slop-One-Pager.pdf"
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args(argv)
     try:
+        from reportlab import rl_config
         from reportlab.lib.pagesizes import letter
         from reportlab.lib.units import inch
         from reportlab.lib import colors
@@ -33,6 +41,10 @@ def main():
     except ImportError:
         print("reportlab not installed; run: pip install reportlab")
         return 1
+
+    # ReportLab otherwise embeds the current time in the document metadata.
+    # Invariant mode makes the PDF byte-reproducible, so CI can detect drift.
+    rl_config.invariant = 1
 
     BRAND = colors.HexColor("#2B5BC7")
     INK = colors.HexColor("#1B1D22")
@@ -66,7 +78,16 @@ def main():
             story.append(Paragraph(" ".join(para), FOOT if in_footer else BODY))
             para.clear()
 
-    for line in SRC.read_text().splitlines():
+    if not SRC.is_file() or SRC.is_symlink():
+        print(f"missing or unsafe source: {SRC}", file=sys.stderr)
+        return 1
+    try:
+        source_lines = SRC.read_text().splitlines()
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"cannot read {SRC}: {exc}", file=sys.stderr)
+        return 1
+
+    for line in source_lines:
         s = line.strip()
         if s.startswith("```"):
             if in_code:
@@ -88,13 +109,17 @@ def main():
         if s.startswith("!["):
             flush_para()
             m = re.search(r"\(([^)]+)\)", s)
-            img = ROOT / m.group(1) if m else None
-            if img and img.exists():
-                iw, ih = ImageReader(str(img)).getSize()
-                w = 5.3 * inch
-                story.append(Spacer(1, 3))
-                story.append(Image(str(img), width=w, height=w * ih / iw))
-                story.append(Spacer(1, 7))
+            raw_img = ROOT / m.group(1) if m else None
+            img = raw_img.resolve() if raw_img else None
+            if (not img or not is_within(img, ROOT) or not img.is_file()
+                    or raw_img.is_symlink()):
+                print(f"invalid or missing one-pager image: {s}", file=sys.stderr)
+                return 1
+            iw, ih = ImageReader(str(img)).getSize()
+            w = 5.3 * inch
+            story.append(Spacer(1, 3))
+            story.append(Image(str(img), width=w, height=w * ih / iw))
+            story.append(Spacer(1, 7))
             continue
         if s.startswith("# "):
             flush_para(); story.append(Paragraph(inline(s[2:]), H1)); continue
@@ -103,15 +128,35 @@ def main():
         if not s:
             flush_para(); continue
         para.append(inline(s))
+    if in_code:
+        print("ONE-PAGER.md has an unclosed code fence", file=sys.stderr)
+        return 1
     flush_para()
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    SimpleDocTemplate(
-        str(OUT), pagesize=letter, title="Zero Slop - One-Pager",
-        author="Manav Mishra", leftMargin=0.85 * inch, rightMargin=0.85 * inch,
-        topMargin=0.7 * inch, bottomMargin=0.6 * inch,
-    ).build(story)
-    print(f"wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size:,} bytes)")
+    buffer = io.BytesIO()
+    try:
+        SimpleDocTemplate(
+            buffer, pagesize=letter, title="Zero Slop - One-Pager",
+            author="Manav Mishra", leftMargin=0.85 * inch, rightMargin=0.85 * inch,
+            topMargin=0.7 * inch, bottomMargin=0.6 * inch,
+        ).build(story)
+        pdf = buffer.getvalue()
+        if not pdf.startswith(b"%PDF-"):
+            raise ValueError("renderer did not produce a PDF")
+        if args.check:
+            if not OUT.is_file() or OUT.is_symlink() or OUT.read_bytes() != pdf:
+                print("one-pager PDF is out of date — run: "
+                      "python3 scripts/build_onepager_pdf.py")
+                return 1
+        else:
+            atomic_write_bytes(OUT, pdf)
+    except (OSError, ValueError) as exc:
+        print(f"cannot build one-pager PDF: {exc}", file=sys.stderr)
+        return 1
+    if args.check:
+        print("one-pager PDF is current")
+    else:
+        print(f"wrote {OUT.relative_to(ROOT)} ({len(pdf):,} bytes)")
     return 0
 
 

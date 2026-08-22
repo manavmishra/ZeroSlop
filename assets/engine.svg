@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 548" width="900" height="548" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two operational loops. Editorial delivery measures a draft with four surface channels, a separate host-model predictability probe, and a non-scoring portfolio probe that finds repeated openings and phrases across three or more related drafts. It diagnoses information utility, integrity, structure, delivery, and voice; rewrites in two passes; copy-edits the result; reads it aloud; and verifies the final text for score, fidelity, meaning, voice, format, and structure. The score is a traceable heuristic surface meter, not a calibrated probability. Online learning observes what the writer later cuts or keeps. One edit cannot change the meter. A phrase needs recurrence across three content-distinct edit pairs, novelty, and the human-corpus safety gate; single words need five pairs. Eligible evidence updates a private overlay that reloads on the next run. The overlay feeds both the pattern meter and the rewrite guide, so it adapts detection and fixing. Repeated false-positive evidence can lower a local weight, later evidence reconfirms useful guidance, stale detector rules decay, and stale fix preferences retire.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 590" width="900" height="590" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two operational loops. Editorial delivery measures a draft with four surface channels, a separate host-model predictability probe, and a non-scoring portfolio probe that finds repeated openings and phrases across three or more related drafts. It diagnoses information utility, integrity, structure, delivery, and voice; rewrites in two passes; copy-edits the result; reads it aloud; and verifies the final text for score, fidelity, meaning, voice, format, and structure. The score is a traceable heuristic surface meter, not a calibrated probability. Online learning observes what the writer later cuts or keeps. One edit cannot change the meter. A phrase needs recurrence across three content-distinct edit pairs, novelty, and the human-corpus safety gate; single words need five pairs. Eligible evidence updates a private overlay that reloads on the next run. The overlay feeds both the pattern meter and the rewrite guide, so it adapts detection and fixing. Repeated false-positive evidence can lower a local weight, later evidence reconfirms useful guidance, stale detector rules decay, and stale fix preferences retire. Outside both runtime loops, maintainers may pin an external taxonomy, review its gaps, run the human-corpus regression, and release approved shared rules. External data never changes the detector automatically.">
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#8A939F"/>
@@ -44,7 +44,7 @@
 
   <rect x="26" y="40" width="276" height="36" rx="6" class="ch"/>
   <text x="38" y="56" class="t">Pattern meter</text>
-  <text x="38" y="69" class="m">266 patterns · 96 lexicon · 25 riders</text>
+  <text x="38" y="69" class="m">267 patterns · 96 lexicon · 25 riders</text>
   <text x="248" y="56" class="lb" fill="#8A939F">wording</text>
 
   <rect x="26" y="82" width="276" height="36" rx="6" class="ch"/>
@@ -143,5 +143,8 @@
   <path d="M20 489 L8 489 L8 58 L23 58" class="lp" marker-end="url(#b)"/>
   <path d="M140 460 L140 414 L442 414 L442 274" class="lp" marker-end="url(#b)"/>
   <text x="16" y="452" class="lb">adapts detection + fixing</text>
+
+  <rect x="14" y="548" width="852" height="28" rx="6" class="grp"/>
+  <text x="26" y="566" class="h">MAINTENANCE · NOT A RUNTIME LOOP · external taxonomy → review gaps → human-corpus regression → versioned release</text>
 
 </svg>

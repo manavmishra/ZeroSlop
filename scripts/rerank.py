@@ -21,10 +21,12 @@ to stdout with --emit. Offline, standard library only, like the rest of the scor
 """
 import json
 import sys
+import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
+from safeio import atomic_write_text
 
 
 def _tier(s):
@@ -41,6 +43,14 @@ def rank(original, candidates, genre=None):
     then the tie-breaks the verify gate cares about — lower surface score, more
     burstiness, fewer high-weight tells.
     """
+    if not isinstance(original, str):
+        raise ValueError("original must be text")
+    if not isinstance(candidates, dict) or not candidates:
+        raise ValueError("candidates must be a non-empty object")
+    for name, text in candidates.items():
+        if (not isinstance(name, str) or not name.strip()
+                or not isinstance(text, str) or not text.strip()):
+            raise ValueError("candidate names and values must be non-empty names and text")
     import slopscore
     data = slopscore.load_patterns()
     scored = []
@@ -77,38 +87,60 @@ def render(scored):
     return "\n".join(out)
 
 
-def _read(argv, flag):
-    return argv[argv.index(flag) + 1] if flag in argv else None
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--original", required=True, metavar="FILE")
+    ap.add_argument("--candidates", metavar="JSON_FILE")
+    ap.add_argument("--genre")
+    ap.add_argument("--out", metavar="FILE")
+    ap.add_argument("--emit", action="store_true")
+    ap.add_argument("files", nargs="*")
+    args = ap.parse_args(argv)
+    try:
+        original = Path(args.original).read_text()
+    except (OSError, UnicodeDecodeError) as exc:
+        ap.error(f"cannot read original: {exc}")
 
-
-def main():
-    argv = sys.argv[1:]
-    original_path = _read(argv, "--original")
-    if not original_path:
-        print("usage: rerank.py --original draft.md cand1.md cand2.md ...")
-        return 2
-    original = Path(original_path).read_text()
-    genre = _read(argv, "--genre")
-
-    if "--candidates" in argv:
-        candidates = json.loads(Path(_read(argv, "--candidates")).read_text())
+    if args.candidates:
+        if args.files:
+            ap.error("use either --candidates JSON_FILE or candidate files, not both")
+        try:
+            candidates = json.loads(Path(args.candidates).read_text())
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            ap.error(f"cannot read candidates: {exc}")
     else:
-        skip = {"--original", original_path, "--genre", genre, "--out",
-                _read(argv, "--out"), "--emit"}
-        files = [a for a in argv if a not in skip and not a.startswith("--")]
-        candidates = {Path(f).name: Path(f).read_text() for f in files}
+        candidates = {}
+        for file_name in args.files:
+            path = Path(file_name)
+            if path.name in candidates:
+                ap.error(f"candidate basenames must be unique: {path.name}")
+            try:
+                candidates[path.name] = path.read_text()
+            except (OSError, UnicodeDecodeError) as exc:
+                ap.error(f"cannot read candidate {path}: {exc}")
     if len(candidates) < 2:
-        print("give at least two candidate rewrites to choose between")
-        return 2
+        ap.error("give at least two candidate rewrites to choose between")
 
-    scored = rank(original, candidates, genre)
+    try:
+        scored = rank(original, candidates, args.genre)
+    except ValueError as exc:
+        ap.error(str(exc))
     print(render(scored))
     win = scored[0]
-    out = _read(argv, "--out")
-    if out:
-        Path(out).write_text(win["text"])
-        print(f"\n  wrote {out}")
-    elif "--emit" in argv:
+    if args.out:
+        output = Path(args.out).resolve()
+        protected = {Path(args.original).resolve()}
+        if args.candidates:
+            protected.add(Path(args.candidates).resolve())
+        protected.update(Path(path).resolve() for path in args.files)
+        if output in protected:
+            ap.error("--out must not overwrite the original or a candidate input")
+        try:
+            atomic_write_text(output, win["text"])
+        except OSError as exc:
+            ap.error(f"cannot write winner: {exc}")
+        print(f"\n  wrote {args.out}")
+    elif args.emit:
         print("\n" + "=" * 60 + "\n" + win["text"])
     return 0
 

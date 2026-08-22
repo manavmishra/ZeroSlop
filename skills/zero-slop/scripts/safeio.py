@@ -100,6 +100,43 @@ def atomic_write_text(path, text, *, mode=None):
                 pass
 
 
+def atomic_write_bytes(path, data, *, mode=None):
+    """Binary counterpart to :func:`atomic_write_text`."""
+    if not isinstance(data, (bytes, bytearray, memoryview)):
+        raise TypeError("data must be bytes-like")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if mode is None and path.exists():
+        mode = stat.S_IMODE(path.stat().st_mode)
+    mode = 0o644 if mode is None else mode
+    tmp_name = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                "wb", dir=path.parent, prefix=f".{path.name}.", suffix=".tmp",
+                delete=False) as fh:
+            tmp_name = fh.name
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.chmod(tmp_name, mode)
+        os.replace(tmp_name, path)
+        tmp_name = None
+        try:
+            fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+        except OSError:
+            pass
+    finally:
+        if tmp_name:
+            try:
+                os.unlink(tmp_name)
+            except FileNotFoundError:
+                pass
+
+
 def is_within(path, parent):
     """True only when the resolved path is inside the resolved parent."""
     try:

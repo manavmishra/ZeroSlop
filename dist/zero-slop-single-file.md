@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.4.1"
+  version: "2.4.2"
   author: manavmishra
 description: Turn drafts into sharp, natural prose with a transparent heuristic surface scorer, a cross-draft template audit, an evidence-ranked rewrite, quantitative verification, a dedicated copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, remove AI-sounding phrasing, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts and format, reports before-and-after evidence, and learns from later human edits through a private evidence-gated overlay.
 ---
@@ -114,7 +114,7 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (266 weighted tells plus
+Every channel runs on every draft: the pattern meter (267 weighted tells plus
 a 96-term lexicon and 25 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
@@ -578,6 +578,14 @@ the host model or rewrite this `SKILL.md`.
   own past writing for a personal baseline, or at this month's model output
   for an era refresh.
 
+- **External taxonomy review** is a maintainer input, not a live learning
+  shortcut. `bench/aistoryhub-corpus/` pins the public AIStoryHub corpus by
+  version and hash, fetches it only on an explicit maintainer command, and
+  reports rule coverage rather than accuracy. Never import an external list
+  directly into the detector. A proposed rule still needs contextual review,
+  the known-human regression corpus, code review, a version bump, and the full
+  release checks before it can reach users.
+
 - **Every change is gated.** After editing patterns or weights, run
 
   ```
@@ -612,7 +620,8 @@ the host model or rewrite this `SKILL.md`.
 
 - `references/tells.md` — the master taxonomy (80 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
-  implementation and carries 266 regexes, since some tells need more than one.
+  implementation. Together with the reviewed shared overlay, the current
+  release carries 267 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

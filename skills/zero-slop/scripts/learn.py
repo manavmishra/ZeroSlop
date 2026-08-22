@@ -82,7 +82,7 @@ LOCAL_LOG = HOME / "learned-log.md"
 MIN_WORDS, MAX_WORDS = 3, 9
 # Content-distinct edit pairs a span must recur in before it earns a pattern.
 PROMOTE_AT = 3
-# Learned patterns start low and earn weight back through --confirm.
+# Learned patterns start low; --confirm keeps current evidence from aging out.
 START_WEIGHT = 2.5
 DECAY_MONTHS = 18
 # Suffixes stripped so a pattern matches inflected forms of the same construction.
@@ -175,6 +175,7 @@ def load_learned(path, scope):
              and isinstance(data.get("riders", {}), dict)
              and isinstance(data.get("fix_preferences", []), list))
     if valid:
+        names = set()
         for pattern in data.get("patterns", []):
             if (not isinstance(pattern, dict)
                     or not isinstance(pattern.get("name"), str)
@@ -188,7 +189,36 @@ def load_learned(path, scope):
                     or not isinstance(pattern.get("w"), (int, float))
                     or isinstance(pattern.get("w"), bool)
                     or not math.isfinite(pattern["w"])
-                    or not 0 <= pattern["w"] <= 10):
+                    or not 0 <= pattern["w"] <= 10
+                    or pattern["name"] in names):
+                valid = False
+                break
+            names.add(pattern["name"])
+            try:
+                re.compile(pattern["rx"])
+            except re.error:
+                valid = False
+                break
+            for key in ("first_seen", "last_confirmed", "decayed"):
+                if key in pattern and not isinstance(pattern[key], str):
+                    valid = False
+                    break
+            if ("confirmations" in pattern
+                    and (not isinstance(pattern["confirmations"], int)
+                         or isinstance(pattern["confirmations"], bool)
+                         or pattern["confirmations"] < 0)):
+                valid = False
+                break
+            for key in ("source_span", "preferred_fix"):
+                if (key in pattern
+                        and (not isinstance(pattern[key], str)
+                             or not 1 <= len(pattern[key]) <= 500)):
+                    valid = False
+                    break
+            if ("fix_seen_in_docs" in pattern
+                    and (not isinstance(pattern["fix_seen_in_docs"], int)
+                         or isinstance(pattern["fix_seen_in_docs"], bool)
+                         or pattern["fix_seen_in_docs"] < 0)):
                 valid = False
                 break
         for field in ("lexicon", "riders"):
@@ -199,14 +229,23 @@ def load_learned(path, scope):
                         or not 0 <= weight <= 10):
                     valid = False
                     break
+        preference_spans = set()
         for pref in data.get("fix_preferences", []):
             if (not isinstance(pref, dict)
                     or not isinstance(pref.get("source_span"), str)
+                    or not 1 <= len(pref.get("source_span", "")) <= 500
                     or not isinstance(pref.get("preferred_fix"), str)
+                    or not 1 <= len(pref.get("preferred_fix", "")) <= 500
                     or not isinstance(pref.get("seen_in_pairs", 0), int)
-                    or isinstance(pref.get("seen_in_pairs", 0), bool)):
+                    or isinstance(pref.get("seen_in_pairs", 0), bool)
+                    or pref.get("seen_in_pairs", 0) < 0
+                    or ("active" in pref and not isinstance(pref["active"], bool))
+                    or pref.get("source_span") in preference_spans
+                    or any(key in pref and not isinstance(pref[key], str)
+                           for key in ("first_seen", "last_confirmed", "decayed"))):
                 valid = False
                 break
+            preference_spans.add(pref["source_span"])
     if not valid:
         raise SystemExit(
             f"{path} has an invalid learning-overlay schema; repair it before re-running."
@@ -222,26 +261,71 @@ def load_observations():
     if not isinstance(data, dict) or any(
             not isinstance(data.get(field, {}), dict) for field in fields):
         raise SystemExit(f"{OBS} has an invalid reflection schema; repair it before re-running.")
+    key_limits = {"observations": 500, "false_positives": 128,
+                  "lexicon_candidates": 80, "fix_observations": 500}
     for field in fields:
-        for rec in data.get(field, {}).values():
-            if (not isinstance(rec, dict)
-                    or not isinstance(rec.get("count", 0), int)
-                    or isinstance(rec.get("count", 0), bool)
-                    or not isinstance(rec.get("docs", []), list)
-                    or not all(isinstance(doc, str) for doc in rec.get("docs", []))):
+        for key, rec in data.get(field, {}).items():
+            if (not isinstance(key, str) or not key.strip()
+                    or len(key) > key_limits[field]):
                 raise SystemExit(
                     f"{OBS} has an invalid reflection schema; repair it before re-running."
                 )
+            docs = rec.get("docs", []) if isinstance(rec, dict) else []
+            if (not isinstance(rec, dict)
+                    or not isinstance(rec.get("count", 0), int)
+                    or isinstance(rec.get("count", 0), bool)
+                    or rec.get("count", 0) < 0
+                    or not isinstance(docs, list)
+                    or not all(isinstance(doc, str) and doc for doc in docs)
+                    or len(docs) != len(set(docs))
+                    or rec.get("count", 0) != len(docs)):
+                raise SystemExit(
+                    f"{OBS} has an invalid reflection schema; repair it before re-running."
+                )
+            list_field = ("examples" if field == "observations" else
+                          "quotes" if field == "false_positives" else None)
+            if (list_field and (not isinstance(rec.get(list_field), list)
+                                or not all(isinstance(value, str)
+                                           for value in rec[list_field]))):
+                raise SystemExit(
+                    f"{OBS} has an invalid reflection schema; repair it before re-running."
+                )
+            if field == "false_positives":
+                weight = rec.get("weight")
+                if (not isinstance(weight, (int, float))
+                        or isinstance(weight, bool)
+                        or not math.isfinite(weight)
+                        or not 0 <= weight <= 10):
+                    raise SystemExit(
+                        f"{OBS} has an invalid reflection schema; repair it before re-running."
+                    )
             if field == "fix_observations":
+                applied_count = rec.get("applied_count", 0)
+                if (not isinstance(applied_count, int)
+                        or isinstance(applied_count, bool)
+                        or applied_count < 0
+                        or applied_count > rec.get("count", 0)):
+                    raise SystemExit(
+                        f"{OBS} has an invalid reflection schema; repair it before re-running."
+                    )
                 replacements = rec.get("replacements", {})
                 if not isinstance(replacements, dict):
                     raise SystemExit(
                         f"{OBS} has an invalid reflection schema; repair it before re-running."
                     )
-                for fix in replacements.values():
+                for replacement, fix in replacements.items():
+                    fix_docs = fix.get("docs", []) if isinstance(fix, dict) else []
                     if (not isinstance(fix, dict)
+                            or not isinstance(replacement, str)
+                            or not 1 <= len(replacement) <= 500
                             or not isinstance(fix.get("count", 0), int)
-                            or not isinstance(fix.get("docs", []), list)):
+                            or isinstance(fix.get("count", 0), bool)
+                            or fix.get("count", 0) < 0
+                            or not isinstance(fix_docs, list)
+                            or not all(isinstance(doc, str) and doc for doc in fix_docs)
+                            or len(fix_docs) != len(set(fix_docs))
+                            or fix.get("count", 0) != len(fix_docs)
+                            or not set(fix_docs).issubset(set(docs))):
                         raise SystemExit(
                             f"{OBS} has an invalid reflection schema; repair it before re-running."
                         )
@@ -366,7 +450,7 @@ def already_caught(span, pats, lex):
             continue
     low = span.lower()
     for term in lex:
-        if term.lower() in low:
+        if re.search(r"\b" + re.escape(term.lower()) + r"\w*", low):
             return f"lexicon:{term}"
     return None
 
@@ -378,8 +462,19 @@ OVERLAP_NGRAM = 4
 
 def corpus_files():
     return [f for f in sorted(CORPUS.rglob("*"))
-            if f.is_file() and f.suffix in (".txt", ".md")
+            if f.is_file() and f.suffix.lower() in (".txt", ".md")
             and f.name.lower() != "readme.md"]
+
+
+def required_text(path, label):
+    """Read user-supplied prose with a clean, path-specific failure."""
+    target = Path(path)
+    if not target.exists() or not target.is_file():
+        raise SystemExit(f"{label} is not a readable file: {target}")
+    try:
+        return target.read_text()
+    except (OSError, UnicodeDecodeError) as exc:
+        raise SystemExit(f"cannot read {label} at {target}: {exc}") from exc
 
 
 def fp_gate(rx, span=None):
@@ -397,6 +492,8 @@ def fp_gate(rx, span=None):
     except re.error as e:
         return f"regex error: {e}"
     files = corpus_files()
+    if not files:
+        return "safety corpus missing or empty"
     for f in files:
         if cre.search(f.read_text()):
             return f.name
@@ -504,8 +601,8 @@ def reflect(produced, shipped, doc_id=None):
     obs.setdefault("fix_observations", {})
 
     today = str(date.today())
-    prod_text = Path(produced).read_text()
-    ship_text = Path(shipped).read_text()
+    prod_text = required_text(produced, "produced draft")
+    ship_text = required_text(shipped, "shipped draft")
     # A vote is one unique edit pair, regardless of filenames or caller-supplied
     # labels. Otherwise three copies of the same before/after text could cross
     # the recurrence threshold by changing only --doc-id. The optional label is
@@ -810,8 +907,12 @@ def demote(apply_):
     base_by = {p["name"]: p for p in base["patterns"] + shared.get("patterns", [])}
     learned_by = {p["name"]: p for p in learned.get("patterns", [])}
 
-    due = [(n, r) for n, r in obs.get("false_positives", {}).items()
-           if r["count"] >= PROMOTE_AT and not r.get("demoted")]
+    all_due = [(n, r) for n, r in obs.get("false_positives", {}).items()
+               if r["count"] >= PROMOTE_AT and not r.get("demoted")]
+    due = [(n, r) for n, r in all_due if n in learned_by or n in base_by]
+    retired = [n for n, _ in all_due if n not in learned_by and n not in base_by]
+    if retired:
+        print(f"demote: ignored {len(retired)} observation(s) for rules no longer installed")
     if not due:
         pend = len(obs.get("false_positives", {}))
         print(f"demote: nothing at threshold ({pend} pattern(s) under observation, "
@@ -930,12 +1031,30 @@ def merge(path, apply_, cat, weight):
     if c.get("schema") != 1:
         print(f"merge: unrecognised contribution schema {c.get('schema')!r}")
         return 1
+    if not isinstance(c.get("spans", []), list):
+        print("merge: spans must be a list")
+        return 1
+    if not isinstance(c.get("false_positives", []), list):
+        print("merge: false_positives must be a list")
+        return 1
+    seen_false_positives = set()
+    for fp in c.get("false_positives", []):
+        if (not isinstance(fp, dict) or not isinstance(fp.get("pattern"), str)
+                or not 1 <= len(fp["pattern"]) <= 128
+                or not isinstance(fp.get("kept_in_documents"), int)
+                or isinstance(fp.get("kept_in_documents"), bool)
+                or fp["kept_in_documents"] < 0
+                or fp["pattern"] in seen_false_positives):
+            print("merge: false_positives contains a malformed or duplicate entry")
+            return 1
+        seen_false_positives.add(fp["pattern"])
     base, learned = load(DATA / "patterns.json"), load_learned(SHARED, "shared")
     known = {p["name"] for p in base["patterns"] + learned.get("patterns", [])}
     lex = list(base.get("lexicon", {})) + list(learned.get("lexicon", {}))
     pats = base["patterns"] + learned.get("patterns", [])
 
     accept, reject = [], []
+    seen_spans = set()
     for s in c.get("spans", []):
         if not isinstance(s, dict) or not isinstance(s.get("span"), str):
             reject.append((str(s)[:40], "malformed entry")); continue
@@ -948,6 +1067,10 @@ def merge(path, apply_, cat, weight):
         if (not isinstance(documents, int) or isinstance(documents, bool)
                 or documents < 0):
             reject.append((s["span"], "documents must be a non-negative integer")); continue
+        normalized = norm(s["span"])
+        if normalized in seen_spans:
+            reject.append((s["span"], "duplicate span in contribution")); continue
+        seen_spans.add(normalized)
         # Never trust a contributed regex: rebuild it from the bounded span
         # locally, so crafted input cannot smuggle catastrophic backtracking
         # into the meter or the safety-corpus scan.
@@ -968,10 +1091,8 @@ def merge(path, apply_, cat, weight):
     for s in accept:
         print(f"  accept  {s['span'][:44]!r}  seen in {s['documents']} edit pairs")
     for fp in c.get("false_positives", []):
-        if (isinstance(fp, dict) and isinstance(fp.get("pattern"), str)
-                and isinstance(fp.get("kept_in_documents"), int)):
-            print(f"  note    writers kept text flagged by {fp['pattern']!r} "
-                  f"in {fp['kept_in_documents']} edit pairs")
+        print(f"  note    writers kept text flagged by {fp['pattern']!r} "
+              f"in {fp['kept_in_documents']} edit pairs")
     if not accept or not apply_:
         if accept:
             print(f"\n  dry run. Re-run with --apply to add {len(accept)} pattern(s).")
@@ -1001,19 +1122,29 @@ def merge(path, apply_, cat, weight):
 
 @state_locked(lambda *a, **k: LOCAL)
 def confirm(target):
-    """Re-earn weight. Patterns that keep firing stay; the rest decay out."""
+    """Refresh evidence. Patterns that keep firing stay; the rest decay out."""
     p = LOCAL
     d = load_learned(p, "local")
     t = Path(target)
+    if not t.exists():
+        raise SystemExit(f"confirmation path does not exist: {t}")
     files = [t] if t.is_file() else sorted(
-        f for f in t.rglob("*") if f.suffix in (".md", ".txt"))
-    text = "\n".join(f.read_text() for f in files)
+        f for f in t.rglob("*") if f.is_file() and f.suffix.lower() in (".md", ".txt"))
+    if not files:
+        raise SystemExit(f"confirmation path contains no .md or .txt files: {t}")
+    try:
+        text = "\n".join(f.read_text() for f in files)
+    except (OSError, UnicodeDecodeError) as exc:
+        raise SystemExit(f"cannot read confirmation corpus at {t}: {exc}") from exc
+    if not text.strip():
+        raise SystemExit(f"confirmation corpus contains no text: {t}")
     today, n = str(date.today()), 0
     for pat in d.get("patterns", []):
         try:
             if re.search(pat["rx"], text, re.I):
                 pat["last_confirmed"] = today
                 pat["confirmations"] = pat.get("confirmations", 0) + 1
+                pat.pop("decayed", None)
                 n += 1
         except re.error:
             continue
@@ -1037,7 +1168,8 @@ def decay_local():
         except (TypeError, ValueError):
             continue
         age = (today.year - year) * 12 + today.month - month
-        if age > DECAY_MONTHS and pat.get("w", 0) > 0.5:
+        if (age > DECAY_MONTHS and pat.get("w", 0) > 0.5
+                and not pat.get("decayed")):
             pat["w"] = round(pat["w"] / 2, 2)
             pat["decayed"] = str(today)
             changed += 1
@@ -1103,9 +1235,18 @@ def build_voice(name, sample_path):
     base = slopscore.load_patterns()
     terms = list(base.get("lexicon", {})) + list(base.get("riders", {}))
     src = Path(sample_path)
-    files = [src] if src.is_file() else [f for f in src.rglob("*")
-                                         if f.suffix in (".md", ".txt")]
-    blob = " ".join(f.read_text() for f in files).lower()
+    if not src.exists():
+        raise SystemExit(f"voice sample path does not exist: {src}")
+    files = [src] if src.is_file() else sorted(
+        f for f in src.rglob("*") if f.is_file() and f.suffix.lower() in (".md", ".txt"))
+    if not files:
+        raise SystemExit(f"voice sample contains no .md or .txt files: {src}")
+    try:
+        blob = " ".join(f.read_text() for f in files).lower()
+    except (OSError, UnicodeDecodeError) as exc:
+        raise SystemExit(f"cannot read voice sample at {src}: {exc}") from exc
+    if not blob.strip():
+        raise SystemExit(f"voice sample contains no text: {src}")
     keep = sorted({term for term in terms
                    if re.search(r"\b" + re.escape(term.lower()) + r"\b", blob)})
     prof = {"_comment": f"Voice profile for {name}. Terms this author uses in "

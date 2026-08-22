@@ -64,7 +64,7 @@
    "id": "linkedin-lessons-01",
    "genre": "linkedin",
    "surface_score": 36.1,
-   "weighted_tells": 1,
+   "tell_hits": 1,
    "burstiness": 0.511,
    "broetry": null,
    "caught": true
@@ -73,7 +73,7 @@
    "id": "linkedin-contrarian-02",
    "genre": "linkedin",
    "surface_score": 95.4,
-   "weighted_tells": 2,
+   "tell_hits": 2,
    "burstiness": 0.431,
    "broetry": null,
    "caught": true
@@ -82,7 +82,7 @@
    "id": "linkedin-executive-03",
    "genre": "linkedin",
    "surface_score": 53.6,
-   "weighted_tells": 1,
+   "tell_hits": 1,
    "burstiness": 0.661,
    "broetry": null,
    "caught": true
@@ -91,7 +91,7 @@
    "id": "x-agents-01",
    "genre": "x",
    "surface_score": 97.6,
-   "weighted_tells": 3,
+   "tell_hits": 3,
    "burstiness": 0.361,
    "broetry": null,
    "caught": true
@@ -100,7 +100,7 @@
    "id": "x-habit-02",
    "genre": "x",
    "surface_score": 36.1,
-   "weighted_tells": 1,
+   "tell_hits": 1,
    "burstiness": 0.721,
    "broetry": null,
    "caught": true
@@ -109,7 +109,7 @@
    "id": "x-future-03",
    "genre": "x",
    "surface_score": 86.1,
-   "weighted_tells": 2,
+   "tell_hits": 2,
    "burstiness": 0.551,
    "broetry": null,
    "caught": true
@@ -118,7 +118,7 @@
    "id": "email-outreach-01",
    "genre": "email",
    "surface_score": 100.0,
-   "weighted_tells": 7,
+   "tell_hits": 7,
    "burstiness": 0.591,
    "broetry": null,
    "caught": true
@@ -127,7 +127,7 @@
    "id": "email-launch-02",
    "genre": "email",
    "surface_score": 100.0,
-   "weighted_tells": 7,
+   "tell_hits": 7,
    "burstiness": 0.472,
    "broetry": null,
    "caught": true
@@ -136,7 +136,7 @@
    "id": "email-followup-03",
    "genre": "email",
    "surface_score": 39.0,
-   "weighted_tells": 1,
+   "tell_hits": 1,
    "burstiness": 0.403,
    "broetry": null,
    "caught": true
@@ -145,7 +145,7 @@
    "id": "blog-landscape-01",
    "genre": "blog",
    "surface_score": 100.0,
-   "weighted_tells": 5,
+   "tell_hits": 5,
    "burstiness": 0.31,
    "broetry": null,
    "caught": true
@@ -154,7 +154,7 @@
    "id": "blog-guide-02",
    "genre": "blog",
    "surface_score": 99.6,
-   "weighted_tells": 4,
+   "tell_hits": 4,
    "burstiness": 0.964,
    "broetry": null,
    "caught": true
@@ -163,7 +163,7 @@
    "id": "blog-transformation-03",
    "genre": "blog",
    "surface_score": 100.0,
-   "weighted_tells": 6,
+   "tell_hits": 6,
    "burstiness": 0.552,
    "broetry": null,
    "caught": true
@@ -172,7 +172,7 @@
    "id": "newsletter-productivity-01",
    "genre": "newsletter",
    "surface_score": 99.6,
-   "weighted_tells": 4,
+   "tell_hits": 4,
    "burstiness": 0.653,
    "broetry": null,
    "caught": true
@@ -181,7 +181,7 @@
    "id": "newsletter-edition-02",
    "genre": "newsletter",
    "surface_score": 47.7,
-   "weighted_tells": 2,
+   "tell_hits": 2,
    "burstiness": 0.629,
    "broetry": null,
    "caught": true
@@ -190,7 +190,7 @@
    "id": "newsletter-trends-03",
    "genre": "newsletter",
    "surface_score": 26.7,
-   "weighted_tells": 1,
+   "tell_hits": 1,
    "burstiness": 0.262,
    "broetry": null,
    "caught": true
@@ -199,7 +199,7 @@
    "id": "research-framework-01",
    "genre": "research",
    "surface_score": 100.0,
-   "weighted_tells": 9,
+   "tell_hits": 9,
    "burstiness": 0.115,
    "broetry": null,
    "caught": true
@@ -208,7 +208,7 @@
    "id": "research-approach-02",
    "genre": "research",
    "surface_score": 100.0,
-   "weighted_tells": 6,
+   "tell_hits": 6,
    "burstiness": 0.169,
    "broetry": null,
    "caught": true
@@ -217,7 +217,7 @@
    "id": "research-future-03",
    "genre": "research",
    "surface_score": 90.9,
-   "weighted_tells": 3,
+   "tell_hits": 3,
    "burstiness": 0.373,
    "broetry": null,
    "caught": true

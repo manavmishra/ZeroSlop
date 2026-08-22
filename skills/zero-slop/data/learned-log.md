@@ -8,6 +8,14 @@
 One line per change to `learned.json` or `patterns.json`: date, what, why,
 example that motivated it.
 
+- 2026-08-22 — AIStoryHub Corpus of AI Clichés v1.8 coverage audit. Fixed a
+  detector-ordering bug that erased `utm_source=chatgpt.com` before the
+  existing artifact rule could see it; added the `attributableIndex` and
+  stand-alone “Regenerate response” paste artifacts; and expanded strict
+  bracketed placeholders such as `[Company Name]`, `[Recipient]`, and
+  `[Date]`. Ambiguous vocabulary and persona names remain context-gated or
+  unscored to protect the must-not-flag corpus.
+
 - 2026-08-03 — Prompt-engineering review (Prompeteer THE SEED): added
   `--formal` scorer mode; formal-genre verify gate; corrected learned.json
   override semantics; de-em-dashed the LinkedIn worked example; scoped the

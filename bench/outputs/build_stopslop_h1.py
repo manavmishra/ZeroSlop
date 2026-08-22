@@ -1,4 +1,9 @@
 import json
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+from safeio import atomic_write_text  # noqa: E402
 
 posts = {}
 
@@ -283,9 +288,8 @@ I'm including the mistake because the highlight reel alone would flatter us.
 
 Tell me your biggest lesson from the year."""
 
-out = "/private/tmp/claude-501/-Users-manav-Coding-Legal-Agent/db22184e-14cc-4774-85a9-20c701b2d692/scratchpad/eval/outputs/stopslop_h1.json"
-with open(out, "w") as f:
-    json.dump(posts, f, indent=1, ensure_ascii=False)
+out = Path(__file__).resolve().parent / "stopslop_h1.json"
+atomic_write_text(out, json.dumps(posts, indent=1, ensure_ascii=False) + "\n")
 
 # verify
 with open(out) as f:

@@ -11,9 +11,11 @@ The font metrics assume a monospace face, where every glyph is one advance wide.
 Advance ratio 0.60 of the font size is correct for SF Mono, Menlo, Consolas and
 DejaVu Sans Mono, the stack the diagrams request.
 """
+import argparse
 import re
 import sys
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 NS = "{http://www.w3.org/2000/svg}"
 ADVANCE = 0.60          # monospace glyph width as a fraction of font-size
@@ -91,31 +93,77 @@ def seg_hits_box(p, q, box, slack=2.0):
     return False
 
 
+def elements(root, local_name):
+    """Yield SVG elements with or without an explicit XML namespace."""
+    return (node for node in root.iter()
+            if node.tag.rsplit("}", 1)[-1] == local_name)
+
+
 def main(path):
-    src = open(path).read()
-    root = ET.fromstring(src)
+    try:
+        src = Path(path).read_text()
+        root = ET.fromstring(src)
+    except (OSError, UnicodeDecodeError, ET.ParseError) as exc:
+        print(f"{path}: cannot read valid SVG: {exc}")
+        return 2
+    if root.tag.rsplit("}", 1)[-1] != "svg":
+        print(f"{path}: root element is not svg")
+        return 2
     styles = parse_styles(src)
-    vb = [float(v) for v in root.get("viewBox").split()]
-    W, H = vb[2], vb[3]
+    try:
+        vb = [float(v) for v in root.get("viewBox", "").split()]
+        if len(vb) != 4 or vb[2] <= 0 or vb[3] <= 0:
+            raise ValueError
+    except ValueError:
+        print(f"{path}: SVG needs a four-number, positive viewBox")
+        return 2
+    min_x, min_y, W, H = vb
+    max_x, max_y = min_x + W, min_y + H
     problems = []
 
     rects = []
-    for r in root.iter(NS + "rect"):
-        rects.append({
-            "box": tuple(float(r.get(k, 0)) for k in ("x", "y", "width", "height")),
-            "cls": r.get("class", ""),
-        })
+    for r in elements(root, "rect"):
+        try:
+            box = tuple(float(r.get(k, 0)) for k in ("x", "y", "width", "height"))
+            if box[2] < 0 or box[3] < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            problems.append("rectangle has invalid geometry")
+            continue
+        rects.append({"box": box, "cls": r.get("class", "")})
     solid = [r for r in rects if r["cls"] not in ("grp", "grl", "grt")]
-    groups = [r for r in rects if r["cls"] in ("grp", "grl", "grt")]
-
     # 1. text must fit the canvas and the box it sits in
-    for t in root.iter(NS + "text"):
+    for t in elements(root, "text"):
         s = "".join(t.itertext())
         cls = t.get("class", "")
-        x, y = float(t.get("x")), float(t.get("y"))
-        w = text_width(s, cls, styles)
-        if x + w > W:
-            problems.append(f"text past canvas by {x + w - W:.0f}px: {s[:38]!r}")
+        try:
+            x, y = float(t.get("x")), float(t.get("y"))
+        except (TypeError, ValueError):
+            problems.append(f"text has invalid coordinates: {s[:38]!r}")
+            continue
+        try:
+            w = text_width(s, cls, styles)
+        except ValueError:
+            problems.append(f"text has invalid font geometry: {s[:38]!r}")
+            continue
+        anchor = t.get("text-anchor")
+        if not anchor:
+            anchor = next((styles.get(c, {}).get("text-anchor")
+                           for c in cls.split() if styles.get(c, {}).get("text-anchor")),
+                          "start")
+        left = x - w / 2 if anchor == "middle" else x - w if anchor == "end" else x
+        right = left + w
+        if left < min_x:
+            problems.append(f"text past left canvas by {min_x - left:.0f}px: {s[:38]!r}")
+        if right > max_x:
+            problems.append(f"text past right canvas by {right - max_x:.0f}px: {s[:38]!r}")
+        try:
+            fs = font_size(cls, styles)
+        except ValueError:
+            problems.append(f"text has invalid font size: {s[:38]!r}")
+            continue
+        if y - fs < min_y or y > max_y:
+            problems.append(f"text past vertical canvas edge: {s[:38]!r}")
         owner = None
         for r in solid:
             bx, by, bw, bh = r["box"]
@@ -123,9 +171,10 @@ def main(path):
                 owner = r["box"]; break
         if owner:
             bx, by, bw, bh = owner
-            if x + w > bx + bw - PAD + 0.01:
+            if left < bx + PAD - 0.01 or right > bx + bw - PAD + 0.01:
+                overflow = max(bx + PAD - left, right - (bx + bw - PAD))
                 problems.append(
-                    f"text overflows its box by {x + w - (bx + bw):.0f}px "
+                    f"text overflows its box by {overflow:.0f}px "
                     f"(needs {PAD}px pad): {s[:38]!r}")
 
     # 2. solid boxes must not overlap each other
@@ -137,11 +186,17 @@ def main(path):
                 problems.append(f"box overlap: {a['cls']}@{ax},{ay} x {b['cls']}@{bx},{by}")
 
     # 3. connectors must not cut through boxes they do not terminate on
-    for p in root.iter(NS + "path"):
+    for p in elements(root, "path"):
         d = p.get("d", "")
         if not d or p.get("class") not in ("ln", "lp"):
             continue
+        if re.search(r"[mlhvzCQSTAZqcstaz]", d):
+            problems.append("connector uses unsupported relative or curved path commands")
+            continue
         pts = path_points(d)
+        if len(pts) < 2:
+            problems.append("connector has fewer than two parseable points")
+            continue
         for a, b in zip(pts, pts[1:]):
             # Dashed containers are annotation frames, not shapes. A connector
             # leaving or entering a labelled region necessarily crosses its
@@ -150,9 +205,8 @@ def main(path):
                 box = r["box"]
                 # endpoints legitimately touch their source/target
                 if any(box[0] - 3 <= e[0] <= box[0] + box[2] + 3 and
-                       box[1] - 3 <= e[1] <= box[1] + box[3] + 3 for e in (pts[0], pts[-1])):
-                    if r in solid:
-                        continue
+                       box[1] - 3 <= e[1] <= box[1] + box[3] + 3 for e in (a, b)):
+                    continue
                 if seg_hits_box(a, b, box):
                     problems.append(
                         f"connector crosses {r['cls'] or 'box'}@{box[0]:.0f},{box[1]:.0f}: "
@@ -167,5 +221,12 @@ def main(path):
     return 0
 
 
+def cli(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("path", nargs="?", default="assets/engine.svg")
+    args = parser.parse_args(argv)
+    return main(args.path)
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "assets/engine.svg"))
+    sys.exit(cli())

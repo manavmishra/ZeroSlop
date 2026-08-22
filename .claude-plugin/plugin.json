@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "zero-slop",
-  "description": "Removes the writing style language models acquire in post-training and proves it with before/after surface scores: a 266-pattern detector, a cross-draft template audit, a two-pass rewrite, a quantitative gate, a copy desk, a final read-aloud editor, and private online learning. Scoring is local and dependency-free.",
-  "version": "2.4.1",
+  "description": "Removes the writing style language models acquire in post-training and proves it with before/after surface scores: a 267-pattern detector, a cross-draft template audit, a two-pass rewrite, a quantitative gate, a copy desk, a final read-aloud editor, and private online learning. Scoring is local and dependency-free.",
+  "version": "2.4.2",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"

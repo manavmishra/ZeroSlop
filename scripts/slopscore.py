@@ -163,7 +163,16 @@ def strip_noise(text):
     # Inline `code` spans still render as visible prose, so their words are
     # scored; only the backticks go. Fenced blocks are genuinely code.
     text = re.sub(r"`([^`\n]*)`", r"\1", text)
-    text = re.sub(r"https?://\S+", " ", text)
+    # URLs are otherwise noise, but a model-specific tracking parameter is a
+    # machine artifact in its own right. Preserve only the artifact token so
+    # ordinary URL text cannot affect prose rhythm or vocabulary.
+    text = re.sub(
+        r"https?://\S+",
+        lambda m: " " + " ".join(re.findall(
+            r"utm_source=(?:chatgpt(?:\.com)?|openai)", m.group(0), re.I
+        )) + " ",
+        text,
+    )
     return text
 
 
@@ -191,10 +200,13 @@ def cv(values):
 
 
 def score_text(text, data, formal=False):
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
     raw = text
     text = strip_noise(text)
     words = WORD.findall(text)
-    n_words = max(len(words), 1)
+    n_words = len(words)
+    word_den = max(n_words, 1)
     sents = sentences(text)
     hits = []
 
@@ -270,7 +282,7 @@ def score_text(text, data, formal=False):
 
     # 5. Register: contraction scarcity in casual genres reads machine-formal.
     contractions = len(re.findall(r"\b\w+[’'](?:t|s|re|ve|ll|d|m)\b", text))
-    contraction_rate = 100.0 * contractions / n_words
+    contraction_rate = 100.0 * contractions / word_den
     formality_penalty = 0.0 if formal else (
         3.0 if contraction_rate < 0.4 and n_words > 80 else 0.0)
 
@@ -278,7 +290,7 @@ def score_text(text, data, formal=False):
     # not expert. Signals: noun-phrase chains (many commas, no verbs between),
     # heavy polysyllabic ratio, and overlong sentences. Formal genres exempt
     # (their register legitimately runs denser).
-    poly_ratio = sum(1 for w in words if len(w) >= 9) / n_words
+    poly_ratio = sum(1 for w in words if len(w) >= 9) / word_den
     chain_frac = sum(1 for s in sents if s.count(",") >= 4) / max(len(sents), 1)
     overlong_frac = sum(1 for L in slens if L > 38) / max(len(slens), 1)
     followability_penalty = 0.0 if formal else min(
@@ -369,8 +381,19 @@ def portfolio_metrics(documents, opener_words=5, phrase_words=5):
     phrase matches are normalized to lowercase words. The result is a
     diagnostic, not a score or authorship verdict.
     """
-    docs = [(str(name), WORD.findall(strip_noise(text).lower()))
-            for name, text in documents]
+    if (not isinstance(opener_words, int) or isinstance(opener_words, bool)
+            or opener_words < 1 or not isinstance(phrase_words, int)
+            or isinstance(phrase_words, bool) or phrase_words < 1):
+        raise ValueError("opener_words and phrase_words must be positive integers")
+    docs, names = [], set()
+    for name, text in documents:
+        name = str(name)
+        if name in names:
+            raise ValueError(f"duplicate document name: {name}")
+        if not isinstance(text, str):
+            raise ValueError(f"document {name!r} is not text")
+        names.add(name)
+        docs.append((name, WORD.findall(strip_noise(text).lower())))
     out = {
         "score_kind": "portfolio_template_diagnostic",
         "calibrated_probability": False,
@@ -480,7 +503,11 @@ def shape_metrics(text, genre="general"):
         out["reason"] = f"abstains ({len(prose)} prose paragraphs; needs 8+)"
         return out
     solo = sum(1 for p in prose if len(sentences(p)) <= 1)
-    frag, run, best = [len(WORD.findall(s)) for s in sentences(strip_noise(text))], 0, 0
+    # Lists and dialogue were excluded from ``prose`` above, so they must also be
+    # excluded from the fragment-run half of the verdict. Otherwise three short
+    # bullets after an ordinary post can manufacture a broetry failure.
+    frag, run, best = [len(WORD.findall(s))
+                       for s in sentences("\n\n".join(prose))], 0, 0
     for L in frag:
         run = run + 1 if L < 7 else 0
         best = max(best, run)
@@ -604,9 +631,12 @@ def gate_value():
     i = sys.argv.index("--gate")
     try:
         tok = sys.argv[i + 1]
-        return float(tok), tok
+        value = float(tok)
+        if not math.isfinite(value) or not 0 <= value <= 100:
+            raise ValueError
+        return value, tok
     except (IndexError, ValueError):
-        return 25.0, None
+        raise SystemExit("--gate needs a finite threshold from 0 to 100")
 
 
 CHANNELS = [
@@ -694,7 +724,9 @@ monday tuesday wednesday thursday friday saturday sunday none plenty seats reps
 fix sit mid ambiguity team teams user users product feature features day days week
 weeks month months year years time thing done anyway besides meanwhile therefore
 worse worst harder easier simpler faster slower bigger smaller lots plus minus
+are artificial bookmark despite hey modern please researchers save unpopular welcome
 """.split())
+NOT_NAME_WORDS = {word.lower() for word in NOT_NAMES} | COMMON_WORDS
 
 
 def facts(text, _other=""):
@@ -704,7 +736,12 @@ def facts(text, _other=""):
     # rewrite), so entity detection runs on the text with links removed.
     urls = text  # links keep their spelled forms; numbers in a slug are not facts
     prose = _spell_to_digits(re.sub(r"https?://\S+", " ", text))
+    # Ordered-list markers describe structure, not quantities. Treating the
+    # ``1.`` in a three-item list as a dropped fact penalises a faithful prose
+    # rewrite and hides real numeric changes in noise.
+    prose = re.sub(r"(?m)^\s*\d+[.)]\s+", "", prose)
     other = _spell_to_digits(_other)
+    other = re.sub(r"(?m)^\s*\d+[.)]\s+", "", other)
     out = {}
     for kind, rx in FACT_RX:
         found = set()
@@ -714,6 +751,11 @@ def facts(text, _other=""):
                 if v in NOT_NAMES or len(v) < 3:
                     continue
                 low = v.lower()
+                tokens = re.findall(r"[a-z]+", low)
+                # A title-cased run made entirely of ordinary sentence words is
+                # not an entity (for example, "Shipped Tuesday").
+                if tokens and all(token in NOT_NAME_WORDS for token in tokens):
+                    continue
                 # A capitalised common word ("Draw", "Usually", "Start"), an
                 # adverb ("Finally"), or a sentence-opening gerund ("Watching",
                 # "Calling") is not an entity; a real name never is.
@@ -754,23 +796,39 @@ def facts(text, _other=""):
 # tight: "I felt/was <emotion>", "my heart/stomach ...", not every clause with
 # a feeling verb, because the goal is catching an INVENTED inner state, and the
 # comparison below cancels any that were already in the source.
-INTERIOR_RX = re.compile(
-    r"\b(?:I|we)\s+(?:was|were|am|felt|feel|got)\s+\w+"
-    r"|\b(?:I|we)\s+(?:remember|realrandom|realise|realize|knew|feared|hoped|"
-    r"worried|panicked|struggled|doubted)\w*"
-    r"|\b(?:my|our)\s+(?:heart|stomach|gut|chest|hands|mind)\b"
-    r"|\bit\s+felt\s+(?:surreal|unreal|impossible|inevitable|like\b)"
-    r"|\bfelt\s+(?:familiar|natural|surreal|foreign|inevitable|effortless)\b", re.I)
+INTERIOR_STATE_RX = re.compile(
+    r"\b(?:I|we)\s+(?:was|were|am|felt|feel|got)\s+"
+    r"(?:(?:very|really|extremely|quite|so)\s+)?(?P<state>[A-Za-z]+)", re.I)
+INTERIOR_COGNITION_RX = re.compile(
+    r"\b(?:I|we)\s+(?P<cognition>remember(?:ed)?|recall(?:ed)?|realise(?:d)?|"
+    r"realize(?:d)?|knew|fear(?:ed)?|hope(?:d)?|worr(?:y|ied)|panic(?:ked)?|"
+    r"struggl(?:e|ed)|doubt(?:ed)?)\b", re.I)
+INTERIOR_BODY_RX = re.compile(
+    r"\b(?:my|our)\s+(?P<body>heart|stomach|gut|chest|hands|mind)\b", re.I)
+INTERIOR_IMPERSONAL_RX = re.compile(
+    r"\bit\s+felt\s+(?P<impersonal>surreal|unreal|impossible|inevitable|like)\b", re.I)
+INTERIOR_BARE_RX = re.compile(
+    r"\bfelt\s+(?P<bare>familiar|natural|surreal|foreign|inevitable|effortless)\b", re.I)
+COGNITION_CANON = {
+    "remembered": "remember", "recalled": "remember", "recall": "remember",
+    "realised": "realize", "realise": "realize", "realized": "realize",
+    "feared": "fear", "hoped": "hope", "worried": "worry",
+    "panicked": "panic", "struggled": "struggle", "doubted": "doubt",
+}
 
 
 def interior_claims(text):
     """Inner-state assertions, reduced to a comparable core so paraphrase of an
     existing one does not read as a new invention."""
-    out = set()
-    for m in INTERIOR_RX.finditer(text):
-        # keep the emotion/state word, drop the pronoun and tense
-        words = re.findall(r"[a-z]+", m.group(0).lower())
-        out.add(words[-1] if words else m.group(0).lower())
+    out = {m.group("state").lower() for m in INTERIOR_STATE_RX.finditer(text)}
+    for m in INTERIOR_COGNITION_RX.finditer(text):
+        word = m.group("cognition").lower()
+        out.add(COGNITION_CANON.get(word, word))
+    out.update("body:" + m.group("body").lower()
+               for m in INTERIOR_BODY_RX.finditer(text))
+    out.update(m.group("impersonal").lower()
+               for m in INTERIOR_IMPERSONAL_RX.finditer(text))
+    out.update(m.group("bare").lower() for m in INTERIOR_BARE_RX.finditer(text))
     return out
 
 
@@ -785,19 +843,28 @@ def fidelity(before, after):
     """
     a, b = facts(before, after), facts(after, before)
     rows, kept_all, invented_any = [], True, False
-    # Names compare by shared token, so "Shipped Tuesday" and "Tuesday" cancel
-    # (both contain the token) while a genuinely new name shares nothing.
-    def toks(s): return {w for e in s for w in re.findall(r"[a-z]+", e.lower())}
-    a_nt, b_nt = toks(a["name"]), toks(b["name"])
+    def entity_tokens(entity):
+        return {w for w in re.findall(r"[a-z]+", entity.lower())
+                if w not in NOT_NAME_WORDS}
+
+    def entity_match(entity, candidates):
+        """Exact names and honest shortenings match; partial renames do not."""
+        left = entity_tokens(entity)
+        if not left:
+            return False
+        for candidate in candidates:
+            right = entity_tokens(candidate)
+            if right and (left == right or left < right or right < left):
+                return True
+        return False
     # Interior experience is the fabrication the judges actually caught, and the
     # one no entity check sees: nothing was renamed, a feeling was added.
     ia, ib = interior_claims(before), interior_claims(after)
     new_interior = ib - ia
     for kind, _ in FACT_RX:
         if kind == "name":
-            dropped = {e for e in a[kind]
-                       if not (toks({e}) & b_nt)}
-            added = {e for e in b[kind] if not (toks({e}) & a_nt)}
+            dropped = {e for e in a[kind] if not entity_match(e, b[kind])}
+            added = {e for e in b[kind] if not entity_match(e, a[kind])}
             kept = a[kind] - dropped
         else:
             kept = a[kind] & b[kind]
@@ -920,14 +987,59 @@ def dna(before, after, data, formal=False, width=22):
     return out + [""]
 
 
+def _required_option_value(argv, flag):
+    if flag not in argv:
+        return None
+    if argv.count(flag) > 1:
+        raise SystemExit(f"{flag} may be supplied only once")
+    index = argv.index(flag)
+    if index + 1 >= len(argv) or argv[index + 1].startswith("--"):
+        raise SystemExit(f"{flag} needs a value")
+    return argv[index + 1]
+
+
+def _read_text_file(path):
+    try:
+        return Path(path).read_text()
+    except (OSError, UnicodeDecodeError) as exc:
+        raise SystemExit(f"cannot read {path}: {exc}") from exc
+
+
+def _text_files(root_arg):
+    root = Path(root_arg)
+    if not root.exists():
+        raise SystemExit(f"directory does not exist: {root}")
+    if not root.is_dir():
+        raise SystemExit(f"expected a directory, got: {root}")
+    return sorted(p for p in root.rglob("*") if p.suffix.lower() in
+                  (".md", ".txt", ".markdown") and p.is_file())
+
+
 def main():
-    gv, gv_tok = gate_value()
-    gen_tok = sys.argv[sys.argv.index("--genre") + 1] if "--genre" in sys.argv and len(sys.argv) > sys.argv.index("--genre") + 1 else None
+    argv = sys.argv[1:]
+    if "--help" in argv or "-h" in argv:
+        print(__doc__)
+        return 0
+    value_flags = {"--gate", "--genre", "--voice"}
+    bool_flags = {"--json", "--explain", "--formal", "--fidelity", "--dna",
+                  "--portfolio", "--batch", "--heatmap"}
+    unknown = [arg for arg in argv if arg.startswith("--")
+               and arg not in value_flags | bool_flags]
+    if unknown:
+        raise SystemExit(f"unknown option: {unknown[0]}")
+    for flag in value_flags:
+        _required_option_value(argv, flag)
+    modes = [flag for flag in ("--fidelity", "--dna", "--portfolio", "--batch")
+             if flag in argv]
+    if len(modes) > 1:
+        raise SystemExit("choose only one mode: " + ", ".join(modes))
+
+    gv, _ = gate_value()
     # Values that belong to a flag (--gate 25, --genre social, --voice manav)
     # are not positional file arguments. Drop each flag and the token after it.
-    VALUE_FLAGS = {"--gate", "--genre", "--voice"}
+    VALUE_FLAGS = value_flags
     args, skip = [], False
-    for i, a in enumerate(sys.argv[1:]):
+    for a in argv:
         if skip:
             skip = False
             continue
@@ -941,40 +1053,41 @@ def main():
     formal = "--formal" in sys.argv
     genre = "general"
     if "--genre" in sys.argv:
-        try: genre = sys.argv[sys.argv.index("--genre") + 1]
-        except IndexError: pass
+        genre = _required_option_value(argv, "--genre")
     if formal: genre = "formal"
     voice = None
     if "--voice" in sys.argv:
-        try: voice = sys.argv[sys.argv.index("--voice") + 1]
-        except IndexError: pass
+        voice = _required_option_value(argv, "--voice")
     try:
         data = load_patterns(voice=voice)
     except ValueError as exc:
         sys.exit(str(exc))
 
     if "--fidelity" in sys.argv:
-        if len(args) < 2:
-            sys.exit("--fidelity needs two files: before and after")
-        before, after = Path(args[0]).read_text(), Path(args[1]).read_text()
+        if len(args) != 2:
+            sys.exit("--fidelity needs exactly two files: before and after")
+        before, after = _read_text_file(args[0]), _read_text_file(args[1])
         for line in render_fidelity(before, after):
             print(line)
         r = fidelity(before, after)
         sys.exit(0 if (r["preserved"] and not r["invented"]) else 1)
 
     if "--dna" in sys.argv:
-        if len(args) < 2:
-            sys.exit("--dna needs two files: before and after")
-        for line in dna(Path(args[0]).read_text(), Path(args[1]).read_text(),
+        if len(args) != 2:
+            sys.exit("--dna needs exactly two files: before and after")
+        for line in dna(_read_text_file(args[0]), _read_text_file(args[1]),
                         data, formal=formal):
             print(line)
         return
 
     if "--portfolio" in sys.argv:
+        if len(args) > 1:
+            raise SystemExit("--portfolio accepts one directory")
         root = Path(args[0]) if args else Path(".")
-        files = sorted(p for p in root.rglob("*") if p.suffix in
-                       (".md", ".txt", ".markdown") and p.is_file())
-        result = portfolio_metrics((str(p), p.read_text()) for p in files)
+        files = _text_files(root)
+        if not files:
+            raise SystemExit(f"no .md, .txt, or .markdown files under {root}")
+        result = portfolio_metrics((str(p), _read_text_file(p)) for p in files)
         if as_json:
             print(json.dumps(result, ensure_ascii=False, indent=1))
         else:
@@ -983,24 +1096,26 @@ def main():
         return
 
     if "--batch" in sys.argv:
+        if len(args) > 1:
+            raise SystemExit("--batch accepts one directory")
         root = Path(args[0]) if args else Path(".")
-        files = sorted(p for p in root.rglob("*") if p.suffix in
-                       (".md", ".txt", ".markdown") and p.is_file())
+        files = _text_files(root)
+        if not files:
+            raise SystemExit(f"no .md, .txt, or .markdown files under {root}")
         rows = []
         for p in files:
-            try:
-                r = score_text(p.read_text(), data, formal=formal)
-                rows.append((r["ai_likelihood"], p, band(r["ai_likelihood"])))
-            except Exception as e:
-                rows.append((float("nan"), p, f"error: {e}"))
-        rows.sort(key=lambda x: -(x[0] if x[0] == x[0] else -1))
+            r = score_text(_read_text_file(p), data, formal=formal)
+            rows.append((r["ai_likelihood"], p, band(r["ai_likelihood"])))
+        rows.sort(key=lambda x: -x[0])
         for sc, p, b in rows:
             print(f"{sc:6.1f}  {b:12s} {p}")
-        worst = max((sc for sc, _, _ in rows if sc == sc), default=0)
+        worst = max(sc for sc, _, _ in rows)
         sys.exit(1 if gv is not None and worst > gv else 0)
 
+    if len(args) > 1:
+        raise SystemExit("score mode accepts one file, or '-' for stdin")
     # No file argument, or the conventional "-", means read stdin.
-    text = sys.stdin.read() if (not args or args[0] == "-") else Path(args[0]).read_text()
+    text = sys.stdin.read() if (not args or args[0] == "-") else _read_text_file(args[0])
     r = score_text(text, data, formal=formal)
     if as_json:
         print(json.dumps(r, ensure_ascii=False, indent=1))

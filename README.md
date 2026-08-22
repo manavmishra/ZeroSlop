@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-CI%20gated-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="privacy" src="https://img.shields.io/badge/scorer-offline-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.4.1-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.4.2-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every
@@ -196,7 +196,7 @@ points back to a quoted phrase or a document-level statistic you can inspect.
 
 | Channel | What it measures |
 |---|---|
-| Pattern meter | 266 weighted patterns, a 96-word watchlist, and 25 words that count only in a salesy sentence |
+| Pattern meter | 267 weighted patterns, a 96-word watchlist, and 25 words that count only in a salesy sentence |
 | Rhythm | low variation in sentence length |
 | Followability | comma pile-ups, clusters of long words, and sentences longer than 38 words |
 | Formatting and register | em dash density, emoji, hashtags, heavy use of bold, and machine-formal language |
@@ -384,6 +384,75 @@ the result measures regression coverage, not real-world accuracy.
 
 ![Mean surface scores for 18 anonymous search-informed slop paraphrases: blog 99.9, email 79.7, LinkedIn 61.7, newsletter 58.0, research 97.0, and X 73.3](assets/bench-search-corpus.png)
 
+### Same-corpus instruction replay
+
+We then edited the same 18 items with Zero Slop, no-ai-slop, humanizer, de-slop,
+and stop-slop. One host Codex session replayed each method's pinned instructions with
+the same brief: preserve every claim and fact, add nothing, and return only the final
+text. The exact source revisions, rewritten texts, and item-level results are in
+[`bench/search-corpus/`](bench/search-corpus/).
+
+Zero Slop's mean surface score fell to 13.7. The other instruction sets finished
+between 27.1 and 29.9, down from 78.2 for the source drafts. This is a performance
+check against Zero Slop's own meter, not independent evidence that its writing is
+better. Zero Slop explicitly measures and revises against this gate; the other skills
+do not optimize for it.
+
+![Mean surface score after one host model replayed five pinned anti-slop instruction sets on the same 18 paraphrases: original 78.2, Zero Slop 13.7, de-slop 27.1, humanizer 28.4, no-ai-slop 29.7, and stop-slop 29.9](assets/bench-search-rewrites.png)
+
+The next chart requires both the genre-specific surface gate and the automated fact
+check to pass. All five methods preserved the figures, names, quotations, links, and
+asserted feelings that the script can inspect in all 18 items. The different pass rates
+therefore come entirely from the surface gate. The checker cannot detect every
+reframed claim or shift in emphasis, so the result is not semantic accuracy.
+
+![Clean-and-fact-checked pass rate on the same 18 paraphrases: Zero Slop 100 percent, de-slop 72.2 percent, humanizer and no-ai-slop 66.7 percent, stop-slop 61.1 percent, and original drafts 0 percent](assets/bench-search-passrate.png)
+
+This positive-only challenge cannot produce a defensible accuracy number for any
+method. That would require representative positive and negative samples, independent
+human fidelity and quality reviews, and fresh live runs with documented model settings.
+The charts report regression coverage and rewrite performance only.
+
+### External AIStoryHub cross-check
+
+[AIStoryHub's Corpus of AI Clichés](https://aistoryhub.co/corpus) publishes 758
+entries covering language, personas, system artifacts, formatting and rhetorical
+structures. We pin version 1.8 by date, entry count and SHA-256, then fetch it only for
+an explicit maintainer audit. The repository does not bundle the source JSON because
+the site does not state a corpus-specific redistribution license.
+
+Of the corpus's 754 testable entries, 273 produced at least one Zero Slop rule hit,
+including all seven entries marked as hard evidence. The known-human guard remained
+12 for 12, with a maximum surface score of 20.2 against a gate of 25. This is taxonomy
+coverage, not accuracy: a hit does not prove a one-to-one match, and Zero Slop
+deliberately refuses to convict persona names or ambiguous words without context. The
+pin, audit code, aggregate result, and limitations are in
+[`bench/aistoryhub-corpus/`](bench/aistoryhub-corpus/).
+
+We also submitted the same 18 source drafts and all five sets of rewrites, one item at a
+time, to AIStoryHub's [public AI Slop Checker](https://aistoryhub.co/slop-checker).
+The checker marked 14 of Zero Slop's 17 eligible rewrites as “Reads Clean.” It abstained
+on one Zero Slop rewrite because the text was shorter than its 20-word minimum. The
+table keeps those varying denominators visible.
+
+| Text or method | Reads Clean | Eligible | Abstained | Mean checker score |
+|---|---:|---:|---:|---:|
+| Original drafts | 3 (16.7%) | 18 | 0 | 80.6 |
+| Zero Slop | 14 (82.4%) | 17 | 1 | 16.9 |
+| stop-slop | 11 (78.6%) | 14 | 4 | 21.0 |
+| no-ai-slop | 12 (75.0%) | 16 | 2 | 24.2 |
+| de-slop | 12 (75.0%) | 16 | 2 | 24.2 |
+| humanizer | 11 (73.3%) | 15 | 3 | 25.9 |
+
+![Reads Clean rate from the public AIStoryHub checker on eligible rewrites from the same 18-item corpus: Zero Slop 82.4 percent, stop-slop 78.6 percent, no-ai-slop and de-slop 75.0 percent, humanizer 73.3 percent, and original drafts 16.7 percent. Short rewrites below the checker's 20-word minimum are abstentions and excluded from each denominator.](assets/bench-external-checker.png)
+
+AIStoryHub's checker is a deterministic surface checklist, not a human review. Its
+scores in this run were strongly bimodal, and it does not measure semantic fidelity,
+writing quality, field accuracy, or authorship. These results are an independent
+cross-meter of rewrite performance, not an accuracy ranking. The item-level observations,
+input hashes, threshold, and abstentions are committed in
+[`bench/search-corpus/aistoryhub-checker-results.json`](bench/search-corpus/aistoryhub-checker-results.json).
+
 A separate 1,000-document test guards speed; CI fails if the batch takes longer than 60
 seconds. The full inputs, rewrites, anonymized packets, raw ratings, challenge corpus,
 and analysis scripts are in the [benchmark harness](bench/).
@@ -421,9 +490,9 @@ on August 22, 2026.
 | Learning | Private pattern weights and fix memory. Evidence thresholds, reconfirmation, and decay govern updates. | Not documented in the pinned repository. | Not documented in the pinned repository. |
 | Published evaluation | Raw blind-review records. Regression corpora. Speed gate. Scripts and explicit limits. | No outcome benchmark found in the pinned repository. | No outcome benchmark found in the pinned repository. |
 
-In the graphic, **Native** means a dedicated script, stored artifact, or named workflow
-gate. **Guided** means an instruction or self-check without a dedicated executable
-component. **Not documented** means we did not find the capability at that commit; it
+In the graphic, “Native” means a dedicated script, stored artifact, or named workflow
+gate. “Guided” means an instruction or self-check without a dedicated executable
+component. “Not documented” means we did not find the capability at that commit; it
 does not prove the project cannot do it. The audit data live in
 [`bench/competitor-capabilities.json`](bench/competitor-capabilities.json), and the chart
 is regenerated with the other benchmark graphics.
@@ -447,6 +516,8 @@ left in the text. We do not tune rewrites to fool those detectors.
 
 - **A big, labeled test set.** It is what the remaining accuracy claims need.
   RAID, HC3, M4, and AuTextification are free and cover email, social, and blogs.
+  The AIStoryHub taxonomy and checker add useful external coverage, but neither
+  replaces representative labeled prose and independent human review.
 - **New signals that ignore vocabulary entirely.** The research
   ([NEULIF](https://arxiv.org/abs/2511.21744)) points to how often certain small words
   pair up and how sentence lengths vary. Neither can be removed simply with a
@@ -462,9 +533,11 @@ Online learning observes later published edits, checks the evidence against its
 thresholds, and updates a private learning layer. Later evidence reconfirms detection
 patterns and preferred fixes; without it, stale patterns decay and stale fixes retire.
 The learning layer feeds both the pattern meter and the rewrite guide, so it adapts
-slop detection and fixing.
+slop detection and fixing. A separate maintainer lane reviews new external taxonomies
+against the known-human corpus before a versioned release; it is maintenance, not a
+third operational loop and not automatic self-modification.
 
-![Zero Slop has two operational loops. Editorial delivery measures a draft, runs separate predictability and cross-draft portfolio diagnostics when applicable, diagnoses information utility, integrity, structure, delivery, and voice, then rewrites, copy-edits, reads aloud, and verifies the final text. Online learning observes later published edits, checks the evidence against its thresholds, and updates a private learning layer. Later evidence reconfirms detection patterns and preferred fixes; stale patterns decay, and stale fixes retire. The private layer feeds both the pattern meter and the rewrite pass.](assets/engine.svg)
+![Zero Slop has two operational loops. Editorial delivery measures a draft, runs separate predictability and cross-draft portfolio diagnostics when applicable, diagnoses information utility, integrity, structure, delivery, and voice, then rewrites, copy-edits, reads aloud, and verifies the final text. Online learning observes later published edits, checks the evidence against its thresholds, and updates a private learning layer. Later evidence reconfirms detection patterns and preferred fixes; stale patterns decay, and stale fixes retire. The private layer feeds both the pattern meter and the rewrite pass. A separate maintainer lane reviews external taxonomies against the human regression corpus before a versioned release; it is not a runtime loop.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
@@ -474,7 +547,7 @@ scripts/rerank.py           best of N — choose the cleanest version that keeps
 scripts/learn.py            the learning loop and your style profile
 scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
-data/patterns.json          the 266 tells, the watchlist, the context words
+data/patterns.json          the base tells, watchlist, and context words (267 weighted rules with the reviewed overlay)
 data/corpus/must-not-flag/  human writing the tool must never flag
 bench/search-corpus/        18 anonymous cross-genre slop regression cases
 references/readalong.md     the final pass for spoken flow and cohesion
@@ -502,7 +575,7 @@ study finds that detectors read a model's training style rather than the machine
 non-native English writers (arXiv:2304.02819). That last finding is why a non-native
 sample sits in our safety set.
 
-The v2.4.1 portfolio diagnostic and passage-level quality review also draw on [The Slop
+The v2.4.2 portfolio diagnostic and passage-level quality review also draw on [The Slop
 Index](https://github.com/hgaddipati1118/slop-index) and [*Measuring AI “Slop” in
 Text*](https://arxiv.org/abs/2509.19163). Together, they support one practical rule:
 cross-draft repetition is useful evidence, but binary judgments and automatic quality

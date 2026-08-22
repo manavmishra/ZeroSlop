@@ -29,6 +29,7 @@ predictable.
 import json
 import re
 import sys
+import argparse
 from pathlib import Path
 
 # Function words carry no predictability signal (everyone writes "the", "of"), so
@@ -61,6 +62,21 @@ def _norm(w):
     return re.sub(r"[^a-z]", "", w.lower())
 
 
+def _morph_roots(word):
+    """Conservative English inflection roots; never equate by prefix alone."""
+    word = _norm(word)
+    roots = {word}
+    for suffix in ("ingly", "edly", "ing", "ied", "ed", "es", "s", "ly"):
+        if word.endswith(suffix) and len(word) - len(suffix) >= 4:
+            stem = word[:-len(suffix)]
+            roots.add(stem)
+            if suffix in {"ing", "ed", "edly", "ingly"}:
+                roots.add(stem + "e")
+            if suffix == "ied":
+                roots.add(stem + "y")
+    return roots
+
+
 def probes(text, k=12, window=45):
     """Deterministically pick up to k content words to mask.
 
@@ -69,6 +85,10 @@ def probes(text, k=12, window=45):
     whole piece, and the selection is a pure function of the text — same input, same
     probes, which is what makes the score reproducible and the scorer testable.
     """
+    if not isinstance(k, int) or isinstance(k, bool) or k < 1:
+        raise ValueError("k must be a positive integer")
+    if not isinstance(window, int) or isinstance(window, bool) or window < 0:
+        raise ValueError("window must be a non-negative integer")
     clean = _without_code(text)
     ws = _words(clean)
     eligible = [i for i, (w, s, e) in enumerate(ws)
@@ -93,11 +113,12 @@ def _hit(answer, guesses):
     """A guess counts if it matches the answer up to case and light morphology —
     exact, or a shared 4-letter stem, so "raised"/"raise" and "quickly"/"quick" land."""
     a = _norm(answer)
+    answer_roots = _morph_roots(a)
     for g in guesses:
         gg = _norm(g)
         if not gg:
             continue
-        if gg == a or (len(a) >= 4 and len(gg) >= 4 and (a.startswith(gg[:4]) or gg.startswith(a[:4]))):
+        if gg == a or answer_roots & _morph_roots(gg):
             return True
     return False
 
@@ -110,18 +131,35 @@ def score(text, predictions, k=12):
     thresholds, not calibrated probabilities, and the result is never silently folded
     into the surface score.
     """
+    if not isinstance(text, str):
+        raise ValueError("text must be a string")
+    if not isinstance(predictions, dict):
+        raise ValueError("predictions must be a JSON object keyed by probe id")
     pr = probes(text, k=k)
     if not pr:
         return {"predictability": None, "hits": 0, "total": 0,
                 "reading": "too short to probe", "backend": "harness-model"}
-    preds = {int(kk): vv for kk, vv in predictions.items()}
+    preds = {}
+    for key, guesses in predictions.items():
+        try:
+            probe_id = int(key)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"invalid probe id: {key!r}") from exc
+        if probe_id in preds:
+            raise ValueError(f"duplicate probe id after normalization: {key!r}")
+        if isinstance(guesses, str):
+            guesses = [guesses]
+        if (not isinstance(guesses, list) or not guesses or len(guesses) > 20
+                or not all(isinstance(g, str) and len(g) <= 200 for g in guesses)):
+            raise ValueError(f"predictions for probe {probe_id} must be a string list")
+        preds[probe_id] = guesses
+    expected = {p["id"] for p in pr}
+    if set(preds) != expected:
+        missing, extra = sorted(expected - set(preds)), sorted(set(preds) - expected)
+        raise ValueError(f"prediction ids do not match probes: missing={missing}, extra={extra}")
     hits = 0
     for p in pr:
         g = preds.get(p["id"], [])
-        if isinstance(g, str):
-            g = [g]
-        if not isinstance(g, list):
-            g = []
         if _hit(p["answer"], g[:3]):
             hits += 1
     total = len(pr)
@@ -149,32 +187,40 @@ def _selftest():
     lo = score(text, allwrong, k=6)
     assert hi["predictability"] == 100.0, hi
     assert lo["predictability"] == 0.0, lo
-    # morphology: a stemmed guess still hits
-    stem = {p["id"]: [p["answer"][:4]] for p in pr}
-    assert score(text, stem, k=6)["predictability"] == 100.0
+    assert _hit("raised", ["raise"]), "light morphology must match"
+    assert not _hit("station", ["statue"]), "shared prefixes are not morphology"
     print(f"predictability selftest OK — {len(pr)} probes, all-right=100.0, all-wrong=0.0")
     return 0
 
 
-def main():
-    argv = sys.argv[1:]
-    if "--selftest" in argv:
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--selftest", action="store_true")
+    mode.add_argument("--probes", metavar="TEXT_FILE")
+    mode.add_argument("--score", nargs=2, metavar=("TEXT_FILE", "PREDICTIONS_JSON"))
+    args = ap.parse_args(argv)
+    if args.selftest:
         return _selftest()
-    if "--probes" in argv:
-        text = Path(argv[argv.index("--probes") + 1]).read_text()
+    if args.probes:
+        try:
+            text = Path(args.probes).read_text()
+        except (OSError, UnicodeDecodeError) as exc:
+            ap.error(f"cannot read text: {exc}")
         blanks = [{"id": p["id"], "context": p["context"]} for p in probes(text)]
         print(json.dumps(blanks, indent=1))
         return 0
-    if "--score" in argv:
-        i = argv.index("--score")
-        text = Path(argv[i + 1]).read_text()
-        preds = json.loads(Path(argv[i + 2]).read_text())
-        r = score(text, preds)
+    if args.score:
+        try:
+            text = Path(args.score[0]).read_text()
+            preds = json.loads(Path(args.score[1]).read_text())
+            r = score(text, preds)
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            ap.error(str(exc))
         print(f"predictability: {r['predictability']}/100  ({r['hits']}/{r['total']} recovered)")
         print(f"  {r['reading']}")
         return 0
-    print(__doc__)
-    return 0
+    return 2
 
 
 if __name__ == "__main__":

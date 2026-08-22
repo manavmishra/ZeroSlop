@@ -17,7 +17,11 @@ Everything needed to reproduce, contest, or extend the evaluation in
 - `objective-panel.json`, `judge-dimensions.json`, `replication.json` —
   computed results.
 - `search-corpus/` — 18 anonymous, search-informed slop paraphrases across
-  LinkedIn, X, email, blog, newsletter, and research, plus reproducible scores.
+  LinkedIn, X, email, blog, newsletter, and research, plus five pinned rewrite
+  methods and an item-level public AIStoryHub checker cross-check.
+- `aistoryhub-corpus/` — a version-and-hash-pinned coverage audit against the
+  public AIStoryHub taxonomy. It reports coverage, never accuracy, and does not
+  redistribute the source JSON.
 
 ## Reproducing
 
@@ -25,6 +29,8 @@ Everything needed to reproduce, contest, or extend the evaluation in
 python3 bench/replication.py          # agreement and pooled statistics
 python3 bench/aggregate.py            # per-method scorecard
 python3 bench/search-corpus/evaluate.py --check
+python3 bench/search-corpus/compare.py --check
+python3 bench/aistoryhub-corpus/audit.py --fetch --check
 ```
 
 ## How the judging worked

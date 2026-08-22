@@ -1,4 +1,9 @@
-import json, os
+import json
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+from safeio import atomic_write_text  # noqa: E402
 
 out = {}
 
@@ -304,10 +309,8 @@ We rebuilt the process from first principles and things finally clicked, but I'd
 
 I'm sharing the mistake because year-in-review posts usually show only the highlight reel, and growth is messier than that."""
 
-path = "/private/tmp/claude-501/-Users-manav-Coding-Legal-Agent/db22184e-14cc-4774-85a9-20c701b2d692/scratchpad/eval/outputs/petergyang_h1.json"
-os.makedirs(os.path.dirname(path), exist_ok=True)
-with open(path, "w") as f:
-    json.dump(out, f, indent=1, ensure_ascii=False)
+path = Path(__file__).resolve().parent / "petergyang_h1.json"
+atomic_write_text(path, json.dumps(out, indent=1, ensure_ascii=False) + "\n")
 
 # verify
 with open(path) as f:

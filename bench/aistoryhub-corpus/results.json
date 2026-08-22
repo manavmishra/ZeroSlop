@@ -1,0 +1,105 @@
+{
+ "audit_kind": "external_taxonomy_probe_coverage",
+ "calibrated_accuracy": false,
+ "source": {
+  "name": "The Corpus of AI Cliches",
+  "url": "https://aistoryhub.co/ai-cliches-corpus.json",
+  "version": "1.8",
+  "generated": "2026-07-18",
+  "entry_count": 758,
+  "sha256": "5ac1dd1cd3c42e1e99170025b6f252fd311e0360a7852e738a2165df06036675"
+ },
+ "zero_slop_taxonomy": {
+  "patterns_sha256": "63b7b86d8e9c3c1e0c6db2c407275d09285b6e7f6074e9d62480f8066fb95217",
+  "learned_sha256": "0d2b9075f58971991b632f53d61062633fbeefa36f2c9eac7bb5859efb34ea8e"
+ },
+ "probe": {
+  "definition": "Use the supplied example when present; otherwise use an unambiguous literal term in a lexical, persona, or channel category.",
+  "testable_entries": 754,
+  "surface_rule_hit": 273,
+  "surface_rule_hit_rate": 36.2,
+  "by_confidence": {
+   "orange": {
+    "testable": 297,
+    "surface_rule_hit": 69,
+    "surface_rule_hit_rate": 23.2
+   },
+   "red": {
+    "testable": 359,
+    "surface_rule_hit": 193,
+    "surface_rule_hit_rate": 53.8
+   },
+   "yellow": {
+    "testable": 98,
+    "surface_rule_hit": 11,
+    "surface_rule_hit_rate": 11.2
+   }
+  },
+  "by_category": {
+   "channel_and_assistant": {
+    "testable": 50,
+    "surface_rule_hit": 24,
+    "surface_rule_hit_rate": 48.0
+   },
+   "formatting_tells": {
+    "testable": 23,
+    "surface_rule_hit": 9,
+    "surface_rule_hit_rate": 39.1
+   },
+   "names_and_personas": {
+    "testable": 86,
+    "surface_rule_hit": 0,
+    "surface_rule_hit_rate": 0.0
+   },
+   "rhetorical_moves": {
+    "testable": 33,
+    "surface_rule_hit": 13,
+    "surface_rule_hit_rate": 39.4
+   },
+   "sentence_patterns": {
+    "testable": 53,
+    "surface_rule_hit": 26,
+    "surface_rule_hit_rate": 49.1
+   },
+   "words_and_phrases": {
+    "testable": 509,
+    "surface_rule_hit": 201,
+    "surface_rule_hit_rate": 39.5
+   }
+  },
+  "by_lifecycle": {
+   "fading": {
+    "testable": 8,
+    "surface_rule_hit": 7,
+    "surface_rule_hit_rate": 87.5
+   },
+   "hard_evidence": {
+    "testable": 7,
+    "surface_rule_hit": 7,
+    "surface_rule_hit_rate": 100.0
+   },
+   "live": {
+    "testable": 738,
+    "surface_rule_hit": 259,
+    "surface_rule_hit_rate": 35.1
+   },
+   "red_herring": {
+    "testable": 1,
+    "surface_rule_hit": 0,
+    "surface_rule_hit_rate": 0.0
+   }
+  }
+ },
+ "false_positive_guard": {
+  "documents": 12,
+  "gate": 25,
+  "passes": 12,
+  "max_surface_score": 20.2
+ },
+ "limitations": [
+  "The source is a tell taxonomy, not labeled prose; coverage is not accuracy, precision, recall, quality, or authorship detection.",
+  "A probe is covered when any Zero Slop rule fires on its supplied example or literal term; this does not establish one-to-one taxonomy equivalence.",
+  "Persona names are intentionally not lexical convictions because real people can share them.",
+  "Ambiguous vocabulary remains context-gated even when the external source labels it strongly."
+ ]
+}

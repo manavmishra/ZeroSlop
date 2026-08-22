@@ -15,6 +15,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import slopscore  # noqa: E402
+from safeio import atomic_write_text  # noqa: E402
 
 CORPUS = HERE / "corpus.json"
 RESULTS = HERE / "results.json"
@@ -24,8 +25,18 @@ GATE = 25.0
 def compute():
     data = slopscore.load_patterns()
     rows = json.loads(CORPUS.read_text())
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("corpus.json must be a non-empty list")
+    ids = [row.get("id") for row in rows if isinstance(row, dict)]
+    if len(ids) != len(rows) or any(not isinstance(item_id, str) for item_id in ids):
+        raise ValueError("every corpus row needs a string id")
+    if len(ids) != len(set(ids)):
+        raise ValueError("corpus ids must be unique")
     scored = []
     for row in rows:
+        if (not isinstance(row.get("text"), str) or not row["text"].strip()
+                or not isinstance(row.get("genre"), str) or not row["genre"].strip()):
+            raise ValueError(f"{row['id']}: text and genre must be non-empty strings")
         formal = row["genre"] == "research"
         result = slopscore.score_text(row["text"], data, formal=formal)
         shape_genre = "social" if row["genre"] in {"linkedin", "x"} else "general"
@@ -34,7 +45,7 @@ def compute():
             "id": row["id"],
             "genre": row["genre"],
             "surface_score": result["ai_likelihood"],
-            "weighted_tells": len(result["hits"]),
+            "tell_hits": len(result["hits"]),
             "burstiness": result["burstiness"],
             "broetry": shape.get("broetry"),
             "caught": result["ai_likelihood"] > GATE or bool(shape.get("broetry")),
@@ -66,7 +77,7 @@ def main():
     args = parser.parse_args()
     fresh = compute()
     if args.write:
-        RESULTS.write_text(json.dumps(fresh, indent=1) + "\n")
+        atomic_write_text(RESULTS, json.dumps(fresh, indent=1) + "\n")
     if args.check:
         if not RESULTS.exists() or json.loads(RESULTS.read_text()) != fresh:
             print("search-corpus results are stale; run evaluate.py --write")
