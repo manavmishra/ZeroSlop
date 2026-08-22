@@ -44,9 +44,11 @@ heuristic surface score, not the probability that AI wrote the text. Most signal
 describe structure, so a synonym swap cannot resolve the structural issues. One em
 dash carries little weight; clusters of independent signals matter more. A separate
 predictability probe asks your assistant to guess masked words and reports how often
-the original word appears among its top three guesses. Zero Slop ships no model of its
-own. For important work, it drafts two or three approaches, rejects any that add or
-lose a fact, and sends the cleanest version through the copy desk and read-aloud pass.
+the original word appears among its top three guesses. When three or more related
+drafts are present, a portfolio probe reports repeated five-word openings and shared
+phrases without changing the main score. Zero Slop ships no model of its own. For
+important work, it drafts two or three approaches, rejects any that add or lose a fact,
+and sends the cleanest version through the copy desk and read-aloud pass.
 
 ## What makes it different
 
@@ -97,10 +99,12 @@ omits the exact model, settings, and full prompt. The results show that the two 
 were competitive on our synthetic set, not that either is generally better. We also
 wrote the scorer's discrimination set, so it serves as a regression check rather than a
 real-world accuracy estimate. A 1,000-document speed check runs in CI and must finish
-within 60 seconds.
+within 60 seconds. A separate search-informed challenge contains 18 anonymous slop
+paraphrases across LinkedIn, X, email, blog, newsletter, and research; it is an
+easy-case regression guard, not a field-accuracy estimate.
 
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.4.0 · CI-gated · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.4.1 · CI-gated · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

@@ -28,9 +28,9 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.4.0"
+  version: "2.4.1"
   author: manavmishra
-description: Turn drafts into sharp, natural prose with a transparent heuristic surface scorer, an evidence-ranked rewrite, quantitative verification, a dedicated copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, remove AI-sounding phrasing, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts and format, reports before-and-after evidence, and learns from later human edits through a private evidence-gated overlay.
+description: Turn drafts into sharp, natural prose with a transparent heuristic surface scorer, a cross-draft template audit, an evidence-ranked rewrite, quantitative verification, a dedicated copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, remove AI-sounding phrasing, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts and format, reports before-and-after evidence, and learns from later human edits through a private evidence-gated overlay.
 ---
 
 # Zero Slop
@@ -139,6 +139,20 @@ clean score with hollow content is still slop, and one flagged word in honest
 technical prose is not. Treat an isolated hit cautiously; act when independent
 signals agree.
 
+**Portfolio probe (three or more related drafts).** A single draft cannot show
+that a whole campaign opens with the same five words or recycles the same
+sentence skeleton. When the input contains three or more related drafts, run:
+
+```
+python3 <skill-root>/scripts/slopscore.py --portfolio <directory>
+```
+
+This reports repeated five-word openings and shared five-word phrases across the
+files. It is a cross-draft templating diagnostic, not part of the 0–100 score and
+not an authorship verdict. Treat repeated product names, legal language, and
+necessary domain terms as legitimate. Rewrite repeated scaffolding and stock
+openings; preserve facts, meaning, and the writer's voice.
+
 **The host-model probe (predictability).** The four channels above read the surface.
 This optional channel asks whether the host model finds the prose predictable.
 Zero Slop ships no model; it uses **you**, the model running this skill, with
@@ -170,12 +184,23 @@ the surface score stands alone, exactly as before.
 
 ### 2. Diagnose
 
-Per paragraph, four judgments the regex cannot make:
+Do not ask for one ungrounded yes/no judgment. Research finds that binary slop
+labels are subjective and that zero-shot LLM judges miss most human-marked slop
+spans. Diagnose the evidence first, paragraph by paragraph:
 
-- **Claim check (removal test):** delete the paragraph mentally — is anything
-  lost? Nothing lost → *hollow* → flag, don't rewrite.
-- **Facts inventory:** list every number, name, date, and quote. These survive
-  the rewrite verbatim.
+- **Information utility:** run the removal test and the relevance test. If
+  deleting the paragraph loses nothing, it is hollow. If it does not serve the
+  brief, audience, or argument, it is irrelevant. Flag missing substance; do
+  not manufacture it.
+- **Information integrity:** inventory every claim, qualifier, number, name,
+  date, quote, and source. Check factual support and source scope where the
+  necessary evidence is present. These survive the rewrite exactly.
+- **Structure:** mark accidental repetition, duplicated conclusions, formulaic
+  transitions, and template order. If a portfolio probe ran, include its
+  repeated openings and phrases here.
+- **Delivery:** mark incoherence, subtle disfluency, needless verbosity,
+  contextually fussy vocabulary, and a tone that does not fit the genre. These
+  are separate problems; a grammar fix does not repair a missing point.
 - **Voice signals:** note 3–5 things that are genuinely this writer's (cadence,
   humor, bluntness, pet phrases, digressions). These survive too. A user
   writing sample outranks every style rule in this skill.
@@ -1376,6 +1401,47 @@ report as "sounds like AI" — so the scorer tracks the features directly:
 weighted tell density, lexicon hits, burstiness, formatting densities,
 register signals. Passing the gate means "the measurable tells are gone",
 which is the honest, robust target.
+
+## Span-first diagnosis, not a binary vibe check
+
+Shaib et al., *Measuring AI “Slop” in Text* (arXiv:2509.19163), built a
+taxonomy from 19 experts and span annotations by professional copy editors.
+The useful split is broader than style alone: information utility (density and
+relevance), information quality (factuality and appropriate perspective), and
+style quality (repetition, templatedness, coherence, fluency, verbosity, word
+complexity, and tone). Which dimensions mattered changed by domain. Factual and
+structural problems mattered most in short answers; utility and tone mattered
+more in news.
+
+The negative results are just as important. Pairwise agreement on the binary
+slop label was poor to fair, automatic linear models reached only 0.52 and 0.55
+AUPRC on the two datasets, and zero-shot LLM judges under-predicted slop with
+recall of 0.08–0.12. Prompted span extraction also aligned poorly with the human
+annotations. That evidence rules out an ungrounded "does this feel like slop?"
+model verdict as a reliable gate. Zero Slop therefore uses a span-first,
+category-specific diagnosis, keeps deterministic surface measurements separate,
+and reserves relevance, coherence, tone, and factual judgments for explicit
+review rather than laundering them into the 0–100 meter.
+
+Source: <https://arxiv.org/abs/2509.19163> (CC BY 4.0).
+
+## Cross-draft templating
+
+The Slop Index evaluates 19,928 model generations against pre-ChatGPT human
+baselines. Its most portable idea for an editor is not its composite ranking;
+it is measuring repeated five-word openings across several responses to the
+same prompt. A single document cannot expose that failure. The same project
+also found that some plausible measures reverse direction by genre, so its
+rhythm axis is used only for email and its weights are renormalized when a
+baseline cannot support an axis.
+
+Zero Slop adopts the conservative part of that method in `--portfolio`: report
+exact repeated openings and shared multiword templates across three or more
+related drafts. The result does not change the surface score. There is not yet
+enough labeled, cross-genre evidence to assign it a safe universal weight, and
+necessary domain phrases can legitimately recur.
+
+Source: <https://github.com/hgaddipati1118/slop-index> (MIT).
 
 ## What rewriting cannot do (the honesty boundary)
 

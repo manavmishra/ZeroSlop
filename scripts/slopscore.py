@@ -17,6 +17,7 @@ Usage (runnable from any cwd; data resolves relative to this script):
     cat text | python3 slopscore.py        # stdin
     python3 slopscore.py --explain <file>  # report + hits + heatmap
     python3 slopscore.py --heatmap <file>  # per-sentence heatmap only
+    python3 slopscore.py --portfolio <dir> # cross-draft opener/template audit
     python3 slopscore.py --formal <file>   # research/professional genres:
                                            # zeroes rhythm-uniformity and
                                            # formality penalties (formal
@@ -343,6 +344,102 @@ def score_text(text, data, formal=False):
         "categories": cats,
         "hits": hits,
     }
+
+
+# ── cross-draft portfolio channel ────────────────────────────────────────────
+# A single draft cannot reveal that ten unrelated posts all begin with the same
+# five words. The Slop Index measures opener repetition across repeated samples
+# of one prompt, and Shaib et al. (arXiv:2509.19163) identify repetition and
+# templatedness as separate slop dimensions. This channel reports that evidence
+# across a directory of drafts. It deliberately stays outside the 0–100 score:
+# the current corpus is too small to calibrate a safe universal weight, and
+# repeated domain language can be legitimate.
+PORTFOLIO_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from",
+    "has", "have", "he", "her", "his", "i", "in", "is", "it", "its", "of",
+    "on", "or", "our", "she", "that", "the", "their", "they", "this", "to",
+    "was", "we", "were", "will", "with", "you", "your",
+}
+
+
+def portfolio_metrics(documents, opener_words=5, phrase_words=5):
+    """Return interpretable repetition evidence across several drafts.
+
+    ``documents`` is an iterable of ``(name, text)`` pairs. Exact opener and
+    phrase matches are normalized to lowercase words. The result is a
+    diagnostic, not a score or authorship verdict.
+    """
+    docs = [(str(name), WORD.findall(strip_noise(text).lower()))
+            for name, text in documents]
+    out = {
+        "score_kind": "portfolio_template_diagnostic",
+        "calibrated_probability": False,
+        "measured": len(docs) >= 3,
+        "n_documents": len(docs),
+        "opener_words": opener_words,
+        "phrase_words": phrase_words,
+        "repeated_openers": [],
+        "shared_phrases": [],
+        "reason": "",
+    }
+    if len(docs) < 3:
+        out["reason"] = "needs at least 3 drafts"
+        return out
+
+    opener_docs = {}
+    phrase_docs = {}
+    for name, words in docs:
+        if len(words) >= opener_words:
+            opener = " ".join(words[:opener_words])
+            opener_docs.setdefault(opener, set()).add(name)
+        seen = set()
+        for i in range(max(0, len(words) - phrase_words + 1)):
+            gram_words = words[i:i + phrase_words]
+            # Common glue shared by several documents is not a useful template.
+            if all(w in PORTFOLIO_STOPWORDS for w in gram_words):
+                continue
+            seen.add(" ".join(gram_words))
+        for phrase in seen:
+            phrase_docs.setdefault(phrase, set()).add(name)
+
+    repeated = [(opener, sorted(names)) for opener, names in opener_docs.items()
+                if len(names) >= 2]
+    repeated.sort(key=lambda item: (-len(item[1]), item[0]))
+    repeated_opener_texts = {opener for opener, _ in repeated}
+    shared = [(phrase, sorted(names)) for phrase, names in phrase_docs.items()
+              if len(names) >= 2 and phrase not in repeated_opener_texts]
+    shared.sort(key=lambda item: (-len(item[1]), item[0]))
+    out["repeated_openers"] = [
+        {"text": opener, "documents": names, "document_count": len(names)}
+        for opener, names in repeated
+    ]
+    out["shared_phrases"] = [
+        {"text": phrase, "documents": names, "document_count": len(names)}
+        for phrase, names in shared[:20]
+    ]
+    return out
+
+
+def render_portfolio(result):
+    """Plain-language portfolio report for the command-line interface."""
+    out = ["", "  PORTFOLIO · cross-draft repetition", "",
+           "  score type    : diagnostic only, not part of the 0–100 meter"]
+    if not result["measured"]:
+        return out + [f"  status        : abstains ({result['reason']})", ""]
+    out.append(f"  drafts        : {result['n_documents']}")
+    if result["repeated_openers"]:
+        out.append("  repeated openings:")
+        for row in result["repeated_openers"][:8]:
+            out.append(f"    {row['document_count']:>2} drafts  {row['text']!r}")
+    else:
+        out.append("  repeated openings: none")
+    if result["shared_phrases"]:
+        out.append("  shared five-word templates:")
+        for row in result["shared_phrases"][:8]:
+            out.append(f"    {row['document_count']:>2} drafts  {row['text']!r}")
+    else:
+        out.append("  shared five-word templates: none")
+    return out + ["  fix           : vary repeated scaffolding; preserve facts and voice", ""]
 
 
 
@@ -871,6 +968,18 @@ def main():
         for line in dna(Path(args[0]).read_text(), Path(args[1]).read_text(),
                         data, formal=formal):
             print(line)
+        return
+
+    if "--portfolio" in sys.argv:
+        root = Path(args[0]) if args else Path(".")
+        files = sorted(p for p in root.rglob("*") if p.suffix in
+                       (".md", ".txt", ".markdown") and p.is_file())
+        result = portfolio_metrics((str(p), p.read_text()) for p in files)
+        if as_json:
+            print(json.dumps(result, ensure_ascii=False, indent=1))
+        else:
+            for line in render_portfolio(result):
+                print(line)
         return
 
     if "--batch" in sys.argv:

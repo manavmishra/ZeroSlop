@@ -16,12 +16,15 @@ Everything needed to reproduce, contest, or extend the evaluation in
   construction (seeded shuffles, so packets rebuild identically).
 - `objective-panel.json`, `judge-dimensions.json`, `replication.json` —
   computed results.
+- `search-corpus/` — 18 anonymous, search-informed slop paraphrases across
+  LinkedIn, X, email, blog, newsletter, and research, plus reproducible scores.
 
 ## Reproducing
 
 ```bash
 python3 bench/replication.py          # agreement and pooled statistics
 python3 bench/aggregate.py            # per-method scorecard
+python3 bench/search-corpus/evaluate.py --check
 ```
 
 ## How the judging worked

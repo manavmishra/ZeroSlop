@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 548" width="900" height="548" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two operational loops. Editorial delivery measures a draft with four surface channels and a separate host-model predictability probe, diagnoses hollow spans, rewrites in two passes, copy-edits the result, reads it aloud, and verifies the final text for score, fidelity, meaning, voice, format, and structure. The score is a traceable heuristic surface meter, not a calibrated probability. Online learning observes what the writer later cuts or keeps. One edit cannot change the meter. A phrase needs recurrence across three content-distinct edit pairs, novelty, and the human-corpus safety gate; single words need five pairs. Eligible evidence updates a private overlay that reloads on the next run. The overlay feeds both the pattern meter and the rewrite guide, so it adapts detection and fixing. Repeated false-positive evidence can lower a local weight, later evidence reconfirms useful guidance, stale detector rules decay, and stale fix preferences retire.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 548" width="900" height="548" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two operational loops. Editorial delivery measures a draft with four surface channels, a separate host-model predictability probe, and a non-scoring portfolio probe that finds repeated openings and phrases across three or more related drafts. It diagnoses information utility, integrity, structure, delivery, and voice; rewrites in two passes; copy-edits the result; reads it aloud; and verifies the final text for score, fidelity, meaning, voice, format, and structure. The score is a traceable heuristic surface meter, not a calibrated probability. Online learning observes what the writer later cuts or keeps. One edit cannot change the meter. A phrase needs recurrence across three content-distinct edit pairs, novelty, and the human-corpus safety gate; single words need five pairs. Eligible evidence updates a private overlay that reloads on the next run. The overlay feeds both the pattern meter and the rewrite guide, so it adapts detection and fixing. Repeated false-positive evidence can lower a local weight, later evidence reconfirms useful guidance, stale detector rules decay, and stale fix preferences retire.">
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#8A939F"/>
@@ -72,6 +72,13 @@
   <text x="132" y="273" class="m">reported separately</text>
   <path d="M106 255 L118 255" class="ln" marker-end="url(#a)"/>
 
+  <path d="M60 276 L60 292" class="ln" marker-end="url(#a)"/>
+  <rect x="14" y="294" width="300" height="58" rx="6" class="ch"/>
+  <text x="26" y="313" class="t">Portfolio probe · 3+ related drafts</text>
+  <text x="26" y="327" class="m">repeated openings + shared phrases</text>
+  <text x="26" y="341" class="m">diagnostic only · reported separately</text>
+  <path d="M314 323 L332 323 L332 185 L342 185" class="ln" marker-end="url(#a)"/>
+
   <path d="M314 123 L342 123" class="ln" marker-end="url(#a)"/>
 
   <rect x="344" y="101" width="196" height="44" rx="6" class="surface"/>
@@ -81,7 +88,7 @@
   <path d="M442 145 L442 161" class="ln" marker-end="url(#a)"/>
   <rect x="344" y="163" width="196" height="44" rx="6" class="surface"/>
   <text x="356" y="182" class="t">Diagnose</text>
-  <text x="356" y="196" class="m">hollow spans · facts · voice</text>
+  <text x="356" y="196" class="m">utility · claims · structure</text>
 
   <path d="M442 207 L442 225" class="ln" marker-end="url(#a)"/>
   <rect x="344" y="227" width="196" height="44" rx="6" class="surface"/>

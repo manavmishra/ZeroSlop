@@ -2,9 +2,10 @@
 """make_charts — regenerate the README benchmark charts from the benchmark data.
 
 The charts in the README are computed, not hand-drawn. This reads the same sources
-the tables do — replication.json for the pooled best-picks, and the raw method
-outputs re-scored by the current detector for the register panel — draws two bar
-charts, and writes them to assets/ alongside a small chart-data.json manifest.
+the tables do — replication.json for the pooled best-picks, the raw method outputs
+re-scored by the current detector for the register panel, and the search-informed
+regression results — then draws three bar charts in assets/ and writes a small
+chart-data.json manifest.
 
     python3 bench/make_charts.py            # regenerate the PNGs and the manifest
     python3 bench/make_charts.py --check    # fail if the data drifted (CI)
@@ -26,6 +27,7 @@ BENCH = Path(__file__).resolve().parent
 ROOT = BENCH.parent
 ASSETS = ROOT / "assets"
 MANIFEST = BENCH / "chart-data.json"
+SEARCH_RESULTS = BENCH / "search-corpus" / "results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 
 # Where each method's rewrites live, and the label shown on the chart. The panel
@@ -44,7 +46,7 @@ BEST_LABELS = {"zeroslop": "Zero Slop", "blader": "blader/humanizer",
 
 
 def compute():
-    """Return the two chart datasets, computed from the benchmark data."""
+    """Return the three chart datasets, computed from the benchmark data."""
     import slopscore
     data = slopscore.load_patterns()
 
@@ -71,7 +73,13 @@ def compute():
                     docs.update(json.loads(p.read_text()))
             scores = [slopscore.score_text(t, data)["ai_likelihood"] for t in docs.values()]
         panel.append((label, round(st.mean(scores), 1)))
-    return {"best_picks": best, "detector_panel": panel}
+    search = json.loads(SEARCH_RESULTS.read_text())
+    search_panel = [
+        (genre, row["mean_surface_score"])
+        for genre, row in sorted(search["by_genre"].items())
+    ]
+    return {"best_picks": best, "detector_panel": panel,
+            "search_corpus": search_panel}
 
 
 # ---- rendering (Pillow) --------------------------------------------------
@@ -111,7 +119,7 @@ def _hbar(path, title, subtitle, rows, ours_label):
         d.text((gx - 8, H - 40), f"{vmax * i / 4:.0f}", font=_font(12), fill=MUTE)
     for i, (label, val) in enumerate(rows):
         y = top + i * rowh
-        ours = label == ours_label
+        ours = ours_label is None or label == ours_label
         d.text((x0 - 16, y + rowh // 2 - 9), label, font=_font(15, ours),
                fill=INK if ours else MUTE, anchor="ra")
         bw = (x1 - x0) * val / vmax
@@ -137,6 +145,12 @@ def render(datasets):
         "Detector score, lower means more of the AI accent removed. Scored by Zero Slop's own "
         "meter, so read it as register stripped, not an independent verdict.",
         datasets["detector_panel"], "Zero Slop"))
+    out.append(_hbar(
+        ASSETS / "bench-search-corpus.png",
+        "Search-informed slop challenge",
+        "18 anonymous paraphrases, three per genre. Higher means more tracked surface slop; "
+        "this is a regression check, not field accuracy.",
+        datasets["search_corpus"], None))
     return out
 
 
@@ -150,8 +164,7 @@ def main():
         stored = json.loads(MANIFEST.read_text())
         # normalise (json turns tuples into lists)
         norm = json.loads(json.dumps(fresh))
-        if stored.get("best_picks") != norm["best_picks"] or \
-           stored.get("detector_panel") != norm["detector_panel"]:
+        if stored != norm:
             print("benchmark charts are out of date — the data moved.")
             print("  run: python3 bench/make_charts.py")
             return 1

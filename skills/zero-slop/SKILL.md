@@ -2,9 +2,9 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.4.0"
+  version: "2.4.1"
   author: manavmishra
-description: Turn drafts into sharp, natural prose with a transparent heuristic surface scorer, an evidence-ranked rewrite, quantitative verification, a dedicated copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, remove AI-sounding phrasing, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts and format, reports before-and-after evidence, and learns from later human edits through a private evidence-gated overlay.
+description: Turn drafts into sharp, natural prose with a transparent heuristic surface scorer, a cross-draft template audit, an evidence-ranked rewrite, quantitative verification, a dedicated copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, remove AI-sounding phrasing, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts and format, reports before-and-after evidence, and learns from later human edits through a private evidence-gated overlay.
 ---
 
 # Zero Slop
@@ -113,6 +113,20 @@ clean score with hollow content is still slop, and one flagged word in honest
 technical prose is not. Treat an isolated hit cautiously; act when independent
 signals agree.
 
+**Portfolio probe (three or more related drafts).** A single draft cannot show
+that a whole campaign opens with the same five words or recycles the same
+sentence skeleton. When the input contains three or more related drafts, run:
+
+```
+python3 <skill-root>/scripts/slopscore.py --portfolio <directory>
+```
+
+This reports repeated five-word openings and shared five-word phrases across the
+files. It is a cross-draft templating diagnostic, not part of the 0–100 score and
+not an authorship verdict. Treat repeated product names, legal language, and
+necessary domain terms as legitimate. Rewrite repeated scaffolding and stock
+openings; preserve facts, meaning, and the writer's voice.
+
 **The host-model probe (predictability).** The four channels above read the surface.
 This optional channel asks whether the host model finds the prose predictable.
 Zero Slop ships no model; it uses **you**, the model running this skill, with
@@ -144,12 +158,23 @@ the surface score stands alone, exactly as before.
 
 ### 2. Diagnose
 
-Per paragraph, four judgments the regex cannot make:
+Do not ask for one ungrounded yes/no judgment. Research finds that binary slop
+labels are subjective and that zero-shot LLM judges miss most human-marked slop
+spans. Diagnose the evidence first, paragraph by paragraph:
 
-- **Claim check (removal test):** delete the paragraph mentally — is anything
-  lost? Nothing lost → *hollow* → flag, don't rewrite.
-- **Facts inventory:** list every number, name, date, and quote. These survive
-  the rewrite verbatim.
+- **Information utility:** run the removal test and the relevance test. If
+  deleting the paragraph loses nothing, it is hollow. If it does not serve the
+  brief, audience, or argument, it is irrelevant. Flag missing substance; do
+  not manufacture it.
+- **Information integrity:** inventory every claim, qualifier, number, name,
+  date, quote, and source. Check factual support and source scope where the
+  necessary evidence is present. These survive the rewrite exactly.
+- **Structure:** mark accidental repetition, duplicated conclusions, formulaic
+  transitions, and template order. If a portfolio probe ran, include its
+  repeated openings and phrases here.
+- **Delivery:** mark incoherence, subtle disfluency, needless verbosity,
+  contextually fussy vocabulary, and a tone that does not fit the genre. These
+  are separate problems; a grammar fix does not repair a missing point.
 - **Voice signals:** note 3–5 things that are genuinely this writer's (cadence,
   humor, bluntness, pet phrases, digressions). These survive too. A user
   writing sample outranks every style rule in this skill.

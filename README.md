@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-CI%20gated-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="privacy" src="https://img.shields.io/badge/scorer-offline-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.4.0-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.4.1-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every
@@ -177,6 +177,7 @@ python3 scripts/slopscore.py --explain draft.md          # score it, and see eve
 python3 scripts/slopscore.py --gate 25 draft.md          # fail a build if the draft is too sloppy
 python3 scripts/slopscore.py --fidelity draft.md new.md  # check the rewrite kept your facts
 python3 scripts/slopscore.py --voice you draft.md        # score against your own writing style
+python3 scripts/slopscore.py --portfolio drafts/         # find reused openings across a batch
 ```
 
 The scorer needs no third-party packages, account, or server. A single
@@ -210,8 +211,8 @@ cluster in the same draft.
 
 Word choice is also judged in context. *Leverage* and *robust* are ordinary in a
 runbook but can become useful signals in promotional copy. "Elevated write volume" is
-normal engineering language. The phrase "elevate
-your brand with our seamless platform" is not.
+normal engineering language. A sentence that stacks those terms into a promotional
+promise is not.
 
 Predictability sits outside the main score. Zero Slop hides a handful of words and asks
 your assistant — whether Claude, GPT, or another supported model — to guess each one
@@ -219,6 +220,13 @@ from the words that come before it. When the original word keeps appearing among
 top three guesses, the prose may be too easy for a model to anticipate. This can expose
 polished, generic writing that slipped past the pattern meter. It does not require
 another model or service.
+
+A second diagnostic applies when you give Zero Slop three or more related drafts. It
+compares their first five words and recurring five-word phrases, exposing a campaign in
+which every post starts or pivots the same way. A reviewer can dismiss necessary product
+names, legal language, and domain terms. The portfolio result is reported separately
+because the current corpus is not large enough to justify folding cross-draft repetition
+into the 0-to-100 score.
 
 Editing starts with subtraction. The first pass removes stock phrases and fussy
 formatting while leaving the substance alone. The second works on the argument and the
@@ -230,6 +238,12 @@ For important pieces, Zero Slop tries two or three different edits. One may cut 
 another may keep more warmth, and a third may change the opening or order. Any version
 that drops or adds a fact is out. Zero Slop chooses the cleanest of the rest and runs
 the full verification.
+
+Before rewriting, Zero Slop reviews the draft passage by passage. It looks for four kinds
+of failure: content that adds no useful information, unsupported or weakened claims,
+repeated templates, and writing that is hard to follow. The review considers relevance,
+density, factuality, repetition, coherence, fluency, verbosity, word choice, and tone. It
+does not ask a model for one binary verdict.
 
 Before Zero Slop returns anything, it compares the names, numbers, quotations, links,
 and claims with the original. A copy editor fixes grammar, spelling, punctuation,
@@ -354,15 +368,25 @@ The second chart measures how much of the AI register each rewrite leaves behind
 Slop's own detector produces these numbers, so they are useful for checking the meter's
 target, not for independently grading Zero Slop against other tools.
 
-![AI register remaining after de-slop, lower is cleaner: Zero Slop 9.8 versus 15.7 to 23.4 for others, from 69.0 for the raw drafts](assets/bench-detector.png)
+![AI register remaining after de-slop, lower is cleaner: Zero Slop 10.6 versus 16.7 to 28.2 for others, from 77.1 for the raw drafts](assets/bench-detector.png)
 
 In a separate discrimination test across LinkedIn, blogs, Reddit, newsletters, and
 short social posts, the scorer separated the obvious-slop samples from the known-human
 samples without overlap. We wrote that test set ourselves. It is a regression check for
-easy cases, not an accuracy estimate for writing in the wild. A separate 1,000-document
-test guards speed; CI fails if the batch takes longer than 60 seconds. The full inputs,
-rewrites, anonymized packets, raw ratings, and analysis scripts are in the
-[benchmark harness](bench/).
+easy cases, not an accuracy estimate for writing in the wild.
+
+We added a second challenge after reviewing anonymous public examples found through
+Google and LinkedIn. It contains 18 paraphrases, three for each platform module:
+LinkedIn, X, email, blog, newsletter, and research. Every example crossed the surface
+gate or the separate social-shape check. The chart shows the mean surface score by
+genre. Because these are intentionally obvious positive examples and not copied posts,
+the result measures regression coverage, not real-world accuracy.
+
+![Mean surface scores for 18 anonymous search-informed slop paraphrases: blog 99.9, email 79.7, LinkedIn 61.7, newsletter 58.0, research 97.0, and X 73.3](assets/bench-search-corpus.png)
+
+A separate 1,000-document test guards speed; CI fails if the batch takes longer than 60
+seconds. The full inputs, rewrites, anonymized packets, raw ratings, challenge corpus,
+and analysis scripts are in the [benchmark harness](bench/).
 
 ## Built on good work
 
@@ -392,13 +416,15 @@ left in the text. We do not tune rewrites to fool those detectors.
 ## Under the hood
 
 Zero Slop has two operational loops. Editorial delivery turns the current draft into
-finished copy. Online learning observes later published edits, checks the evidence
-against its thresholds, and updates a private learning layer. Later evidence reconfirms
-detection patterns and preferred fixes; without it, stale patterns decay and stale
-fixes retire. The learning layer feeds both the pattern meter and the rewrite guide,
-so it adapts slop detection and fixing.
+finished copy. For batches of three or more related drafts, a separate portfolio probe
+also finds repeated openings and shared phrases without changing the surface score.
+Online learning observes later published edits, checks the evidence against its
+thresholds, and updates a private learning layer. Later evidence reconfirms detection
+patterns and preferred fixes; without it, stale patterns decay and stale fixes retire.
+The learning layer feeds both the pattern meter and the rewrite guide, so it adapts
+slop detection and fixing.
 
-![Zero Slop has two operational loops. Editorial delivery measures, diagnoses, rewrites, copy-edits, reads aloud, and verifies the final text. Online learning observes later published edits, checks the evidence against its thresholds, and updates a private learning layer. Later evidence reconfirms detection patterns and preferred fixes; stale patterns decay, and stale fixes retire. The private layer feeds both the pattern meter and the rewrite pass.](assets/engine.svg)
+![Zero Slop has two operational loops. Editorial delivery measures a draft, runs separate predictability and cross-draft portfolio diagnostics when applicable, diagnoses information utility, integrity, structure, delivery, and voice, then rewrites, copy-edits, reads aloud, and verifies the final text. Online learning observes later published edits, checks the evidence against its thresholds, and updates a private learning layer. Later evidence reconfirms detection patterns and preferred fixes; stale patterns decay, and stale fixes retire. The private layer feeds both the pattern meter and the rewrite pass.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
@@ -410,6 +436,7 @@ scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
 data/patterns.json          the 266 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
+bench/search-corpus/        18 anonymous cross-genre slop regression cases
 references/readalong.md     the final pass for spoken flow and cohesion
 references/copy-desk.md     the grammar, spelling, and style pass before read-aloud finalization
 tests/test_all.py           correctness, safety, concurrency, packaging, and speed tests
@@ -427,12 +454,18 @@ Zero Slop builds on the four MIT-licensed projects above,
 Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing),
 and Kagi's [SlopStop](https://help.kagi.com/kagi/features/slopstop.html), which landed on
 two of the same ideas: require several signals before judging, and let people appeal.
-The thirteen research papers behind the design are listed in
-[references/evidence.md](references/evidence.md). Three carry the most weight. One
+The research behind the design is listed in
+[references/evidence.md](references/evidence.md). Three findings carry the most weight. One
 study finds that detectors read a model's training style rather than the machine itself
 (arXiv:2605.19516). Kobak et al. describe a method for spotting overused words
 (arXiv:2406.07016). A third study shows that detectors wrongly flag more than half of
 non-native English writers (arXiv:2304.02819). That last finding is why a non-native
 sample sits in our safety set.
+
+The v2.4.1 portfolio diagnostic and passage-level quality review also draw on [The Slop
+Index](https://github.com/hgaddipati1118/slop-index) and [*Measuring AI “Slop” in
+Text*](https://arxiv.org/abs/2509.19163). Together, they support one practical rule:
+cross-draft repetition is useful evidence, but binary judgments and automatic quality
+metrics are not reliable enough to become an unqualified verdict.
 
 MIT.

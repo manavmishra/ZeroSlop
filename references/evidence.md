@@ -58,6 +58,47 @@ weighted tell density, lexicon hits, burstiness, formatting densities,
 register signals. Passing the gate means "the measurable tells are gone",
 which is the honest, robust target.
 
+## Span-first diagnosis, not a binary vibe check
+
+Shaib et al., *Measuring AI “Slop” in Text* (arXiv:2509.19163), built a
+taxonomy from 19 experts and span annotations by professional copy editors.
+The useful split is broader than style alone: information utility (density and
+relevance), information quality (factuality and appropriate perspective), and
+style quality (repetition, templatedness, coherence, fluency, verbosity, word
+complexity, and tone). Which dimensions mattered changed by domain. Factual and
+structural problems mattered most in short answers; utility and tone mattered
+more in news.
+
+The negative results are just as important. Pairwise agreement on the binary
+slop label was poor to fair, automatic linear models reached only 0.52 and 0.55
+AUPRC on the two datasets, and zero-shot LLM judges under-predicted slop with
+recall of 0.08–0.12. Prompted span extraction also aligned poorly with the human
+annotations. That evidence rules out an ungrounded "does this feel like slop?"
+model verdict as a reliable gate. Zero Slop therefore uses a span-first,
+category-specific diagnosis, keeps deterministic surface measurements separate,
+and reserves relevance, coherence, tone, and factual judgments for explicit
+review rather than laundering them into the 0–100 meter.
+
+Source: <https://arxiv.org/abs/2509.19163> (CC BY 4.0).
+
+## Cross-draft templating
+
+The Slop Index evaluates 19,928 model generations against pre-ChatGPT human
+baselines. Its most portable idea for an editor is not its composite ranking;
+it is measuring repeated five-word openings across several responses to the
+same prompt. A single document cannot expose that failure. The same project
+also found that some plausible measures reverse direction by genre, so its
+rhythm axis is used only for email and its weights are renormalized when a
+baseline cannot support an axis.
+
+Zero Slop adopts the conservative part of that method in `--portfolio`: report
+exact repeated openings and shared multiword templates across three or more
+related drafts. The result does not change the surface score. There is not yet
+enough labeled, cross-genre evidence to assign it a safe universal weight, and
+necessary domain phrases can legitimately recur.
+
+Source: <https://github.com/hgaddipati1118/slop-index> (MIT).
+
 ## What rewriting cannot do (the honesty boundary)
 
 - Retrieval/watermarking by providers survives any rewrite (DIPPER's

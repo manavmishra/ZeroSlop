@@ -6,7 +6,8 @@ import sys
 from pathlib import Path
 
 E = Path(__file__).parent
-sys.path.insert(0, "/Users/manav/.claude/skills/zero-slop/scripts")
+ROOT = E.parent
+sys.path.insert(0, str(ROOT / "scripts"))
 import slopscore  # noqa: E402
 
 METHODS = ["zeroslop", "petergyang", "blader", "deslop"]

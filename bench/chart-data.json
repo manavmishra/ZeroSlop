@@ -46,5 +46,31 @@
    "Zero Slop",
    10.6
   ]
+ ],
+ "search_corpus": [
+  [
+   "blog",
+   99.9
+  ],
+  [
+   "email",
+   79.7
+  ],
+  [
+   "linkedin",
+   61.7
+  ],
+  [
+   "newsletter",
+   58.0
+  ],
+  [
+   "research",
+   97.0
+  ],
+  [
+   "x",
+   73.3
+  ]
  ]
 }

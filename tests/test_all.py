@@ -876,6 +876,62 @@ class Discrimination(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout)
 
 
+class SearchCorpus(unittest.TestCase):
+    """Anonymous cross-genre examples stay reproducible and identifying-free."""
+
+    PATH = ROOT / "bench" / "search-corpus" / "corpus.json"
+
+    def test_scores_are_current_and_obvious_slop_is_caught(self):
+        r = run([str(ROOT / "bench" / "search-corpus" / "evaluate.py"), "--check"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_corpus_is_anonymous_and_covers_every_platform_module(self):
+        rows = json.loads(self.PATH.read_text())
+        self.assertEqual(len(rows), 18)
+        self.assertEqual({row["genre"] for row in rows},
+                         {"linkedin", "x", "email", "blog", "newsletter", "research"})
+        self.assertEqual(len({row["id"] for row in rows}), len(rows))
+        for row in rows:
+            with self.subTest(row["id"]):
+                self.assertEqual(row["source_kind"], "anonymous_search_paraphrase")
+                self.assertEqual(row["label"], "slop")
+                self.assertFalse(re.search(r"https?://|www\.|@[A-Za-z0-9_]", row["text"]))
+                self.assertFalse({"author", "username", "handle", "source_url"} & row.keys())
+
+    def test_benchmark_scripts_are_portable(self):
+        for path in (ROOT / "bench").glob("*.py"):
+            with self.subTest(path.name):
+                source = path.read_text()
+                self.assertNotIn("/Users/", source)
+                self.assertNotIn("\\\\Users\\\\", source)
+
+
+class PortfolioDiagnostic(unittest.TestCase):
+    """Batch templating is reported without changing the single-text score."""
+
+    def test_repeated_openings_and_templates_are_found(self):
+        docs = [
+            ("a", "In today's rapidly evolving market, teams need a clear plan for delivery."),
+            ("b", "In today's rapidly evolving market, teams need a clear plan for hiring."),
+            ("c", "In today's rapidly evolving market, teams need a clear plan for pricing."),
+            ("d", "The release failed because the queue filled overnight."),
+        ]
+        result = slopscore.portfolio_metrics(docs)
+        self.assertTrue(result["measured"])
+        self.assertEqual(result["repeated_openers"][0]["document_count"], 3)
+        self.assertEqual(result["repeated_openers"][0]["text"],
+                         "in today's rapidly evolving market")
+        self.assertTrue(result["shared_phrases"])
+        self.assertNotIn("in today's rapidly evolving market",
+                         {row["text"] for row in result["shared_phrases"]})
+        self.assertFalse(result["calibrated_probability"])
+
+    def test_portfolio_abstains_on_too_few_drafts(self):
+        result = slopscore.portfolio_metrics([("a", "One draft."), ("b", "Two drafts.")])
+        self.assertFalse(result["measured"])
+        self.assertIn("at least 3", result["reason"])
+
+
 class Fidelity(unittest.TestCase):
     """The channel the gate was missing. Benchmarking ranked the skill last on
     fidelity and it carried the only fabrication flag, because nothing measured
@@ -1070,6 +1126,7 @@ class Diagram(unittest.TestCase):
         for phrase in (
                 "editorial delivery", "measure", "diagnose", "rewrite",
                 "copy edit", "read aloud", "verify", "online learning",
+                "portfolio probe",
                 "observe", "gate evidence", "update private overlay",
                 "reconfirm / decay", "detector weights + fix preferences",
                 "adapts detection + fixing"):
