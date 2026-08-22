@@ -30,7 +30,7 @@ Lower is better. In our test set, known-human writing lands between 9 and 21, wh
 AI drafts averaged 77. Read the list of flagged phrases first; the number is only a
 summary.
 
-## Who it is for
+## Who Zero Slop is for
 
 Anyone who creates content and would rather not sound like a robot. A founder shipping
 a launch post. A marketer with five posts due this week. A researcher whose paper
@@ -38,7 +38,7 @@ needs to stay formal, not get "humanized" into mush. An engineering team that wa
 slop to fail a check the way a bug does. If AI helps you write and you want the result
 to still sound like you, this is for you.
 
-## Why it matters now
+## Why Zero Slop matters now
 
 For a while, sounding like AI mainly cost you credibility with the readers who
 noticed. Platforms have started attaching product and policy consequences to it. In
@@ -182,7 +182,7 @@ standard-library Python file does the scoring, and your writing never leaves you
 machine. If Python is unavailable, the skill still runs from its written rules — you
 only lose the number.
 
-## How it decides
+## How it works
 
 The first thing Zero Slop does is **measure**. Four surface channels turn a draft into
 a score from 0 to 100. Every point traces back to a quoted span or a document-level
@@ -190,12 +190,12 @@ statistic you can inspect, so the number is never a black box you have to trust.
 one channel looks at your actual words; the rest read the *shape* of the writing. That
 is why running a draft through a thesaurus barely moves the score.
 
-| what it looks at | what gives you away |
+| What Zero Slop measures | Signals it detects |
 |---|---|
 | word choice | 266 weighted patterns, a 96-word watchlist, and 25 words that only count in a salesy sentence |
 | rhythm | sentences that are all the same length, paragraphs that march in step |
 | followability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
-| formatting + register | too many em dashes, emoji, hashtags, bold everywhere, machine-formal tone |
+| formatting + register | excessive em dashes, emoji, hashtags, and bold formatting; a machine-formal tone |
 
 The scorer is built to accuse slowly. A single em dash is not slop. Fine writing uses
 them, so they carry weight only when other signals agree. Clusters convict; lone
