@@ -80,23 +80,23 @@
   ],
   [
    "Zero Slop",
-   13.7
+   14.2
   ],
   [
    "no-ai-slop",
-   29.7
-  ],
-  [
-   "humanizer",
-   28.4
-  ],
-  [
-   "de-slop",
    27.1
   ],
   [
+   "humanizer",
+   20.7
+  ],
+  [
+   "de-slop",
+   51.0
+  ],
+  [
    "stop-slop",
-   29.9
+   24.5
   ]
  ],
  "search_rewrite_passes": [
@@ -110,19 +110,19 @@
   ],
   [
    "no-ai-slop",
-   66.7
-  ],
-  [
-   "humanizer",
-   66.7
-  ],
-  [
-   "de-slop",
    72.2
   ],
   [
+   "humanizer",
+   83.3
+  ],
+  [
+   "de-slop",
+   38.9
+  ],
+  [
    "stop-slop",
-   61.1
+   72.2
   ]
  ],
  "external_checker_clean": [
@@ -132,23 +132,23 @@
   ],
   [
    "Zero Slop",
-   82.4
+   93.8
   ],
   [
    "no-ai-slop",
-   75.0
+   76.5
   ],
   [
    "humanizer",
-   73.3
+   77.8
   ],
   [
    "de-slop",
-   75.0
+   38.9
   ],
   [
    "stop-slop",
-   78.6
+   76.5
   ]
  ],
  "capability_matrix": {

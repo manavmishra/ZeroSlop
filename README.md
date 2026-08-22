@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-CI%20gated-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="privacy" src="https://img.shields.io/badge/scorer-offline-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.4.2-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.4.3-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every
@@ -182,8 +182,14 @@ python3 scripts/slopscore.py --portfolio drafts/         # find reused openings 
 
 The scorer needs no third-party packages, account, or server. A single
 standard-library Python file does the scoring, and your writing never leaves your
-machine. If Python is unavailable, the skill still runs from its written rules — you
-only lose the number.
+machine. If Python is unavailable, the skill still runs from its written rules, but
+local scores and scripted checks are unavailable.
+
+Zero Slop has three output modes. A normal rewrite returns the finished text with its
+scorecard and heatmaps. An inspect-only request quotes the evidence and suggests fixes
+without changing the draft or guessing who wrote it. When another agent uses Zero Slop
+as an internal quality gate, embedded mode runs the same checks but returns only the
+finished text, keeping editorial machinery out of the deliverable.
 
 ## How it works
 
@@ -295,11 +301,11 @@ private local learning file at
 `$ZERO_SLOP_HOME/learned.json` (default: `~/.zero-slop/learned.json`). The scorer
 reloads that file on every run, so the new evidence affects the next draft without
 changing the installed skill or anyone else's detector. This is next-run adaptation,
-not a remote service changing a draft while it is open. If the writer repeatedly
-replaces the same tell in the same way, the file also remembers the fix as a private
-preference after the same replacement appears in three content-distinct edit pairs.
-The next rewrite can consult it with `learn.py --guide`, but uses it only when it
-preserves the current meaning and facts.
+not a remote service changing a draft while it is open. After the writer makes the
+same replacement across three content-distinct edit pairs, the file also remembers
+that fix as a private preference. The next rewrite can consult the preference with
+`learn.py --guide`, but applies it only when doing so preserves the current meaning
+and facts.
 
 Repeated false-positive evidence can lower a local weight. Reconfirmation keeps
 detection rules and preferred fixes current. Without it, detection rules lose weight
@@ -335,13 +341,21 @@ voice profiles. It does not rewrite `SKILL.md` or silently alter the shared skil
 
 ## What the benchmark can and cannot show
 
-This is a small, synthetic comparison, not proof that one tool is best. We wrote 50
-AI-heavy drafts across six kinds of writing and produced four rewrites of each: Zero
-Slop, blader/humanizer, petergyang/no-ai-slop, and isatimur/de-slop. We recreated the
-other projects' outputs from their published prompts instead of running their live
-products. Only the Zero Slop rewrites were tuned against this benchmark's scorecard.
-[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) appears in the
-detector chart below but was not part of the blinded comparison.
+Here is where Zero Slop stands in the evidence currently preserved in this repository:
+
+| Check | Current result | What it supports |
+|---|---:|---|
+| Fresh 18-item instruction replay | 14.2 mean surface score; 18/18 passed the surface, shape, and automated fidelity gates | The current workflow completes its own measurable contract on obvious positive cases |
+| Fresh AIStoryHub cross-check | 15/16 eligible rewrites read clean; 2 checker abstentions | The reduction is visible to a second, independently maintained surface checklist |
+| Easy-case detector regressions | 18/18 obvious-slop paraphrases caught; 12/12 known-human samples classified correctly | The deterministic meter separates the deliberately easy cases in the shipped test sets |
+| Historical blind LLM-as-a-judge review | 55/100 best selections; humanizer received 40/100 | Zero Slop and humanizer were competitive in that small setup; the difference was not statistically significant |
+
+These are regression and comparison results, not a field-accuracy claim. The historical
+review used 50 synthetic drafts across six kinds of writing and four rewrite methods.
+The current 18-item replay uses anonymous public-post paraphrases and five methods. In
+both cases, competing outputs were recreated from published instructions rather than
+produced by live products. Only Zero Slop is designed to iterate against this
+repository's numeric gate.
 
 ### How the blind LLM-as-a-judge review worked
 
@@ -390,27 +404,32 @@ the result measures regression coverage, not real-world accuracy.
 
 ### Same-corpus instruction replay
 
-We then edited the same 18 items with Zero Slop, no-ai-slop, humanizer, de-slop,
-and stop-slop. One host Codex session replayed each method's pinned instructions with
-the same brief: preserve every claim and fact, add nothing, and return only the final
-text. The exact source revisions, rewritten texts, and item-level results are in
+On August 22, 2026, we reran the same 18 items from scratch with Zero Slop,
+no-ai-slop, humanizer, de-slop, and stop-slop. One current Codex session replayed each
+method's instructions at the pinned revisions with the same brief: preserve every
+claim and fact, add nothing, and return only the final text. The run record preserves
+the prompt, upstream commit hashes, outputs, and item-level results. The desktop task
+did not expose its exact hosted model identifier or inference settings, so the run is
+fresh and inspectable but not bit-for-bit reproducible. The records are in
 [`bench/search-corpus/`](bench/search-corpus/).
 
-Zero Slop's mean surface score fell to 13.7. The other instruction sets finished
-between 27.1 and 29.9, down from 78.2 for the source drafts. This is a performance
-check against Zero Slop's own meter, not independent evidence that its writing is
-better. Zero Slop explicitly measures and revises against this gate; the other skills
-do not optimize for it.
+Zero Slop's mean surface score fell to 14.2. Humanizer finished at 20.7, stop-slop at
+24.5, no-ai-slop at 27.1, and de-slop at 51.0, down from 78.2 for the source drafts.
+This is a performance check against Zero Slop's own meter, not independent evidence
+that its writing is better. Zero Slop explicitly measures, repairs, and verifies
+against this gate; the other skills do not optimize for it.
 
-![Mean surface score after one host model replayed five pinned anti-slop instruction sets on the same 18 paraphrases: original 78.2, Zero Slop 13.7, de-slop 27.1, humanizer 28.4, no-ai-slop 29.7, and stop-slop 29.9](assets/bench-search-rewrites.png)
+![Fresh mean surface score after one current host session replayed five pinned anti-slop instruction sets on the same 18 paraphrases: original 78.2, Zero Slop 14.2, humanizer 20.7, stop-slop 24.5, no-ai-slop 27.1, and de-slop 51.0](assets/bench-search-rewrites.png)
 
-The next chart requires both the genre-specific surface gate and the automated fact
-check to pass. All five methods preserved the figures, names, quotations, links, and
-asserted feelings that the script can inspect in all 18 items. The different pass rates
-therefore come entirely from the surface gate. The checker cannot detect every
-reframed claim or shift in emphasis, so the result is not semantic accuracy.
+The next chart requires the genre-specific surface and shape gates, along with the
+automated fact check, to pass. Zero Slop passed all three on all 18 items. Humanizer
+passed 15, no-ai-slop and stop-slop passed 13 each, and de-slop passed 7. Every method
+passed the automated fact check on all 18 items after its own repair pass, and every
+rewrite passed the shape gate. The remaining differences therefore come from the
+surface gate. The automated fact check cannot detect every reframed claim or shift in
+emphasis, so these results do not measure semantic accuracy.
 
-![Clean-and-fact-checked pass rate on the same 18 paraphrases: Zero Slop 100 percent, de-slop 72.2 percent, humanizer and no-ai-slop 66.7 percent, stop-slop 61.1 percent, and original drafts 0 percent](assets/bench-search-passrate.png)
+![Fresh clean-and-fact-checked pass rate on the same 18 paraphrases: Zero Slop 100 percent, humanizer 83.3 percent, no-ai-slop and stop-slop 72.2 percent, de-slop 38.9 percent, and original drafts 0 percent](assets/bench-search-passrate.png)
 
 This positive-only challenge cannot produce a defensible accuracy number for any
 method. That would require representative positive and negative samples, independent
@@ -433,22 +452,22 @@ deliberately does not flag persona names or ambiguous words without context. The
 pin, audit code, aggregate result, and limitations are in
 [`bench/aistoryhub-corpus/`](bench/aistoryhub-corpus/).
 
-We also submitted the same 18 source drafts and all five sets of rewrites, one item at a
-time, to AIStoryHub's [public AI Slop Checker](https://aistoryhub.co/slop-checker).
-The checker marked 14 of Zero Slop's 17 eligible rewrites as “Reads Clean.” It abstained
-on one Zero Slop rewrite because the text was shorter than its 20-word minimum. The
-table keeps those varying denominators visible.
+We also submitted the same 18 source drafts and all five fresh sets of rewrites, one
+item at a time, to AIStoryHub's [public AI Slop Checker](https://aistoryhub.co/slop-checker).
+The checker marked 15 of Zero Slop's 16 eligible rewrites as “Reads Clean.” It
+abstained on two Zero Slop rewrites because they were shorter than its 20-word
+minimum. The table keeps those varying denominators visible.
 
 | Text or method | Reads Clean | Eligible | Abstained | Mean checker score |
 |---|---:|---:|---:|---:|
 | Original drafts | 3 (16.7%) | 18 | 0 | 80.6 |
-| Zero Slop | 14 (82.4%) | 17 | 1 | 16.9 |
-| stop-slop | 11 (78.6%) | 14 | 4 | 21.0 |
-| no-ai-slop | 12 (75.0%) | 16 | 2 | 24.2 |
-| de-slop | 12 (75.0%) | 16 | 2 | 24.2 |
-| humanizer | 11 (73.3%) | 15 | 3 | 25.9 |
+| Zero Slop | 15 (93.8%) | 16 | 2 | 6.0 |
+| humanizer | 14 (77.8%) | 18 | 0 | 21.2 |
+| no-ai-slop | 13 (76.5%) | 17 | 1 | 22.5 |
+| stop-slop | 13 (76.5%) | 17 | 1 | 22.6 |
+| de-slop | 7 (38.9%) | 18 | 0 | 58.8 |
 
-![Reads Clean rate from the public AIStoryHub checker on eligible rewrites from the same 18-item corpus: Zero Slop 82.4 percent, stop-slop 78.6 percent, no-ai-slop and de-slop 75.0 percent, humanizer 73.3 percent, and original drafts 16.7 percent. Short rewrites below the checker's 20-word minimum are abstentions and excluded from each denominator.](assets/bench-external-checker.png)
+![Fresh Reads Clean rate from the public AIStoryHub checker on eligible rewrites from the same 18-item corpus: Zero Slop 93.8 percent, humanizer 77.8 percent, no-ai-slop and stop-slop 76.5 percent, de-slop 38.9 percent, and original drafts 16.7 percent. Short rewrites below the checker's 20-word minimum are abstentions and excluded from each denominator.](assets/bench-external-checker.png)
 
 AIStoryHub's checker is a deterministic surface checklist, not a human review. Its
 scores in this run were strongly bimodal, and it does not measure semantic fidelity,
@@ -468,7 +487,8 @@ and analysis scripts are in the [benchmark harness](bench/).
 35 named pattern families, voice-sample matching, and a strict no-fabrication check.
 [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) has a clean detect
 mode, protects the writer's rough edges, and asks for the minimum effective edit. Zero
-Slop works on the same editorial problem. It also measures the draft, verifies the
+Slop covers those editorial behaviors, including minimum effective edits, embedded
+delivery, and inspect-only findings. It also measures the draft, verifies the
 rewrite, checks related drafts for repeated templates, and learns from published edits.
 
 Capability presence is not effectiveness proof. The blind review above remains the
@@ -486,7 +506,7 @@ on August 22, 2026.
 
 | Area | Zero Slop | blader/humanizer | petergyang/no-ai-slop |
 |---|---|---|---|
-| Modes | Metered findings, rewrite, and a separate 3+ draft portfolio probe. | Rewrite workflow. | Edit and detect workflows. |
+| Modes | Rewrite, inspect-only evidence report, embedded final-text gate, and a separate 3+ draft portfolio probe. | Pasted-text, file, and embedded rewrite workflows. | Edit and detect workflows. |
 | Measurement | Traceable surface score with statistical and context-gated signals. | Pattern review in the skill instructions. | Named findings. The detect mode explicitly does not score. |
 | Fact protection | Scripted fact inventory plus claim review. | No-fabrication instruction and final claim check. | Preserve-facts instruction and self-check. |
 | Selection and finish | Best-of-N reranker. Copy desk. Fresh read-aloud pass. Then every gate runs again. | Draft, read aloud, then check patterns and claims. | Minimum effective edit plus a written self-evaluation. |
@@ -530,21 +550,20 @@ Three gaps remain:
    function-word pairings and sentence-length distributions. Zero Slop will not weight
    either signal until it has been tuned on labeled data and tested across current model
    generations.
-3. **Live competitor runs.** The comparison above replays pinned instruction sets in one
-   Codex session. A true product comparison requires fresh live runs with the model,
-   settings and prompts recorded.
+3. **Live product runs.** The current comparison replays pinned instruction sets in one
+   Codex session. A true product comparison still requires live runs of each product,
+   with the exact model, settings, and complete prompts recorded.
 
 ## System design
 
-The sections above describe each component in detail. Together, they form a three-layer
-editorial pipeline:
+Together, the components described above form a three-layer editorial pipeline:
 
 1. **Deterministic measurement** runs locally. It reports quoted pattern matches,
    sentence statistics, formatting counts, and the 0-to-100 surface score. The score
    is evidence about the writing, not a probability that AI wrote it.
 2. **Contextual AI editing** is performed by the host language model. It evaluates the
-   draft's substance, factual scope, structure, audience, and voice; rewrites it; then
-   performs the copy-editing and read-aloud passes.
+   draft's substance, factual scope, structure, audience, and voice before rewriting
+   it. Separate fresh-eyes model passes then copy-edit the text and read it aloud.
 3. **Final verification** combines scripts with a final review by the host model. The
    scripts recheck the score, figures, names, quotations, and links. The host model
    rechecks meaning, qualifiers, voice, format, structure, and flow. Any textual repair
@@ -568,7 +587,13 @@ The private learning loop adapts detector weights and preferred fixes. It does n
 or alter the host model. This separation keeps learned changes inspectable, reversible,
 and local while the host model supplies the contextual language understanding.
 
-![Zero Slop's hybrid system: deterministic local measurement guides contextual editing by the host model; scripts and the model verify the final text; a separate private feedback loop adapts local detector weights and preferred fixes without retraining the host model.](assets/engine.svg)
+The diagram below shows how the loops connect. Zero Slop can learn from a later edit
+only when both its returned version and the writer's published version are available.
+Evidence that clears the gates updates a private overlay: detector
+weights inform measurement on the next run, while preferred fixes inform rewriting.
+Later evidence reconfirms useful lessons; stale weights decay and stale fixes retire.
+
+![Zero Slop's two connected operational loops. Editorial delivery measures, diagnoses, rewrites, copy-edits, reads aloud, and verifies the current draft. Later published edits enter a private learning loop whose recurrence, novelty, and known-human safety gates control a local overlay. Detector weights feed the next measurement, preferred fixes feed the next rewrite, and stale lessons decay or retire without retraining the host model.](assets/engine.svg)
 
 ### Repository map
 
@@ -613,6 +638,6 @@ design relies most heavily on four findings:
   [*Measuring AI “Slop” in Text*](https://arxiv.org/abs/2509.19163)).
 
 Those findings explain the cluster rule, the known-human safety corpus, the separate
-portfolio diagnostic and the refusal to present the 0-to-100 meter as a probability.
+portfolio diagnostic, and the refusal to present the 0-to-100 meter as a probability.
 
 MIT.

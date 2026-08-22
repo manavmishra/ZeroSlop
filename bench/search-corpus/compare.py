@@ -219,7 +219,10 @@ def compute():
         "corpus": "anonymous-search-paraphrases-v1",
         "n_examples": len(corpus),
         "generation": {
+            "run_id": metadata["run_id"],
+            "generated_at": metadata["generated_at"],
             "generator": metadata["generator"],
+            "model_record": metadata["model_record"],
             "prompt": metadata["prompt"],
             "method_revisions": {
                 key: {k: v for k, v in value.items() if k != "label"}

@@ -1,126 +1,165 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two operational loops. In editorial delivery, deterministic local Python measures traceable surface evidence. The host language model interprets the draft and edits it contextually. Scripts and the model then verify the exact text returned. Predictability and portfolio probes are reported as separate diagnostics. In private online learning, evidence from published edits passes recurrence, novelty, and known-human safety checks before it can update local detector weights or preferred fixes. The private overlay informs the next scoring and rewrite cycle but does not retrain the host model. External taxonomies enter only through a reviewed, tested, versioned maintenance release.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two connected operational loops. Editorial delivery moves a current draft through local measurement, contextual diagnosis and rewriting, a dedicated copy editor, a fresh read-aloud editor, and final verification. When a check fails, the text returns for repair; both editorial passes and every check then run again before delivery. Private online learning starts only when both Zero Slop's returned copy and the writer's later published edit are available. It observes the difference, gates the evidence for recurrence, novelty, and known-human safety, and updates a local overlay. Detector weights guide measurement on the next run, while preferred fixes guide rewriting. Later evidence reconfirms useful lessons; stale weights decay and stale fixes retire. The loop never retrains the host model. External taxonomies enter only through reviewed, tested, versioned maintenance releases.">
   <defs>
-    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#8A939F"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7B8491"/>
     </marker>
-    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#8A4FA3"/>
+    <marker id="repair-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#A66A20"/>
+    </marker>
+    <marker id="learn-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#82549A"/>
     </marker>
     <style>
-      .surface { fill:#F7F8FA; stroke:#C9CED6; stroke-width:1.2 }
-      .ch { fill:#EEF3FA; stroke:#2A78D6; stroke-width:1.2 }
-      .ai { fill:#E8F3EC; stroke:#1E7A4C; stroke-width:1.4 }
-      .hi { fill:#F7F1E6; stroke:#A66A20; stroke-width:1.2 }
-      .lr { fill:#F4EEF8; stroke:#8A4FA3; stroke-width:1.2 }
-      .t  { font-size:12px; fill:#1B1D22 }
-      .m  { font-size:10px; fill:#5B6270 }
-      .h  { font-size:10.5px; fill:#5B6270; letter-spacing:.06em }
-      .ey { font-size:9.5px; fill:#5B6270; letter-spacing:.08em }
-      .hp { font-size:10.5px; fill:#8A4FA3; letter-spacing:.06em }
-      .lb { font-size:9.5px; fill:#8A4FA3 }
-      .lg { font-size:9.5px; fill:#5B6270 }
-      .ln { stroke:#8A939F; stroke-width:1.3; fill:none }
-      .lp { stroke:#8A4FA3; stroke-width:1.3; fill:none; stroke-dasharray:4 3 }
-      .grp{ fill:none; stroke:#C9CED6; stroke-width:1; stroke-dasharray:3 3 }
-      .grl{ fill:none; stroke:#8A4FA3; stroke-width:1; stroke-dasharray:3 3 }
+      .grp { fill:#FBFCFD; stroke:#C9CED6; stroke-width:1.2; stroke-dasharray:4 4 }
+      .measure { fill:#EEF3FA; stroke:#2A78D6; stroke-width:1.2 }
+      .model { fill:#E8F3EC; stroke:#1E7A4C; stroke-width:1.2 }
+      .editor { fill:#F0F5ED; stroke:#5F7F4A; stroke-width:1.2 }
+      .verify { fill:#F7F1E6; stroke:#A66A20; stroke-width:1.2 }
+      .learn { fill:#F4EEF8; stroke:#82549A; stroke-width:1.2 }
+      .neutral { fill:#F7F8FA; stroke:#C9CED6; stroke-width:1.1 }
+      .title { font-size:14px; font-weight:700; fill:#191C21; letter-spacing:.08em }
+      .loop { font-size:11px; font-weight:700; fill:#4E5662; letter-spacing:.08em }
+      .stage { font-size:13px; font-weight:700; fill:#191C21 }
+      .role { font-size:9px; fill:#5B6270; letter-spacing:.08em }
+      .body { font-size:10px; fill:#4E5662 }
+      .note { font-size:9.5px; fill:#626B78 }
+      .learn-title { font-size:11px; font-weight:700; fill:#82549A; letter-spacing:.08em }
+      .learn-note { font-size:9.5px; fill:#82549A }
+      .ln { stroke:#7B8491; stroke-width:1.35; fill:none }
+      .rp { stroke:#A66A20; stroke-width:1.35; fill:none; stroke-dasharray:4 3 }
+      .lp { stroke:#82549A; stroke-width:1.35; fill:none; stroke-dasharray:4 3 }
       @media (prefers-color-scheme: dark) {
-        svg { color-scheme: dark }
-        .surface { fill:#1E2128; stroke:#3A404B }
-        .ch { fill:#16233A; stroke:#4B90E2 }
-        .ai { fill:#14291D; stroke:#3FA872 }
-        .hi { fill:#302617; stroke:#C58A43 }
-        .lr { fill:#241B2E; stroke:#A972C4 }
-        .t  { fill:#E8EAED }
-        .m  { fill:#9AA2AE }
-        .h  { fill:#9AA2AE }
-        .ey { fill:#9AA2AE }
-        .hp { fill:#A972C4 }
-        .lb { fill:#A972C4 }
-        .lg { fill:#9AA2AE }
-        .ln { stroke:#6B7280 }
-        .grp{ stroke:#3A404B }
+        svg { color-scheme:dark }
+        .grp { fill:#171A20; stroke:#3A404B }
+        .measure { fill:#16233A; stroke:#4B90E2 }
+        .model { fill:#14291D; stroke:#3FA872 }
+        .editor { fill:#202A1B; stroke:#789D61 }
+        .verify { fill:#302617; stroke:#C58A43 }
+        .learn { fill:#241B2E; stroke:#A972C4 }
+        .neutral { fill:#1E2128; stroke:#3A404B }
+        .title,.stage { fill:#E8EAED }
+        .loop,.role,.body,.note { fill:#A2A9B4 }
+        .learn-title,.learn-note { fill:#B987CF }
+        .ln { stroke:#737C89 }
+        .rp { stroke:#C58A43 }
+        .lp { stroke:#A972C4 }
       }
     </style>
   </defs>
 
-  <text x="20" y="24" class="h">LOOP 1 · EDITORIAL DELIVERY</text>
-  <text x="20" y="41" class="m">measure → diagnose → rewrite → copy edit → read aloud → verify</text>
+  <text x="20" y="28" class="title">ZERO SLOP · TWO CONNECTED OPERATIONAL LOOPS</text>
+  <text x="20" y="48" class="note">The first loop finishes today's draft. The second learns cautiously from what the writer later publishes and informs the next run.</text>
 
-  <rect x="20" y="58" width="285" height="252" rx="10" class="ch"/>
-  <text x="36" y="82" class="ey">DETERMINISTIC MEASUREMENT</text>
-  <text x="36" y="104" class="t">Local Python</text>
-  <text x="36" y="128" class="m">Find traceable surface evidence.</text>
-  <text x="47" y="163" class="m">Pattern meter · quoted spans</text>
-  <line x1="36" y1="174" x2="289" y2="174" stroke="#C9CED6"/>
-  <text x="47" y="197" class="m">Rhythm · sentence-length variation</text>
-  <line x1="36" y1="208" x2="289" y2="208" stroke="#C9CED6"/>
-  <text x="47" y="231" class="m">Followability · density + long sentences</text>
-  <line x1="36" y1="242" x2="289" y2="242" stroke="#C9CED6"/>
-  <text x="47" y="265" class="m">Formatting + register · counts + rates</text>
-  <line x1="36" y1="276" x2="289" y2="276" stroke="#C9CED6"/>
-  <text x="36" y="294" class="m">0–100 score · traceable surface evidence</text>
+  <rect x="20" y="70" width="1160" height="286" rx="12" class="grp"/>
+  <text x="40" y="96" class="loop">LOOP 1 · EDITORIAL DELIVERY · CURRENT DRAFT</text>
+  <text x="40" y="114" class="note">measure → diagnose → rewrite → copy edit → read aloud → verify</text>
 
-  <path d="M305 184 L357 184" class="ln" marker-end="url(#a)"/>
-  <text x="314" y="174" class="lg">guides</text>
+  <rect x="40" y="132" width="160" height="112" rx="8" class="measure"/>
+  <text x="54" y="156" class="stage">Measure</text>
+  <text x="54" y="174" class="role">LOCAL SCRIPT</text>
+  <text x="54" y="199" class="body">surface score</text>
+  <text x="54" y="216" class="body">quoted evidence</text>
+  <text x="54" y="233" class="body">document statistics</text>
+  <path d="M200 188 L224 188" class="ln" marker-end="url(#arrow)"/>
 
-  <rect x="360" y="58" width="285" height="252" rx="10" class="ai"/>
-  <text x="376" y="82" class="ey">CONTEXTUAL AI EDITING</text>
-  <text x="376" y="104" class="t">Host language model</text>
-  <text x="376" y="128" class="m">Interpret the draft before changing it.</text>
-  <text x="387" y="163" class="m">Substance + factual scope</text>
-  <line x1="376" y1="174" x2="629" y2="174" stroke="#C9CED6"/>
-  <text x="387" y="197" class="m">Structure + audience</text>
-  <line x1="376" y1="208" x2="629" y2="208" stroke="#C9CED6"/>
-  <text x="387" y="231" class="m">Rewrite + copy edit</text>
-  <line x1="376" y1="242" x2="629" y2="242" stroke="#C9CED6"/>
-  <text x="387" y="265" class="m">Read aloud + fix flow</text>
-  <line x1="376" y1="276" x2="629" y2="276" stroke="#C9CED6"/>
-  <text x="376" y="294" class="m">Claude · GPT · another compatible model</text>
+  <rect x="225" y="132" width="160" height="112" rx="8" class="model"/>
+  <text x="239" y="156" class="stage">Diagnose</text>
+  <text x="239" y="174" class="role">HOST MODEL</text>
+  <text x="239" y="199" class="body">substance + claims</text>
+  <text x="239" y="216" class="body">structure + audience</text>
+  <text x="239" y="233" class="body">voice + delivery</text>
+  <path d="M385 188 L409 188" class="ln" marker-end="url(#arrow)"/>
 
-  <path d="M645 184 L697 184" class="ln" marker-end="url(#a)"/>
-  <text x="655" y="174" class="lg">checks</text>
+  <rect x="410" y="132" width="160" height="112" rx="8" class="model"/>
+  <text x="424" y="156" class="stage">Rewrite</text>
+  <text x="424" y="174" class="role">HOST MODEL</text>
+  <text x="424" y="199" class="body">strip, then rebuild</text>
+  <text x="424" y="216" class="body">preserve facts + voice</text>
+  <text x="424" y="233" class="body">compare approaches</text>
+  <path d="M570 188 L594 188" class="ln" marker-end="url(#arrow)"/>
 
-  <rect x="700" y="58" width="280" height="252" rx="10" class="hi"/>
-  <text x="716" y="82" class="ey">FINAL VERIFICATION</text>
-  <text x="716" y="104" class="t">Scripts + host model</text>
-  <text x="716" y="128" class="m">Check the exact text you receive.</text>
-  <text x="727" y="163" class="m">Score + quoted evidence</text>
-  <line x1="716" y1="174" x2="964" y2="174" stroke="#C9CED6"/>
-  <text x="727" y="197" class="m">Figures + names + quotations + links</text>
-  <line x1="716" y1="208" x2="964" y2="208" stroke="#C9CED6"/>
-  <text x="727" y="231" class="m">Meaning + qualifiers + voice</text>
-  <line x1="716" y1="242" x2="964" y2="242" stroke="#C9CED6"/>
-  <text x="727" y="265" class="m">Format + structure + spoken flow</text>
-  <line x1="716" y1="276" x2="964" y2="276" stroke="#C9CED6"/>
-  <text x="716" y="294" class="m">text change → both editors → every check</text>
+  <rect x="595" y="132" width="160" height="112" rx="8" class="editor"/>
+  <text x="609" y="156" class="stage">Copy edit</text>
+  <text x="609" y="174" class="role">FRESH EDITOR</text>
+  <text x="609" y="199" class="body">grammar + spelling</text>
+  <text x="609" y="216" class="body">clarity + consistency</text>
+  <text x="609" y="233" class="body">professional finish</text>
+  <path d="M755 188 L779 188" class="ln" marker-end="url(#arrow)"/>
 
-  <rect x="20" y="330" width="960" height="34" rx="7" class="surface"/>
-  <text x="36" y="351" class="m">Separate diagnostics · host-model predictability · portfolio probe for repetition across 3+ related drafts · neither changes the surface score</text>
+  <rect x="780" y="132" width="160" height="112" rx="8" class="editor"/>
+  <text x="794" y="156" class="stage">Read aloud</text>
+  <text x="794" y="174" class="role">FRESH EDITOR</text>
+  <text x="794" y="199" class="body">spoken flow</text>
+  <text x="794" y="216" class="body">cohesion + rhythm</text>
+  <text x="794" y="233" class="body">fix every stumble</text>
+  <path d="M940 188 L964 188" class="ln" marker-end="url(#arrow)"/>
 
-  <text x="20" y="399" class="hp">LOOP 2 · PRIVATE ONLINE LEARNING</text>
-  <text x="20" y="416" class="m">observe → gate evidence → update private overlay → reconfirm / decay</text>
-  <text x="728" y="407" class="lb">does not retrain the host model</text>
-  <rect x="20" y="430" width="960" height="116" rx="10" class="grl"/>
+  <rect x="965" y="132" width="195" height="112" rx="8" class="verify"/>
+  <text x="979" y="156" class="stage">Verify</text>
+  <text x="979" y="174" class="role">SCRIPTS + HOST MODEL</text>
+  <text x="979" y="199" class="body">score + fidelity checks</text>
+  <text x="979" y="216" class="body">meaning + qualifiers</text>
+  <text x="979" y="233" class="body">voice + format + flow</text>
 
-  <rect x="700" y="447" width="264" height="82" rx="7" class="lr"/>
-  <text x="716" y="469" class="t">Published edit</text>
-  <text x="716" y="487" class="m">cut span · kept flag · preferred fix</text>
-  <text x="716" y="505" class="m">human feedback becomes evidence</text>
+  <path d="M1062 244 L1062 272 L490 272 L490 245" class="rp" marker-end="url(#repair-arrow)"/>
+  <text x="612" y="266" class="note">failed check → repair → both editors → every check again</text>
+  <path d="M1118 244 L1118 293" class="ln" marker-end="url(#arrow)"/>
+  <text x="1127" y="273" class="note">pass</text>
+  <rect x="965" y="294" width="195" height="42" rx="7" class="neutral"/>
+  <text x="979" y="313" class="stage">Finished copy</text>
+  <text x="979" y="328" class="note">the exact text returned</text>
 
-  <path d="M700 488 L647 488" class="lp" marker-end="url(#b)"/>
-  <rect x="360" y="447" width="285" height="82" rx="7" class="lr"/>
-  <text x="376" y="469" class="t">Evidence checks</text>
-  <text x="376" y="487" class="m">recurrence · novelty · known-human safety</text>
-  <text x="376" y="505" class="m">one edit cannot activate a rule or fix</text>
+  <text x="40" y="315" class="role">SEPARATE DIAGNOSTICS</text>
+  <text x="40" y="333" class="note">predictability · portfolio probe for repetition across 3+ related drafts · neither changes the surface score</text>
 
-  <path d="M360 488 L307 488" class="lp" marker-end="url(#b)"/>
-  <rect x="36" y="447" width="269" height="82" rx="7" class="lr"/>
-  <text x="52" y="469" class="t">Private overlay</text>
-  <text x="52" y="487" class="m">detector weights + fix preferences</text>
-  <text x="52" y="505" class="m">reconfirm · decay rules · retire fixes</text>
-  <text x="52" y="521" class="lb">adapts detection + fixing on the next run</text>
+  <path d="M1062 336 L1062 472" class="lp" marker-end="url(#learn-arrow)"/>
+  <text x="794" y="378" class="learn-note">later, when both versions are available</text>
 
-  <rect x="20" y="576" width="960" height="36" rx="7" class="grp"/>
-  <text x="36" y="598" class="h">MAINTENANCE · NOT A RUNTIME LOOP · external taxonomy → review → human-corpus regression → versioned release</text>
+  <rect x="20" y="396" width="1160" height="278" rx="12" class="grp"/>
+  <text x="40" y="422" class="learn-title">LOOP 2 · PRIVATE ONLINE LEARNING · LATER HUMAN EDIT</text>
+  <text x="40" y="440" class="note">observe → gate evidence → update private overlay → use on the next run</text>
+  <text x="930" y="422" class="learn-note">local · inspectable · reversible</text>
+  <text x="930" y="440" class="learn-note">never retrains the host model</text>
 
+  <rect x="40" y="472" width="180" height="112" rx="8" class="learn"/>
+  <text x="54" y="496" class="stage">4 · Use on next run</text>
+  <text x="54" y="514" class="role">FEEDS LOOP 1</text>
+  <text x="54" y="539" class="body">weights → Measure</text>
+  <text x="54" y="556" class="body">fixes → Rewrite</text>
+  <text x="54" y="573" class="body">meaning must be preserved</text>
+
+  <path d="M280 528 L221 528" class="lp" marker-end="url(#learn-arrow)"/>
+  <rect x="280" y="472" width="240" height="112" rx="8" class="learn"/>
+  <text x="294" y="496" class="stage">3 · Update private overlay</text>
+  <text x="294" y="514" class="role">ACTIVATED LOCALLY</text>
+  <text x="294" y="539" class="body">detector weights + fix preferences</text>
+  <text x="294" y="556" class="body">provenance + dates</text>
+  <text x="294" y="573" class="learn-note">adapts detection + fixing</text>
+
+  <path d="M580 528 L521 528" class="lp" marker-end="url(#learn-arrow)"/>
+  <rect x="580" y="472" width="240" height="112" rx="8" class="learn"/>
+  <text x="594" y="496" class="stage">2 · Gate evidence</text>
+  <text x="594" y="514" class="role">SAFETY BEFORE ACTIVATION</text>
+  <text x="594" y="539" class="body">recurrence</text>
+  <text x="594" y="556" class="body">novelty</text>
+  <text x="594" y="573" class="body">known-human safety</text>
+
+  <path d="M880 528 L821 528" class="lp" marker-end="url(#learn-arrow)"/>
+  <rect x="880" y="472" width="280" height="112" rx="8" class="learn"/>
+  <text x="894" y="496" class="stage">1 · Observe</text>
+  <text x="894" y="514" class="role">RETURNED COPY ↔ PUBLISHED EDIT</text>
+  <text x="894" y="539" class="body">cut text · kept flagged text</text>
+  <text x="894" y="556" class="body">recurring replacement</text>
+  <text x="894" y="573" class="body">edit difference becomes evidence</text>
+
+  <rect x="280" y="610" width="240" height="42" rx="7" class="learn"/>
+  <text x="294" y="628" class="stage">Reconfirm / decay</text>
+  <text x="294" y="644" class="note">decay weights · retire fixes</text>
+  <path d="M400 584 L400 609" class="lp" marker-start="url(#learn-arrow)" marker-end="url(#learn-arrow)"/>
+
+  <path d="M130 472 L130 354" class="lp" marker-end="url(#learn-arrow)"/>
+  <text x="142" y="378" class="learn-note">feeds the next editorial cycle</text>
+
+  <rect x="20" y="700" width="1160" height="40" rx="8" class="neutral"/>
+  <text x="40" y="724" class="loop">MAINTENANCE · NOT A RUNTIME LOOP · external taxonomy → review → human-corpus regression → tests → versioned release</text>
 </svg>

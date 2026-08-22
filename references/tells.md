@@ -1,6 +1,6 @@
 # The Tell Taxonomy
 
-Eighty tells in six families, merged from WP:AICATCH (Wikipedia's editor
+Eighty-eight tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -54,6 +54,10 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | "Here's how/why/a breakdown" stems | Start with the thing itself |
 | Imperative flip: "Stop X. Start Y.", "Do this instead" | Make the one claim, with the reason |
 | Forecast wrap-ups: "as we move forward", "the road ahead", "as technology continues to evolve" | End on the concrete point or consequence |
+| False ranges: "from strategy to culture", where the endpoints share no scale | Name the actual topics or relationship |
+| Fragmented heading warm-up: a heading followed by one line that restates it | Delete the warm-up; begin with the first useful sentence |
+| Diff-anchored description outside a changelog, release note, migration guide, or incident review | Describe the current behavior so the document stands on its own |
+| Mechanical sentence openings: several consecutive sentences begin with the same subject or frame without building deliberate rhythm | Merge or vary the sentences; preserve purposeful anaphora |
 
 ## 3. Rhetorical
 
@@ -81,6 +85,9 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | Calls to action: "Buckle up", "Let's dive in", "Stay tuned" | Cut |
 | Weasel attribution: "Experts agree", "Studies show", "Industry reports suggest" | Name the source or cut the claim; if no source exists, ask the author |
 | Canned coverage claims: "featured in prominent media outlets" | Name the outlet and what it said |
+| Notability roll-call: outlet names, follower counts, or status markers with no relevance to the point | Keep only the evidence that serves the subject and give its context |
+| Unraised-objection defense: "I'm not saying…", "to be clear…", or "some might say…" when no source, reader, or argument raised it | State the positive claim; keep real counterarguments, corrections, safety limits, and FAQ answers |
+| Disposable alternative: "a tempting approach would be…" introduced only to reject it and never used again | State the actual constraint; keep alternatives that a reader may genuinely consider |
 
 ## 4. Punctuation & formatting
 
@@ -103,6 +110,7 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | Assistant voice: "Great question!", "I hope this helps", "I'd be happy to" | Delete |
 | Chatbot residue: "Would you like me to…", "Let me know if you'd like…", "my training data" | Delete — it is proof of paste, not style |
 | Knowledge-cutoff residue: "as of my last update", "not widely documented" | Delete; verify the claim |
+| Passive or subjectless wording that hides an actor who matters | Name the actor and use the direct verb; keep passive voice when the actor is unknown, irrelevant, or native to the genre |
 | Form-letter email: "wanted to reach out", "touch base", "don't hesitate to reach out" | Say the actual ask in the first sentence |
 | LinkedIn ritual: "some personal news", "a new chapter", "bittersweet", "couldn't be prouder", "this is your sign", "I'll go first", "today years old" | The fact, then stop; feeling shown through detail |
 | Promotional drift in neutral contexts | Neutral statement of fact |

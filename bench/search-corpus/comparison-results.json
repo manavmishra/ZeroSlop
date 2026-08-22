@@ -2,12 +2,20 @@
  "corpus": "anonymous-search-paraphrases-v1",
  "n_examples": 18,
  "generation": {
-  "generator": "one host Codex session replaying each method's instructions",
+  "run_id": "fresh-replay-2026-08-22-2",
+  "generated_at": "2026-08-22T19:41:56Z",
+  "generator": "one current Codex desktop session replaying each method's instructions",
+  "model_record": {
+   "family": "GPT-5",
+   "exact_model_id_available": false,
+   "inference_settings_available": false,
+   "limitation": "The desktop task did not expose the exact hosted model identifier or inference settings. Outputs and method revisions are preserved, but generation is not bit-for-bit reproducible."
+  },
   "prompt": "Edit each item for its named genre. Preserve every claim and fact. Add nothing. Return only the final rewritten text.",
   "method_revisions": {
    "zero-slop": {
     "source": "repository SKILL.md",
-    "revision": "2.4.2"
+    "revision": "2.4.3"
    },
    "no-ai-slop": {
     "source": "https://github.com/petergyang/no-ai-slop",
@@ -58,97 +66,97 @@
    },
    "zero-slop": {
     "label": "Zero Slop",
-    "eligible_items": 17,
-    "abstentions": 1,
-    "mean_score": 16.9,
-    "reads_clean": 14,
-    "reads_clean_rate": 82.4,
-    "mostly_clean_or_better": 14,
-    "mostly_clean_or_better_rate": 82.4
+    "eligible_items": 16,
+    "abstentions": 2,
+    "mean_score": 6,
+    "reads_clean": 15,
+    "reads_clean_rate": 93.8,
+    "mostly_clean_or_better": 15,
+    "mostly_clean_or_better_rate": 93.8
    },
    "no-ai-slop": {
     "label": "no-ai-slop",
-    "eligible_items": 16,
-    "abstentions": 2,
-    "mean_score": 24.2,
-    "reads_clean": 12,
-    "reads_clean_rate": 75.0,
-    "mostly_clean_or_better": 12,
-    "mostly_clean_or_better_rate": 75.0
+    "eligible_items": 17,
+    "abstentions": 1,
+    "mean_score": 22.5,
+    "reads_clean": 13,
+    "reads_clean_rate": 76.5,
+    "mostly_clean_or_better": 13,
+    "mostly_clean_or_better_rate": 76.5
    },
    "humanizer": {
     "label": "humanizer",
-    "eligible_items": 15,
-    "abstentions": 3,
-    "mean_score": 25.9,
-    "reads_clean": 11,
-    "reads_clean_rate": 73.3,
-    "mostly_clean_or_better": 11,
-    "mostly_clean_or_better_rate": 73.3
+    "eligible_items": 18,
+    "abstentions": 0,
+    "mean_score": 21.2,
+    "reads_clean": 14,
+    "reads_clean_rate": 77.8,
+    "mostly_clean_or_better": 14,
+    "mostly_clean_or_better_rate": 77.8
    },
    "de-slop": {
     "label": "de-slop",
-    "eligible_items": 16,
-    "abstentions": 2,
-    "mean_score": 24.2,
-    "reads_clean": 12,
-    "reads_clean_rate": 75.0,
-    "mostly_clean_or_better": 12,
-    "mostly_clean_or_better_rate": 75.0
+    "eligible_items": 18,
+    "abstentions": 0,
+    "mean_score": 58.8,
+    "reads_clean": 7,
+    "reads_clean_rate": 38.9,
+    "mostly_clean_or_better": 7,
+    "mostly_clean_or_better_rate": 38.9
    },
    "stop-slop": {
     "label": "stop-slop",
-    "eligible_items": 14,
-    "abstentions": 4,
-    "mean_score": 21,
-    "reads_clean": 11,
-    "reads_clean_rate": 78.6,
-    "mostly_clean_or_better": 11,
-    "mostly_clean_or_better_rate": 78.6
+    "eligible_items": 17,
+    "abstentions": 1,
+    "mean_score": 22.6,
+    "reads_clean": 13,
+    "reads_clean_rate": 76.5,
+    "mostly_clean_or_better": 13,
+    "mostly_clean_or_better_rate": 76.5
    }
   }
  },
  "methods": {
   "zero-slop": {
    "label": "Zero Slop",
-   "mean_surface_score": 13.7,
-   "mean_score_reduction": 64.6,
+   "mean_surface_score": 14.2,
+   "mean_score_reduction": 64.0,
    "surface_gate_passes": 18,
    "shape_gate_passes": 18,
    "editorial_gate_passes": 18,
    "automated_fact_check_passes": 18,
    "combined_passes": 18,
    "combined_pass_rate": 100.0,
-   "mean_word_change_pct": -23.1,
+   "mean_word_change_pct": -26.2,
    "by_genre": {
     "blog": {
      "n": 3,
-     "mean_surface_score": 15.0,
+     "mean_surface_score": 17.8,
      "combined_passes": 3
     },
     "email": {
      "n": 3,
-     "mean_surface_score": 16.0,
+     "mean_surface_score": 22.4,
      "combined_passes": 3
     },
     "linkedin": {
      "n": 3,
-     "mean_surface_score": 12.9,
+     "mean_surface_score": 9.5,
      "combined_passes": 3
     },
     "newsletter": {
      "n": 3,
-     "mean_surface_score": 15.4,
+     "mean_surface_score": 13.6,
      "combined_passes": 3
     },
     "research": {
      "n": 3,
-     "mean_surface_score": 12.3,
+     "mean_surface_score": 9.5,
      "combined_passes": 3
     },
     "x": {
      "n": 3,
-     "mean_surface_score": 10.3,
+     "mean_surface_score": 12.6,
      "combined_passes": 3
     }
    },
@@ -164,12 +172,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 48,
-     "words_after": 46
+     "words_after": 41
     },
     {
      "id": "linkedin-contrarian-02",
      "genre": "linkedin",
-     "surface_score": 17.8,
+     "surface_score": 9.5,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -177,12 +185,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 39,
-     "words_after": 32
+     "words_after": 31
     },
     {
      "id": "linkedin-executive-03",
      "genre": "linkedin",
-     "surface_score": 11.4,
+     "surface_score": 9.5,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -190,12 +198,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 57,
-     "words_after": 46
+     "words_after": 52
     },
     {
      "id": "x-agents-01",
      "genre": "x",
-     "surface_score": 11.4,
+     "surface_score": 9.5,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -203,12 +211,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 41,
-     "words_after": 36
+     "words_after": 33
     },
     {
      "id": "x-habit-02",
      "genre": "x",
-     "surface_score": 9.5,
+     "surface_score": 11.7,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -216,12 +224,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 30,
-     "words_after": 31
+     "words_after": 18
     },
     {
      "id": "x-future-03",
      "genre": "x",
-     "surface_score": 10.1,
+     "surface_score": 16.6,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -229,12 +237,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 31,
-     "words_after": 27
+     "words_after": 22
     },
     {
      "id": "email-outreach-01",
      "genre": "email",
-     "surface_score": 9.5,
+     "surface_score": 15.4,
      "gate": 35,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -242,12 +250,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 44,
-     "words_after": 32
+     "words_after": 25
     },
     {
      "id": "email-launch-02",
      "genre": "email",
-     "surface_score": 18.6,
+     "surface_score": 20.2,
      "gate": 35,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -255,12 +263,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 35,
-     "words_after": 30
+     "words_after": 24
     },
     {
      "id": "email-followup-03",
      "genre": "email",
-     "surface_score": 19.9,
+     "surface_score": 31.5,
      "gate": 35,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -268,12 +276,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 41,
-     "words_after": 29
+     "words_after": 28
     },
     {
      "id": "blog-landscape-01",
      "genre": "blog",
-     "surface_score": 14.5,
+     "surface_score": 14.2,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -281,7 +289,7 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 40,
-     "words_after": 28
+     "words_after": 32
     },
     {
      "id": "blog-guide-02",
@@ -294,12 +302,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 40,
-     "words_after": 21
+     "words_after": 23
     },
     {
      "id": "blog-transformation-03",
      "genre": "blog",
-     "surface_score": 10.3,
+     "surface_score": 19.0,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -320,12 +328,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 41,
-     "words_after": 23
+     "words_after": 25
     },
     {
      "id": "newsletter-edition-02",
      "genre": "newsletter",
-     "surface_score": 18.9,
+     "surface_score": 11.1,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -333,12 +341,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 36,
-     "words_after": 25
+     "words_after": 29
     },
     {
      "id": "newsletter-trends-03",
      "genre": "newsletter",
-     "surface_score": 17.8,
+     "surface_score": 20.2,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -346,12 +354,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 35,
-     "words_after": 19
+     "words_after": 18
     },
     {
      "id": "research-framework-01",
      "genre": "research",
-     "surface_score": 17.8,
+     "surface_score": 9.5,
      "gate": 40,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -359,7 +367,7 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 40,
-     "words_after": 28
+     "words_after": 33
     },
     {
      "id": "research-approach-02",
@@ -372,7 +380,7 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 37,
-     "words_after": 35
+     "words_after": 38
     },
     {
      "id": "research-future-03",
@@ -391,63 +399,76 @@
   },
   "no-ai-slop": {
    "label": "no-ai-slop",
-   "mean_surface_score": 29.7,
-   "mean_score_reduction": 48.6,
-   "surface_gate_passes": 12,
+   "mean_surface_score": 27.1,
+   "mean_score_reduction": 51.2,
+   "surface_gate_passes": 13,
    "shape_gate_passes": 18,
-   "editorial_gate_passes": 12,
+   "editorial_gate_passes": 13,
    "automated_fact_check_passes": 18,
-   "combined_passes": 12,
-   "combined_pass_rate": 66.7,
-   "mean_word_change_pct": -27.0,
+   "combined_passes": 13,
+   "combined_pass_rate": 72.2,
+   "mean_word_change_pct": -28.6,
    "by_genre": {
     "blog": {
      "n": 3,
-     "mean_surface_score": 18.3,
+     "mean_surface_score": 15.8,
      "combined_passes": 3
     },
     "email": {
      "n": 3,
-     "mean_surface_score": 23.1,
+     "mean_surface_score": 25.6,
      "combined_passes": 2
     },
     "linkedin": {
      "n": 3,
-     "mean_surface_score": 19.9,
-     "combined_passes": 2
+     "mean_surface_score": 12.8,
+     "combined_passes": 3
     },
     "newsletter": {
      "n": 3,
-     "mean_surface_score": 19.4,
+     "mean_surface_score": 13.8,
      "combined_passes": 3
     },
     "research": {
      "n": 3,
-     "mean_surface_score": 22.2,
-     "combined_passes": 2
+     "mean_surface_score": 53.9,
+     "combined_passes": 1
     },
     "x": {
      "n": 3,
-     "mean_surface_score": 75.1,
-     "combined_passes": 0
+     "mean_surface_score": 40.6,
+     "combined_passes": 1
     }
    },
    "rows": [
     {
      "id": "linkedin-lessons-01",
      "genre": "linkedin",
-     "surface_score": 36.1,
+     "surface_score": 11.1,
      "gate": 25,
-     "surface_gate_pass": false,
+     "surface_gate_pass": true,
      "shape_gate_pass": true,
-     "editorial_gate_pass": false,
+     "editorial_gate_pass": true,
      "automated_fact_check_pass": true,
-     "combined_pass": false,
+     "combined_pass": true,
      "words_before": 48,
-     "words_after": 41
+     "words_after": 45
     },
     {
      "id": "linkedin-contrarian-02",
+     "genre": "linkedin",
+     "surface_score": 17.9,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 39,
+     "words_after": 24
+    },
+    {
+     "id": "linkedin-executive-03",
      "genre": "linkedin",
      "surface_score": 9.5,
      "gate": 25,
@@ -456,8 +477,555 @@
      "editorial_gate_pass": true,
      "automated_fact_check_pass": true,
      "combined_pass": true,
-     "words_before": 39,
+     "words_before": 57,
+     "words_after": 46
+    },
+    {
+     "id": "x-agents-01",
+     "genre": "x",
+     "surface_score": 20.2,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 41,
+     "words_after": 29
+    },
+    {
+     "id": "x-habit-02",
+     "genre": "x",
+     "surface_score": 53.8,
+     "gate": 25,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 30,
+     "words_after": 23
+    },
+    {
+     "id": "x-future-03",
+     "genre": "x",
+     "surface_score": 47.7,
+     "gate": 25,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 31,
+     "words_after": 19
+    },
+    {
+     "id": "email-outreach-01",
+     "genre": "email",
+     "surface_score": 14.5,
+     "gate": 35,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 44,
+     "words_after": 21
+    },
+    {
+     "id": "email-launch-02",
+     "genre": "email",
+     "surface_score": 20.2,
+     "gate": 35,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 35,
+     "words_after": 23
+    },
+    {
+     "id": "email-followup-03",
+     "genre": "email",
+     "surface_score": 42.0,
+     "gate": 35,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 41,
+     "words_after": 26
+    },
+    {
+     "id": "blog-landscape-01",
+     "genre": "blog",
+     "surface_score": 13.4,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
+     "words_after": 29
+    },
+    {
+     "id": "blog-guide-02",
+     "genre": "blog",
+     "surface_score": 20.2,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
      "words_after": 30
+    },
+    {
+     "id": "blog-transformation-03",
+     "genre": "blog",
+     "surface_score": 13.8,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 36,
+     "words_after": 22
+    },
+    {
+     "id": "newsletter-productivity-01",
+     "genre": "newsletter",
+     "surface_score": 9.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 41,
+     "words_after": 25
+    },
+    {
+     "id": "newsletter-edition-02",
+     "genre": "newsletter",
+     "surface_score": 18.8,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 36,
+     "words_after": 23
+    },
+    {
+     "id": "newsletter-trends-03",
+     "genre": "newsletter",
+     "surface_score": 13.1,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 35,
+     "words_after": 22
+    },
+    {
+     "id": "research-framework-01",
+     "genre": "research",
+     "surface_score": 47.7,
+     "gate": 40,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 40,
+     "words_after": 32
+    },
+    {
+     "id": "research-approach-02",
+     "genre": "research",
+     "surface_score": 96.3,
+     "gate": 40,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 37,
+     "words_after": 38
+    },
+    {
+     "id": "research-future-03",
+     "genre": "research",
+     "surface_score": 17.8,
+     "gate": 40,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 38,
+     "words_after": 32
+    }
+   ]
+  },
+  "humanizer": {
+   "label": "humanizer",
+   "mean_surface_score": 20.7,
+   "mean_score_reduction": 57.5,
+   "surface_gate_passes": 15,
+   "shape_gate_passes": 18,
+   "editorial_gate_passes": 15,
+   "automated_fact_check_passes": 18,
+   "combined_passes": 15,
+   "combined_pass_rate": 83.3,
+   "mean_word_change_pct": -26.7,
+   "by_genre": {
+    "blog": {
+     "n": 3,
+     "mean_surface_score": 17.9,
+     "combined_passes": 3
+    },
+    "email": {
+     "n": 3,
+     "mean_surface_score": 27.0,
+     "combined_passes": 2
+    },
+    "linkedin": {
+     "n": 3,
+     "mean_surface_score": 10.0,
+     "combined_passes": 3
+    },
+    "newsletter": {
+     "n": 3,
+     "mean_surface_score": 12.7,
+     "combined_passes": 3
+    },
+    "research": {
+     "n": 3,
+     "mean_surface_score": 29.7,
+     "combined_passes": 2
+    },
+    "x": {
+     "n": 3,
+     "mean_surface_score": 27.1,
+     "combined_passes": 2
+    }
+   },
+   "rows": [
+    {
+     "id": "linkedin-lessons-01",
+     "genre": "linkedin",
+     "surface_score": 9.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 48,
+     "words_after": 41
+    },
+    {
+     "id": "linkedin-contrarian-02",
+     "genre": "linkedin",
+     "surface_score": 10.9,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 39,
+     "words_after": 28
+    },
+    {
+     "id": "linkedin-executive-03",
+     "genre": "linkedin",
+     "surface_score": 9.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 57,
+     "words_after": 49
+    },
+    {
+     "id": "x-agents-01",
+     "genre": "x",
+     "surface_score": 19.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 41,
+     "words_after": 35
+    },
+    {
+     "id": "x-habit-02",
+     "genre": "x",
+     "surface_score": 52.4,
+     "gate": 25,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 30,
+     "words_after": 24
+    },
+    {
+     "id": "x-future-03",
+     "genre": "x",
+     "surface_score": 9.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 31,
+     "words_after": 21
+    },
+    {
+     "id": "email-outreach-01",
+     "genre": "email",
+     "surface_score": 18.8,
+     "gate": 35,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 44,
+     "words_after": 23
+    },
+    {
+     "id": "email-launch-02",
+     "genre": "email",
+     "surface_score": 20.2,
+     "gate": 35,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 35,
+     "words_after": 23
+    },
+    {
+     "id": "email-followup-03",
+     "genre": "email",
+     "surface_score": 42.0,
+     "gate": 35,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 41,
+     "words_after": 26
+    },
+    {
+     "id": "blog-landscape-01",
+     "genre": "blog",
+     "surface_score": 16.1,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
+     "words_after": 29
+    },
+    {
+     "id": "blog-guide-02",
+     "genre": "blog",
+     "surface_score": 20.2,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
+     "words_after": 27
+    },
+    {
+     "id": "blog-transformation-03",
+     "genre": "blog",
+     "surface_score": 17.3,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 36,
+     "words_after": 24
+    },
+    {
+     "id": "newsletter-productivity-01",
+     "genre": "newsletter",
+     "surface_score": 9.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 41,
+     "words_after": 23
+    },
+    {
+     "id": "newsletter-edition-02",
+     "genre": "newsletter",
+     "surface_score": 11.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 36,
+     "words_after": 26
+    },
+    {
+     "id": "newsletter-trends-03",
+     "genre": "newsletter",
+     "surface_score": 17.0,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 35,
+     "words_after": 24
+    },
+    {
+     "id": "research-framework-01",
+     "genre": "research",
+     "surface_score": 17.8,
+     "gate": 40,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
+     "words_after": 32
+    },
+    {
+     "id": "research-approach-02",
+     "genre": "research",
+     "surface_score": 53.6,
+     "gate": 40,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 37,
+     "words_after": 38
+    },
+    {
+     "id": "research-future-03",
+     "genre": "research",
+     "surface_score": 17.8,
+     "gate": 40,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 38,
+     "words_after": 29
+    }
+   ]
+  },
+  "de-slop": {
+   "label": "de-slop",
+   "mean_surface_score": 51.0,
+   "mean_score_reduction": 27.3,
+   "surface_gate_passes": 7,
+   "shape_gate_passes": 18,
+   "editorial_gate_passes": 7,
+   "automated_fact_check_passes": 18,
+   "combined_passes": 7,
+   "combined_pass_rate": 38.9,
+   "mean_word_change_pct": -14.3,
+   "by_genre": {
+    "blog": {
+     "n": 3,
+     "mean_surface_score": 41.3,
+     "combined_passes": 2
+    },
+    "email": {
+     "n": 3,
+     "mean_surface_score": 80.7,
+     "combined_passes": 0
+    },
+    "linkedin": {
+     "n": 3,
+     "mean_surface_score": 14.6,
+     "combined_passes": 3
+    },
+    "newsletter": {
+     "n": 3,
+     "mean_surface_score": 58.0,
+     "combined_passes": 0
+    },
+    "research": {
+     "n": 3,
+     "mean_surface_score": 92.7,
+     "combined_passes": 0
+    },
+    "x": {
+     "n": 3,
+     "mean_surface_score": 18.4,
+     "combined_passes": 2
+    }
+   },
+   "rows": [
+    {
+     "id": "linkedin-lessons-01",
+     "genre": "linkedin",
+     "surface_score": 9.5,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 48,
+     "words_after": 40
+    },
+    {
+     "id": "linkedin-contrarian-02",
+     "genre": "linkedin",
+     "surface_score": 20.2,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 39,
+     "words_after": 24
     },
     {
      "id": "linkedin-executive-03",
@@ -475,247 +1043,19 @@
     {
      "id": "x-agents-01",
      "genre": "x",
-     "surface_score": 96.3,
+     "surface_score": 9.7,
      "gate": 25,
-     "surface_gate_pass": false,
+     "surface_gate_pass": true,
      "shape_gate_pass": true,
-     "editorial_gate_pass": false,
+     "editorial_gate_pass": true,
      "automated_fact_check_pass": true,
-     "combined_pass": false,
+     "combined_pass": true,
      "words_before": 41,
-     "words_after": 34
+     "words_after": 36
     },
     {
      "id": "x-habit-02",
      "genre": "x",
-     "surface_score": 42.8,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 30,
-     "words_after": 27
-    },
-    {
-     "id": "x-future-03",
-     "genre": "x",
-     "surface_score": 86.1,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 31,
-     "words_after": 28
-    },
-    {
-     "id": "email-outreach-01",
-     "genre": "email",
-     "surface_score": 12.3,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 44,
-     "words_after": 36
-    },
-    {
-     "id": "email-launch-02",
-     "genre": "email",
-     "surface_score": 15.0,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 35,
-     "words_after": 27
-    },
-    {
-     "id": "email-followup-03",
-     "genre": "email",
-     "surface_score": 42.0,
-     "gate": 35,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 41,
-     "words_after": 26
-    },
-    {
-     "id": "blog-landscape-01",
-     "genre": "blog",
-     "surface_score": 14.5,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 40,
-     "words_after": 28
-    },
-    {
-     "id": "blog-guide-02",
-     "genre": "blog",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 40,
-     "words_after": 18
-    },
-    {
-     "id": "blog-transformation-03",
-     "genre": "blog",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 36,
-     "words_after": 20
-    },
-    {
-     "id": "newsletter-productivity-01",
-     "genre": "newsletter",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 41,
-     "words_after": 26
-    },
-    {
-     "id": "newsletter-edition-02",
-     "genre": "newsletter",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 36,
-     "words_after": 22
-    },
-    {
-     "id": "newsletter-trends-03",
-     "genre": "newsletter",
-     "surface_score": 17.8,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 35,
-     "words_after": 18
-    },
-    {
-     "id": "research-framework-01",
-     "genre": "research",
-     "surface_score": 47.7,
-     "gate": 40,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 40,
-     "words_after": 25
-    },
-    {
-     "id": "research-approach-02",
-     "genre": "research",
-     "surface_score": 9.5,
-     "gate": 40,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 37,
-     "words_after": 35
-    },
-    {
-     "id": "research-future-03",
-     "genre": "research",
-     "surface_score": 9.5,
-     "gate": 40,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 38,
-     "words_after": 29
-    }
-   ]
-  },
-  "humanizer": {
-   "label": "humanizer",
-   "mean_surface_score": 28.4,
-   "mean_score_reduction": 49.8,
-   "surface_gate_passes": 12,
-   "shape_gate_passes": 18,
-   "editorial_gate_passes": 12,
-   "automated_fact_check_passes": 18,
-   "combined_passes": 12,
-   "combined_pass_rate": 66.7,
-   "mean_word_change_pct": -28.4,
-   "by_genre": {
-    "blog": {
-     "n": 3,
-     "mean_surface_score": 17.3,
-     "combined_passes": 3
-    },
-    "email": {
-     "n": 3,
-     "mean_surface_score": 23.9,
-     "combined_passes": 2
-    },
-    "linkedin": {
-     "n": 3,
-     "mean_surface_score": 18.8,
-     "combined_passes": 2
-    },
-    "newsletter": {
-     "n": 3,
-     "mean_surface_score": 14.1,
-     "combined_passes": 3
-    },
-    "research": {
-     "n": 3,
-     "mean_surface_score": 22.2,
-     "combined_passes": 2
-    },
-    "x": {
-     "n": 3,
-     "mean_surface_score": 74.3,
-     "combined_passes": 0
-    }
-   },
-   "rows": [
-    {
-     "id": "linkedin-lessons-01",
-     "genre": "linkedin",
      "surface_score": 36.1,
      "gate": 25,
      "surface_gate_pass": false,
@@ -723,99 +1063,47 @@
      "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
      "combined_pass": false,
-     "words_before": 48,
-     "words_after": 45
-    },
-    {
-     "id": "linkedin-contrarian-02",
-     "genre": "linkedin",
-     "surface_score": 10.8,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 39,
-     "words_after": 33
-    },
-    {
-     "id": "linkedin-executive-03",
-     "genre": "linkedin",
-     "surface_score": 9.5,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 57,
-     "words_after": 43
-    },
-    {
-     "id": "x-agents-01",
-     "genre": "x",
-     "surface_score": 96.6,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 41,
-     "words_after": 33
-    },
-    {
-     "id": "x-habit-02",
-     "genre": "x",
-     "surface_score": 39.4,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
      "words_before": 30,
-     "words_after": 28
+     "words_after": 29
     },
     {
      "id": "x-future-03",
      "genre": "x",
-     "surface_score": 86.9,
+     "surface_score": 9.5,
      "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 31,
+     "words_after": 21
+    },
+    {
+     "id": "email-outreach-01",
+     "genre": "email",
+     "surface_score": 100.0,
+     "gate": 35,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
      "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
      "combined_pass": false,
-     "words_before": 31,
-     "words_after": 28
-    },
-    {
-     "id": "email-outreach-01",
-     "genre": "email",
-     "surface_score": 9.5,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
      "words_before": 44,
-     "words_after": 32
+     "words_after": 44
     },
     {
      "id": "email-launch-02",
      "genre": "email",
-     "surface_score": 20.2,
+     "surface_score": 100.0,
      "gate": 35,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 35,
-     "words_after": 25
+     "words_after": 35
     },
     {
      "id": "email-followup-03",
@@ -833,7 +1121,7 @@
     {
      "id": "blog-landscape-01",
      "genre": "blog",
-     "surface_score": 11.5,
+     "surface_score": 10.6,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -841,25 +1129,25 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 40,
-     "words_after": 26
+     "words_after": 27
     },
     {
      "id": "blog-guide-02",
      "genre": "blog",
-     "surface_score": 20.2,
+     "surface_score": 99.6,
      "gate": 25,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 40,
-     "words_after": 17
+     "words_after": 40
     },
     {
      "id": "blog-transformation-03",
      "genre": "blog",
-     "surface_score": 20.2,
+     "surface_score": 13.8,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -867,51 +1155,51 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 36,
-     "words_after": 19
+     "words_after": 22
     },
     {
      "id": "newsletter-productivity-01",
      "genre": "newsletter",
-     "surface_score": 9.5,
+     "surface_score": 99.6,
      "gate": 25,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 41,
-     "words_after": 22
+     "words_after": 41
     },
     {
      "id": "newsletter-edition-02",
      "genre": "newsletter",
-     "surface_score": 15.0,
+     "surface_score": 47.7,
      "gate": 25,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 36,
-     "words_after": 23
+     "words_after": 36
     },
     {
      "id": "newsletter-trends-03",
      "genre": "newsletter",
-     "surface_score": 17.8,
+     "surface_score": 26.7,
      "gate": 25,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 35,
-     "words_after": 18
+     "words_after": 35
     },
     {
      "id": "research-framework-01",
      "genre": "research",
-     "surface_score": 47.7,
+     "surface_score": 90.9,
      "gate": 40,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -919,76 +1207,76 @@
      "automated_fact_check_pass": true,
      "combined_pass": false,
      "words_before": 40,
-     "words_after": 25
+     "words_after": 30
     },
     {
      "id": "research-approach-02",
      "genre": "research",
-     "surface_score": 9.5,
+     "surface_score": 96.3,
      "gate": 40,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 37,
-     "words_after": 35
+     "words_after": 34
     },
     {
      "id": "research-future-03",
      "genre": "research",
-     "surface_score": 9.5,
+     "surface_score": 90.9,
      "gate": 40,
-     "surface_gate_pass": true,
+     "surface_gate_pass": false,
      "shape_gate_pass": true,
-     "editorial_gate_pass": true,
+     "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
-     "combined_pass": true,
+     "combined_pass": false,
      "words_before": 38,
-     "words_after": 29
+     "words_after": 38
     }
    ]
   },
-  "de-slop": {
-   "label": "de-slop",
-   "mean_surface_score": 27.1,
-   "mean_score_reduction": 51.2,
+  "stop-slop": {
+   "label": "stop-slop",
+   "mean_surface_score": 24.5,
+   "mean_score_reduction": 53.7,
    "surface_gate_passes": 13,
    "shape_gate_passes": 18,
    "editorial_gate_passes": 13,
    "automated_fact_check_passes": 18,
    "combined_passes": 13,
    "combined_pass_rate": 72.2,
-   "mean_word_change_pct": -26.4,
+   "mean_word_change_pct": -34.0,
    "by_genre": {
     "blog": {
      "n": 3,
-     "mean_surface_score": 18.3,
+     "mean_surface_score": 15.6,
      "combined_passes": 3
     },
     "email": {
      "n": 3,
-     "mean_surface_score": 14.3,
-     "combined_passes": 3
+     "mean_surface_score": 43.8,
+     "combined_passes": 1
     },
     "linkedin": {
      "n": 3,
-     "mean_surface_score": 20.2,
-     "combined_passes": 2
+     "mean_surface_score": 9.5,
+     "combined_passes": 3
     },
     "newsletter": {
      "n": 3,
-     "mean_surface_score": 14.1,
+     "mean_surface_score": 15.1,
      "combined_passes": 3
     },
     "research": {
      "n": 3,
-     "mean_surface_score": 22.2,
-     "combined_passes": 2
+     "mean_surface_score": 12.3,
+     "combined_passes": 3
     },
     "x": {
      "n": 3,
-     "mean_surface_score": 73.4,
+     "mean_surface_score": 50.9,
      "combined_passes": 0
     }
    },
@@ -996,20 +1284,20 @@
     {
      "id": "linkedin-lessons-01",
      "genre": "linkedin",
-     "surface_score": 36.1,
+     "surface_score": 9.5,
      "gate": 25,
-     "surface_gate_pass": false,
+     "surface_gate_pass": true,
      "shape_gate_pass": true,
-     "editorial_gate_pass": false,
+     "editorial_gate_pass": true,
      "automated_fact_check_pass": true,
-     "combined_pass": false,
+     "combined_pass": true,
      "words_before": 48,
-     "words_after": 41
+     "words_after": 31
     },
     {
      "id": "linkedin-contrarian-02",
      "genre": "linkedin",
-     "surface_score": 9.8,
+     "surface_score": 9.5,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -1017,12 +1305,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 39,
-     "words_after": 30
+     "words_after": 27
     },
     {
      "id": "linkedin-executive-03",
      "genre": "linkedin",
-     "surface_score": 14.6,
+     "surface_score": 9.5,
      "gate": 25,
      "surface_gate_pass": true,
      "shape_gate_pass": true,
@@ -1030,292 +1318,12 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 57,
-     "words_after": 48
+     "words_after": 37
     },
     {
      "id": "x-agents-01",
      "genre": "x",
-     "surface_score": 98.0,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 41,
-     "words_after": 36
-    },
-    {
-     "id": "x-habit-02",
-     "genre": "x",
-     "surface_score": 36.1,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 30,
-     "words_after": 28
-    },
-    {
-     "id": "x-future-03",
-     "genre": "x",
-     "surface_score": 86.1,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 31,
-     "words_after": 29
-    },
-    {
-     "id": "email-outreach-01",
-     "genre": "email",
-     "surface_score": 9.5,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 44,
-     "words_after": 32
-    },
-    {
-     "id": "email-launch-02",
-     "genre": "email",
-     "surface_score": 15.0,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 35,
-     "words_after": 27
-    },
-    {
-     "id": "email-followup-03",
-     "genre": "email",
-     "surface_score": 18.5,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 41,
-     "words_after": 32
-    },
-    {
-     "id": "blog-landscape-01",
-     "genre": "blog",
-     "surface_score": 14.5,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 40,
-     "words_after": 28
-    },
-    {
-     "id": "blog-guide-02",
-     "genre": "blog",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 40,
-     "words_after": 17
-    },
-    {
-     "id": "blog-transformation-03",
-     "genre": "blog",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 36,
-     "words_after": 20
-    },
-    {
-     "id": "newsletter-productivity-01",
-     "genre": "newsletter",
-     "surface_score": 9.5,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 41,
-     "words_after": 23
-    },
-    {
-     "id": "newsletter-edition-02",
-     "genre": "newsletter",
-     "surface_score": 15.0,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 36,
-     "words_after": 23
-    },
-    {
-     "id": "newsletter-trends-03",
-     "genre": "newsletter",
-     "surface_score": 17.8,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 35,
-     "words_after": 19
-    },
-    {
-     "id": "research-framework-01",
-     "genre": "research",
      "surface_score": 47.7,
-     "gate": 40,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 40,
-     "words_after": 25
-    },
-    {
-     "id": "research-approach-02",
-     "genre": "research",
-     "surface_score": 9.5,
-     "gate": 40,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 37,
-     "words_after": 35
-    },
-    {
-     "id": "research-future-03",
-     "genre": "research",
-     "surface_score": 9.5,
-     "gate": 40,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 38,
-     "words_after": 29
-    }
-   ]
-  },
-  "stop-slop": {
-   "label": "stop-slop",
-   "mean_surface_score": 29.9,
-   "mean_score_reduction": 48.4,
-   "surface_gate_passes": 11,
-   "shape_gate_passes": 18,
-   "editorial_gate_passes": 11,
-   "automated_fact_check_passes": 18,
-   "combined_passes": 11,
-   "combined_pass_rate": 61.1,
-   "mean_word_change_pct": -33.5,
-   "by_genre": {
-    "blog": {
-     "n": 3,
-     "mean_surface_score": 17.3,
-     "combined_passes": 3
-    },
-    "email": {
-     "n": 3,
-     "mean_surface_score": 25.1,
-     "combined_passes": 2
-    },
-    "linkedin": {
-     "n": 3,
-     "mean_surface_score": 18.4,
-     "combined_passes": 2
-    },
-    "newsletter": {
-     "n": 3,
-     "mean_surface_score": 18.5,
-     "combined_passes": 2
-    },
-    "research": {
-     "n": 3,
-     "mean_surface_score": 22.2,
-     "combined_passes": 2
-    },
-    "x": {
-     "n": 3,
-     "mean_surface_score": 77.8,
-     "combined_passes": 0
-    }
-   },
-   "rows": [
-    {
-     "id": "linkedin-lessons-01",
-     "genre": "linkedin",
-     "surface_score": 36.1,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 48,
-     "words_after": 42
-    },
-    {
-     "id": "linkedin-contrarian-02",
-     "genre": "linkedin",
-     "surface_score": 9.5,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 39,
-     "words_after": 27
-    },
-    {
-     "id": "linkedin-executive-03",
-     "genre": "linkedin",
-     "surface_score": 9.5,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 57,
-     "words_after": 40
-    },
-    {
-     "id": "x-agents-01",
-     "genre": "x",
-     "surface_score": 97.8,
      "gate": 25,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -1323,161 +1331,161 @@
      "automated_fact_check_pass": true,
      "combined_pass": false,
      "words_before": 41,
-     "words_after": 32
-    },
-    {
-     "id": "x-habit-02",
-     "genre": "x",
-     "surface_score": 49.6,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 30,
-     "words_after": 24
-    },
-    {
-     "id": "x-future-03",
-     "genre": "x",
-     "surface_score": 86.1,
-     "gate": 25,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 31,
-     "words_after": 25
-    },
-    {
-     "id": "email-outreach-01",
-     "genre": "email",
-     "surface_score": 14.7,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 44,
-     "words_after": 28
-    },
-    {
-     "id": "email-launch-02",
-     "genre": "email",
-     "surface_score": 20.0,
-     "gate": 35,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 35,
-     "words_after": 27
-    },
-    {
-     "id": "email-followup-03",
-     "genre": "email",
-     "surface_score": 40.5,
-     "gate": 35,
-     "surface_gate_pass": false,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": false,
-     "automated_fact_check_pass": true,
-     "combined_pass": false,
-     "words_before": 41,
-     "words_after": 25
-    },
-    {
-     "id": "blog-landscape-01",
-     "genre": "blog",
-     "surface_score": 13.6,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 40,
-     "words_after": 24
-    },
-    {
-     "id": "blog-guide-02",
-     "genre": "blog",
-     "surface_score": 18.1,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 40,
-     "words_after": 14
-    },
-    {
-     "id": "blog-transformation-03",
-     "genre": "blog",
-     "surface_score": 20.2,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 36,
-     "words_after": 19
-    },
-    {
-     "id": "newsletter-productivity-01",
-     "genre": "newsletter",
-     "surface_score": 11.7,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 41,
-     "words_after": 18
-    },
-    {
-     "id": "newsletter-edition-02",
-     "genre": "newsletter",
-     "surface_score": 13.1,
-     "gate": 25,
-     "surface_gate_pass": true,
-     "shape_gate_pass": true,
-     "editorial_gate_pass": true,
-     "automated_fact_check_pass": true,
-     "combined_pass": true,
-     "words_before": 36,
      "words_after": 22
     },
     {
-     "id": "newsletter-trends-03",
-     "genre": "newsletter",
-     "surface_score": 30.6,
+     "id": "x-habit-02",
+     "genre": "x",
+     "surface_score": 57.2,
      "gate": 25,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
      "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
      "combined_pass": false,
-     "words_before": 35,
-     "words_after": 15
+     "words_before": 30,
+     "words_after": 22
     },
     {
-     "id": "research-framework-01",
-     "genre": "research",
+     "id": "x-future-03",
+     "genre": "x",
      "surface_score": 47.7,
-     "gate": 40,
+     "gate": 25,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
      "editorial_gate_pass": false,
      "automated_fact_check_pass": true,
      "combined_pass": false,
+     "words_before": 31,
+     "words_after": 23
+    },
+    {
+     "id": "email-outreach-01",
+     "genre": "email",
+     "surface_score": 16.7,
+     "gate": 35,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 44,
+     "words_after": 28
+    },
+    {
+     "id": "email-launch-02",
+     "genre": "email",
+     "surface_score": 57.3,
+     "gate": 35,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 35,
+     "words_after": 27
+    },
+    {
+     "id": "email-followup-03",
+     "genre": "email",
+     "surface_score": 57.4,
+     "gate": 35,
+     "surface_gate_pass": false,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": false,
+     "automated_fact_check_pass": true,
+     "combined_pass": false,
+     "words_before": 41,
+     "words_after": 24
+    },
+    {
+     "id": "blog-landscape-01",
+     "genre": "blog",
+     "surface_score": 12.9,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
+     "words_after": 26
+    },
+    {
+     "id": "blog-guide-02",
+     "genre": "blog",
+     "surface_score": 20.2,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 40,
+     "words_after": 21
+    },
+    {
+     "id": "blog-transformation-03",
+     "genre": "blog",
+     "surface_score": 13.8,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 36,
+     "words_after": 24
+    },
+    {
+     "id": "newsletter-productivity-01",
+     "genre": "newsletter",
+     "surface_score": 18.6,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 41,
+     "words_after": 21
+    },
+    {
+     "id": "newsletter-edition-02",
+     "genre": "newsletter",
+     "surface_score": 10.9,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 36,
+     "words_after": 24
+    },
+    {
+     "id": "newsletter-trends-03",
+     "genre": "newsletter",
+     "surface_score": 15.8,
+     "gate": 25,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
+     "words_before": 35,
+     "words_after": 18
+    },
+    {
+     "id": "research-framework-01",
+     "genre": "research",
+     "surface_score": 17.8,
+     "gate": 40,
+     "surface_gate_pass": true,
+     "shape_gate_pass": true,
+     "editorial_gate_pass": true,
+     "automated_fact_check_pass": true,
+     "combined_pass": true,
      "words_before": 40,
      "words_after": 25
     },
@@ -1492,7 +1500,7 @@
      "automated_fact_check_pass": true,
      "combined_pass": true,
      "words_before": 37,
-     "words_after": 35
+     "words_after": 36
     },
     {
      "id": "research-future-03",

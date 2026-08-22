@@ -3,6 +3,11 @@
 Removing tells makes text neutral. These moves make it human. Ordered by the
 evidence ladder (L1 strongest detection signal + reader value).
 
+Before using the ladder, choose the smallest effective intervention for each
+passage: keep, repair, cut, or rebuild. Leave strong human sentences verbatim.
+The ladder expands what an editor can do; it does not require every sentence to
+be rewritten.
+
 ## L1 — Substance: raise the information
 
 The deepest difference between human and machine prose is measurable:
@@ -92,6 +97,11 @@ Breaking it matters more than any word swap.
 - **De-nominalize.** "made an assessment of" → "assessed"; "provides
   optimization of" → "optimizes". Kill participial sentence openers
   ("Leveraging X, the system…" → "The system uses X to…").
+- **Name the actor when agency matters.** "The setting was changed" becomes
+  "The operator changed the setting" when the source identifies the operator.
+  Keep passive voice when the actor is unknown, irrelevant, deliberately
+  withheld, or expected in the genre. Passive voice is a clarity decision, not
+  a standalone AI tell.
 - **Hide the machinery.** Outward-facing prose should not sound like the scoring
   or editing harness that produced it. Use plain language instead: "keeps every
   fact" rather than "faithful candidate," "the version we chose" rather than

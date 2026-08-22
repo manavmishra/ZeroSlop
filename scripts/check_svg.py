@@ -188,7 +188,7 @@ def main(path):
     # 3. connectors must not cut through boxes they do not terminate on
     for p in elements(root, "path"):
         d = p.get("d", "")
-        if not d or p.get("class") not in ("ln", "lp"):
+        if not d or p.get("class") not in ("ln", "lp", "rp"):
             continue
         if re.search(r"[mlhvzCQSTAZqcstaz]", d):
             problems.append("connector uses unsupported relative or curved path commands")
