@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-75%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.3.1-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.3.2-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every

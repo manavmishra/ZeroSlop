@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Turns AI-sounding drafts into professionally copy-edited expert prose and proves it: statistical scorer, evidence-ranked rewrite ladder, quantitative verify gate, continuous learning.",
   "author": {
     "name": "Manav Mishra",
@@ -17,7 +17,7 @@
     "linkedin",
     "expert voice"
   ],
-  "skills": "./",
+  "skills": "./skills/",
   "interface": {
     "displayName": "Zero-Slop",
     "shortDescription": "Kill the AI accent. Copy-edit the result. Keep every fact. Prove it with numbers.",
