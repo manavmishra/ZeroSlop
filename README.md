@@ -213,11 +213,11 @@ normal engineering language. The phrase "elevate
 your brand with our seamless platform" is not.
 
 Predictability sits outside the main score. Zero Slop hides a handful of words and asks
-the assistant you are already using — Claude, GPT, or another supported model — to
-guess each one from the preceding text. When the original word keeps appearing among
-the top three guesses, the prose is following a path a model would readily predict.
-This can expose polished, generic writing that slipped past the pattern meter, without
-calling a second model or sending the draft to another service.
+the assistant already in use, whether Claude, GPT, or another supported model, to guess
+each one from the words that come before it. When the original word keeps appearing
+among the top three guesses, the prose may be too easy for a model to anticipate. This
+can expose polished, generic writing that slipped past the pattern meter. It does not
+require another model or service.
 
 Editing starts with subtraction. The first pass removes stock phrases and fussy
 formatting while leaving the substance alone. The second works on the argument and the
@@ -225,10 +225,10 @@ voice: what should lead, where a sentence needs room to breathe, and whether the
 sounds like an expert speaking to peers. Giving those jobs separate passes keeps a
 wording cleanup from turning into a needless rewrite.
 
-For important pieces, Zero Slop tries two or three different edits. One may
-cut harder, another may keep more warmth, and a third may change the opening or order.
-Any version that drops a fact or adds one is out. From the versions left, Zero Slop
-chooses the cleanest and runs the full verification.
+For important pieces, Zero Slop tries two or three different edits. One may cut harder,
+another may keep more warmth, and a third may change the opening or order. Any version
+that drops or adds a fact is out. Zero Slop chooses the cleanest of the rest and runs
+the full verification.
 
 Before Zero Slop returns anything, it checks that the names, numbers, quotations, links,
 and claims still match the original. A copy editor fixes grammar, spelling, punctuation,
@@ -237,7 +237,7 @@ anything that still sounds stiff, repetitive, or poorly joined. The finished pie
 scored and compared with the original once more. If a late fix changes the wording,
 both editors see it again and all the checks run again. This repair loop stops after
 three rounds. If a check still cannot pass without guessing, Zero Slop returns the
-strongest version that keeps the original meaning, and tells you exactly what remains
+strongest version that keeps the original meaning and tells you exactly what remains
 unresolved.
 
 ## It will not touch your facts
