@@ -8,7 +8,7 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.2.0-2a78d6">
 </p>
 
-You used AI to help with your writing, and now it reads like a machine wrote every
+You used AI to help with your writing, and now it reads like a machine wrote your every
 word. You can hear it, and so can everyone who reads it. There is even a word for that
 machine sound: slop. On LinkedIn, it gets you accused of not thinking for yourself.
 
