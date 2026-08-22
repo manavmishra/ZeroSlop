@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-75%20passing-1E7A4C">
   <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
   <img alt="offline" src="https://img.shields.io/badge/network-none-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.3.2-2a78d6">
+  <img alt="version" src="https://img.shields.io/badge/version-2.3.3-2a78d6">
 </p>
 
 You used AI to help with your writing, and now it reads like a machine wrote every
@@ -15,9 +15,10 @@ yourself.
 
 Zero Slop finds the slop in your draft and removes it without changing what you
 actually said. It scores the writing from 0 to 100, points to the exact words
-dragging it down, and rewrites them. A final copy desk then fixes grammar,
-spelling, punctuation, and awkward phrasing before Zero Slop double-checks that
-every fact survived and nothing new slipped in.
+dragging it down, and rewrites them. A copy desk fixes grammar, spelling,
+punctuation, and awkward phrasing. A fresh read-aloud editor then fixes flow and
+cohesion in the actual deliverable before Zero Slop double-checks that every fact
+survived and nothing new slipped in.
 
 ![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
 
@@ -184,55 +185,58 @@ only lose the number.
 
 ## How it works
 
-The first thing Zero Slop does is **measure**. Four surface channels turn a draft into
-a score from 0 to 100. Every point traces back to a quoted span or a document-level
-statistic you can inspect, so the number is never a black box you have to trust. Only
-one channel looks at your actual words; the rest read the *shape* of the writing. That
-is why running a draft through a thesaurus barely moves the score.
+Zero Slop measures the draft before it changes a word.
 
-| What Zero Slop measures | Signals it detects |
+Four surface channels produce a score from 0 to 100. The pattern meter identifies
+specific words and phrases. The other three use structural counts and rates to measure
+rhythm, followability, and a combined formatting-and-register signal. Every result
+points back to a quoted phrase or a document-level statistic you can inspect.
+
+| Channel | What it measures |
 |---|---|
-| word choice | 266 weighted patterns, a 96-word watchlist, and 25 words that only count in a salesy sentence |
-| rhythm | sentences that are all the same length, paragraphs that march in step |
-| followability | comma pile-ups, long-word traffic jams, sentences that run past 38 words |
-| formatting + register | excessive em dashes, emoji, hashtags, and bold formatting; a machine-formal tone |
+| Pattern meter | 266 weighted patterns, a 96-word watchlist, and 25 words that count only in a salesy sentence |
+| Rhythm | low variation in sentence length |
+| Followability | comma pile-ups, clusters of long words, and sentences longer than 38 words |
+| Formatting and register | em dash density, emoji, hashtags, heavy use of bold, and machine-formal language |
 
-The scorer is built to accuse slowly. A single em dash is not slop. Fine writing uses
-them, so they carry weight only when other signals agree. Clusters convict; lone
-signals do not.
+For social posts, Zero Slop reports paragraph shape separately; it does not change the
+0-to-100 score. Changing a word to a synonym can remove a weighted phrase, but it
+cannot fix the structural signals and may leave much of the score unchanged.
 
-The pattern meter does more work than a flat word list. Words like *leverage* or
-*robust* are ordinary in a runbook and turn into tells only when a marketing word
-shares the sentence. "Elevated write volume" in an engineering note is fine; "elevate
+No single signal determines the result. Em dashes are common in good writing, so one
+carries little weight on its own. A dash matters only when several independent signals
+cluster in the same draft.
+
+Word choice is also judged in context. *Leverage* and *robust* are ordinary in a
+runbook but can become useful signals in promotional copy. "Elevated write volume" is
+normal engineering language. The phrase "elevate
 your brand with our seamless platform" is not.
 
-Zero Slop reports a fifth, model-based signal separately: predictability. Detectors
-lean hardest on this signal because machine text sits where a model would have put the
-words. Zero Slop ships no model of its own, so it borrows the assistant you are working
-with. It masks a sample of words, asks the host model for three likely completions per
-blank, and counts how often the original word appears among them. Machine writing is
-easy to guess; human word choice surprises it. This check needs no additional model and
-works whether the host is Claude or GPT.
+The fifth probe measures predictability and reports it separately from the 0-to-100
+surface score. Detectors often rely on this signal because models can guess
+machine-written text more easily. The probe masks a sample of words, asks the host
+assistant for three likely completions at each blank, and counts how often the original
+word appears among those three guesses. It uses the assistant already running the
+skill, whether Claude or GPT, so it needs no additional model.
 
-Scoring is only half the job. The rewrite runs in two passes; in testing, splitting the
-work beat doing it all at once. The first strips the tells and changes nothing else. The
-second rebuilds what remains into the voice of someone who knows the subject, with the
-clutter gone so nothing can hide a thin point.
+Rewriting happens in two passes. The first removes flagged wording and formatting
+without changing the substance. The second revises the order, rhythm, and register to
+shape what remains into a clear expert voice. Separating the passes keeps structural
+revision out of the initial wording cleanup.
 
-It does not settle for one attempt, either. It produces a few rewrites with different
-strategies — strip hard, keep the warmth, reorder the argument — and keeps the cleanest
-one that loses no fact. A candidate that invents a detail loses to any that does not, no
-matter how well it reads. That is the point of choosing by the meter: the taste that
-wrote the candidates does not get the final say.
+For work that matters, Zero Slop produces two or three candidates with distinct
+approaches: cutting harder, preserving more warmth, or reordering the argument.
+Fidelity ranks ahead of the meter, so a candidate that drops or invents a fact cannot
+beat a faithful one. Among faithful candidates, the reranker favors the cleaner
+version, which must still pass the full verification that follows.
 
-Once the winning rewrite clears the numeric gate, the fresh-eyes read-aloud check, and
-the fidelity review, it goes to the final copy desk. When the host supports agents, a
-dedicated editor edits the text directly rather than returning a list of suggestions.
-The editor corrects spelling, grammar, punctuation, and syntax, resolves inconsistencies,
-and smooths awkward phrasing without disturbing the author's voice, facts, or format.
-Zero Slop then runs the scorer and scripted fidelity check on that exact artifact and
-reviews it again for meaning, voice, and structure. If a repair changes the text, the
-copy desk and every final check run again.
+The selected rewrite first clears the numeric gate and fidelity check. A dedicated copy
+editor then corrects grammar, spelling, punctuation, consistency, and awkward phrasing
+in the actual deliverable. A fresh read-aloud editor follows, fixing flow and cohesion
+directly in that same artifact. Zero Slop then checks the exact artifact again for
+score, fidelity, meaning, voice, format, and structure. If any final check requires a
+textual change, the revised deliverable goes back through both the copy desk and the
+read-aloud pass before every final check runs again.
 
 ## It will not touch your facts
 
@@ -332,8 +336,8 @@ worked out the craft first: [petergyang/no-ai-slop](https://github.com/petergyan
 [isatimur/de-slop](https://github.com/isatimur/de-slop), and
 [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop). They proved that the
 sound can be removed, and their lists of tells seeded ours. We added the score, the
-fact-check, the final copy desk, and the learning loop — the parts that let you measure
-a rewrite and trust the finished copy.
+fact-check, the copy desk, the read-aloud editor, and the learning loop — the parts
+that let you measure a rewrite and trust the finished copy.
 
 Worth heading off one confusion: detectors like Pangram and GPTZero answer a different
 question. They estimate whether a machine wrote something; Zero Slop measures the AI
@@ -351,7 +355,7 @@ register left in the text. We do not tune rewrites to fool those detectors.
 
 ## Under the hood
 
-![Zero Slop workflow: four surface channels produce a traceable score, while a fifth tests predictability. The draft is diagnosed, rewritten, reranked, checked for score, flow, and fidelity, copy-edited, then rechecked. Feedback and SkillOpt loops improve the meter and instructions.](assets/engine.svg)
+![Zero Slop workflow: four surface channels produce a traceable score, while a fifth tests predictability. The draft is diagnosed, rewritten, reranked, checked for score and fidelity, copy-edited, finalized by a read-aloud editor, then rechecked. Feedback and SkillOpt loops improve the meter and instructions.](assets/engine.svg)
 
 ```
 SKILL.md                    the instructions the AI agent follows
@@ -363,8 +367,8 @@ scripts/calibrate.py        retune from a corpus; retire stale tells
 scripts/version_check.py    the once-a-session update check
 data/patterns.json          the 266 tells, the watchlist, the context words
 data/corpus/must-not-flag/  human writing the tool must never flag
-references/readalong.md     the read-aloud pass the verify gate runs
-references/copy-desk.md     the final grammar, spelling, and style pass
+references/readalong.md     the final pass for spoken flow and cohesion
+references/copy-desk.md     the grammar, spelling, and style pass before read-aloud finalization
 bench/skillopt/             the reward and harness for tuning SKILL.md
 tests/test_all.py           75 tests
 ```

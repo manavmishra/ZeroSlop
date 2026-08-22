@@ -1,4 +1,4 @@
 interface:
   display_name: "Zero-Slop"
-  short_description: "Remove AI slop, copy-edit the result, and show before/after metrics"
-  default_prompt: "Use $zero-slop to make this draft read like a sharp human expert wrote it, professionally copy-edit the final text, and show me the before/after scores."
+  short_description: "Remove AI slop, copy-edit it, fix spoken flow, and show the metrics"
+  default_prompt: "Use $zero-slop to make this draft read like a sharp human expert wrote it, copy-edit the exact text, finalize it with a read-aloud pass, and show me the before/after scores."

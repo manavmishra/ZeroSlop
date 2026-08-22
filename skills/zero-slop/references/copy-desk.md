@@ -1,14 +1,14 @@
 # The final copy desk
 
-Run this pass on every deliverable after the rewrite, readalong, and initial
-verification work. It is the last editorial pass before final verification and
-Report. Its job is to return publication-ready copy, not an assessment of copy
-that still needs work.
+Run this pass on every deliverable after the rewrite and initial verification
+work. It corrects mechanics and line-level style before the final read-aloud
+pass. Its job is to produce corrected copy, not an assessment of copy that still
+needs work.
 
 Use a dedicated copy-editor agent with fresh eyes when the harness supports
 subagents. Otherwise, set aside the writing mindset and perform the same review
 as a separate, role-isolated pass. Either way, apply every accepted correction
-to the actual deliverable before it reaches the user.
+to the actual deliverable before sending it to the final read-aloud pass.
 
 ## What to correct
 
@@ -49,7 +49,7 @@ different house style.
 Give the agent the genre, intended audience, original draft, selected rewrite,
 known voice signals, and immutable facts when available. Then use this brief:
 
-> You are the final copy editor for a publication-ready piece. Edit the complete
+> You are the copy editor for a publication-ready piece. Edit the complete
 > text directly and return the corrected version in the same format. Fix every
 > genuine error in spelling, grammar, punctuation, capitalization, agreement,
 > tense, modifiers, syntax, diction, consistency, and usage. Improve awkward,
@@ -63,17 +63,20 @@ known voice signals, and immutable facts when available. Then use this brief:
 > Return: (1) the fully corrected text, not a list of suggestions; and (2) a
 > terse note only for unresolved ambiguities or unusual forms deliberately kept.
 
-Apply the corrected version to the deliverable. Then verify that exact artifact:
+Apply the corrected version to the deliverable, then send that exact artifact
+through the final read-aloud pass in `references/readalong.md`. Verify the
+artifact returned by the read-aloud editor:
 
 1. Rerun the statistical scorer and scripted fidelity check.
 2. Compare it directly with both the original and selected rewrite for preserved
    claims, qualifiers, intended voice, regional spelling, format, and non-prose
    structure. The script cannot detect every semantic or stylistic change.
-3. If either check requires a repair, apply it, send the repaired text through
-   the copy desk again, and repeat all final checks.
+3. If any check or comparison requires a repair, apply it, send the repaired
+   text through the copy desk and final read-aloud pass again, and repeat all
+   final checks.
 
-Stop only when the same artifact passes copy editing, semantic/format review,
-the scorer, and fidelity checks together. Limit the loop to three rounds; if an
-issue still cannot be resolved without guessing, return the best faithful version
-that has completed a copy-desk pass, and flag the unresolved span and failed gate
-plainly.
+Stop only when the same artifact clears the copy desk, final read-aloud pass,
+semantic and format review, scorer, and fidelity check. Limit this repair loop to
+three rounds. If an issue still cannot be resolved without guessing, return the
+best faithful version that completed both editorial passes and flag the unresolved
+span and failed check plainly.
