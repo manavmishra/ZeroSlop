@@ -64,13 +64,56 @@ are reacting.
 
 ## Try it
 
-```bash
-npx skills add manavmishra/ZeroSlop --global   # then say "de-slop this" in any agent
+### Paste this into your agent
+
+Give this prompt to Claude Code, Codex, Cursor, OpenCode, Warp, Zed, or any other
+Agent Skills-compatible coding agent:
+
+```text
+Install or update Zero Slop from https://github.com/manavmishra/ZeroSlop for
+this agent.
+
+1. Identify the current harness and any active Zero Slop installation, including
+   its path, version, and install method. Do not mix installation methods. If more
+   than one active copy exists, report every path and ask which one to keep; do not
+   delete any copy.
+2. Use the native user-level installer when one exists: invoke $skill-installer in
+   Codex; use the plugin marketplace's install or update flow in Claude Code or
+   Cowork. For a first install in any other supported Agent Skills harness, run:
+   npx skills add manavmishra/ZeroSlop --global
+3. For an update, use the existing install method. If the existing copy was installed
+   with the third-party `skills` CLI, run:
+   npx skills update zero-slop --global
+   Preserve ZERO_SLOP_HOME (default: ~/.zero-slop) and inspect the installed runtime
+   for locally modified data/learned.json or data/learned-log.md. Do not overwrite or
+   delete local learning. If those files cannot be merged safely, make a recoverable
+   backup and ask before continuing.
+4. Install the complete runtime: SKILL.md, references/, scripts/, and data/. Do not
+   substitute the README or single-file bundle unless this harness requires that
+   format. Do not create a second copy inside the discovered skill directory; a
+   plugin-owned skills/zero-slop directory is valid.
+5. Verify that the installed SKILL.md version matches the repository and that every
+   required runtime file and directory named by SKILL.md exists. User-created or
+   optional paths, such as voice profiles, may remain absent until needed. Confirm
+   that the harness can discover a skill named zero-slop. If Python is available,
+   run `python3 scripts/calibrate.py --selftest` from the installed skill directory.
+6. Report the install method, exact path, installed version, validation result, and
+   whether I need to restart the agent or open a new session.
+
+Do not claim success until verification passes. Do not modify the current project
+or unrelated configuration. If a user-level install is impossible and you need to
+fall back to a project-local install, ask me first.
 ```
 
-The command above installs it into every agent you have. To narrow the installation,
-add `--agent` and name one (`claude-code`, `codex`, `cursor`, `opencode`, `warp`,
-`zed`), or drop `--global` to keep it to a single project.
+### Install from the terminal
+
+```bash
+npx skills add manavmishra/ZeroSlop --global   # then open the agent and say "de-slop this"
+```
+
+The command detects supported agents on your machine and installs Zero Slop globally.
+To target one agent, add `--agent` and name it (`claude-code`, `codex`, `cursor`,
+`opencode`, `warp`, or `zed`). Drop `--global` for a project-local installation.
 
 <details>
 <summary>Claude Code plugin · ChatGPT · Codex · Claude.ai · manual clone</summary>
@@ -89,12 +132,17 @@ instructions, or upload it as Custom GPT knowledge.
 curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md
 ```
 
-Codex: run this in your own project, not in a copy of this repo, because it writes
-`AGENTS.md`.
+Codex has a built-in installer for skills from other repositories. Invoke it, then
+give it the repository and the user-level scope:
 
-```bash
-curl -sL https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md -o AGENTS.md
+```text
+$skill-installer
+Install zero-slop from https://github.com/manavmishra/ZeroSlop as a user-level skill.
 ```
+
+Codex discovers skill changes automatically. If the skill does not appear, restart
+Codex. See OpenAI's [skill installation
+guide](https://developers.openai.com/codex/skills/#install-curated-skills-for-local-use).
 
 Claude.ai and Claude Desktop need a zip that contains only this skill. GitHub's green
 "Download ZIP" button packages the whole repository, so Claude rejects it. Build the
