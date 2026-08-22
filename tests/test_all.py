@@ -1579,6 +1579,10 @@ class Diagram(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout)
 
     def test_one_pager_pdf_is_current(self):
+        try:
+            import reportlab  # noqa: F401
+        except ImportError:
+            self.skipTest("optional reportlab dependency is not installed")
         r = run([str(ROOT / "scripts" / "build_onepager_pdf.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
