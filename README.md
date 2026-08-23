@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.4-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.5-72528F">
 </p>
 
 **Less slop, more pop in all your writing.**
@@ -74,60 +74,62 @@ repeatable checks. No Zero Slop AI service receives the draft.
 
 ### Why separate the work?
 
-Research supports the checks, not an optimal count.
-Studies have found [predictable wording](https://arxiv.org/abs/2301.11305) and
-[excess vocabulary](https://arxiv.org/abs/2406.07016) in machine-written text. Editorial
-research distinguishes problems with substance, facts, coherence, and tone. AI detectors can
-[misclassify non-native English](https://arxiv.org/abs/2304.02819), so this score locates
-writing problems; it never guesses who wrote the draft.
-
-Separation is an engineering safeguard. The rewriter does not certify its own facts,
-and the copy desk and read-aloud editor remain separate because grammatically correct
-prose can still sound stiff. The verifier checks the exact text a reader will receive;
-late edits can introduce errors. [Research notes](references/evidence.md) explain the
-rationale and limits.
-
-Local tools use Python's standard library and never send drafts over the network.
-Word-guessing and cross-draft checks stay separate from the writing score.
+The roles reflect the work. Research supports the checks, not the number seven.
+Studies find
+[predictable wording](https://arxiv.org/abs/2301.11305) and
+[excess vocabulary](https://arxiv.org/abs/2406.07016) in machine text, while detectors can
+[misclassify non-native English](https://arxiv.org/abs/2304.02819). The rewriter therefore
+does not certify its own facts, and separate editorial passes catch later errors. Local
+tools use Python's standard library and never send drafts. [Research notes](references/evidence.md)
+cover the rationale and limits.
 
 ## Private learning from writer edits
 
-Learning requires the version returned by the assistant and the version the writer
-kept. Zero Slop never monitors files, browsers, or publishing systems.
+Learning requires the assistant's version and the writer's final version.
+Zero Slop never monitors files, browsers, or publishing systems.
+
+A named profile exempts existing watchlist words found in your sample. One exact
+match is enough. It works only when selected by name and does not learn cadence,
+tone, or a complete writing style, including syntax, humor, or arbitrary phrases.
 
 A phrase must be cut from three unrelated pieces before becoming a private rule;
-single-word cuts need five unrelated pieces. Each proposal is tested against human
-writing that must remain unflagged. Repeated replacements guide later edits, phrases
-the writer keeps can quiet a rule, and old rules fade. The private, reversible rules under
+single-word cuts need five unrelated pieces. Each proposal must leave human writing
+unflagged. Repeated replacements guide edits, phrases
+the writer keeps can quiet a rule, and old rules fade. Private, reversible rules under
 `$ZERO_SLOP_HOME` never retrain the AI model.
 
-## Does Zero Slop work?
+## What the current release measured
 
-Tests check editing quality and repeatability. They measure speed too. No single
-number can settle writing quality.
+Every score and timing was recomputed with v2.5.5, including the corpus audits,
+tables, and charts. Saved LLM selections from an older study are not reused.
 
-### The clearest signal so far
+### Recent model output: RAID+
 
-Two independent LLMs reviewed 72 passages from 12 drafts without tool names, rating
-slop from 1 (clean) to 5 (sloppy throughout). Scores averaged 4.75 before editing and
-2.38 after Zero Slop. Agreement was 77.8%. Excluding disagreements and borderline
-calls left 38 shared decisions and 34 unresolved cases. The sample is small, and the
-reviewers are LLMs, not people.
+[RAID+](https://huggingface.co/datasets/markstanl/RAID-Plus) is an MIT-licensed extension
+of the peer-reviewed RAID benchmark. We scored its 8,000 pinned rows; 7,627 abstracts
+remained after excluding failed or empty generations.
 
-![Average amount of editing needed according to two LLM reviewers; lower is better](assets/bench-blind-quality.png)
+| Model | Texts scored | Mean writing score ↓ | At or above 25 |
+|---|---:|---:|---:|
+| DeepSeek V3 | 1,995 | 15.2 | 12.0% |
+| Gemini 3.1 Pro | 1,998 | 18.9 | 23.9% |
+| Gemma 3 27B | 1,634 | 24.2 | 36.1% |
+| Llama 3.3 70B | 2,000 | 26.9 | 43.7% |
+| **Overall** | **7,627** | **21.2** | **28.6%** |
 
-### Why context matters
+![Current Zero Slop writing scores across four RAID+ model families](assets/bench-raid-plus.png)
 
-In a 22-passage experiment, an LLM that read the surrounding text agreed with another
-LLM 95.45% of the time, versus 79.54% for the writing score alone. This compares LLMs,
-not people, and the experimental check is not part of the installed skill.
+RAID+ records model origin, not editorial quality, so this is a score distribution,
+not an accuracy claim. A fresh run on all 2,187 Beemo records found means of 32.0 for
+raw model responses, 26.4 for expert edits, and 20.6 for independent human answers.
+Expert editing lowered the score in 52.7% of pairs. Beemo also lacks quality labels.
 
-![The experimental context-aware check matched another LLM more often than the local writing score](assets/bench-contextual-ablation.png)
+### Five workflows, one fixed set of drafts
 
-### The same drafts, edited five ways
-
-We ran five workflows on the same 18 deliberately generic drafts. A passage passed
-only if it met the writing and layout limits without altering facts or inventing feelings.
+We reran v2.5.5's checks on preserved rewrites of 18 generic drafts. One August 23
+session produced them using Zero Slop 2.4.3 and pinned competitor instructions; they
+were not regenerated. Passing requires clean writing and layout with no altered facts
+or invented feelings.
 
 | Method | Mean writing score ↓ | Passed all checks | Automated fact check | Average length change |
 |---|---:|---:|---:|---:|
@@ -140,16 +142,15 @@ only if it met the writing and layout limits without altering facts or inventing
 
 ![The same 18 drafts after each editing workflow; lower scores mean fewer generic AI-style patterns](assets/bench-search-rewrites.png)
 
-All 18 Zero Slop edits passed, but this is not a neutral ranking: Zero Slop defines the
-rules. No available set combines broad, current writing with independent human review,
-so there is no universal accuracy number. AIStoryHub, Beemo, and the Slop Index remain
-limited cross-checks documented in [`bench/README.md`](bench/README.md).
+All 18 Zero Slop edits passed, but Zero Slop defines the rules and those rewrites
+predate this release. No available set combines current writing with independent human
+review, so no universal accuracy number exists. See [`bench/README.md`](bench/README.md).
 
 ### The local tools are fast
 
-On one Apple silicon Mac, the local checker processed 1,000 documents in 2.4986 seconds
-(400.2 per second). A 15,201-word document took 0.3526 seconds; the slowest stress case
-took 2.4453 seconds. An 8,000-word learning pass took 0.1478 seconds. AI-assistant time
+On one Apple silicon Mac, the local checker processed 1,000 documents in 2.6047 seconds
+(383.9 per second). A 15,201-word document took 0.3676 seconds; the slowest stress case
+took 2.6362 seconds. An 8,000-word learning pass took 0.1623 seconds. AI-assistant time
 is excluded.
 
 ## What Zero Slop adds
@@ -159,7 +160,8 @@ Zero Slop builds on [no-ai-slop](https://github.com/petergyang/no-ai-slop),
 and [stop-slop](https://github.com/hardikpandya/stop-slop). It adds a local writing
 score, fact protection, separate editorial passes, private learning, and release tests.
 
-The chart records documented features in pinned repository versions; it does not decide which tool writes better. Details are in [`bench/README.md`](bench/README.md).
+The chart records documented features in pinned repository versions. It does not
+decide which tool writes better. Details are in [`bench/README.md`](bench/README.md).
 
 ![Comparison of features documented in pinned repository versions](assets/competitor-capabilities.png)
 
@@ -169,11 +171,8 @@ The chart records documented features in pinned repository versions; it does not
 python3 tests/test_all.py
 python3 scripts/calibrate.py --selftest
 python3 bench/search-corpus/compare.py --check
-python3 bench/quality-corpus/evaluate.py --manifest bench/quality-corpus/manifest.json \
-  --labels bench/quality-corpus/labels-rater-a.json \
-  --labels bench/quality-corpus/labels-rater-b.json \
-  --out bench/quality-corpus/results.json --check
-python3 bench/feature-ablation/check.py
+python3 bench/raid-plus-corpus/audit.py --check
+python3 bench/beemo-corpus/audit.py --check
 python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check
 ```

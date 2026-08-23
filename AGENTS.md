@@ -42,8 +42,11 @@ are examples, not limits.
 - `scripts/learn.py --guide --for <draft>` retrieves reason-labelled private fix
   preferences. Retrieval is advisory lexical coverage, not a probability, and must
   abstain when no relevant evidence exists.
-- `data/voices/` — per-user voice profiles. Git-ignored, personal, never
-  commit.
+- `$ZERO_SLOP_HOME/voices/` — private named scoring profiles, outside the
+  repository. The sample-based builder records an existing lexicon or rider
+  term after one exact word match. It does not store the sample or model the
+  writer's full style, and the profile has no effect unless selected with
+  `--voice NAME`. Never commit these profiles.
 - `bench/` (if present) — reproducible benchmark harness and scorecard.
 
 ## Maintenance contract

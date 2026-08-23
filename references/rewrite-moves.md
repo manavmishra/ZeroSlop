@@ -143,20 +143,23 @@ and any chatbot markup leakage.
 
 Never rewrite "in the user's voice" without evidence of the voice.
 
-**With samples** (conversation history, linked posts, `data/voices/<user>.md`):
+**With samples** (conversation history, linked posts, or a user-supplied file):
 extract typical sentence length and variance; contractions y/n; first person,
 questions, humor; punctuation habits; vocabulary level and jargon used
 unexplained; how they open and close; what they push back on. Preserve the 3–5
-strongest markers verbatim-level.
+strongest markers, down to individual words and punctuation.
 
 **Without samples:** ask for two paragraphs of their real writing — it beats
 any description. If unavailable, ask three questions: who's the reader, what
 should they do after reading, and what do you believe about this that peers
 don't?
 
-Store what you learn in `data/voices/<user>.md` so the next run starts warm.
-A writing sample outranks every rule in this skill: if the user genuinely
-writes with em-dashes and "honestly", those stay.
+A sample can guide the current edit only if the AI assistant can read it. Do not
+store it unless the user explicitly authorizes a storage method. `learn.py
+--voice` stores only existing watchlist-word exceptions under
+`$ZERO_SLOP_HOME/voices/`; it does not store the sample or learn cadence,
+syntax, humor, or tone. A readable writing sample outranks general style
+guidance: if the user genuinely writes with em-dashes and "honestly", those stay.
 
 ## Worked contrast
 

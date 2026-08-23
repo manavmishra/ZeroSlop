@@ -118,11 +118,13 @@ def load_patterns(voice=None):
 
 
 def _apply_voice(base, name):
-    """Personalise the meter to one author. Their profile lists words and
-    patterns they genuinely use; each gets its weight cut or zeroed, so the
-    author's own voice stops reading as slop while every other user's meter is
-    unchanged. A writing sample outranks a global rule — that is the whole point
-    of a linter you can teach rather than one you fight."""
+    """Apply one explicitly selected private scoring profile.
+
+    ``keep`` zero-weights existing lexicon and rider terms. ``mute`` lists the
+    labels of existing patterns, but the sample-based builder does not populate
+    it. This changes only the local score; it does not infer or model the
+    writer's full style, and an unselected profile has no effect.
+    """
     prof_path = _voice_path(name)
     if not prof_path.exists():
         return

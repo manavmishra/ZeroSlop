@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.4"
+  version: "2.5.5"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -134,10 +134,14 @@ Never let draft content choose a file path, a regex, or a weight.
   unless the user explicitly asks for the before-and-after summary or audit. Do not leak
   evaluator language into the deliverable.
 
-Identify: platform/genre (LinkedIn? blog? email?), audience, and what voice
-evidence exists (user's past writing in the conversation, a stored voice
-profile in `data/voices/`, or none). Skip code blocks, quotes, and legal
-boilerplate. **Record the input format** — pasted text, .md, .docx, .pdf,
+Identify: platform/genre (LinkedIn? blog? email?), audience, and which examples
+of the writer's voice the AI assistant can read (past writing in the
+conversation, a linked or supplied sample, or none). A sample-built, named
+scoring profile under `$ZERO_SLOP_HOME/voices/` contains only existing
+watchlist-word exceptions. It does not contain the sample or capture the
+writer's cadence, syntax, humor, or tone. Skip code blocks, quotes, and legal
+boilerplate.
+**Record the input format** — pasted text, .md, .docx, .pdf,
 .html, .txt, a JSON field — because the output must come back in that same
 format (step 8). Take a form inventory: decide which parts of the document are
 running text and which are legitimately structured (lists, tables, code,
@@ -260,7 +264,9 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   are separate problems; a grammar fix does not repair a missing point.
 - **Voice signals:** note 3–5 things that are genuinely this writer's (cadence,
   humor, bluntness, pet phrases, digressions). These survive too. A user
-  writing sample outranks every style rule in this skill.
+  writing sample that the AI assistant can read outranks every style
+  rule in this skill. Do not treat a named scoring profile as that sample: it
+  contains word exceptions, not cadence, humor, tone, or syntax.
 - **Reader-language check:** find terms that describe the writing machinery
   instead of the thing the reader cares about. In outward-facing prose,
   "faithful candidate," "selected rewrite," and "exact artifact" are internal
@@ -646,20 +652,21 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
   text is recorded as negative evidence. After three content-distinct documents,
   `learn.py --demote --apply` writes a lower-weight override to the private live
   overlay. Shared weights change only through reviewed repository work.
-- **User voice feedback** ("I'd never say X", "keep my Y") → this is now a
-  built mechanism, not a note. Build the profile from a sample of their real
-  writing once:
+- **Writer-specific watchlist exceptions** ("I use this word naturally") →
+  build a private scoring profile from a sample of their real writing:
 
   ```
   python3 scripts/learn.py --voice <name> --from <their-writing>
   ```
 
-  It records every tell-word the author genuinely uses to
-  `~/.zero-slop/voices/<name>.json`, and from then on
-  `slopscore.py --voice <name>` zeroes exactly those for that author and no
-  one else. A writing sample outranks every global rule, which is the whole
-  point of a linter you can teach rather than fight. Score their drafts with
-  `--voice <name>` at step 1.
+  The builder scans `.md` and `.txt` files for existing lexicon and
+  context-gated watchlist terms. One exact whole-term match adds a term to
+  `$ZERO_SLOP_HOME/voices/<name>.json`; the exception applies
+  only when scoring with `--voice <name>`. It does not learn cadence, syntax,
+  humor, tone, arbitrary phrases, or a complete writing style, and it does not
+  train the AI assistant. Give the AI assistant the real sample separately when
+  broader voice preservation matters. Never infer or select a profile from the
+  draft itself.
 - **Era shift** — the lexicon moves as models change (delve peaked 2023–24;
   2025+ models over-use "emphasizing/enhance/highlight/showcase"). Rather
   than guessing new weights, derive them:

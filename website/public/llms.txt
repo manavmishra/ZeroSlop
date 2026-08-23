@@ -1,6 +1,6 @@
 # Zero Slop
 
-Zero Slop is an open-source AI writing humanizer and anti-slop checker. It scores the recognizable AI accent in prose and identifies the phrases and structural patterns behind it. It then rewrites the draft and verifies that facts were not dropped or invented.
+Zero Slop is an open-source AI writing humanizer and anti-slop checker. It scores the recognizable AI accent in prose and identifies the phrases and structural patterns behind it. It then rewrites the draft and checks that facts were not dropped or invented.
 
 ## Core facts
 
@@ -20,8 +20,8 @@ Zero Slop is an open-source AI writing humanizer and anti-slop checker. It score
 
 ## What makes it different
 
-Zero Slop is not an authorship detector. It is an editorial tool that measures known tell phrases, sentence rhythm, readability, and formatting. After two rewrite passes, Zero Slop scores the result, runs a read-aloud check, and compares that version with the original before returning the finished draft.
+Zero Slop is not an authorship detector. It is an editorial tool that finds stock phrases, mechanical sentence rhythm, hard-to-read passages, and distracting formatting. Your AI assistant interprets and edits the draft; local tools check the finished version against the original.
 
 ## Examples on the website
 
-The website includes before-and-after sample rewrites for a LinkedIn post, blog introduction, strategy document, X thread, and PowerPoint slide. The displayed surface scores come from the open-source Zero Slop scorer. They are heuristic editorial measurements, not calibrated authorship probabilities; lower scores mean fewer tracked AI-like writing patterns.
+The website includes before-and-after sample rewrites for a LinkedIn post, blog introduction, strategy document, X thread, and PowerPoint slide. The displayed writing scores come from the open-source Zero Slop checker. They do not estimate who wrote the text; lower scores mean fewer tracked AI-style patterns.

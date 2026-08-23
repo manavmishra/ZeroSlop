@@ -1,7 +1,8 @@
 # Benchmark harness
 
-Everything needed to reproduce, contest, or extend the evaluation in
-[EVALUATION.html](../EVALUATION.html).
+This directory contains everything needed to reproduce, contest, or extend the
+historical evaluation in [EVALUATION.html](../EVALUATION.html), along with the
+current corpus checks.
 
 - `examples.json` — the 50-draft corpus (25 LinkedIn, 8 blog, 5 newsletter,
   5 X/Twitter, 4 email, 3 research), each with the brief and ground-truth
@@ -26,6 +27,9 @@ Everything needed to reproduce, contest, or extend the evaluation in
 - `beemo-corpus/` — a revision-pinned paired audit of raw model responses,
   expert human edits, and independent human answers. It fetches on demand,
   commits only aggregate results, and does not treat provenance as slop quality.
+- `raid-plus-corpus/` — all 8,000 rows from the MIT-licensed RAID+ extension,
+  with 7,627 non-empty generations from four current model families scored at a
+  pinned revision. It is a current-distribution cross-check, not slop accuracy.
 - `external-models/` — a pinned reproduction of The Slop Index mechanical
   benchmark on its 19,928 preserved generations. It is external model context,
   not a Zero Slop result.
@@ -49,6 +53,7 @@ python3 bench/search-corpus/evaluate.py --check
 python3 bench/search-corpus/compare.py --check
 python3 bench/aistoryhub-corpus/audit.py --fetch --check
 python3 bench/beemo-corpus/audit.py --fetch --check
+python3 bench/raid-plus-corpus/audit.py --fetch --check
 python3 bench/quality-corpus/build_manifest.py --check
 python3 bench/quality-corpus/evaluate.py --manifest bench/quality-corpus/manifest.json --labels bench/quality-corpus/labels-rater-a.json --labels bench/quality-corpus/labels-rater-b.json --out bench/quality-corpus/results.json --check
 python3 bench/feature-ablation/check.py
@@ -74,8 +79,8 @@ and selected the best and worst rewrite. A second set of five LLM runs reviewed 
 same packets with the same label mapping. That produced two ratings for each of the 50
 items, or 100 item-level selections in total.
 
-The repository preserves the packets, shuffle key, raw scores, and aggregation code.
-It does not preserve the exact judge model and version, inference settings, or full
+The repository preserves the packets, shuffle key, raw scores, and aggregation code,
+but it does not preserve the exact judge model and version, inference settings, or full
 evaluation prompt. The ratings therefore cannot be reproduced exactly from the public
 harness. Treat them as a small, model-specific experiment rather than human evidence or
 a general ranking of the tools.

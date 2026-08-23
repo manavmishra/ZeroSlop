@@ -1428,12 +1428,16 @@ class DocsMatchReality(unittest.TestCase):
         self.assertGreaterEqual(c_hi, hi, f"README ceiling {c_hi} below measured {hi:.1f}")
         self.assertLess(c_hi - hi, 8, f"README ceiling {c_hi} overstates measured max {hi:.1f}")
 
-    def test_readme_is_compact_and_names_llm_raters_plainly(self):
+    def test_readme_is_compact_and_uses_current_results(self):
         readme = self.docs["README.md"]
         words = len(readme.split())
         self.assertGreaterEqual(words, 1000, "README lost essential operating detail")
         self.assertLessEqual(words, 1250, "README exceeded the two-page editorial brief")
-        self.assertIn("Two independent LLMs", readme)
+        self.assertIn("RAID+", readme)
+        self.assertIn("7,627", readme)
+        self.assertIn("Every score and timing was recomputed with v2.5.5", readme)
+        self.assertNotIn("Two independent LLMs", readme)
+        self.assertNotIn("55/40", readme)
         self.assertNotIn("blind judges", readme.lower())
 
     def test_readme_uses_reader_language(self):
@@ -1466,7 +1470,7 @@ class DocsMatchReality(unittest.TestCase):
         )
         self.assertIn("seven roles form one workflow", readme)
         self.assertIn("jobs, not separate models", readme)
-        self.assertIn("not an optimal count", readme)
+        self.assertIn("research supports the checks, not the number seven", readme)
         positions = [readme.index(role) for role in roles]
         self.assertEqual(positions, sorted(positions), "README role order drifted")
 
@@ -1680,14 +1684,15 @@ class SearchCorpus(unittest.TestCase):
         self.assertIn("[`bench/README.md`](bench/README.md)",
                       (ROOT / "README.md").read_text())
 
-    def test_external_model_record_is_well_formed_and_linked_from_readme(self):
+    def test_external_model_record_is_well_formed_and_documented(self):
         result = json.loads((ROOT / "bench" / "external-models" / "results.json").read_text())
         readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
+        bench_readme = (ROOT / "bench" / "README.md").read_text()
         self.assertRegex(result["source"]["commit"], r"^[0-9a-f]{40}$")
         self.assertGreater(result["sample"]["preserved_generations"], 10000)
         self.assertEqual([row["rank"] for row in result["models"]],
                          list(range(1, len(result["models"]) + 1)))
-        self.assertIn("Slop Index", readme)
+        self.assertIn("Slop Index", bench_readme)
         self.assertIn("bench/README.md", readme)
 
     def test_readme_links_the_paired_audit_without_repeating_its_table(self):
@@ -1737,6 +1742,83 @@ class BeemoCorpusAudit(unittest.TestCase):
             result = module.main()
         self.assertEqual(result, 2)
         self.assertIn("beemo audit: rate limited", error.getvalue())
+        self.assertNotIn("Traceback", error.getvalue())
+
+
+class RaidPlusCorpusAudit(unittest.TestCase):
+    """The current-model RAID+ audit is pinned, aggregate-only, and cannot be
+    presented as slop quality or authorship accuracy."""
+
+    ROOT = ROOT / "bench" / "raid-plus-corpus"
+
+    def test_committed_result_contract(self):
+        pin = json.loads((self.ROOT / "source.json").read_text())
+        result = json.loads((self.ROOT / "results.json").read_text())
+        self.assertEqual(result["result_kind"], "current_model_surface_audit")
+        self.assertFalse(result["calibrated_accuracy"])
+        self.assertEqual(result["source"]["revision"], pin["revision"])
+        self.assertEqual(result["source"]["rows"], 8000)
+        self.assertEqual(len(result["source"]["content_sha256"]), 64)
+        self.assertEqual(result["source"]["model_rows"], pin["expected_models"])
+        self.assertEqual(
+            sum(row["documents"] for row in result["models"].values()),
+            result["source"]["scored_rows"],
+        )
+        for model, row in result["models"].items():
+            self.assertEqual(
+                row["documents"] + row["failed_or_empty"],
+                pin["expected_models"][model],
+            )
+        self.assertIn("not slop-quality labels", result["limits"].lower())
+
+    def test_source_text_is_not_redistributed(self):
+        shipped = {path.name for path in self.ROOT.iterdir() if path.is_file()}
+        self.assertEqual(shipped, {"README.md", "audit.py", "results.json", "source.json"})
+        self.assertFalse(any(
+            path.suffix in {".csv", ".parquet", ".jsonl"}
+            for path in self.ROOT.iterdir()
+        ))
+
+    def test_offline_contract_check(self):
+        result = run([str(self.ROOT / "audit.py"), "--check"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_readme_and_chart_use_the_committed_result(self):
+        result = json.loads((self.ROOT / "results.json").read_text())
+        readme = (ROOT / "README.md").read_text().replace("**", "")
+        labels = {
+            "deepseek-v3": "DeepSeek V3",
+            "gemini-3.1-pro": "Gemini 3.1 Pro",
+            "gemma-3-27b": "Gemma 3 27B",
+            "llama-3.3-70b": "Llama 3.3 70B",
+        }
+        for model, label in labels.items():
+            row = result["models"][model]
+            expected = (
+                f"| {label} | {row['documents']:,} | "
+                f"{row['mean_writing_score']:.1f} | "
+                f"{row['at_or_above_generic_gate_pct']:.1f}% |"
+            )
+            with self.subTest(model=model):
+                self.assertIn(expected, readme)
+        chart = json.loads((ROOT / "bench" / "chart-data.json").read_text())
+        self.assertEqual(len(chart["raid_plus_surface"]), 4)
+        self.assertTrue((ROOT / "assets" / "bench-raid-plus.png").exists())
+
+    def test_fetch_failure_is_clean_and_actionable(self):
+        spec = importlib.util.spec_from_file_location(
+            "raid_plus_audit_test", self.ROOT / "audit.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        error = io.StringIO()
+        with (mock.patch.object(sys, "argv", ["audit.py", "--fetch", "--check"]),
+              mock.patch.object(module, "fetch_rows",
+                                side_effect=RuntimeError("rate limited")),
+              contextlib.redirect_stderr(error)):
+            result = module.main()
+        self.assertEqual(result, 2)
+        self.assertIn("RAID+ audit: rate limited", error.getvalue())
         self.assertNotIn("Traceback", error.getvalue())
 
 
@@ -2143,8 +2225,8 @@ class Fidelity(unittest.TestCase):
 
 
 class Personalization(unittest.TestCase):
-    """A voice profile quiets one author's own tell-words without touching
-    anyone else's meter or letting real slop through."""
+    """A named scoring profile exempts known watchlist words without claiming
+    to learn a writer's complete voice or changing anyone else's meter."""
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -2181,6 +2263,39 @@ class Personalization(unittest.TestCase):
         self.assertFalse([h for h in r["hits"] if h["name"] in muted],
                          "a muted term still recorded a hit")
 
+    def test_profile_builder_records_only_existing_watchlist_words(self):
+        sample = self.tmp / "sample.md"
+        sample.write_text(
+            "Robust systems matter. Quokka-lantern is a phrase I made up."
+        )
+        with contextlib.redirect_stdout(io.StringIO()):
+            learn.build_voice("sample", sample)
+        profile = json.loads((self.tmp / "voices" / "sample.json").read_text())
+        self.assertIn("robust", profile["keep"])
+        self.assertNotIn("quokka-lantern", profile["keep"])
+        self.assertEqual(profile["mute"], [])
+
+    def test_profile_contract_is_described_without_full_style_claims(self):
+        readme = " ".join((ROOT / "README.md").read_text().lower().split())
+        skill = " ".join((ROOT / "SKILL.md").read_text().lower().split())
+        page = " ".join(
+            (ROOT / "website" / "app" / "page.tsx").read_text().lower().split()
+        )
+
+        self.assertIn("existing watchlist words", readme)
+        self.assertIn("selected by name", readme)
+        self.assertIn("does not learn cadence, tone, or a complete writing style", readme)
+
+        self.assertIn("existing lexicon and context-gated watchlist", skill)
+        self.assertIn("only when scoring with `--voice <name>`", skill)
+        self.assertIn("does not learn cadence, syntax, humor, tone", skill)
+        self.assertNotIn("profile in `data/voices/`", skill)
+
+        self.assertIn("existing watchlist words", page)
+        self.assertIn("only when that profile is selected", page)
+        self.assertIn("does not learn your voice or full writing style", page)
+        self.assertNotIn("which habits belong to you", page)
+
 
 class Diagram(unittest.TestCase):
     """The engine diagram is shipped documentation; overflow is a defect."""
@@ -2207,8 +2322,9 @@ class Diagram(unittest.TestCase):
                 self.assertIn(row["no_ai_slop"], {"guided", "not_documented"})
 
         readme = (ROOT / "README.md").read_text()
+        normalized_readme = " ".join(readme.lower().split())
         self.assertIn("assets/competitor-capabilities.png", readme)
-        self.assertIn("does not decide which tool writes better", readme.lower())
+        self.assertIn("does not decide which tool writes better", normalized_readme)
         self.assertIn("[`bench/README.md`](bench/README.md)", readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
 

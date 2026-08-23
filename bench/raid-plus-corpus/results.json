@@ -1,0 +1,104 @@
+{
+ "result_kind": "current_model_surface_audit",
+ "calibrated_accuracy": false,
+ "source": {
+  "dataset": "markstanl/RAID-Plus",
+  "revision": "317600a0c8dd5ce835b4a2aac360ac7b575cc380",
+  "last_modified": "2026-05-14T18:05:37.000Z",
+  "rows": 8000,
+  "scored_rows": 7627,
+  "failed_or_empty_rows": 373,
+  "model_rows": {
+   "deepseek-v3": 2000,
+   "gemini-3.1-pro": 2000,
+   "gemma-3-27b": 2000,
+   "llama-3.3-70b": 2000
+  },
+  "content_sha256": "b043624ed6cc16a2c92cdd63c2ed1ddd33ac5efc7bf7c5d461758431f8f7017a",
+  "license": "MIT"
+ },
+ "scorer": {
+  "version": "2.5.5",
+  "patterns_sha256": "63b7b86d8e9c3c1e0c6db2c407275d09285b6e7f6074e9d62480f8066fb95217",
+  "learned_sha256": "0d2b9075f58971991b632f53d61062633fbeefa36f2c9eac7bb5859efb34ea8e",
+  "generic_gate": 25.0,
+  "formal_domains": [
+   "abstracts"
+  ]
+ },
+ "overall": {
+  "documents": 7627,
+  "mean_writing_score": 21.2,
+  "median_writing_score": 16.7,
+  "middle_50_pct_range": [
+   9.5,
+   27.2
+  ],
+  "at_or_above_generic_gate": 2181,
+  "at_or_above_generic_gate_pct": 28.6
+ },
+ "models": {
+  "deepseek-v3": {
+   "documents": 1995,
+   "mean_writing_score": 15.2,
+   "median_writing_score": 9.5,
+   "middle_50_pct_range": [
+    9.5,
+    18.7
+   ],
+   "at_or_above_generic_gate": 240,
+   "at_or_above_generic_gate_pct": 12.0,
+   "failed_or_empty": 5
+  },
+  "gemini-3.1-pro": {
+   "documents": 1998,
+   "mean_writing_score": 18.9,
+   "median_writing_score": 9.5,
+   "middle_50_pct_range": [
+    9.5,
+    24.2
+   ],
+   "at_or_above_generic_gate": 477,
+   "at_or_above_generic_gate_pct": 23.9,
+   "failed_or_empty": 2
+  },
+  "gemma-3-27b": {
+   "documents": 1634,
+   "mean_writing_score": 24.2,
+   "median_writing_score": 20.3,
+   "middle_50_pct_range": [
+    9.5,
+    31.9
+   ],
+   "at_or_above_generic_gate": 590,
+   "at_or_above_generic_gate_pct": 36.1,
+   "failed_or_empty": 366
+  },
+  "llama-3.3-70b": {
+   "documents": 2000,
+   "mean_writing_score": 26.9,
+   "median_writing_score": 22.0,
+   "middle_50_pct_range": [
+    14.2,
+    35.1
+   ],
+   "at_or_above_generic_gate": 874,
+   "at_or_above_generic_gate_pct": 43.7,
+   "failed_or_empty": 0
+  }
+ },
+ "domains": {
+  "abstracts": {
+   "documents": 7627,
+   "mean_writing_score": 21.2,
+   "median_writing_score": 16.7,
+   "middle_50_pct_range": [
+    9.5,
+    27.2
+   ],
+   "at_or_above_generic_gate": 2181,
+   "at_or_above_generic_gate_pct": 28.6
+  }
+ },
+ "limits": "RAID+ supplies machine provenance, not slop-quality labels. These score distributions are not editorial quality, authorship accuracy, precision, recall, or a comparison with human writing."
+}

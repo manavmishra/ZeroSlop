@@ -1420,13 +1420,12 @@ def guide(as_json=False, target=None, reason=None, genre=None, limit=5):
 
 
 def build_voice(name, sample_path):
-    """Derive a personal profile from a sample of the author's real writing.
+    """Build a private exemption profile for existing watchlist terms.
 
-    Any lexicon or rider term the author uses in their own known-human writing
-    is a term the meter should not charge them for — a writing sample outranks a
-    global rule. This reads a file (or directory) of the user's prose and writes
-    ~/.zero-slop/voices/<name>.json listing the tell-words they genuinely use.
-    Nothing is inferred about anyone else; the profile is theirs alone.
+    This exact-term scan covers only the scorer's current lexicon and riders.
+    It does not infer arbitrary phrases, cadence, syntax, humor, tone, or a
+    complete writing style. The resulting profile changes scoring only when
+    the caller explicitly selects it with ``--voice NAME``.
     """
     import slopscore
     name = safe_voice_name(name)
@@ -1447,17 +1446,23 @@ def build_voice(name, sample_path):
         raise SystemExit(f"voice sample contains no text: {src}")
     keep = sorted({term for term in terms
                    if re.search(r"\b" + re.escape(term.lower()) + r"\b", blob)})
-    prof = {"_comment": f"Voice profile for {name}. Terms this author uses in "
-                        "their own writing, which the meter will not charge them "
-                        "for. Derived by learn.py --voice; edit freely.",
+    prof = {"_comment": f"Named scoring profile for {name}. Exact matches for "
+                        "existing lexicon or rider terms found at least once "
+                        "in the supplied sample are "
+                        "zero-weighted only when this profile is selected with "
+                        "--voice NAME. This does not model the author's full style. "
+                        "Derived by learn.py --voice; edit freely.",
             "keep": keep, "mute": []}
     dest = slopscore._voice_path(name)
     dest.parent.mkdir(parents=True, exist_ok=True)
     with file_locks([dest]):
         atomic_write_text(dest, json.dumps(prof, indent=1) + "\n", mode=0o600)
     print(f"wrote {dest}")
-    print(f"  {len(keep)} of this author's own tell-words will now be quiet for "
-          f"them: {', '.join(keep[:12])}{'...' if len(keep) > 12 else ''}")
+    print(f"  {len(keep)} existing watchlist terms found; scoring ignores them "
+          f"only when this profile is selected: {', '.join(keep[:12])}"
+          f"{'...' if len(keep) > 12 else ''}")
+    print("  this profile does not learn cadence, syntax, humor, tone, arbitrary "
+          "phrases, or full writing style")
     print(f"  use it: python3 scripts/slopscore.py --voice {name} draft.md")
     return 0
 
@@ -1527,7 +1532,7 @@ def main():
     ap.add_argument("--merge", metavar="FILE",
                     help="maintainer: fold a reviewed contribution in, re-gated locally")
     ap.add_argument("--voice", metavar="NAME",
-                    help="build a personal profile from a writing sample")
+                    help="build a private scoring profile from exact watchlist matches")
     ap.add_argument("--from", dest="sample", metavar="PATH",
                     help="the writing sample for --voice")
     ap.add_argument("--stats", action="store_true")

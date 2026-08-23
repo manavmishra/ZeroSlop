@@ -1,20 +1,20 @@
 {
- "best_picks": [
+ "raid_plus_surface": [
   [
-   "Zero Slop",
-   55
+   "DeepSeek V3",
+   15.2
   ],
   [
-   "blader/humanizer",
-   40
+   "Gemini 3.1 Pro",
+   18.9
   ],
   [
-   "petergyang/no-ai-slop",
-   5
+   "Gemma 3 27B",
+   24.2
   ],
   [
-   "isatimur/de-slop",
-   0
+   "Llama 3.3 70B",
+   26.9
   ]
  ],
  "detector_panel": [

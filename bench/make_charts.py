@@ -2,11 +2,10 @@
 """make_charts — regenerate the README benchmark charts from the benchmark data.
 
 The charts in the README are computed, not hand-drawn. This reads the same sources
-the tables do — replication.json for the pooled best-picks, the raw method outputs
-re-scored by the current detector for the register panel, and the search-informed
-regression and rewrite results, plus the version-pinned competitor capability audit.
-It draws ten bar charts and one capability matrix in assets/ and writes a small
-chart-data.json manifest.
+the tables do: the current-model RAID+ audit, raw method outputs re-scored by the
+current detector, search-informed regression and rewrite results, external research
+audits, and the version-pinned competitor capability audit. It writes the chart PNGs
+and a small chart-data.json manifest.
 
     python3 bench/make_charts.py            # regenerate the PNGs and the manifest
     python3 bench/make_charts.py --check    # fail if the data drifted (CI)
@@ -34,6 +33,7 @@ CAPABILITY_AUDIT = BENCH / "competitor-capabilities.json"
 SEARCH_COMPARISON = BENCH / "search-corpus" / "comparison-results.json"
 EXTERNAL_MODELS = BENCH / "external-models" / "results.json"
 BEEMO_RESULTS = BENCH / "beemo-corpus" / "results.json"
+RAID_PLUS_RESULTS = BENCH / "raid-plus-corpus" / "results.json"
 QUALITY_RESULTS = BENCH / "quality-corpus" / "results.json"
 FEATURE_ABLATION = BENCH / "feature-ablation" / "results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -50,25 +50,12 @@ PANEL = [
     ("hardikpandya/stop-slop", ["stopslop_h1.json", "stopslop_h2.json"]),
     ("Zero Slop", ["zeroslop12_h1.json", "zeroslop12_h2.json"]),
 ]
-BEST_LABELS = {"zeroslop": "Zero Slop", "blader": "blader/humanizer",
-               "petergyang": "petergyang/no-ai-slop", "deslop": "isatimur/de-slop"}
-
-
 def compute():
-    """Return the nine chart datasets, computed from the benchmark data."""
+    """Return chart datasets computed from the benchmark data."""
     import slopscore
     data = slopscore.load_patterns()
 
-    # 1. best-picks, pooled across both replication runs
-    rep = json.loads((BENCH / "replication.json").read_text())
-    pooled = {}
-    for run in ("run1", "run2"):
-        for m, n in rep[run].items():
-            pooled[m] = pooled.get(m, 0) + n
-    best = [(BEST_LABELS.get(m, m), pooled[m]) for m in
-            sorted(pooled, key=lambda m: -pooled[m])]
-
-    # 2. register panel, re-scored by the current detector
+    # Preserved output panels are always re-scored by the current detector.
     ex = json.loads((BENCH / "examples.json").read_text())
     panel = []
     for label, files in PANEL:
@@ -154,6 +141,22 @@ def compute():
          beemo["groups"][field]["mean_surface_score"])
         for field in ("model_output", "human_edits", "human_output")
     ]
+    raid_plus = json.loads(RAID_PLUS_RESULTS.read_text())
+    if (raid_plus.get("result_kind") != "current_model_surface_audit"
+            or raid_plus.get("calibrated_accuracy") is not False
+            or raid_plus.get("source", {}).get("rows") != 8000
+            or raid_plus.get("source", {}).get("scored_rows") != 7627):
+        raise ValueError("RAID+ current-model audit has an invalid contract")
+    raid_labels = {
+        "deepseek-v3": "DeepSeek V3",
+        "gemini-3.1-pro": "Gemini 3.1 Pro",
+        "gemma-3-27b": "Gemma 3 27B",
+        "llama-3.3-70b": "Llama 3.3 70B",
+    }
+    raid_plus_surface = [
+        (raid_labels[model], raid_plus["models"][model]["mean_writing_score"])
+        for model in raid_labels
+    ]
     quality = json.loads(QUALITY_RESULTS.read_text())
     if (quality.get("result_kind") != "blind_slop_quality_evaluation"
             or quality.get("calibrated_field_accuracy") is not False
@@ -177,7 +180,8 @@ def compute():
         ("contextual research review", round(
             research["held_out_test_accuracy"] * 100, 2)),
     ]
-    return {"best_picks": best, "detector_panel": panel,
+    return {"raid_plus_surface": raid_plus_surface,
+            "detector_panel": panel,
             "search_corpus": search_panel,
             "search_rewrite_scores": rewrite_scores,
             "search_rewrite_passes": rewrite_passes,
@@ -305,15 +309,16 @@ def render(datasets):
     ASSETS.mkdir(exist_ok=True)
     out = []
     out.append(_hbar(
-        ASSETS / "bench-bestpicks.png",
-        "Historical blind LLM-as-a-judge selections",
-        "100 saved decisions from two 2026 passes; recomputed, not re-judged. No human raters.",
-        datasets["best_picks"], "Zero Slop"))
+        ASSETS / "bench-raid-plus.png",
+        "Current-model writing scores on RAID+",
+        "7,627 non-empty abstracts from four recent models. Lower means less tracked "
+        "generic AI-style language; this is not quality or authorship accuracy.",
+        datasets["raid_plus_surface"], "__no_highlight__", axis_ticks=[0, 10, 20, 30, 40]))
     out.append(_hbar(
         ASSETS / "bench-detector.png",
-        "AI register remaining after de-slop",
+        "Generic AI-style language remaining after editing",
         "Detector score, lower means more of the AI accent removed. Scored by Zero Slop's own "
-        "meter, so read it as register stripped, not an independent verdict.",
+        "meter, so read it as patterns removed, not an independent verdict.",
         datasets["detector_panel"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-search-corpus.png",
@@ -341,7 +346,7 @@ def render(datasets):
     out.append(_hbar(
         ASSETS / "bench-beemo.png",
         "External paired-edit surface audit",
-        "2,187 Beemo records. Lower means less tracked register; provenance and edit "
+        "2,187 Beemo records. Lower means less generic AI-style language; provenance and edit "
         "history are not slop-quality labels.",
         datasets["beemo_surface"], "__no_highlight__"))
     out.append(_hbar(

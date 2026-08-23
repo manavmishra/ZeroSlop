@@ -135,4 +135,8 @@ Perfect grammar. Formal prose where the genre demands it. A transition word in
 isolation. Long sentences that earn their length. Technical vocabulary used
 technically. A single em-dash doing real work. First-person hedging that
 encodes real uncertainty. Unsourced-but-checkable claims. And any pattern that
-is demonstrably the writer's own voice — the writing sample outranks the list.
+is demonstrably the writer's own voice in a sample the AI assistant can read.
+The named `--voice` scoring profile is narrower: it exempts only existing
+watchlist words found by exact match. One match is enough, but the exceptions
+apply only when the profile is selected. The profile does not model the
+writer's full style.

@@ -17,7 +17,7 @@ const faqs = [
   {
     question: "What is AI slop?",
     answer:
-      "AI slop is writing that falls into familiar model habits: safe phrasing, even rhythm, template structure, stock transitions, and polished sentences that say very little. Zero Slop measures those surface patterns and shows you exactly where they occur.",
+      "AI slop is writing that relies on safe phrasing, even rhythm, template structure, stock transitions, and polished sentences that say very little. Zero Slop shows you exactly where those patterns occur.",
   },
   {
     question: "Is Zero Slop an AI detector?",
@@ -54,7 +54,7 @@ const softwareJsonLd = {
   url: "https://zero-slop.ai/",
   downloadUrl: githubUrl,
   description:
-    "An open-source AI writing humanizer and anti-slop checker that scores machine-like writing patterns, rewrites drafts, and verifies factual fidelity.",
+    "An open-source AI writing humanizer and anti-slop checker that scores machine-like writing patterns, rewrites drafts, and checks important details against the original.",
   applicationCategory: "WritingApplication",
   operatingSystem: "Cross-platform",
   isAccessibleForFree: true,
@@ -106,7 +106,7 @@ const websiteJsonLd = {
   alternateName: "Zero Slop AI Writing Humanizer",
   url: "https://zero-slop.ai/",
   description:
-    "A free, open-source AI writing humanizer and anti-slop checker with local scoring and factual fidelity checks.",
+    "A free, open-source AI writing humanizer and anti-slop checker with local scoring and checks against the original.",
   publisher: { "@id": "https://zero-slop.ai/#organization" },
   about: { "@id": "https://zero-slop.ai/#software" },
   inLanguage: "en-US",
@@ -205,7 +205,7 @@ export default function Home() {
               />
               <img
                 src="/demo.png"
-                alt="Zero Slop gives an AI-heavy sentence a surface score of 100 and its clearer rewrite a score of 9.5"
+                alt="Zero Slop gives an AI-heavy sentence a writing score of 100 and its clearer rewrite a score of 9.5"
                 width="1500"
                 height="800"
                 loading="eager"
@@ -268,9 +268,9 @@ export default function Home() {
           <div className="section-heading">
             <h2 id="method-title">The meter is only one layer.</h2>
             <p>
-              Zero Slop pairs traceable local checks with the language model
-              already running in your agent. The meter finds evidence. The model
-              interprets the draft and edits it.
+              Zero Slop pairs local checks with the AI already running in your
+              assistant. The checks point to the wording that raised the score;
+              your AI reads the draft in context and edits it.
             </p>
           </div>
 
@@ -280,18 +280,18 @@ export default function Home() {
           >
             <article className="system-layer meter-layer">
               <div className="system-layer-heading">
-                <p className="method-name">Deterministic measurement</p>
+                <p className="method-name">Local writing check</p>
                 <span>Local Python</span>
               </div>
-              <h3>Find traceable surface evidence.</h3>
+              <h3>Show what raised the score.</h3>
               <p>
-                The scorer checks 267 weighted patterns. Separate channels
-                measure rhythm, density, formatting, and register. The result
-                includes quoted spans and document statistics, not an authorship
-                probability.
+                The scorer checks 267 weighted patterns, along with rhythm,
+                density, formatting, and tone. It quotes the flagged text
+                and reports document statistics. It does not guess who wrote
+                the draft.
               </p>
               <div className="meter-output" aria-label="Example local scorer output">
-                <span>surface evidence</span>
+                <span>flagged wording</span>
                 <strong>quoted phrase</strong>
                 <span>sentence statistics</span>
               </div>
@@ -304,14 +304,14 @@ export default function Home() {
 
             <article className="system-layer agent-layer">
               <div className="system-layer-heading">
-                <p className="method-name">Contextual AI editing</p>
-                <span>Host model</span>
+                <p className="method-name">Editing in context</p>
+                <span>Your AI assistant</span>
               </div>
               <h3>Interpret the draft before changing it.</h3>
               <p>
-                Claude, GPT, or another host model evaluates substance, claims,
-                structure, audience, and voice. It rewrites and copy-edits the
-                draft, then reads it aloud and fixes its flow.
+                Claude, GPT, or another compatible AI assistant evaluates
+                substance, claims, structure, audience, and voice. It rewrites
+                and copy-edits the draft, then reads it aloud and fixes its flow.
               </p>
               <ul className="agent-checks">
                 <li>Meaning and factual scope</li>
@@ -342,19 +342,20 @@ export default function Home() {
             <aside className="learning-return">
               <div>
                 <p className="method-name">Private feedback loop</p>
-                <h3>Published edits can improve the next run.</h3>
+                <h3>Edits you provide can improve the next run.</h3>
                 <p>
-                  Human edits can adjust local detector weights and save preferred
-                  fixes only after the evidence passes recurrence, novelty, and
-                  known-human safety checks. This does not retrain the host model.
+                  Give Zero Slop its version and the final version you kept.
+                  Recurring changes can adjust how strongly an existing pattern
+                  counts or save a preferred fix, but only after novelty and
+                  known-human safety checks. This does not retrain your AI.
                 </p>
               </div>
               <div className="learning-path" aria-label="Private learning path">
-                <span>Published edit</span>
+                <span>Version you kept</span>
                 <b aria-hidden="true">→</b>
-                <span>Evidence checks</span>
+                <span>Repeat + safety checks</span>
                 <b aria-hidden="true">→</b>
-                <span>Private overlay</span>
+                <span>Private settings</span>
                 <b aria-hidden="true">→</b>
                 <span>Next draft</span>
               </div>
@@ -391,15 +392,15 @@ export default function Home() {
                 </ol>
               </div>
               <div>
-                <p className="process-label">Loop 2: Online learning</p>
+                <p className="process-label">Loop 2: Learning from your edits</p>
                 <ol className="process-list">
                   <li>
                     <span>Observe and gate</span>
-                    <p>Compare reviewed, published edits and require repeated evidence.</p>
+                    <p>Compare the assistant&apos;s draft with the final version you provide.</p>
                   </li>
                   <li>
                     <span>Update privately</span>
-                    <p>Adjust detector weights and save recurring human fixes for the next run.</p>
+                    <p>Adjust how strongly patterns count and save recurring fixes for the next run.</p>
                   </li>
                   <li>
                     <span>Reconfirm or decay</span>
@@ -417,16 +418,16 @@ export default function Home() {
           aria-labelledby="proof-title"
         >
           <div className="proof-copy">
-            <h2 id="proof-title">The saved benchmark is public.</h2>
+            <h2 id="proof-title">Fresh scores. Public inputs.</h2>
             <p>
-              This historical study covers 50 AI-heavy drafts in six kinds of
-              writing and compares four tools. The repository preserves the
-              100 blind decisions and the study&apos;s limitations. Recomputing the
-              55 total reads those saved decisions; it does not call new judges.
+              Version 2.5.5 scored every usable row in the new RAID+ corpus and
+              reran its current checks on the fixed 18-draft workflow comparison.
+              The pinned inputs, aggregate results, and limits are in the repository.
+              RAID+ records model origin, not editorial quality.
             </p>
             <a
               className="text-link"
-              href={`${githubUrl}#performance-and-historical-context`}
+              href={`${githubUrl}#what-the-current-release-measured`}
               target="_blank"
               rel="noreferrer"
             >
@@ -436,32 +437,26 @@ export default function Home() {
 
           <div className="proof-gallery">
             <figure>
-              <picture>
-                <source type="image/avif" srcSet="/bench-bestpicks.avif" />
-                <img
-                  src="/bench-bestpicks.png"
-                  alt="Historical saved blind judgments: Zero Slop, 55; blader, 40; no-ai-slop, 5; and de-slop, 0"
-                  width="1240"
-                  height="374"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </picture>
-              <figcaption>Recomputed from 100 saved judgments; not a new judge run.</figcaption>
+              <img
+                src="/bench-raid-plus.png"
+                alt="Mean Zero Slop writing scores for 7,627 non-empty RAID+ abstracts: DeepSeek V3 15.2, Gemini 3.1 Pro 18.9, Gemma 3 27B 24.2, and Llama 3.3 70B 26.9"
+                width="1240"
+                height="374"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>All usable RAID+ rows at the pinned revision; not an accuracy claim.</figcaption>
             </figure>
             <figure className="proof-secondary">
-              <picture>
-                <source type="image/avif" srcSet="/bench-detector.avif" />
-                <img
-                  src="/bench-detector.png"
-                  alt="AI-register scores after rewriting: Zero Slop scored 10.6, below comparison tools ranging from 16.7 to 28.2"
-                  width="1240"
-                  height="530"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </picture>
-              <figcaption>AI-register scores after rewriting. Lower is cleaner.</figcaption>
+              <img
+                src="/bench-search-rewrites.png"
+                alt="Current writing scores on fixed rewrites of 18 drafts: Zero Slop 15.4, humanizer 24.3, stop-slop 24.7, no-ai-slop 28.5, and de-slop 54.3"
+                width="1240"
+                height="478"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Re-scored with v2.5.5; the preserved rewrites were not regenerated.</figcaption>
             </figure>
           </div>
         </section>
@@ -481,8 +476,12 @@ export default function Home() {
               <p>Before a rewrite passes, Zero Slop checks every figure, name, quote, and link for additions or omissions.</p>
             </article>
             <article>
-              <h3>Your habits count</h3>
-              <p>Add a sample of your writing so the scorer can recognize which habits belong to you.</p>
+              <h3>Your words are not automatic red flags</h3>
+              <p>
+                Add a writing sample to create a private profile of existing watchlist words you use.
+                One exact match is enough. The scorer ignores them only when that profile is selected;
+                it does not learn your voice or full writing style.
+              </p>
             </article>
           </div>
         </section>

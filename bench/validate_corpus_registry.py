@@ -45,7 +45,7 @@ def validate(path=REGISTRY):
                 and not any(term in mismatch_text for term in ("slop", "provenance",
                                                                 "authorship"))):
             raise ValueError(f"{row['id']} does not explain its label mismatch")
-    required = {"aistoryhub", "beemo", "slop-index", "raid", "mage", "hc3",
+    required = {"aistoryhub", "beemo", "slop-index", "raid", "raid-plus", "mage", "hc3",
                 "arb", "editlens", "maga-bench", "m4gt-bench",
                 "coling-2025-mgt", "m4", "autextification", "no-robots",
                 "blog-authorship", "enron", "persuade-2", "llm-excess-vocab",

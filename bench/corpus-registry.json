@@ -91,6 +91,19 @@
    "source_pin": "must pin Hugging Face revision and sampled row hashes"
   },
   {
+   "id": "raid-plus",
+   "name": "RAID+",
+   "url": "https://huggingface.co/datasets/markstanl/RAID-Plus",
+   "license": "MIT",
+   "label_semantics": "machine provenance for 8,000 generations from four contemporary model families; no human or slop-quality labels",
+   "intended_use": "current-model score-distribution and release-regression audit only",
+   "tier": "release_research",
+   "access": "public",
+   "status": "measured",
+   "result": "7,627 non-empty generations scored at pinned revision 317600a0c8dd; provenance cross-check, not slop accuracy",
+   "source_pin": "upstream commit, row/model counts, and fetched-content SHA-256"
+  },
+  {
    "id": "mage",
    "name": "MAGE",
    "url": "https://huggingface.co/datasets/yaful/MAGE",

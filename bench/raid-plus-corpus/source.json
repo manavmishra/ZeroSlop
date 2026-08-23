@@ -1,0 +1,17 @@
+{
+ "dataset": "markstanl/RAID-Plus",
+ "revision": "317600a0c8dd5ce835b4a2aac360ac7b575cc380",
+ "config": "default",
+ "split": "train",
+ "expected_rows": 8000,
+ "expected_models": {
+  "deepseek-v3": 2000,
+  "gemini-3.1-pro": 2000,
+  "gemma-3-27b": 2000,
+  "llama-3.3-70b": 2000
+ },
+ "dataset_url": "https://huggingface.co/datasets/markstanl/RAID-Plus",
+ "project_url": "https://github.com/markstanl/INSCONE",
+ "license": "MIT",
+ "purpose": "Current-model distribution cross-check. RAID+ provides machine provenance, not human editorial slop-quality labels, so this audit reports score distributions rather than accuracy."
+}

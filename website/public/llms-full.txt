@@ -6,9 +6,9 @@ Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
 
 ## Direct answer
 
-Zero Slop is a free, open-source AI writing humanizer and anti-slop checker. It identifies familiar AI writing patterns, rewrites the draft, and checks figures, names, quotes, and links against the original. Its heuristic surface scorer runs locally with Python's standard library and does not send the draft to a server.
+Zero Slop is a free, open-source AI writing humanizer and anti-slop checker. It identifies familiar AI writing patterns, rewrites the draft, and checks figures, names, quotes, and links against the original. Its local checker runs with Python's standard library and does not send the draft to a server.
 
-Zero Slop is not an authorship detector. It evaluates the surface patterns of a draft rather than claiming who or what wrote it.
+Zero Slop is not an authorship detector. It evaluates the writing rather than claiming who or what wrote it.
 
 ## Install
 
@@ -19,9 +19,9 @@ Zero Slop is not an authorship detector. It evaluates the surface patterns of a 
 Zero Slop has two operational loops.
 
 1. Editorial delivery measures and diagnoses the current draft, rewrites it, copy-edits it, reads it aloud, and verifies the final text against the original.
-2. Online learning observes later published edits, gates repeated evidence, updates a private detector-and-fix overlay, and then reconfirms useful guidance or decays and retires stale guidance.
+2. Learning from your edits compares the assistant's version with the final version you provide. Repeated, safe changes can update private rules and preferred fixes; later edits can confirm them, while stale guidance fades or retires.
 
-The private overlay loads on the next run and adapts both detection and fixing. It does not retrain the host model or perform reinforcement learning or RLHF.
+Private rules load on the next run and can improve both detection and fixing. Zero Slop does not watch files or publishing systems, retrain the AI model, or perform reinforcement learning or RLHF.
 
 ## Supported environments
 
@@ -39,6 +39,6 @@ The same workflow can be used for LinkedIn posts, blog articles, strategy docume
 - Network required by the scorer: No
 - Account required by the scorer: No
 
-## Evidence
+## Current validation
 
-The public repository contains the scorer, benchmark data, blind-judging results, evaluation notes, and documented limitations. The website shows before-and-after examples with scores produced by the open-source scorer.
+Version 2.5.5 rescored all 8,000 rows in the pinned RAID+ corpus, with 7,627 non-empty generations from four recent model families. RAID+ records model origin, not editorial quality, so those results describe score distributions rather than accuracy. The repository includes the aggregate results, source pin, current speed record, regression data, and limitations.

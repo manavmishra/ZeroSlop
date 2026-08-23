@@ -1,8 +1,7 @@
 # Zero Slop
 
-You used AI to help with your writing, and now it reads like a machine wrote every
-word. You can hear it, and so can everyone who reads it. That machine sound has a
-name: slop.
+You used AI to help with a draft, but the result sounds generic. You can hear it,
+and so can everyone who reads it. That machine sound has a name: slop.
 
 Zero Slop is not an AI model. It runs inside the AI assistant you already use. Claude,
 GPT, or another compatible model reads and edits the draft; Zero Slop supplies the
@@ -41,8 +40,8 @@ the way a bug does.
 The local scorer finds exact phrases and problems with rhythm, readability, and
 formatting. The AI assistant acts as interpreter, then rewriter. The local fact gate
 rejects versions that add or lose names, numbers, quotations, or links. Fresh AI passes
-act as the copy desk, then the read-aloud editor. Finally, local tools and the assistant share
-the verifier role, comparing the exact finished text with the source. These are seven
+act as the copy desk, then the read-aloud editor. Finally, local tools and the assistant
+share the verifier role, comparing the exact finished text with the source. These are seven
 roles, not seven models. Separating them stops the rewriter from certifying its own work
 and keeps late edits from bypassing the final checks.
 
@@ -76,31 +75,28 @@ fixing through inspectable local rules and preferences. Human corrections provid
 feedback, but Zero Slop does not perform reinforcement learning or RLHF, nor does it
 retrain the AI model already running in the assistant. Shared changes still require
 review, tests, versioning, and a release. Each session can check for a newer release
-with a metadata-only version query.
-That query never sends the draft.
+with a metadata-only version query. That query never sends the draft.
 
 ## What we tested
 
-We wrote 50 AI-heavy drafts and compared four rewrites of each. No human raters took
-part. The records identify the evaluators only as LLM runs from one model family. Each
-of the two passes used five separate runs. The method names were hidden; the model saw
-the brief, source draft, list of facts, and four rewrites, then rated human-likeness,
-voice, faithfulness to the source, craft, and platform fit.
+Version 2.5.5 reran the complete test suite, scores, external corpus audits, speed
+record, and charts. The main new check covers all 8,000 rows in the MIT-licensed RAID+
+dataset. After excluding 373 failed or empty outputs, 7,627 abstracts remained. Mean
+writing scores ranged from 15.2 for DeepSeek V3 to 26.9 for Llama 3.3 70B. RAID+ labels
+model origin, not editorial quality, so this is a current-model distribution check,
+not an accuracy claim.
 
-The results moved between passes. The model selected Zero Slop for 32 of 50 drafts in
-the first and 23 in the second; it selected blader/humanizer for 18 and 22. The pooled
-counts were 55 and 40, but the passes agreed on a winner for only 26 drafts, and the
-head-to-head difference was not statistically significant. The public harness also
-omits the exact model, settings, and full prompt. The results show that the two systems
-were competitive on our synthetic set, not that either is generally better. We also
-wrote the scorer's test set, so it serves as a check for unintended changes rather than
-a real-world accuracy estimate. A 1,000-document speed check runs in CI and must finish
-within 60 seconds. A separate search-informed challenge contains 18 anonymous slop
-paraphrases across LinkedIn, X, email, blog, newsletter, and research; it is an
-easy-case check for unintended changes, not a real-world accuracy estimate.
+A fresh pass over all 2,187 Beemo records found mean scores of 32.0 for raw model
+responses, 26.4 for expert edits, and 20.6 for independent human answers. Expert
+editing lowered the score in 52.7 percent of pairs. Beemo also lacks writing-quality
+labels. The 18-draft workflow table was re-scored with v2.5.5, but its fixed rewrites
+were not regenerated; Zero Slop's outputs there came from version 2.4.3. The current
+1,000-document speed run took 2.6047 seconds on one Apple silicon Mac. These are
+reproducible checks with stated limits, not universal claims about writing quality.
 
 ---
 
-MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.5.4 · tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+Open source under the [MIT License](LICENSE) ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.5 ·
+tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

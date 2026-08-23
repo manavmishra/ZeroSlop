@@ -9,7 +9,7 @@ The installed skill ships seven standard-library Python modules:
 | `scripts/slopscore.py` | score, heatmap, and fidelity checks | none | none |
 | `scripts/predictability.py` | create and score deterministic cloze probes | none | none |
 | `scripts/rerank.py` | rank candidate rewrites | optional user-selected output | none |
-| `scripts/learn.py` | private online learning, voice profiles, reviewed imports/exports | `$ZERO_SLOP_HOME`; shared taxonomy only through explicit maintainer `--merge --apply` | none |
+| `scripts/learn.py` | private online learning, named scoring profiles, reviewed imports/exports | `$ZERO_SLOP_HOME`; shared taxonomy only through explicit maintainer `--merge --apply` | none |
 | `scripts/calibrate.py` | corpus calibration and shared-pattern maintenance | explicit calibration output or shared learned data | none |
 | `scripts/safeio.py` | locks and atomic file replacement | only on behalf of the two writers above | none |
 | `scripts/version_check.py` | optional release check | none | one metadata-only GitHub API request |
@@ -26,7 +26,7 @@ not a production feature and cannot change a live draft or score.
 ## Online-learning isolation
 
 Reflection evidence, local detector rules, recurring rewrite preferences, logs, and
-voice profiles live under
+named scoring profiles live under
 `$ZERO_SLOP_HOME` (default `~/.zero-slop`) with owner-only file permissions. They are
 not committed and are not overwritten by skill updates. The scorer loads the reviewed
 shared taxonomy first, then this private overlay on every run.
@@ -59,6 +59,10 @@ gate.
 
 ## Known limits
 
+- A sample-based `--voice` profile records an existing lexicon or context-gated
+  watchlist term after one exact word match. It must be selected explicitly and
+  does not learn cadence, syntax, humor, tone, arbitrary phrases, or the writer's
+  full style.
 - The human safety corpus contains twelve prose samples. It is a regression floor, not
   proof that a pattern is safe for every dialect, genre, or language.
 - The 0–100 result is a transparent heuristic surface score, not a calibrated
