@@ -5,21 +5,18 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.3-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.4-72528F">
 </p>
 
 **Less slop, more pop in all your writing.**
 
-Zero Slop is an open-source Agent Skill, not an AI model. Claude, GPT, or another
-compatible model in your existing assistant reads and edits the draft. Zero Slop
-supplies the method and local checks. The assistant removes generic language without
-changing meaning, voice, or format. Supported assistants include Claude Code, Codex,
-Cursor, and others.
+Zero Slop is an Agent Skill, not an AI model. Claude, GPT, or another compatible model
+in your assistant edits the draft; Zero Slop supplies the method and local checks. The
+assistant removes generic language without changing meaning, voice, or format.
 
-The 0-to-100 writing score shows how much generic AI-style language remains, and the
-report names all flagged phrases. It does not identify the author. In the included
-test sets, human samples scored 9 to 21; unedited AI drafts averaged 77. These are
-reference points for those sets, not universal boundaries.
+The 0-to-100 writing score tracks generic AI-style language and lists flagged phrases;
+it does not identify the author. In the test sets, human samples scored 9 to 21;
+unedited AI drafts averaged 77. These are reference points, not universal boundaries.
 
 ![A scored sentence before and after editing](assets/demo.png)
 
@@ -53,79 +50,84 @@ Direct terminal install:
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Claude Code and Cowork can use `/plugin marketplace add manavmishra/ZeroSlop`, then
-`/plugin install zero-slop@zero-slop`. ChatGPT users can download
-[`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md); Claude.ai users can
-use the release zip.
+Claude Code and Cowork can install from the plugin marketplace. ChatGPT users can
+download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md); Claude.ai
+users can use the release zip.
 
 ## How Zero Slop works
 
 ![One editing workflow, a private learning loop, and a separate release review](assets/engine.svg)
 
-When you use Zero Slop, your AI assistant reads and edits the draft while local
-tools run repeatable checks. No separate Zero Slop AI service receives the draft. The
-workflow has six steps:
+Seven roles form one workflow. They are jobs, not separate models. Claude, GPT, or
+another compatible model handles the editorial passes; local Python tools run
+repeatable checks. No Zero Slop AI service receives the draft.
 
-1. **Check the writing.** A local program finds familiar AI-style patterns, mechanical
-   rhythm, hard-to-read passages, and distracting formatting. It points to the words
-   and structures that raised the writing score.
-2. **Read for meaning.** Your AI assistant considers the claims, support, audience,
-   structure, and voice. Missing facts prompt questions, not inventions.
-3. **Rewrite.** The same assistant removes generic wording, then improves order,
-   rhythm, and tone. Preferences learned from earlier writer edits can help.
-4. **Protect the facts.** A local check rejects any version that adds or drops names,
-   numbers, quotes, or links, then chooses the clearest remaining version.
-5. **Polish.** The assistant runs a copy-editing pass for grammar and consistency, then
-   a separate read-aloud pass for awkward flow and repetition.
-6. **Check again.** The local tools and your assistant compare the final text with the
-   source for facts, meaning, voice, format, and structure. Any repair repeats both
-   editorial passes and every final check.
+| Role | Who does it | What it does |
+|---|---|---|
+| 1. Scorer | Local tools | Finds exact phrases, mechanical rhythm, dense passages, and distracting formatting; explains the writing score. |
+| 2. Interpreter | Your AI assistant | Reads claims, support, audience, structure, and voice before editing. |
+| 3. Rewriter | Your AI assistant | Removes stock wording and improves order, rhythm, and tone without inventing detail. |
+| 4. Fact gate | Local tools | Rejects versions that add or drop names, numbers, quotations, or links; selects the clearest one left. |
+| 5. Copy desk | Fresh AI pass | Corrects grammar, spelling, usage, and consistency. |
+| 6. Read-aloud editor | Fresh AI pass | Fixes stumbles, repetition, weak transitions, and awkward flow. |
+| 7. Verifier | Local tools and your AI assistant | Compares the final text with the source for facts, meaning, voice, format, and structure. A repair repeats both editorial passes and every check. |
+
+### Why separate the work?
+
+Research supports the checks, not an optimal count.
+Studies have found [predictable wording](https://arxiv.org/abs/2301.11305) and
+[excess vocabulary](https://arxiv.org/abs/2406.07016) in machine-written text. Editorial
+research distinguishes problems with substance, facts, coherence, and tone. AI detectors can
+[misclassify non-native English](https://arxiv.org/abs/2304.02819), so this score locates
+writing problems; it never guesses who wrote the draft.
+
+Separation is an engineering safeguard. The rewriter does not certify its own facts,
+and the copy desk and read-aloud editor remain separate because grammatically correct
+prose can still sound stiff. The verifier checks the exact text a reader will receive;
+late edits can introduce errors. [Research notes](references/evidence.md) explain the
+rationale and limits.
 
 The local tools use Python's standard library and never send drafts over the network.
-Extra word-guessing and cross-draft checks do not change the writing score.
+Word-guessing and cross-draft checks stay separate from the writing score.
 
 ## Private learning from writer edits
 
-Learning requires both the version returned by the assistant and the version the writer
+Learning requires the version returned by the assistant and the version the writer
 kept. Zero Slop never monitors files, browsers, or publishing systems.
 
-A phrase must be cut from three unrelated pieces before it becomes a private rule; a
-single-word cut requires five unrelated pieces. Each proposal is tested against human
-writing that must remain unflagged. Repeated replacements guide later edits, retained
-phrases can quiet a rule, and old rules fade. Private rules live under
-`$ZERO_SLOP_HOME`; they are reversible and never retrain the AI model.
+A phrase must be cut from three unrelated pieces before becoming a private rule;
+single-word cuts need five unrelated pieces. Each proposal is tested against human
+writing that must remain unflagged. Repeated replacements guide later edits, phrases
+the writer keeps can quiet a rule, and old rules fade. The private, reversible rules under
+`$ZERO_SLOP_HOME` never retrain the AI model.
 
 ## Does Zero Slop work?
 
-The published tests cover editorial quality, repeatability, and the speed of the local
-tools. No single number can settle writing quality.
+Tests cover editorial quality, repeatability, and processing speed. No single
+number can settle writing quality.
 
 ### The clearest signal so far
 
-Two independent LLMs reviewed 72 passages from 12 drafts without tool names. They rated
-the amount of slop from 1 (clean) to 5 (sloppy throughout). The original drafts averaged
-4.75; Zero Slop's edits averaged 2.38.
-
-Agreement was 77.8%. Excluding disagreements and borderline calls left 38 shared decisions and
-34 unresolved cases. The gap favors Zero Slop, but the sample is small and the
+Two independent LLMs reviewed 72 passages from 12 drafts without tool names, rating
+slop from 1 (clean) to 5 (sloppy throughout). Scores averaged 4.75 before editing and
+2.38 after Zero Slop. Agreement was 77.8%. Excluding disagreements and borderline
+calls left 38 shared decisions and 34 unresolved cases. The sample is small, and the
 reviewers are LLMs, not people.
 
 ![Average amount of editing needed according to two LLM reviewers; lower is better](assets/bench-blind-quality.png)
 
 ### Why context matters
 
-The local check cannot decide whether a paragraph earns its place or suits the
-audience. In a 22-passage experiment, an LLM that read the surrounding text agreed
-with another LLM 95.45% of the time, versus 79.54% for the writing score alone. This
-compares LLMs, not people, and is not part of the installed skill.
+In a 22-passage experiment, an LLM that read the surrounding text agreed with another
+LLM 95.45% of the time, versus 79.54% for the writing score alone. This compares LLMs,
+not people, and the experimental check is not part of the installed skill.
 
 ![The experimental context-aware check matched another LLM more often than the local writing score](assets/bench-contextual-ablation.png)
 
 ### The same drafts, edited five ways
 
-The repeatability test asks whether each workflow behaves consistently. We ran five
-workflows on the same 18 deliberately generic drafts. A passage passed only if it met
-the score and layout limits and a source check found no altered facts or invented feelings.
+We ran five workflows on the same 18 deliberately generic drafts. A passage passed
+only if it met the writing and layout limits without altering facts or inventing feelings.
 
 | Method | Mean writing score ↓ | Passed all checks | Automated fact check | Average length change |
 |---|---:|---:|---:|---:|
@@ -136,35 +138,28 @@ the score and layout limits and a source check found no altered facts or invente
 | no-ai-slop | 28.5 | 12/18 | 18/18 | -28.0% |
 | de-slop | 54.3 | 6/18 | 18/18 | -18.5% |
 
-Negative length change means the edited draft was shorter.
-
 ![The same 18 drafts after each editing workflow; lower scores mean fewer generic AI-style patterns](assets/bench-search-rewrites.png)
 
-All 18 drafts edited with Zero Slop passed. That result helps catch unintended changes,
-but the comparison is not neutral: Zero Slop defines the rules. No available test set
-combines broad, current writing with independent human judgments, so the project does
-not publish a universal accuracy number. AIStoryHub, Beemo, and the Slop
-Index remain limited cross-checks. See [`bench/README.md`](bench/README.md).
+All 18 Zero Slop edits passed, but this is not a neutral ranking: Zero Slop defines the
+rules. No available set combines broad, current writing with independent human review,
+so there is no universal accuracy number. AIStoryHub, Beemo, and the Slop Index remain
+limited cross-checks documented in [`bench/README.md`](bench/README.md).
 
 ### The local tools are fast
 
 On one Apple silicon Mac, the local checker processed 1,000 documents in 2.4986 seconds
-(400.2 per second). A 15,201-word document took 0.3526 seconds. The slowest stress case
-took 2.4453 seconds; an 8,000-word learning pass took 0.1478 seconds. AI-assistant time
+(400.2 per second). A 15,201-word document took 0.3526 seconds; the slowest stress case
+took 2.4453 seconds. An 8,000-word learning pass took 0.1478 seconds. AI-assistant time
 is excluded.
 
 ## What Zero Slop adds
 
 Zero Slop builds on [no-ai-slop](https://github.com/petergyang/no-ai-slop),
-[humanizer](https://github.com/blader/humanizer),
-[de-slop](https://github.com/isatimur/de-slop), and
-[stop-slop](https://github.com/hardikpandya/stop-slop). Those projects established much
-of the editorial playbook. Zero Slop adds a local writing score, fact protection,
-separate copy-editing and read-aloud passes, private learning, and release tests.
+[humanizer](https://github.com/blader/humanizer), [de-slop](https://github.com/isatimur/de-slop),
+and [stop-slop](https://github.com/hardikpandya/stop-slop). It adds a local writing
+score, fact protection, separate editorial passes, private learning, and release tests.
 
-The chart is an inventory, not a horse race. It records the features documented in
-pinned versions of each repository; it does not decide which tool writes better. The
-comparison details are in [`bench/README.md`](bench/README.md).
+The chart records documented features in pinned repository versions; it does not decide which tool writes better. Details are in [`bench/README.md`](bench/README.md).
 
 ![Comparison of features documented in pinned repository versions](assets/competitor-capabilities.png)
 
@@ -183,9 +178,8 @@ python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check
 ```
 
-`SKILL.md` defines the skill. `scripts/` holds tools that check writing and facts,
-choose a revision, and learn from edits. `bench/` holds test inputs and results. See
-[`SECURITY.md`](SECURITY.md) for privacy details and
-[`references/evidence.md`](references/evidence.md) for the research notes.
+`SKILL.md` defines the skill; `scripts/` holds the local tools; `bench/` holds test
+inputs and results. See the [security policy](SECURITY.md) for privacy and the
+[research notes](references/evidence.md) for sources.
 
-MIT.
+Released under the [MIT License](LICENSE).

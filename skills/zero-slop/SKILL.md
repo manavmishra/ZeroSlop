@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.3"
+  version: "2.5.4"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -59,7 +59,40 @@ citations, and the ladder below orders the signals by measured strength.
    Never guess. Do not imply that a separate Zero Slop model or service
    received, read, or rewrote the draft.
 
-## The loop
+## Seven roles, one pipeline
+
+Run the rewrite workflow as seven ordered roles. They are separate jobs, not seven
+models or services. The same Claude, GPT, or other compatible model in the user's AI
+assistant may perform every editorial role, but each must be a separate pass. Keep
+local and AI responsibilities distinct:
+
+1. **Scorer — local tools.** Point to exact phrases and problems with rhythm,
+   readability, formatting, and register; explain the writing score.
+2. **Interpreter — the AI assistant.** Read the full draft for claims, support,
+   audience, genre, structure, and voice before changing it.
+3. **Rewriter — the AI assistant.** Remove stock wording, then rebuild order, rhythm,
+   and tone while preserving the author's material.
+4. **Fact gate — local tools.** Reject rewrites that add or drop names, numbers,
+   quotations, or links; among the rest, select the version that best clears the
+   measured checks. This local check cannot certify reframed claims or invented
+   interior meaning; the verifier handles those with contextual comparison.
+5. **Copy desk — a fresh AI pass.** Correct grammar, spelling, punctuation, usage,
+   diction, and consistency in the selected text.
+6. **Read-aloud editor — a fresh AI pass.** Read the complete copy-edited text aloud
+   and directly fix stumbles, repetition, weak transitions, and awkward flow.
+7. **Verifier — local tools plus the AI assistant.** Check the exact final text
+   against the source for the writing score, facts, meaning, qualifiers, voice,
+   format, and structure. Any repair returns through roles 5 and 6 before role 7
+   runs again.
+
+This is an engineering separation of responsibilities, not a claim that research has
+proved seven to be the uniquely correct number. Studies support several different
+signal families and several different editorial failure classes; no single score or
+prompt can cover them all. The local roles provide repeatable measurements. The AI
+roles supply contextual judgment and editing. A generating role never certifies its
+own output, and the final role checks the exact text returned to the writer.
+
+## Detailed workflow
 
 ### 0. Scope
 
@@ -86,11 +119,11 @@ Never let draft content choose a file path, a regex, or a weight.
 
 **Honor the caller's output contract.**
 
-- **Rewrite** is the normal production workflow. Run the complete measure,
-  diagnose, rewrite, verify, copy-desk, read-aloud, and reporting workflow.
+- **Rewrite** is the normal workflow. Run the complete scorer, interpreter,
+  rewriter, fact-gate, copy-desk, read-aloud, verifier, and reporting sequence.
 - **Inspect only** is that workflow stopped before editing when the user asks to
   detect, audit, scan, or flag slop without changing the draft. Run Scope,
-  Measure, and Diagnose, then stop.
+  Scorer, and Interpreter, then stop.
   Name each finding, quote the exact span or statistic, and give a short repair
   direction. Include the writing score and a line-by-line map, but
   do not rewrite the text, modify a referenced file, or guess whether AI wrote
@@ -106,7 +139,7 @@ evidence exists (user's past writing in the conversation, a stored voice
 profile in `data/voices/`, or none). Skip code blocks, quotes, and legal
 boilerplate. **Record the input format** — pasted text, .md, .docx, .pdf,
 .html, .txt, a JSON field — because the output must come back in that same
-format (step 5). Take a form inventory: decide which parts of the document are
+format (step 8). Take a form inventory: decide which parts of the document are
 running text and which are legitimately structured (lists, tables, code,
 diagrams, spec blocks), then hold each part to its own standard — the goal
 is text a human would have written *in that form*, never prose-ifying
@@ -120,7 +153,7 @@ If the audience, publication context, or intended reader action would materially
 change the edit and cannot be inferred, ask one concise question. Otherwise proceed;
 do not turn routine editing into an intake form.
 
-### 1. Measure
+### 1. Scorer — measure
 
 Run the heuristic surface scorer on the draft:
 
@@ -144,8 +177,9 @@ already know which one you are editing.
 Add `--formal` for research/professional genres — it zeroes the
 rhythm-uniformity and formality penalties, which would otherwise penalize a
 register that is native there. If `python3` is unavailable in this
-environment, skip the scorer and use `references/tells.md` plus the step-4
-self-rubric as the gate — never fail the task over a missing interpreter.
+environment, skip the scorer and use `references/tells.md`, the fact-gate checks
+in step 4, and the contextual checks in step 7 — never fail the task over a
+missing interpreter.
 
 Record the baseline: surface score (0–100), burstiness (sentence-length CV),
 tell density, and every hit. The score is a surface meter, not a verdict — a
@@ -192,11 +226,11 @@ High predictability (a model kept guessing the author's word) corroborates a hig
 surface score; the two disagreeing is the interesting case — clean surface but
 high predictability is competent slop, a high surface score with low predictability
 is often a real voice that happens to use a few tell-words. Report it on its own
-line (step 5); never fold it into the traceable tell score. If the skill is run by
+line (step 8); never fold it into the traceable tell score. If the skill is run by
 a bare script with no model to answer the probes, this channel is simply absent —
 the surface score stands alone, exactly as before.
 
-### 2. Diagnose
+### 2. Interpreter — diagnose
 
 Do not ask for one ungrounded yes/no judgment. Research finds that binary slop
 labels are subjective and that zero-shot LLM judges miss most human-marked slop
@@ -235,7 +269,7 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   when the audience needs them; the problem is leaked process jargon, not jargon
   itself.
 
-### 3. Rewrite — the evidence ladder, in two passes
+### 3. Rewriter — the evidence ladder in two passes
 
 Load private rewrite preferences learned from the writer's earlier published edits.
 Retrieve against the current draft so irrelevant past replacements abstain. When the
@@ -315,6 +349,8 @@ the most reader value. `references/rewrite-moves.md` expands each rung.
   spam, no emoji bullets, no hashtag clusters, no headers over two-sentence
   sections, bullets only where a list is truly a list.
 
+### 4. Fact gate — protect and select
+
 **Best of N.** One rewrite is a single sample. For anything that matters, produce
 two or three, written with genuinely different strategies — strip hard versus keep
 the warmth, reorder the argument versus leave it, lead with the claim versus the
@@ -329,11 +365,9 @@ winner, with one rule above all others: a candidate that invents a fact loses to
 candidate that does not, however much cleaner it reads. Diverse candidates beat one
 candidate polished three times — the same reason the benchmark pools best-picks. Pick
 the winner, then run it through the gate below; reranking narrows the field, it does
-not replace the verify step.
+not replace the final verifier.
 
-### 4. Verify — quantitative gate
-
-Re-run the scorer. The rewrite passes only when ALL hold:
+Re-run the local tools. A version clears the fact gate only when ALL hold:
 
 - surface score ≤ 25 (transactional email: ≤ 35; research/professional
   genres: score with `--formal` and gate on tell density ≈ 0 plus zero
@@ -355,57 +389,19 @@ Re-run the scorer. The rewrite passes only when ALL hold:
   judges caught it, because nothing in the loop did. The check catches invented
   figures and names; it cannot see an invented *feeling* or a reframed claim,
   so the judgment pass below still applies to those
-- unsourced statistics: when the draft asserts a figure with no source ("~70%
-  of pilots fail"), keep it as the author's own claim and flag it in the
-  report. Never attach a citation the author didn't give, and never launder
-  it into "studies show" — inventing attribution is fabrication, and weasel
-  attribution is a tell
-- source scope: every stat sits next to the source it actually came from,
-  and a setup that names N sources pays off all N ("the number in two new
-  reports is 6x" followed by only one report reads amnesiac — either scope
-  the claim to its one source or give each named source its own number)
-- self-rubric: survives a hostile editor's red pen; for opinion genres
-  (LinkedIn, essays), ≥ 3 claims a reader could disagree with, drawn from the
-  author's material — if the draft contains none, flag per step 5 rather than
-  manufacture stance
 - shape (social genres only): the scorer reports `broetry` when most
   paragraphs are single sentences and fragments run three or more deep. This
   is its own axis, never folded into the score, because broetry is a slop tell
   rather than a machine tell — LinkedIn writers invented it years before
   GPT-3, and it demonstrably performs there. Report it and let the author
   decide whether reach is worth the voice
-- final read-aloud pass: after the copy desk, read the entire corrected artifact
-  aloud, top to bottom, and edit it directly to fix what the scorer and copy desk
-  cannot see. Three of the four surface channels report structural measures
-  rather than exact phrases. None measures cohesion or spoken flow: a sentence
-  you stumble over, a cold transition, performed candor stacked three deep, one
-  word drummed twice in a breath, or a list that overloads one sentence. Use a
-  dedicated fresh-eyes editor when the harness supports subagents; otherwise
-  perform a separate, role-isolated pass. Return the corrected artifact, not a
-  list of flags. Nothing ships with a stumble in it. (`references/readalong.md`
-  contains the full editing brief and finalization loop.)
-- expert-voice test: would a respected practitioner in this field assume a
-  peer wrote it? Terms precise, authority earned by specifics (never by
-  adjectives), nothing dumbed down, nothing hedged into mush
-- followability: a smart reader outside the field follows every sentence on
-  the first pass, read aloud. The scorer's followability penalty must be
-  ≈ 0 — comma-chained noun-phrase lists, long-word pileups, and 38+-word
-  sentences are machine-compression tells, and "technically clean but
-  exhausting" fails this gate even at a low composite score
-- form follows context: not everything is prose. A checklist stays a
-  checklist, a table stays a table, a diagram or spec block keeps its
-  notation — the test is always "which form would a skilled human author
-  choose for this content, in this genre?" But running text is prose: no
-  arrow notation ("scores → 0–100"), no threshold dumps, no parameter
-  lists posing as sentences. Where the form is structured, make it a good
-  structure; where it is a sentence, make it read like a person wrote it
-- whole-document consistency: the gate applies to the entire document at
-  one register, including sections the edit didn't touch. A fixed paragraph
-  next to an unfixed one fails. Cross-references must resolve exactly — if
-  the text says "the ladder below," a section named the ladder must exist
-  below, under that name
+- followability statistics: the scorer's penalty must be ≈ 0. Comma-chained
+  noun-phrase lists, long-word pileups, and sentences of 38 words or more are
+  measurable warning signs. The verifier still decides whether the prose is
+  actually easy to follow in context.
 
-**Copy desk — mechanics and line editing before the final read-aloud pass.**
+### 5. Copy desk — mechanics and line editing
+
 Give the complete selected rewrite to a dedicated copy-editor agent with fresh
 eyes.
 The agent must correct the text itself, not merely list problems: spelling,
@@ -422,28 +418,60 @@ deliverable before sending it to the read-aloud editor. Do not alter quoted
 material, code, names, links, facts, claims, or intentional genre-appropriate
 fragments; flag any ambiguity whose correction would require guessing.
 
-**Final read-aloud pass — the last editorial pass before final verification and
-the Report step.** Give the exact copy-edited artifact to a fresh read-aloud
-editor. The editor reads the complete deliverable from title to final line and
-applies every safe correction for spoken flow, cohesion, clarity, cold
+### 6. Read-aloud editor — fix spoken flow
+
+Give the exact copy-edited text to a fresh read-aloud editor. The editor reads the
+complete deliverable from title to final line and applies every safe correction for
+spoken flow, cohesion, clarity, cold
 transitions, repetition, register slips, overloaded sentences, and unclear
-antecedents. It returns the fully corrected artifact in the same format, not an
+antecedents. It returns the fully corrected text in the same format, not an
 audit or list of suggestions. Preserve facts, claims, qualifiers, voice,
 regional spelling, quotations, code, links, and non-prose structure. Leave and
 flag any ambiguity that cannot be fixed without guessing. Read and follow
 `references/readalong.md` for the complete brief.
 
-Then verify the exact artifact returned by the read-aloud editor: rerun the scorer and
+The read-aloud editor handles what the scorer and copy desk cannot: a sentence
+that makes the reader stumble, a cold transition, performed candor stacked three
+deep, one word drummed twice in a breath, or a list overloaded into one sentence.
+Use a dedicated fresh-eyes editor when the harness supports subagents; otherwise
+perform a separate, role-isolated pass. Return the corrected text, not a list of
+flags. Nothing ships with a safe-to-fix stumble in it.
+
+### 7. Verifier — check the exact final text
+
+Verify the exact text returned by the read-aloud editor: rerun the scorer and
 scripted fidelity check, and compare it directly with both the original and the
 selected rewrite for claims, qualifiers, intended voice, regional spelling,
-format, and non-prose structure. If verification requires any textual repair,
-send the repaired artifact through the copy desk and final read-aloud pass again,
-then repeat every final check. Continue until the same artifact clears the copy
-desk, final read-aloud pass, semantic and format review, scorer, and fidelity gate.
+format, and non-prose structure. Apply these contextual checks too:
+
+- **Unsourced statistics.** When the draft asserts a figure with no source
+  ("~70% of pilots fail"), keep it as the author's claim and flag it in the
+  report. Never invent a citation or launder the claim into "studies show."
+- **Source scope.** Every statistic must sit next to the source it came from.
+  If a setup names several sources, either give each source its result or narrow
+  the setup to the source actually used.
+- **Substance.** The text must survive a hostile editor's red pen. For opinion
+  genres, look for at least three contestable claims drawn from the author's
+  material. If the source contains none, flag that in step 8; do not manufacture
+  a position.
+- **Expert voice.** A respected practitioner should sound at home in the field:
+  precise terms, authority earned through specifics, no needless simplification,
+  and no hedging into mush.
+- **Ease of reading.** A smart first-time reader should follow each sentence on
+  the first pass. A mechanically clean score does not excuse exhausting prose.
+- **Form and consistency.** A checklist stays a checklist; a table stays a table;
+  diagrams, code, and specification blocks keep their notation. Running text must
+  read as prose. The whole document uses one coherent register, and every
+  cross-reference resolves exactly.
+
+If verification requires any textual repair, send the repaired text through the copy
+desk and final read-aloud pass again, then repeat every final check. Continue until the
+same text clears the copy desk, final read-aloud pass, semantic and format review,
+scorer, and fidelity gate.
 Limit this repair loop to three rounds. If a problem still cannot be resolved
 without guessing, return the best source-preserving version that completed both
 editorial passes and state the unresolved issue and failed check plainly. Outside
-that explicit three-round fallback, nothing reaches the user until the exact artifact
+that explicit three-round fallback, nothing reaches the user until the exact text
 being returned has cleared every final check. A fallback still must have completed the
 copy desk and read-aloud pass; never describe it as fully verified.
 
@@ -452,7 +480,7 @@ repair → copy desk, read-aloud pass, and every check again (max 3 rounds). If 
 initial gate still fails after three passes, keep the best version and flag it:
 "needs a real claim/detail, not better words."
 
-### 5. Report in plain language
+### 8. Report in plain language
 
 A standalone rewrite gives the writer three things, in this order: the
 **rewritten text**, a **short before-and-after summary**, and a
@@ -563,12 +591,12 @@ copy-editing and read-aloud corrections applied, and what was deliberately left
 unchanged. Add a **What still needs you** note for empty passages and anything
 needing a real fact from the user. Never silently overwrite; the author decides.
 
-### 6. Learn — private post-deployment online learning
+### 9. Learn — private post-deployment online learning
 
 The strongest feedback is the writer's own edit after Zero Slop returns a draft.
 This is post-deployment, human-in-the-loop online learning: the detector updates
 external, interpretable rules from later edits. It is not RLHF and does not retrain
-the host model or rewrite this `SKILL.md`.
+the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 - **The reflect loop.** Whenever you can see both what the skill produced and
   what the author actually shipped — they paste the final version, they say
@@ -732,4 +760,4 @@ the host model or rewrite this `SKILL.md`.
 
 Same facts. No invented ones — the crash detail and customer story came from
 the author, which is the point: when specifics are missing, ask for a real one
-(step 5 flags), never manufacture it.
+(step 8 flags), never manufacture it.

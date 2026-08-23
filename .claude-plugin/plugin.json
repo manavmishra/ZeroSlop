@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "zero-slop",
-  "description": "Zero Slop is a skill, not an AI model. Claude or another compatible model in the user's assistant reads and edits the draft; Zero Slop provides local writing checks, fact protection, guidance for final editorial passes, and private learning.",
-  "version": "2.5.3",
+  "description": "Zero Slop is a skill, not an AI model. Claude or another compatible model performs the editorial roles; local tools score the writing and protect facts, then the assistant and tools verify the final text.",
+  "version": "2.5.4",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"

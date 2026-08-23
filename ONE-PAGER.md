@@ -36,19 +36,15 @@ founder writing a launch post, a marketer shipping five things a week, a researc
 needs their paper to stay formal, an engineering team that wants slop to fail a check
 the way a bug does.
 
-## How it decides
+## Seven roles, one workflow
 
-First, a local program checks familiar phrases, sentence rhythm, readability, tone,
-and formatting. The writing score describes those choices; it does not claim to know
-who wrote the text. The AI assistant running the skill then reads the draft in context,
-rewrites it, and performs the two final editorial passes. A separate check asks that
-same assistant to guess hidden words and reports how often the original word appears
-among its top three guesses. When three or more related drafts are present, a portfolio
-check reports repeated five-word openings and shared phrases without changing the main
-score. Zero Slop ships no model of its own and does not send the draft to a separate
-Zero Slop AI service. For important work, the assistant drafts two or three approaches,
-rejects any that add or lose a fact, and sends the cleanest version through separate
-copy-editing and read-aloud passes.
+The local scorer finds exact phrases and problems with rhythm, readability, and
+formatting. The AI assistant acts as interpreter, then rewriter. The local fact gate
+rejects versions that add or lose names, numbers, quotations, or links. Fresh AI passes
+act as the copy desk, then the read-aloud editor. Finally, local tools and the assistant share
+the verifier role, comparing the exact finished text with the source. These are seven
+roles, not seven models. Separating them stops the rewriter from certifying its own work
+and keeps late edits from bypassing the final checks.
 
 ## What makes it different
 
@@ -106,5 +102,5 @@ easy-case check for unintended changes, not a real-world accuracy estimate.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.5.3 · tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.5.4 · tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

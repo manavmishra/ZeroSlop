@@ -1458,6 +1458,33 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("claude, gpt, or another compatible model", readme)
         self.assertIn("local tools", readme)
 
+    def test_readme_explains_the_seven_role_pipeline_honestly(self):
+        readme = " ".join(self.docs["README.md"].lower().split())
+        roles = (
+            "1. scorer", "2. interpreter", "3. rewriter", "4. fact gate",
+            "5. copy desk", "6. read-aloud editor", "7. verifier",
+        )
+        self.assertIn("seven roles form one workflow", readme)
+        self.assertIn("jobs, not separate models", readme)
+        self.assertIn("not an optimal count", readme)
+        positions = [readme.index(role) for role in roles]
+        self.assertEqual(positions, sorted(positions), "README role order drifted")
+
+    def test_skill_enforces_the_same_seven_role_pipeline(self):
+        skill = " ".join(self.docs["SKILL.md"].lower().split())
+        contract = skill[skill.index("## seven roles, one pipeline"):
+                         skill.index("## detailed workflow")]
+        roles = (
+            "1. **scorer", "2. **interpreter", "3. **rewriter",
+            "4. **fact gate", "5. **copy desk", "6. **read-aloud editor",
+            "7. **verifier",
+        )
+        positions = [contract.index(role) for role in roles]
+        self.assertEqual(positions, sorted(positions), "skill role order drifted")
+        self.assertIn("separate jobs, not seven models or services", contract)
+        self.assertIn("local tools plus the ai assistant", contract)
+        self.assertIn("any repair returns through roles 5 and 6", contract)
+
     def test_skill_report_template_speaks_to_the_writer(self):
         skill = self.docs["SKILL.md"]
         summary = re.search(
@@ -1478,7 +1505,7 @@ class DocsMatchReality(unittest.TestCase):
                 "candidate", "overlay"):
             with self.subTest(term=term):
                 self.assertNotIn(term, template)
-        report = skill[skill.index("### 5. Report in plain language"):]
+        report = skill[skill.index("### 8. Report in plain language"):]
         self.assertIn("Who did what", report)
         self.assertIn("Your AI assistant", report)
         self.assertIn("never guess", report)
@@ -2260,9 +2287,10 @@ class Diagram(unittest.TestCase):
     def test_engine_svg_names_both_operational_loops(self):
         src = (ROOT / "assets" / "engine.svg").read_text().lower()
         for phrase in (
-                "one editing workflow", "edit the draft", "1 · check",
-                "2 · read", "rewrite", "copy edit", "read aloud",
-                "final check", "learn from the writer", "compare", "protect",
+                "seven roles", "one editing workflow", "editing workflow · seven roles",
+                "1 · scorer", "2 · interpreter", "3 · rewriter", "4 · fact gate",
+                "5 · copy desk", "6 · read aloud", "7 · verifier",
+                "learn from the writer", "compare", "protect",
                 "review", "4 · save", "reuse", "private writing rules",
                 "helpful past fixes", "no neural training", "separate release review",
                 "choose test sets", "independent review", "quality · safety · speed · cost",
@@ -2272,7 +2300,7 @@ class Diagram(unittest.TestCase):
                 self.assertIn(phrase, src)
         for phrase in (
                 "zero_slop_mode", "promotion-gated", "assisted",
-                "surface score", "evidence", "fidelity", "corpora", "gate",
+                "surface score", "evidence", "fidelity", "corpora",
                 "overlay", "diagnose", "operational loop", "production path"):
             with self.subTest(absent=phrase):
                 self.assertNotIn(phrase, src)
