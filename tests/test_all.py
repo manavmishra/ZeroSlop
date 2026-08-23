@@ -276,9 +276,9 @@ class CLI(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         for phrase in (
                 "Writing score", "Flagged phrases", "Sentence variety",
-                "Readability", "What Zero Slop checked"):
+                "Readability", "What Zero Slop checked", "Your AI assistant"):
             with self.subTest(phrase=phrase):
-                self.assertIn(phrase, r.stdout)
+                self.assertIn(phrase.lower(), r.stdout.lower())
         for term in (
                 "surface score", "heuristic meter", "tell density",
                 "weighted tells", "burstiness", "followability", "evidence",
@@ -1451,6 +1451,13 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("writing score", rendered)
         self.assertIn("flagged phrases", rendered)
 
+    def test_readme_explains_which_ai_does_the_editing(self):
+        readme = " ".join(self.docs["README.md"].lower().split())
+        self.assertIn("not an ai model", readme)
+        self.assertIn("your ai assistant", readme)
+        self.assertIn("claude, gpt, or another compatible model", readme)
+        self.assertIn("local tools", readme)
+
     def test_skill_report_template_speaks_to_the_writer(self):
         skill = self.docs["SKILL.md"]
         summary = re.search(
@@ -1471,6 +1478,10 @@ class DocsMatchReality(unittest.TestCase):
                 "candidate", "overlay"):
             with self.subTest(term=term):
                 self.assertNotIn(term, template)
+        report = skill[skill.index("### 5. Report in plain language"):]
+        self.assertIn("Who did what", report)
+        self.assertIn("Your AI assistant", report)
+        self.assertIn("never guess", report)
 
     def test_documented_cli_flags_exist(self):
         """A flag named in the README must be a flag the script accepts."""
@@ -2255,7 +2266,8 @@ class Diagram(unittest.TestCase):
                 "review", "4 · save", "reuse", "private writing rules",
                 "helpful past fixes", "no neural training", "separate release review",
                 "choose test sets", "independent review", "quality · safety · speed · cost",
-                "people confirm the gain"):
+                "people confirm the gain", "claude, gpt, or another compatible model",
+                "your ai assistant"):
             with self.subTest(phrase):
                 self.assertIn(phrase, src)
         for phrase in (

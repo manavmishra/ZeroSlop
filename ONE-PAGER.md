@@ -4,17 +4,17 @@ You used AI to help with your writing, and now it reads like a machine wrote eve
 word. You can hear it, and so can everyone who reads it. That machine sound has a
 name: slop.
 
-Zero Slop finds that slop in your draft and takes it out without changing what you
-said. Its writing score runs from 0 to 100 and points to the phrases and writing
-patterns that raised it. After the rewrite, a copy editor fixes the
-mechanics. A second editor reads the result aloud and fixes its flow; the final checks
-make sure the facts survived.
+Zero Slop is not an AI model. It runs inside the AI assistant you already use. Claude,
+GPT, or another compatible model reads and edits the draft; Zero Slop supplies the
+method and local checks. Its writing score runs from 0 to 100 and points to the phrases
+and writing patterns that raised it. The assistant then runs separate copy-editing and
+read-aloud passes. Final checks make sure the facts survived.
 
 ```bash
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Then open your agent and say "de-slop this." The Python scorer needs no account or
+Then open your assistant and say "de-slop this." The Python scorer needs no account or
 server and does not transmit your writing.
 
 ![Zero Slop giving a marketing sentence a writing score of 100, then its rewrite 9.5](assets/demo.png)
@@ -40,14 +40,15 @@ the way a bug does.
 
 First, a local program checks familiar phrases, sentence rhythm, readability, tone,
 and formatting. The writing score describes those choices; it does not claim to know
-who wrote the text. Many problems are structural, so swapping one synonym for another
-will not fix them. One em dash carries little weight; several different problems in
-the same draft matter more. A separate check asks your assistant to guess hidden words and reports how often
-the original word appears among its top three guesses. When three or more related
-drafts are present, a portfolio probe reports repeated five-word openings and shared
-phrases without changing the main score. Zero Slop ships no model of its own. For
-important work, it drafts two or three approaches, rejects any that add or lose a fact,
-and sends the cleanest version through the copy desk and read-aloud pass.
+who wrote the text. The AI assistant running the skill then reads the draft in context,
+rewrites it, and performs the two final editorial passes. A separate check asks that
+same assistant to guess hidden words and reports how often the original word appears
+among its top three guesses. When three or more related drafts are present, a portfolio
+check reports repeated five-word openings and shared phrases without changing the main
+score. Zero Slop ships no model of its own and does not send the draft to a separate
+Zero Slop AI service. For important work, the assistant drafts two or three approaches,
+rejects any that add or lose a fact, and sends the cleanest version through separate
+copy-editing and read-aloud passes.
 
 ## What makes it different
 
@@ -55,7 +56,7 @@ It is built on four open-source projects that worked out this craft first: no-ai
 humanizer, de-slop, and stop-slop. It adds three things a plain rewrite lacks.
 
 A score you can inspect. The rules and structural measures are visible, and the same
-threshold check can run in a build. It is a repeatable editorial meter, not authorship
+threshold check can run in a build. It is a repeatable writing check, not authorship
 proof.
 
 A promise about your facts. A rewrite can invent a detail or drop a number to make a
@@ -64,31 +65,31 @@ rejects a version that loses one or adds one. A missing number may be obvious; a
 invented one can read naturally enough to go unnoticed, which is why the check exists.
 
 A tool that learns from later edits. The editorial loop handles the current draft. A
-separate private learning loop can compare the delivered version with a later edit: a
-phrase you cut may be a tell it missed, while flagged text you keep may be a false alarm.
-No detection rule or preferred fix becomes active after a single edit pair.
-A potential phrase rule needs the same cut in three content-distinct edit pairs,
-followed by a novelty check and a safety check against reference human writing; single
-words need five edit pairs. Repeated replacements can also become private rewrite
-guidance after the same replacement recurs in three content-distinct edit pairs. The
-private learning file loads on the next run. Later matching edits confirm detection rules
-and preferred fixes; without reconfirmation, stale detection rules decay and stale
-preferred fixes retire.
+separate private learning loop can compare the assistant's version with a later edit: a
+phrase you cut may reveal a pattern the local check missed, while flagged text you keep
+may be a false alarm. No detection rule or preferred fix becomes active after one edit.
+Before a phrase rule can take effect, the same cut must appear in three unrelated pieces.
+It must also be new and leave a reference set of human writing unflagged; a single-word
+cut must appear in five unrelated pieces. A preferred replacement must also recur in
+three unrelated pieces. The private learning file loads on the next run. Later matching
+edits confirm useful rules and fixes; without reconfirmation, stale detection rules decay
+and stale preferred fixes retire.
 
 This is post-deployment, human-in-the-loop online learning. It adapts detection and
 fixing through inspectable local rules and preferences. Human corrections provide
 feedback, but Zero Slop does not perform reinforcement learning or RLHF, nor does it
-retrain the host model. Shared changes still require review, tests, versioning, and a
-release. Each session can check for a newer release with a metadata-only version query.
+retrain the AI model already running in the assistant. Shared changes still require
+review, tests, versioning, and a release. Each session can check for a newer release
+with a metadata-only version query.
 That query never sends the draft.
 
 ## What we tested
 
 We wrote 50 AI-heavy drafts and compared four rewrites of each. No human raters took
 part. The records identify the evaluators only as LLM runs from one model family. Each
-of the two passes used five separate runs. The method names were hidden; the model saw the
-brief, source draft, factual inventory, and four rewrites, then rated human-likeness,
-voice, fidelity, craft, and platform fit.
+of the two passes used five separate runs. The method names were hidden; the model saw
+the brief, source draft, list of facts, and four rewrites, then rated human-likeness,
+voice, faithfulness to the source, craft, and platform fit.
 
 The results moved between passes. The model selected Zero Slop for 32 of 50 drafts in
 the first and 23 in the second; it selected blader/humanizer for 18 and 22. The pooled
@@ -96,14 +97,14 @@ counts were 55 and 40, but the passes agreed on a winner for only 26 drafts, and
 head-to-head difference was not statistically significant. The public harness also
 omits the exact model, settings, and full prompt. The results show that the two systems
 were competitive on our synthetic set, not that either is generally better. We also
-wrote the scorer's discrimination set, so it serves as a regression check rather than a
-real-world accuracy estimate. A 1,000-document speed check runs in CI and must finish
+wrote the scorer's test set, so it serves as a check for unintended changes rather than
+a real-world accuracy estimate. A 1,000-document speed check runs in CI and must finish
 within 60 seconds. A separate search-informed challenge contains 18 anonymous slop
 paraphrases across LinkedIn, X, email, blog, newsletter, and research; it is an
-easy-case regression guard, not a field-accuracy estimate.
+easy-case check for unintended changes, not a real-world accuracy estimate.
 
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.5.2 · tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.5.3 · tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

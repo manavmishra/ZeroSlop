@@ -934,7 +934,7 @@ def render_fidelity(before, after):
                              ("FACTS DROPPED" if not r["preserved"] else "")
                              + (" · CONTENT INVENTED" if r["invented"] else "")),
             "  This checks figures, names, quotes, links, and stated feelings.",
-            "  An editor still compares the full meaning because a changed claim",
+            "  Your AI assistant still compares the full meaning because a changed claim",
             "  or emphasis may use all the same names and numbers.", ""]
     return out
 
@@ -1151,7 +1151,7 @@ def main():
               else "not checked for this kind of writing")))
     print("  What Zero Slop checked: word choice, formatting, sentence rhythm, "
           "readability, and tone" + (", plus page layout" if sh["measured"] else ""))
-    print("  What still needs an editor: strength of the ideas, voice, and factual accuracy"
+    print("  What your AI assistant reviews: strength of the ideas, voice, and factual accuracy"
           + ("" if sh["measured"] else "; page layout was not checked"))
     if explain:
         if unique_hits:
@@ -1169,7 +1169,7 @@ def main():
         why = "" if ok else (" (page layout needs work)" if sh.get("broetry") and r["ai_likelihood"] <= gv else "")
         verdict = "PASSED" if ok else "NEEDS WORK"
         print(f"  Check against {gv:g}: {verdict}{why}. This covers writing patterns and "
-              f"layout; an editor still reviews the ideas, voice, and facts.")
+              f"layout; your AI assistant still reviews the ideas, voice, and facts.")
         sys.exit(0 if ok else 1)
 
 

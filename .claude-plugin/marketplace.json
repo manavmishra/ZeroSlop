@@ -5,12 +5,12 @@
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"
   },
-  "description": "The zero-slop skill, installable as a Claude Code plugin.",
+  "description": "The Zero Slop skill, installable as a Claude Code plugin.",
   "plugins": [
     {
       "name": "zero-slop",
       "source": "./",
-      "description": "Removes canned AI-style writing and shows the change with a before-and-after writing score: 267 phrase patterns, checks across related drafts, a two-pass rewrite, fact protection, copy editing, read-aloud editing, and private learning from writer edits. Offline, zero dependencies.",
+      "description": "Zero Slop is a skill for Claude Code, not an AI model. Claude reads and edits in context; Zero Slop provides a before-and-after writing score, 267 phrase patterns, fact protection, guidance for separate copy-editing and read-aloud passes, and private learning from writer edits. The local checks run offline and have zero dependencies.",
       "license": "MIT",
       "keywords": [
         "writing",

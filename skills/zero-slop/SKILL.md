@@ -2,15 +2,21 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.2"
+  version: "2.5.3"
   author: manavmishra
-description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop combines a local writing check that points to exact phrases, contextual editorial review, fact-preserving rewrite selection, a copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. Preserves facts, voice, format, and learns privately from repeated, reason-labelled human edits.
+description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
 
 # Zero Slop
 
 A linter for the AI accent. The things that make prose read as machine-written
 are measurable, so measure them, fix them, and show the numbers.
+
+Zero Slop is a skill, not an AI model. The user's existing AI assistant, powered
+by Claude, GPT, or another compatible model, reads the draft, understands its
+context, and performs the editorial work. The bundled local tools handle
+repeatable checks. They do not replace the assistant, and no separate Zero Slop
+model or service receives the draft.
 
 The science in one paragraph: detectors (and readers) key on the *post-training
 register* — text that sits at the most-probable phrasing, with uniform sentence
@@ -45,6 +51,13 @@ citations, and the ladder below orders the signals by measured strength.
    "tell density," "burstiness," "followability," "fidelity gate,"
    "scorecard," "heatmap," "artifact," "candidate," or "overlay." Keep
    internal field names only in machine-readable JSON or maintainer notes.
+7. **Tell the writer who did what.** Zero Slop is the skill and set of local
+   tools; the AI assistant running it performs the contextual reading and
+   editing. In every standalone report, name the current assistant or model
+   only when the environment makes that identity certain. Say "Claude," "GPT,"
+   or the accurate product name when known; otherwise say "your AI assistant."
+   Never guess. Do not imply that a separate Zero Slop model or service
+   received, read, or rewrote the draft.
 
 ## The loop
 
@@ -154,12 +167,12 @@ not an authorship verdict. Treat repeated product names, legal language, and
 necessary domain terms as legitimate. Rewrite repeated scaffolding and stock
 openings; preserve facts, meaning, and the writer's voice.
 
-**The host-model probe (predictability).** The four channels above read the surface.
-This optional channel asks whether the host model finds the prose predictable.
-Zero Slop ships no model; it uses **you**, the model running this skill, with
-nothing else to install. Probe selection and scoring are deterministic, but the
-guesses can vary by model and run, so report this as a separate diagnostic rather
-than a calibrated or directly comparable measure:
+**The AI-assistant probe (predictability).** The four channels above read the surface.
+This optional channel asks whether the AI assistant finds the prose predictable.
+Zero Slop ships no model. It uses **you**, the model in the assistant running
+this skill; nothing else needs to be installed. Probe selection and scoring are
+deterministic, but the guesses can vary by model and run, so report this as a
+separate diagnostic rather than a calibrated or directly comparable measure:
 
 ```
 python3 <skill-root>/scripts/predictability.py --probes <file> > probes.json
@@ -452,6 +465,19 @@ first use and prefer words over internal labels. Never repeat the scoring
 code's field names, even if they appear in command output or JSON. Translate
 them using hard rule 6.
 
+Begin a standalone report with a plain account of who did the work:
+
+```
+Who did what: Your AI assistant read and edited this draft using Zero Slop.
+Zero Slop's local tools checked the writing and protected the names, numbers,
+quotations, and links.
+```
+
+Replace "Your AI assistant" with the accurate name, such as Claude or GPT,
+only when the current environment makes that identity certain; never guess.
+For inspection-only work, say "reviewed" instead of "read and edited." Omit
+this note from embedded output unless the user asks for review details.
+
 **Inspection only** means the writer asked for comments, not a rewrite. Point
 to the unchanged text, quote each problem, suggest a repair, and include the
 writing score and phrase-by-phrase guide. Do not invent an “after” result.
@@ -500,8 +526,8 @@ same fields as plain lines where tables don't render):
 | Word count                           | 254             | 217         |
 Result: Passed Zero Slop's checks. All 12 tracked facts remain; nothing new was added.
 Zero Slop checked word choice, formatting, sentence rhythm, readability, tone, layout,
-and how predictable the wording was. An editor also reviewed the ideas, voice, facts,
-meaning, and structure.
+and how predictable the wording was. Your AI assistant also reviewed the ideas, voice,
+facts, meaning, and structure.
 ```
 
 **Never print "Passed" without explaining what passed.** The number covers the

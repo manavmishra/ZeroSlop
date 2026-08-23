@@ -5,15 +5,16 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.2-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.3-72528F">
 </p>
 
 **Less slop, more pop in all your writing.**
 
-Zero Slop is an open-source Agent Skill that removes AI slop from AI-assisted writing:
-stock phrasing, unsupported claims, uniform cadence, and formulaic structure. It
-revises the draft without changing its claims, voice, or format. It works with Claude
-Code, Codex, Cursor, and other compatible assistants.
+Zero Slop is an open-source Agent Skill, not an AI model. Claude, GPT, or another
+compatible model in your existing assistant reads and edits the draft. Zero Slop
+supplies the method and local checks. The assistant removes generic language without
+changing meaning, voice, or format. Supported assistants include Claude Code, Codex,
+Cursor, and others.
 
 The 0-to-100 writing score shows how much generic AI-style language remains, and the
 report names all flagged phrases. It does not identify the author. In the included
@@ -61,51 +62,53 @@ use the release zip.
 
 ![One editing workflow, a private learning loop, and a separate release review](assets/engine.svg)
 
-When Zero Slop edits a draft, it follows six steps:
+When you use Zero Slop, your AI assistant reads and edits the draft while local
+tools run repeatable checks. No separate Zero Slop AI service receives the draft. The
+workflow has six steps:
 
 1. **Check the writing.** A local program finds familiar AI-style patterns, mechanical
    rhythm, hard-to-read passages, and distracting formatting. It points to the words
    and structures that raised the writing score.
-2. **Read for meaning.** The AI assistant considers the claims, support, audience,
+2. **Read for meaning.** Your AI assistant considers the claims, support, audience,
    structure, and voice. Missing facts prompt questions, not inventions.
-3. **Rewrite.** The assistant removes generic wording, then improves order, rhythm, and
-   tone. Preferences learned from earlier writer edits can help.
+3. **Rewrite.** The same assistant removes generic wording, then improves order,
+   rhythm, and tone. Preferences learned from earlier writer edits can help.
 4. **Protect the facts.** A local check rejects any version that adds or drops names,
    numbers, quotes, or links, then chooses the clearest remaining version.
-5. **Polish.** A copy editor corrects grammar and consistency. A read-aloud pass fixes
-   awkward flow and repetition.
-6. **Check again.** Zero Slop compares the final text with the source for facts,
-   meaning, voice, format, and structure. Any repair repeats both editorial passes and
-   every final check.
+5. **Polish.** The assistant runs a copy-editing pass for grammar and consistency, then
+   a separate read-aloud pass for awkward flow and repetition.
+6. **Check again.** The local tools and your assistant compare the final text with the
+   source for facts, meaning, voice, format, and structure. Any repair repeats both
+   editorial passes and every final check.
 
-The local scripts use Python's standard library and never send drafts over the network.
+The local tools use Python's standard library and never send drafts over the network.
 Extra word-guessing and cross-draft checks do not change the writing score.
 
 ## Private learning from writer edits
 
-Learning starts only when Zero Slop receives both its version and the version the
-writer kept. It never monitors files, browsers, or publishing systems.
+Learning requires both the version returned by the assistant and the version the writer
+kept. Zero Slop never monitors files, browsers, or publishing systems.
 
-The same phrase must be cut from three unrelated pieces before it becomes a private
-rule; a single word requires five. Each proposal is tested against human writing that
-must remain unflagged. Repeated replacements guide later edits, phrases the writer
-keeps can quiet a rule, and old rules fade. Private rules are stored under
-`$ZERO_SLOP_HOME`; they can be reversed, and they never retrain the AI model.
+A phrase must be cut from three unrelated pieces before it becomes a private rule; a
+single-word cut requires five unrelated pieces. Each proposal is tested against human
+writing that must remain unflagged. Repeated replacements guide later edits, retained
+phrases can quiet a rule, and old rules fade. Private rules live under
+`$ZERO_SLOP_HOME`; they are reversible and never retrain the AI model.
 
 ## Does Zero Slop work?
 
-No single number can settle writing quality. The published tests cover how the edits
-read, whether repeated runs behave consistently, and how fast the local tools work.
+The published tests cover editorial quality, repeatability, and the speed of the local
+tools. No single number can settle writing quality.
 
 ### The clearest signal so far
 
-Two independent LLMs reviewed 72 passages from 12 drafts without knowing which tool
-produced them. They rated the amount of slop from 1 (clean) to 5 (sloppy throughout). The
-original drafts averaged 4.75; Zero Slop's edits averaged 2.38.
+Two independent LLMs reviewed 72 passages from 12 drafts without tool names. They rated
+the amount of slop from 1 (clean) to 5 (sloppy throughout). The original drafts averaged
+4.75; Zero Slop's edits averaged 2.38.
 
-The reviewers agreed 77.8% of the time. Excluding disagreements and borderline calls
-left 38 shared decisions and 34 unresolved cases. The gap favors Zero Slop, but the
-sample is small and the reviewers are LLMs, not people.
+Agreement was 77.8%. Excluding disagreements and borderline calls left 38 shared decisions and
+34 unresolved cases. The gap favors Zero Slop, but the sample is small and the
+reviewers are LLMs, not people.
 
 ![Average amount of editing needed according to two LLM reviewers; lower is better](assets/bench-blind-quality.png)
 
@@ -137,8 +140,8 @@ Negative length change means the edited draft was shorter.
 
 ![The same 18 drafts after each editing workflow; lower scores mean fewer generic AI-style patterns](assets/bench-search-rewrites.png)
 
-Zero Slop's edits passed all checks on 18 drafts. That helps catch unintended changes,
-but it is not a neutral contest: Zero Slop defines the rules. No available test set
+All 18 drafts edited with Zero Slop passed. That result helps catch unintended changes,
+but the comparison is not neutral: Zero Slop defines the rules. No available test set
 combines broad, current writing with independent human judgments, so the project does
 not publish a universal accuracy number. AIStoryHub, Beemo, and the Slop
 Index remain limited cross-checks. See [`bench/README.md`](bench/README.md).
