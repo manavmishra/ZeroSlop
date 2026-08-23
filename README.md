@@ -8,6 +8,8 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.5.1-72528F">
 </p>
 
+**Less slop, more pop in all your writing.**
+
 Zero Slop is an open-source Agent Skill for editing AI slop: stock phrasing, claims
 without evidence, uniform cadence, and formulaic structure in AI-assisted writing. It
 revises the draft without changing its claims, voice, or format. It works with Claude
