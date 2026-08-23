@@ -28,9 +28,9 @@
   <circle cx="114" cy="53" r="8" fill="#00CA4E"/>
   <text x="750" y="60" text-anchor="middle" class="mono muted">zero-slop · before / after</text>
 
-  <text x="60" y="122" class="mono cmd"><tspan class="green">$</tspan><tspan> pbpaste | </tspan><tspan class="blue">slopscore --explain</tspan></text>
+  <text x="60" y="122" class="mono cmd"><tspan class="green">$</tspan><tspan> slopscore draft.md </tspan><tspan class="blue">--explain</tspan></text>
   <text x="74" y="164" class="mono body">“We’re thrilled to announce that our team has leveraged cutting-edge AI</text>
-  <text x="74" y="196" class="mono body">to deliver a seamless onboarding experience, cutting setup 40%.”</text>
+  <text x="74" y="196" class="mono body">to deliver a seamless onboarding experience, cutting setup time by 40%.”</text>
 
   <text x="60" y="244" class="mono cmd">Surface score: <tspan class="red">100.0</tspan>/100  <tspan class="red">[slop]</tspan></text>
   <text x="74" y="278" class="mono muted">weighted tells (6), highest weight first:</text>
@@ -43,7 +43,7 @@
 
   <line x1="60" y1="524" x2="1440" y2="524" stroke="#273443"/>
 
-  <text x="60" y="570" class="mono cmd"><tspan class="green">$</tspan><tspan> deslopp | </tspan><tspan class="blue">slopscore --explain</tspan></text>
+  <text x="60" y="570" class="mono cmd"><tspan class="green">$</tspan><tspan> slopscore rewrite.md </tspan><tspan class="blue">--explain</tspan></text>
   <text x="74" y="612" class="mono body">“We cut onboarding setup time by 40% using AI.”</text>
   <text x="60" y="660" class="mono cmd">Surface score: <tspan class="green">9.5</tspan>/100  <tspan class="green">[clean]</tspan></text>
   <text x="74" y="698" class="mono muted">weighted tells: <tspan class="green">none</tspan> · score is rhythm and format only</text>
