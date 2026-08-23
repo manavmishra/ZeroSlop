@@ -1,32 +1,25 @@
 #!/usr/bin/env python3
-"""slopscore — heuristic AI-slop surface scorer for the zero-slop skill.
+"""slopscore — check writing for common AI-style patterns.
 
-Computes a heuristic surface score (0-100) for a piece of prose from measurable
-features: pattern-tell density, lexical over-representation, rhythm uniformity
-(anti-burstiness), punctuation/formatting densities, and register signals.
-
-The score is a *surface-tell meter*, not a truth oracle: a low score means "no
-measurable tells", not "good writing". Hollowness (no claim present) is
-invisible to any regex — the skill's judgment pass covers that.
+The 0-to-100 writing score covers familiar phrases, sentence variety,
+readability, formatting, and tone. Lower is better. The score describes the
+writing; it does not identify who wrote it, decide whether the ideas are useful,
+or check whether every claim is true. Zero Slop handles those questions in its
+editorial review.
 
 Usage (runnable from any cwd; data resolves relative to this script):
     python3 slopscore.py <file>            # pretty report
     python3 slopscore.py --json <file>     # machine-readable
-    python3 slopscore.py --dna a.md b.md   # channel anatomy, before vs after
-    python3 slopscore.py --fidelity a.md b.md  # facts kept? anything invented?
+    python3 slopscore.py --dna a.md b.md   # show what changed
+    python3 slopscore.py --fidelity a.md b.md  # facts kept? anything added?
     cat text | python3 slopscore.py        # stdin
-    python3 slopscore.py --explain <file>  # report + hits + heatmap
-    python3 slopscore.py --heatmap <file>  # per-sentence heatmap only
-    python3 slopscore.py --portfolio <dir> # cross-draft opener/template audit
-    python3 slopscore.py --formal <file>   # research/professional genres:
-                                           # zeroes rhythm-uniformity and
-                                           # formality penalties (formal
-                                           # register is native there; gate on
-                                           # tell density instead)
+    python3 slopscore.py --explain <file>  # report + reasons + line-by-line map
+    python3 slopscore.py --heatmap <file>  # line-by-line map only
+    python3 slopscore.py --portfolio <dir> # repeated wording across related drafts
+    python3 slopscore.py --formal <file>   # use the rules for professional writing
 
-Pattern/lexicon data lives beside this script in ../data/patterns.json and
-../data/learned.json (same schema; learned merges over base — this is the
-continuous-learning hook). Editing data files requires no code change.
+The phrase lists live beside this script in ../data/patterns.json and
+../data/learned.json. Editing those files requires no code change.
 """
 import json
 import math
@@ -445,11 +438,11 @@ def portfolio_metrics(documents, opener_words=5, phrase_words=5):
 
 def render_portfolio(result):
     """Plain-language portfolio report for the command-line interface."""
-    out = ["", "  PORTFOLIO · cross-draft repetition", "",
-           "  score type    : diagnostic only, not part of the 0–100 meter"]
+    out = ["", "  RELATED DRAFTS · repeated wording", "",
+           "  This check is separate from the 0-to-100 writing score."]
     if not result["measured"]:
-        return out + [f"  status        : abstains ({result['reason']})", ""]
-    out.append(f"  drafts        : {result['n_documents']}")
+        return out + [f"  Not checked: {result['reason']}.", ""]
+    out.append(f"  Drafts checked: {result['n_documents']}")
     if result["repeated_openers"]:
         out.append("  repeated openings:")
         for row in result["repeated_openers"][:8]:
@@ -457,12 +450,12 @@ def render_portfolio(result):
     else:
         out.append("  repeated openings: none")
     if result["shared_phrases"]:
-        out.append("  shared five-word templates:")
+        out.append("  shared five-word phrases:")
         for row in result["shared_phrases"][:8]:
             out.append(f"    {row['document_count']:>2} drafts  {row['text']!r}")
     else:
-        out.append("  shared five-word templates: none")
-    return out + ["  fix           : vary repeated scaffolding; preserve facts and voice", ""]
+        out.append("  shared five-word phrases: none")
+    return out + ["  Suggestion: vary repeated openings and stock wording while keeping facts and voice.", ""]
 
 
 
@@ -519,26 +512,26 @@ def shape_metrics(text, genre="general"):
 
 def band(score):
     if score < 25:
-        return "clean"
+        return "clear"
     if score < 50:
-        return "suspect"
+        return "some issues"
     if score < 75:
-        return "slop-likely"
-    return "slop"
+        return "needs work"
+    return "major rewrite"
 
 
 # Plain-English names and fixes, keyed by pattern category. The internal
 # category is a maintenance label; a writer needs to know what it is and what
 # to do instead.
 CAT_MEANING = {
-    "linkedin":      ("LinkedIn tell", "readers pattern-match this to AI instantly"),
-    "marketing":     ("marketing register", "name what it does; cut the adjectives"),
-    "scaffolding":   ("structural filler", "delete the stem, keep the point"),
+    "linkedin":      ("canned LinkedIn phrase", "say what happened without the stock opening"),
+    "marketing":     ("promotional language", "name what it does; cut the adjectives"),
+    "scaffolding":   ("empty setup", "delete the opening and keep the point"),
     "hedging":       ("empty hedge", "commit, or cut the sentence"),
-    "lexicon":       ("AI vocabulary", "use the plain word"),
-    "rider":         ("buzzword in marketing context", "plain word, or drop the hype around it"),
-    "performed":     ("performed candor", "say the thing instead of announcing it"),
-    "contrast":      ("not-X-but-Y construction", "state Y directly; one per piece maximum"),
+    "lexicon":       ("overused AI-style word", "use the plain word"),
+    "rider":         ("buzzword used as promotion", "use the plain word, or drop the hype around it"),
+    "performed":     ("staged sincerity", "say the thing instead of announcing it"),
+    "contrast":      ("repeated 'not this, but that' formula", "state the point directly"),
     "puffery":       ("unearned significance", "state the fact, let the reader judge"),
     "drama":         ("manufactured drama", "the fact should carry the weight"),
     "triads":        ("rule of three", "two items, or one, or a real list"),
@@ -546,13 +539,13 @@ CAT_MEANING = {
     "stakes":        ("manufactured stakes", "start where the reader needs to start"),
     "verbs":         ("weak verb", "use the direct verb"),
     "assistant":     ("assistant voice", "delete; you are not a chatbot"),
-    "artifact":      ("template artifact", "fill it in or remove it"),
-    "overcorrection":("over-corrected, still slop", "edgy-slop is slop in a costume"),
-    "spec-notation": ("spec notation in prose", "write it as a sentence"),
+    "artifact":      ("unfinished template language", "fill it in or remove it"),
+    "overcorrection":("forced edgy phrasing", "restore a natural speaking voice"),
+    "spec-notation": ("shorthand inside a sentence", "write it as a sentence"),
     "cliche":        ("stock cliché", "disassemble it: say the actual trade-off or change"),
-    "rhetorical":    ("rhetorical device", "make the point without the setup"),
+    "rhetorical":    ("staged question or setup", "make the point without the setup"),
     "email":         ("form-letter email phrase", "say the actual ask in the first sentence"),
-    "misc":          ("machine phrasing", "rewrite plainly"),
+    "misc":          ("generic AI-style wording", "rewrite plainly"),
 }
 
 
@@ -589,12 +582,12 @@ def render_heatmap(text, data, formal=False, max_rows=8, width=8):
     if not total:
         return out
     if not dirty:
-        out.append(f"  SLOP MAP · {total} sentences · none carry tells")
+        out.append(f"  WRITING CHECK · {total} sentences · no flagged phrases")
         out.append("  " + "·" * min(total, 40) + "   all clean")
         return out
 
-    out.append(f"  SLOP MAP · {total} sentences · {len(dirty)} carry tells "
-               f"· hottest first")
+    out.append(f"  WHERE TO EDIT · {total} sentences · {len(dirty)} flagged "
+               f"· strongest first")
     out.append("")
     for r in sorted(dirty, key=lambda r: -r["w"])[:max_rows]:
         label, fill = _severity(r["w"])
@@ -619,7 +612,7 @@ def render_heatmap(text, data, formal=False, max_rows=8, width=8):
     for pi in range(1, len(paras) + 1):
         pw = sum(r["w"] for r in rows if r["para"] == pi)
         shape.append("█" if pw >= 10 else "▓" if pw >= 5 else "▒" if pw > 0 else "·")
-    out.append(f'  by paragraph  {" ".join(shape)}   █ heavy  ▓ moderate  '
+    out.append(f'  draft overview  {" ".join(shape)}   █ heavy  ▓ moderate  '
                f'▒ mild  · clean')
     return out
 
@@ -641,13 +634,13 @@ def gate_value():
 
 CHANNELS = [
     # label, how to pull the number, which direction is better, how to show it
-    ("vocabulary",    lambda r: sum(h["w"] for h in r["hits"]
+    ("word choice",   lambda r: sum(h["w"] for h in r["hits"]
                                     if h["cat"] in ("lexicon", "rider")), "low"),
-    ("register",      lambda r: sum(h["w"] for h in r["hits"]
+    ("phrasing",      lambda r: sum(h["w"] for h in r["hits"]
                                     if h["cat"] not in ("lexicon", "rider")), "low"),
-    ("rhythm",        lambda r: r["burstiness"], "high"),
-    ("followability", lambda r: r["followability_penalty"], "low"),
-    ("format",        lambda r: r["emdash_per_100w"] + r["emoji_count"]
+    ("sentence variety", lambda r: r["burstiness"], "high"),
+    ("readability",   lambda r: r["followability_penalty"], "low"),
+    ("formatting",    lambda r: r["emdash_per_100w"] + r["emoji_count"]
                                 + r["hashtags"], "low"),
 ]
 
@@ -921,7 +914,7 @@ def rewrite_score(before_text, after_text, genre=None, data=None):
 
 def render_fidelity(before, after):
     r = fidelity(before, after)
-    out = ["", "  FIDELITY · facts in the draft vs the rewrite", ""]
+    out = ["", "  FACT AND MEANING CHECK · original vs edited text", ""]
     for kind, kept, dropped, added in r["rows"]:
         out.append(f"  {kind:<8} {len(kept)} kept"
                    + (f" · {len(dropped)} DROPPED" if dropped else "")
@@ -936,13 +929,13 @@ def render_fidelity(before, after):
         out.append("  the author never said these; an added feeling is still a "
                    "fabrication")
     out += ["",
-            "  verdict: " + ("facts preserved, nothing invented"
+            "  Result: " + ("facts preserved; nothing added"
                              if r["preserved"] and not r["invented"] else
                              ("FACTS DROPPED" if not r["preserved"] else "")
                              + (" · CONTENT INVENTED" if r["invented"] else "")),
-            "  note   : checks figures, names, quotes, links and asserted",
-            "           feelings. It cannot see a reframed claim or a shifted",
-            "           emphasis, so the judgment pass still applies.", ""]
+            "  This checks figures, names, quotes, links, and stated feelings.",
+            "  An editor still compares the full meaning because a changed claim",
+            "  or emphasis may use all the same names and numbers.", ""]
     return out
 
 
@@ -956,7 +949,7 @@ def dna(before, after, data, formal=False, width=22):
     before-and-after rather than against an arbitrary ceiling.
     """
     a, b = score_text(before, data, formal), score_text(after, data, formal)
-    out = ["", "  DNA · before → after", ""]
+    out = ["", "  WHAT CHANGED · before → after", ""]
     for label, get, better in CHANNELS:
         x, y = get(a), get(b)
         top = max(x, y) or 1.0
@@ -969,11 +962,11 @@ def dna(before, after, data, formal=False, width=22):
         fmt = (lambda v: f"{v:.2f}") if max(x, y) < 10 else (lambda v: f"{v:g}")
         out.append(f"  {label:<14}{bar}  {fmt(x):>6} → {fmt(y):<6} {mark}")
     out += ["",
-            f"  composite     {a['ai_likelihood']:.1f} → {b['ai_likelihood']:.1f}"
+            f"  writing score {a['ai_likelihood']:.1f} → {b['ai_likelihood']:.1f}"
             f"   ({band(a['ai_likelihood'])} → {band(b['ai_likelihood'])})",
             f"  length        {a['n_words']} → {b['n_words']} words "
             f"({(b['n_words']-a['n_words'])/max(a['n_words'],1)*100:+.0f}%)",
-            f"  tells         {len(a['hits'])} → {len(b['hits'])}"]
+            f"  flagged phrases {len(a['hits'])} → {len(b['hits'])}"]
     kept = {h["name"] for h in b["hits"]}
     fixed = [h["name"] for h in a["hits"] if h["name"] not in kept]
     if fixed:
@@ -982,7 +975,7 @@ def dna(before, after, data, formal=False, width=22):
         out.append("  still present " + ", ".join(sorted(kept)[:6]))
     # A shorter text with the same tells is not a better text.
     if b["n_words"] < a["n_words"] * 0.75 and len(b["hits"]) >= len(a["hits"]):
-        out.append("  note          got shorter without removing tells — "
+        out.append("  note          got shorter without fixing flagged phrases — "
                    "check this is an edit, not a deletion")
     return out + [""]
 
@@ -1125,51 +1118,58 @@ def main():
         # failing document, so a broken gate silently passed every build.
         sh_j = shape_metrics(text, genre=genre)
         sys.exit(0 if (r["ai_likelihood"] <= gv and not sh_j.get("broetry")) else 1)
-    print(f"Surface score: {r['ai_likelihood']}/100  [{band(r['ai_likelihood'])}]")
-    print("  score type    : heuristic meter, not a calibrated probability")
-    print(f"  tell density : {r['tell_density_per_100w']:.2f} weighted hits /100w "
-          f"({r['n_words']} words)")
-    print(f"  burstiness   : {r['burstiness']:.3f}  (human prose usually > 0.45)")
-    print(f"  em-dash /100w: {r['emdash_per_100w']:.2f}   emoji: {r['emoji_count']}  "
-          f"bold: {r['bold_spans']}  hashtags: {r['hashtags']}")
+    print(f"Writing score: {r['ai_likelihood']}/100  [{band(r['ai_likelihood'])}]")
+    print("  Lower is better. This describes the writing, not who wrote it.")
+    unique_hits = []
+    seen_quotes = set()
+    for hit in sorted(r["hits"], key=lambda item: -item["w"]):
+        key = hit["quote"].strip().lower()
+        if key and key not in seen_quotes:
+            seen_quotes.add(key)
+            unique_hits.append(hit)
+    print(f"  Flagged phrases : {len(unique_hits)} across {r['n_words']} words")
+    variety = "natural" if r["burstiness"] >= 0.45 else "too even"
+    print(f"  Sentence variety: {variety}")
+    print(f"  Punctuation      : {r['emoji_count']} emoji, {r['bold_spans']} bold spans, "
+          f"{r['hashtags']} hashtags, {r['emdash_per_100w']:.2f} em dashes per 100 words")
     if r["followability_penalty"] > 2:
-        print(f"  followability : penalty {r['followability_penalty']} — "
-              f"comma-chains {r['comma_chain_frac']:.0%} of sentences, "
-              f"long-word ratio {r['poly_ratio']:.0%}, "
-              f"overlong {r['overlong_frac']:.0%} (dense ≠ expert; unpack)")
+        print(f"  Readability      : needs work — "
+              f"{r['comma_chain_frac']:.0%} of sentences chain clauses with commas; "
+              f"{r['overlong_frac']:.0%} are unusually long")
+    else:
+        print("  Readability      : clear")
     if r["categories"]:
         top = sorted(r["categories"].items(), key=lambda kv: -kv[1])[:8]
-        print("  top categories: " + ", ".join(f"{k}({v})" for k, v in top))
+        labels = [CAT_MEANING.get(k, (k, ""))[0] for k, _ in top]
+        print("  Main issues      : " + ", ".join(labels))
     sh = shape_metrics(text, genre=genre)
     r["shape"] = sh
-    print("  shape         : " + (
-        f"broetry — {sh['solo_frac']:.0%} of paragraphs are single sentences, "
+    print("  Page layout      : " + (
+        f"too many short, one-sentence paragraphs ({sh['solo_frac']:.0%}); "
         f"longest fragment run {sh['max_fragment_run']}" if sh.get("broetry")
-        else (f"ok ({sh['solo_frac']:.0%} solo paragraphs)" if sh["measured"]
-              else sh["reason"])))
-    print("  checked       : vocabulary, formatting, rhythm, followability, register"
-          + (", shape" if sh["measured"] else "")
-          + "\n  not measured  : substance (is there a claim?), voice, factual accuracy"
-          + ("" if sh["measured"] else ", shape"))
+        else (f"looks natural ({sh['solo_frac']:.0%} one-sentence paragraphs)" if sh["measured"]
+              else "not checked for this kind of writing")))
+    print("  What Zero Slop checked: word choice, formatting, sentence rhythm, "
+          "readability, and tone" + (", plus page layout" if sh["measured"] else ""))
+    print("  What still needs an editor: strength of the ideas, voice, and factual accuracy"
+          + ("" if sh["measured"] else "; page layout was not checked"))
     if explain:
-        if r["hits"]:
-            print(f"\n  weighted tells ({len(r['hits'])}), highest weight first:")
-            for h in sorted(r["hits"], key=lambda h: -h["w"]):
-                print(f"    {h['w']:>4}  {h['cat']:<14} {h['name']:<22} {h['quote']!r}")
-            print(f"    {'':>4}  {'':14} {'':22} "
-                  f"= {sum(h['w'] for h in r['hits']):g} weighted, "
-                  f"{r['tell_density_per_100w']:.2f} per 100 words")
+        if unique_hits:
+            print(f"\n  Flagged phrases ({len(unique_hits)}), strongest first:")
+            for h in unique_hits:
+                name, fix = CAT_MEANING.get(h["cat"], ("generic wording", "rewrite plainly"))
+                print(f"    {h['quote']!r} — {name}; {fix}")
         else:
-            print("\n  weighted tells: none — the score is rhythm and format only")
+            print("\n  Flagged phrases: none. The remaining score comes from sentence rhythm and formatting.")
     if "--heatmap" in sys.argv or explain:
         for line in render_heatmap(text, data, formal=formal):
             print(line)
     if gv is not None:
         ok = r["ai_likelihood"] <= gv and not sh.get("broetry")
-        why = "" if ok else (" (shape: broetry)" if sh.get("broetry") and r["ai_likelihood"] <= gv else "")
-        verdict = "PASS" if ok else "FAIL"
-        print(f"  gate {gv:g}: {verdict}{why} — measured channels only; "
-              f"substance and voice still need the judgment pass")
+        why = "" if ok else (" (page layout needs work)" if sh.get("broetry") and r["ai_likelihood"] <= gv else "")
+        verdict = "PASSED" if ok else "NEEDS WORK"
+        print(f"  Check against {gv:g}: {verdict}{why}. This covers writing patterns and "
+              f"layout; an editor still reviews the ideas, voice, and facts.")
         sys.exit(0 if ok else 1)
 
 

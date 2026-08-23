@@ -5,8 +5,8 @@ word. You can hear it, and so can everyone who reads it. That machine sound has 
 name: slop.
 
 Zero Slop finds that slop in your draft and takes it out without changing what you
-said. Its transparent surface score runs from 0 to 100 and shows which phrases and
-document-level signals contributed to it. After the rewrite, a copy editor fixes the
+said. Its writing score runs from 0 to 100 and points to the phrases and writing
+patterns that raised it. After the rewrite, a copy editor fixes the
 mechanics. A second editor reads the result aloud and fixes its flow; the final checks
 make sure the facts survived.
 
@@ -17,7 +17,7 @@ npx skills add manavmishra/ZeroSlop --global
 Then open your agent and say "de-slop this." The Python scorer needs no account or
 server and does not transmit your writing.
 
-![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
+![Zero Slop giving a marketing sentence a writing score of 100, then its rewrite 9.5](assets/demo.png)
 
 ## Why it matters now
 
@@ -38,12 +38,11 @@ the way a bug does.
 
 ## How it decides
 
-First, it measures. Four surface channels examine known phrases, sentence rhythm,
-followability, and a combined formatting-and-register signal. The result is a
-heuristic surface score, not the probability that AI wrote the text. Most signals
-describe structure, so a synonym swap cannot resolve the structural issues. One em
-dash carries little weight; clusters of independent signals matter more. A separate
-predictability probe asks your assistant to guess masked words and reports how often
+First, a local program checks familiar phrases, sentence rhythm, readability, tone,
+and formatting. The writing score describes those choices; it does not claim to know
+who wrote the text. Many problems are structural, so swapping one synonym for another
+will not fix them. One em dash carries little weight; several different problems in
+the same draft matter more. A separate check asks your assistant to guess hidden words and reports how often
 the original word appears among its top three guesses. When three or more related
 drafts are present, a portfolio probe reports repeated five-word openings and shared
 phrases without changing the main score. Zero Slop ships no model of its own. For
@@ -72,7 +71,7 @@ A potential phrase rule needs the same cut in three content-distinct edit pairs,
 followed by a novelty check and a safety check against reference human writing; single
 words need five edit pairs. Repeated replacements can also become private rewrite
 guidance after the same replacement recurs in three content-distinct edit pairs. The
-private learning file loads on the next run. Later evidence reconfirms detection rules
+private learning file loads on the next run. Later matching edits confirm detection rules
 and preferred fixes; without reconfirmation, stale detection rules decay and stale
 preferred fixes retire.
 
@@ -106,5 +105,5 @@ easy-case regression guard, not a field-accuracy estimate.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.5.1 · CI-gated · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.5.2 · tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

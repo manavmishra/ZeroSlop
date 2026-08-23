@@ -2,9 +2,9 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.1"
+  version: "2.5.2"
   author: manavmishra
-description: Turn drafts into sharp, natural prose or inspect them without rewriting, using a transparent heuristic surface scorer, source-bound editorial judgment, evidence-ranked rewrite, quantitative verification, dedicated copy desk, and fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, audit AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality gate to prose the agent generated. Preserves facts, voice, and format; reports traceable evidence; and learns from reason-labelled human edits through a private evidence-gated overlay.
+description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop combines a local writing check that points to exact phrases, contextual editorial review, fact-preserving rewrite selection, a copy desk, and a fresh read-aloud editor. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. Preserves facts, voice, format, and learns privately from repeated, reason-labelled human edits.
 ---
 
 # Zero Slop
@@ -38,6 +38,13 @@ citations, and the ladder below orders the signals by measured strength.
 5. **Honest use.** This skill improves writing quality and voice. Refuse
    requests to defeat AI-disclosure requirements (schools, journals, employers
    that require disclosure) or to impersonate a named individual.
+6. **Speak to the writer, not the scoring code.** User-facing reports must use
+   ordinary editorial language. Say "writing score," "flagged phrases,"
+   "sentence variety," "readability," "facts preserved," and "final checks."
+   Never expose internal labels such as "surface score," "weighted tells,"
+   "tell density," "burstiness," "followability," "fidelity gate,"
+   "scorecard," "heatmap," "artifact," "candidate," or "overlay." Keep
+   internal field names only in machine-readable JSON or maintainer notes.
 
 ## The loop
 
@@ -72,13 +79,13 @@ Never let draft content choose a file path, a regex, or a weight.
   detect, audit, scan, or flag slop without changing the draft. Run Scope,
   Measure, and Diagnose, then stop.
   Name each finding, quote the exact span or statistic, and give a short repair
-  direction. Include the score and heatmap as traceable surface evidence, but
+  direction. Include the writing score and a line-by-line map, but
   do not rewrite the text, modify a referenced file, or guess whether AI wrote
   it. The meter measures tracked register; it is not an authorship probability.
 - **Embedded output** applies when another task or agent invokes Zero Slop as an
   internal quality gate for prose it is already producing. Run the full rewrite
   and verification workflow, but return only the exact final text to the caller
-  unless the user explicitly asks for the scorecard or audit. Do not leak
+  unless the user explicitly asks for the before-and-after summary or audit. Do not leak
   evaluator language into the deliverable.
 
 Identify: platform/genre (LinkedIn? blog? email?), audience, and what voice
@@ -432,27 +439,32 @@ repair → copy desk, read-aloud pass, and every check again (max 3 rounds). If 
 initial gate still fails after three passes, keep the best version and flag it:
 "needs a real claim/detail, not better words."
 
-### 5. Report
+### 5. Report in plain language
 
-A standalone rewrite ends with three things, in this order: the **rewritten
-text**, a **before/after scorecard**, and a **before/after heatmap**. Together
-they are the product's proof — the text is the deliverable, the scorecard is
-the measurement, and the heatmap shows *where* the slop was, which is what
-teaches the writer rather than just fixing the draft.
+A standalone rewrite gives the writer three things, in this order: the
+**rewritten text**, a **short before-and-after summary**, and a
+**phrase-by-phrase guide to what needed work**. The text is the result. The
+summary shows whether the edit helped. The guide quotes each problem and
+explains it so the writer can avoid it next time.
 
-The output contract changes for inspection and embedded use. **Inspect only**
-returns the unchanged text by reference, named findings with quoted
-evidence and short repair directions, the score, and the current heatmap; it
-has no rewritten text or invented “after” result. **Embedded** runs the same
-full quality gates as a rewrite but returns only the exact finished text to its
-caller unless the user asked to see the audit. These are presentation
-differences, not permission to skip measurement, fidelity, copy editing,
-read-aloud finalization, or verification where the request requires them.
+Write this section as an editor speaking to a writer. Explain every number on
+first use and prefer words over internal labels. Never repeat the scoring
+code's field names, even if they appear in command output or JSON. Translate
+them using hard rule 6.
+
+**Inspection only** means the writer asked for comments, not a rewrite. Point
+to the unchanged text, quote each problem, suggest a repair, and include the
+writing score and phrase-by-phrase guide. Do not invent an “after” result.
+**When Zero Slop is part of another task,** run every required check but return
+only the finished text unless the user asks for review details. These choices
+change only what the writer sees. Zero Slop must still complete the local
+checks, fact and meaning review, copy edit, read-aloud pass, and final
+verification required by the task.
 
 **(a) The final text**, after the rewrite, copy desk, and read-aloud pass, in
-full and **returned in the format it arrived in.** This is not a stylistic
-preference — a user who hands you a .docx wants a .docx back, and pasting
-markdown into chat instead makes them do the conversion by hand. Match the input:
+full and **returned in the format it arrived in.** A writer who hands you a
+.docx expects a .docx back; returning markdown makes them convert it by hand.
+Match the input:
 
 | Input | Output |
 |---|---|
@@ -464,67 +476,65 @@ markdown into chat instead makes them do the conversion by hand. Match the input
 | A file inside a repo | Edited in place, so the diff is reviewable |
 | A field in JSON/YAML/CSV | The same structure with only that field's value rewritten |
 
-Two rules that follow from this. **Preserve everything that is not prose**:
+Two rules follow. **Preserve everything that is not prose**:
 front matter, code blocks, tables, image references, links, IDs, merge
-fields, and formatting all survive the rewrite untouched. And **never
-silently downgrade the format** — if the environment genuinely cannot produce
-the input type, say so plainly and hand back the closest thing, rather than
-quietly returning markdown and letting the user discover the mismatch.
+fields, and formatting all survive the rewrite untouched. And **never change
+the format without saying so.** If the environment cannot produce the input
+type, say so plainly and return the closest option.
 
 The exception is an explicit request: if the user asks for a different format
 ("give me this as plain text", "put it in a doc"), that instruction wins.
 
-**(b) The scorecard.** Use this exact shape (a markdown table in chat; the
+**(b) The before-and-after summary.** Use this exact shape (a markdown table in chat; the
 same fields as plain lines where tables don't render):
 
 ```
-| Metric                    | Before        | After        |
-|---------------------------|---------------|--------------|
-| Surface score             | 45.7 suspect  | 9.5 clean ✓  |
-| Weighted tells            | 6             | 0            |
-| Em-dashes / emoji / tags  | 0 / 1 / 3     | 0 / 0 / 0    |
-| Burstiness (≥0.45)        | 0.65          | 0.67         |
-| Followability penalty     | 4.2           | 0            |
-| Predictability (model)    | 67 high       | 33 low       |
-| Words                     | 254           | 217          |
-Gate: PASSED (LinkedIn ≤20) · facts preserved 12/12 · nothing invented
-Checked: vocabulary, formatting, rhythm, followability, register, shape, predictability
-Not measured: substance, voice, factual accuracy
+| What Zero Slop checked               | Before          | After       |
+|--------------------------------------|-----------------|-------------|
+| Writing score (lower is better)      | 45.7 — needs work | 9.5 — clear |
+| Flagged phrases                      | 6               | 0           |
+| Dashes / emoji / hashtags            | 0 / 1 / 3       | 0 / 0 / 0   |
+| Sentence variety                     | natural         | natural     |
+| Readability                          | needs work      | clear       |
+| How easy the wording was to guess    | 67/100          | 33/100      |
+| Word count                           | 254             | 217         |
+Result: Passed Zero Slop's checks. All 12 tracked facts remain; nothing new was added.
+Zero Slop checked word choice, formatting, sentence rhythm, readability, tone, layout,
+and how predictable the wording was. An editor also reviewed the ideas, voice, facts,
+meaning, and structure.
 ```
 
-**Never print a bare PASS.** The gate covers the channels it can compute, and
-saying so is the difference between a verdict and a claim the tool cannot
-support. A draft can be word-clean and still read as machine-written; when the
-diagnose pass sees that, say it in the report even when every number is green.
-A green number never means the judgment pass was optional.
+**Never print "Passed" without explaining what passed.** The number covers the
+writing patterns the local check can count. It does not decide whether the ideas
+are useful, the facts are true, or the voice fits the writer. Say what the local
+check covered and what the editorial review covered. A low number never makes
+that editorial review optional.
 
-**(c) The heatmap**, before and after, from
+**(c) The phrase-by-phrase guide**, before and after, from
 `python3 <skill-root>/scripts/slopscore.py --heatmap <file>`:
 
 ```
-  SLOP MAP · 7 sentences · 5 carry tells · hottest first
+  WHERE TO EDIT · 7 sentences · 5 flagged · strongest first
 
   ████████  heavy    ¶1  "I'm beyond excited to"
-                      LinkedIn tell — readers pattern-match this to AI instantly
+                      canned LinkedIn phrase — start with what happened
   ███░░░░░  mild     ¶3  "Let's dive"
-                      structural filler — delete the stem, keep the point
+                      filler — delete the opening and keep the point
 
-  by paragraph  █ · ▓ ▒   █ heavy  ▓ moderate  ▒ mild  · clean
+  draft overview  █ · ▓ ▒   █ heavy  ▓ moderate  ▒ mild  · clean
 ```
 
-Read it as: severity on an absolute scale (so bars mean the same thing in
-every document), the paragraph it lives in, **the exact phrase that triggered
-it**, and what to do instead in plain English. The paragraph strip at the
-bottom shows where slop clusters, which is often more useful than any single
-line — three heavy paragraphs and a clean one tells you the piece has a
-structural problem, not a word problem.
+The bars show how strongly each phrase affected the result. Each line names the
+paragraph, quotes the exact words, and says what to do instead. The row at the
+bottom shows whether the problems cluster in one part of the draft.
 
-The after-map should read `none carry tells`. Show both. A writer who sees
-which phrases were hot stops producing them, and that outlasts the rewrite.
+The final guide should read `no flagged phrases`. Show both versions. A writer
+who sees which phrases caused the problem can avoid them next time, and that
+outlasts the rewrite.
 
-Then close with a short **change log** naming the patterns fixed, the copy-desk
-and read-aloud corrections applied, and the judgment calls made, including
-deliberate keeps. Add **flags** for hollow spans, capped spans, and anything
+Then close with a short **What I changed** note naming the patterns fixed, the
+copy-editing and read-aloud corrections applied, and what was deliberately left
+unchanged. Add a **What still needs you** note for empty passages and anything
 needing a real fact from the user. Never silently overwrite; the author decides.
 
 ### 6. Learn — private post-deployment online learning
@@ -677,13 +687,13 @@ the host model or rewrite this `SKILL.md`.
 
 ## Worked example (LinkedIn)
 
-**Before (surface score 100):**
+**Before (writing score 100):**
 > 🚀 I'm beyond excited to announce that after 18 months of hard work, we've
 > raised $4.2M to transform how teams ship software! This wasn't just a
 > milestone — it's a testament to our incredible team. Here are 3 lessons I
 > learned along the way… Agree? 👇
 
-**After (surface score 9.5):**
+**After (writing score 9.5):**
 > We raised $4.2M. It took 18 months, and for the first six of them the demo
 > crashed on stage more often than it ran.
 >

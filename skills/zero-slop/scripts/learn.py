@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""learn — the reflect loop: turn writers' own edits into detector evidence.
+"""learn — learn privately from changes a writer makes later.
 
 The most honest training signal a linter can get is the edit a writer makes
 *after* it hands back a rewrite. If the skill returns a draft and the writer
@@ -819,13 +819,11 @@ def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="gene
     write_json(OBS, obs, private=True)
 
     print(f"reflect: {Path(produced).name} → {Path(shipped).name}\n")
-    print(f"  {agreed} edit(s) the meter already caught — it was right, "
-          f"the writer agreed")
+    print(f"  {agreed} edit(s) Zero Slop had already flagged — the writer agreed")
     print(f"  {skipped} content-specific cut(s) ignored (figures, proper nouns)")
-    print(f"  {recorded} missed-tell observation(s) recorded")
-    print(f"  {fix_recorded} recurring-fix observation(s) recorded")
-    print(f"  {len(fps)} pattern(s) fired on text the writer KEPT "
-          f"(false-positive evidence)\n")
+    print(f"  {recorded} new phrase(s) saved for review")
+    print(f"  {fix_recorded} repeated replacement(s) saved")
+    print(f"  {len(fps)} flag(s) appeared in text the writer kept\n")
     for h in fps:
         rec = obs["false_positives"][h["pattern"]]
         state = "REVIEW" if rec["count"] >= PROMOTE_AT else f"{rec['count']}/{PROMOTE_AT}"
@@ -841,7 +839,7 @@ def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="gene
     lex_pend = [(w, r["count"]) for w, r in obs["lexicon_candidates"].items()
                 if 0 < r["count"] < LEXICON_PROMOTE_AT]
     if lex_ready or lex_pend:
-        print("  lexicon candidates (single words, "
+        print("  single words under review ("
               f"{LEXICON_PROMOTE_AT} edit pairs needed):")
         for w, n in sorted(lex_ready + lex_pend, key=lambda x: -x[1])[:8]:
             state = "READY" if n >= LEXICON_PROMOTE_AT else f"{n}/{LEXICON_PROMOTE_AT}"
@@ -849,10 +847,10 @@ def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="gene
         print()
     ready = [k for k, v in obs["observations"].items() if v["count"] >= PROMOTE_AT]
     if ready:
-        print(f"\n  {len(ready)} span(s) at threshold. Run --promote --apply to "
+        print(f"\n  {len(ready)} phrase(s) are ready. Run --promote --apply to "
               "activate them locally, or use --auto-apply with --reflect.")
     else:
-        print(f"\n  nothing at threshold yet. Patterns need {PROMOTE_AT} "
+        print(f"\n  nothing is ready yet. A phrase needs {PROMOTE_AT} "
               f"content-distinct edit pairs.")
     return 0
 
@@ -884,8 +882,8 @@ def promote(apply_, cat, weight):
         hit = fp_gate(rx, key)
         (blocked if hit else eligible).append((key, rec, rx, hit))
 
-    print(f"promote: {len(eligible)} eligible, {len(blocked)} blocked by the "
-          f"safety gate, {len(dup)} already covered\n")
+    print(f"promote: {len(eligible)} ready, {len(blocked)} blocked by the "
+          f"human-writing check, {len(dup)} already covered\n")
     for key, hit in dup:
         print(f"  covered   {key[:44]!r} ← {hit}")
     for key, rec, rx, hit in blocked:
@@ -998,8 +996,8 @@ def promote(apply_, cat, weight):
         entry += (f"\n- {today} — Reflect loop promoted {len(added)} pattern(s) "
                   f"after each was cut from {PROMOTE_AT}+ content-distinct edit pairs "
                   f"({', '.join(a['name'] for a in added)}); "
-                  f"{len(blocked)} rejected by the false-positive gate. "
-                  f"Source documents are not recorded: reflection evidence stays "
+                  f"{len(blocked)} rejected by the human-writing check. "
+                  f"Source documents are not recorded: learning records stay "
                   f"on the machine that produced it.\n")
     if fix_ready:
         entry += (f"\n- {today} — Reflect loop activated or reconfirmed "
@@ -1008,7 +1006,7 @@ def promote(apply_, cat, weight):
     append_log(LOCAL_LOG, entry, private=True)
     print(f"\n  activated {len(added)} pattern(s) and "
           f"{len(fix_ready)} fix preference(s) in {LOCAL}")
-    print("  the scorer will load this private overlay on its next run")
+    print("  Zero Slop will use this private settings file on its next run")
     print("  run: python3 scripts/calibrate.py --selftest")
     return 0
 
@@ -1417,7 +1415,7 @@ def guide(as_json=False, target=None, reason=None, genre=None, limit=5):
         for row in rows:
             print(f"  when {row['when']!r}, consider {row['prefer']!r} "
                   f"({row['edit_pairs']} edit pairs)")
-        print("  guidance is evidence, not a command: preserve meaning and facts")
+        print("  These are suggestions, not automatic replacements. Preserve meaning and facts.")
     return 0
 
 
@@ -1476,26 +1474,26 @@ def stats():
     pending = {k: v for k, v in obs.items() if not v.get("promoted")}
     ready = sum(1 for v in pending.values() if v["count"] >= PROMOTE_AT)
     corpus = corpus_files()
-    print(f"  taxonomy      {len(allp)} patterns ({len(base['patterns'])} base, "
+    print(f"  phrase rules  {len(allp)} ({len(base['patterns'])} built in, "
           f"{len(shared_patterns)} shared, {len(local_patterns)} local)")
-    print(f"  provenance    {prov}/{len(allp)} dated — decay is live"
+    print(f"  dated rules   {prov}/{len(allp)} — old rules can retire"
           if prov == len(allp) else
-          f"  provenance    {prov}/{len(allp)} dated — decay is BLIND on the rest")
+          f"  dated rules   {prov}/{len(allp)} — undated rules cannot retire automatically")
     src = {}
     for p in lp:
         k = p.get("source", "manual")
         src[k] = src.get(k, 0) + 1
     print(f"  learned via   {', '.join(f'{k}={v}' for k, v in sorted(src.items())) or 'nothing yet'}")
-    print(f"  observing     {len(pending)} span(s) awaiting recurrence, "
-          f"{ready} at the {PROMOTE_AT}-pair threshold")
+    print(f"  under review  {len(pending)} phrase(s), {ready} ready after "
+          f"{PROMOTE_AT} matching edit pairs")
     print(f"  re-confirmed  {sum(1 for p in lp if p.get('confirmations'))} pattern(s) "
           f"have fired again since being added")
     active_fixes = sum(1 for p in local.get("fix_preferences", [])
                        if p.get("active", True))
     print(f"  fix memory    {active_fixes} active recurring local replacement "
           "preference(s)")
-    print(f"  safety corpus {len(corpus)} human samples every new pattern must clear")
-    print(f"  live overlay  {LOCAL} (private; loaded on every score)")
+    print(f"  safety set    {len(corpus)} human samples every new phrase rule must clear")
+    print(f"  private rules {LOCAL} (loaded for every writing check)")
     return 0
 
 

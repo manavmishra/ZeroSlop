@@ -41,9 +41,9 @@ HOW TO USE
   Codex                     : save as AGENTS.md in your project.
   Anything else             : paste it. It is self-contained.
 
-The heuristic surface scorer needs a shell and is not included here. With Code
+The local writing check needs a shell and is not included here. With Code
 Interpreter enabled you can also upload scripts/slopscore.py from the repo to
-get the numbers; without it, the reference lists below are the gate.
+get the numbers; without it, use the reference lists and editorial checks below.
 
 GENERATED FILE — do not edit. Run scripts/build_bundle.py after changing
 SKILL.md or anything in references/.

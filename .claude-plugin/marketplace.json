@@ -10,7 +10,7 @@
     {
       "name": "zero-slop",
       "source": "./",
-      "description": "Removes the writing style language models acquire in post-training and proves it with before/after scores: a 267-pattern detector, a cross-draft template audit, a two-pass rewrite, a quantitative gate, a copy desk, a final read-aloud editor, and a learning database. Offline, zero dependencies.",
+      "description": "Removes canned AI-style writing and shows the change with a before-and-after writing score: 267 phrase patterns, checks across related drafts, a two-pass rewrite, fact protection, copy editing, read-aloud editing, and private learning from writer edits. Offline, zero dependencies.",
       "license": "MIT",
       "keywords": [
         "writing",

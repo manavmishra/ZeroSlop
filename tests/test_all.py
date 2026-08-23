@@ -268,7 +268,24 @@ class CLI(unittest.TestCase):
 
     def test_reads_stdin(self):
         r = run([str(SCORER)], stdin="A short honest sentence about nothing.")
-        self.assertIn("Surface score", r.stdout)
+        self.assertIn("Writing score", r.stdout)
+
+    def test_human_report_uses_plain_language(self):
+        """Normal output is written for a writer, not the scoring code."""
+        r = run([str(SCORER), "--explain"], stdin=Detector.SLOP)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        for phrase in (
+                "Writing score", "Flagged phrases", "Sentence variety",
+                "Readability", "What Zero Slop checked"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, r.stdout)
+        for term in (
+                "surface score", "heuristic meter", "tell density",
+                "weighted tells", "burstiness", "followability", "evidence",
+                "heatmap", "scorecard", "fidelity", "register", "artifact",
+                "candidate", "overlay", "corpus", "diagnostic"):
+            with self.subTest(term=term):
+                self.assertNotIn(term, r.stdout.lower())
 
     def test_unicode_does_not_crash(self):
         r = run([str(SCORER)], stdin="Ünïcödé — emoji 🚀 中文 العربية\n")
@@ -1419,6 +1436,42 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("Two independent LLMs", readme)
         self.assertNotIn("blind judges", readme.lower())
 
+    def test_readme_uses_reader_language(self):
+        readme = self.docs["README.md"].lower()
+        # Link destinations may keep stable filenames; rendered prose may not
+        # expose the scoring code's internal vocabulary.
+        rendered = re.sub(r"\]\([^)]*\)", "]", readme)
+        for term in (
+                "surface score", "surface scorer", "weighted tells",
+                "tell density", "burstiness", "followability", "scorecard",
+                "heatmap", "fidelity gate", "private overlay",
+                "evidence behind the score"):
+            with self.subTest(term=term):
+                self.assertNotIn(term, rendered)
+        self.assertIn("writing score", rendered)
+        self.assertIn("flagged phrases", rendered)
+
+    def test_skill_report_template_speaks_to_the_writer(self):
+        skill = self.docs["SKILL.md"]
+        summary = re.search(
+            r"\*\*\(b\) The before-and-after summary\.\*\*.*?```(.*?)```",
+            skill,
+            re.S,
+        )
+        self.assertIsNotNone(summary, "plain-language report template is missing")
+        template = summary.group(1).lower()
+        for phrase in (
+                "writing score", "flagged phrases", "sentence variety",
+                "readability", "facts remain", "nothing new was added"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, template)
+        for term in (
+                "surface score", "weighted tells", "tell density", "burstiness",
+                "followability", "fidelity", "scorecard", "heatmap", "artifact",
+                "candidate", "overlay"):
+            with self.subTest(term=term):
+                self.assertNotIn(term, template)
+
     def test_documented_cli_flags_exist(self):
         """A flag named in the README must be a flag the script accepts."""
         for script in ("slopscore.py", "learn.py", "calibrate.py"):
@@ -2196,16 +2249,19 @@ class Diagram(unittest.TestCase):
     def test_engine_svg_names_both_operational_loops(self):
         src = (ROOT / "assets" / "engine.svg").read_text().lower()
         for phrase in (
-                "one production path", "editorial delivery", "measure", "diagnose", "rewrite",
-                "copy edit", "read aloud", "verify", "private online learning",
-                "observe", "bind", "gate", "store", "retrieve",
-                "local detector weights", "retrieved fixes", "no neural training",
-                "not a runtime loop", "admit corpora", "blind evaluation",
-                "contextual research", "performance · fidelity · safety · cost",
-                "human-validated gain"):
+                "one editing workflow", "edit the draft", "1 · check",
+                "2 · read", "rewrite", "copy edit", "read aloud",
+                "final check", "learn from the writer", "compare", "protect",
+                "review", "4 · save", "reuse", "private writing rules",
+                "helpful past fixes", "no neural training", "separate release review",
+                "choose test sets", "independent review", "quality · safety · speed · cost",
+                "people confirm the gain"):
             with self.subTest(phrase):
                 self.assertIn(phrase, src)
-        for phrase in ("zero_slop_mode", "promotion-gated", "assisted"):
+        for phrase in (
+                "zero_slop_mode", "promotion-gated", "assisted",
+                "surface score", "evidence", "fidelity", "corpora", "gate",
+                "overlay", "diagnose", "operational loop", "production path"):
             with self.subTest(absent=phrase):
                 self.assertNotIn(phrase, src)
 
@@ -2369,12 +2425,12 @@ class CliStdin(unittest.TestCase):
     def test_stdin_with_no_arg(self):
         r = run([str(SCORER), "--explain"], stdin=self.SLOP)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("Surface score", r.stdout)
+        self.assertIn("Writing score", r.stdout)
 
     def test_dash_means_stdin(self):
         r = run([str(SCORER), "--explain", "-"], stdin=self.SLOP)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("Surface score", r.stdout)
+        self.assertIn("Writing score", r.stdout)
 
 
 class VersionCheck(unittest.TestCase):

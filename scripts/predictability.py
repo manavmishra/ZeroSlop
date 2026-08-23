@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""predictability — a host-model probe powered by the model running the skill.
+"""predictability — see how easily the AI assistant can guess the original wording.
 
 The strongest signal that a machine wrote something is that a machine finds it
 predictable: the words sit where a language model would have put them. Detectors
@@ -165,11 +165,11 @@ def score(text, predictions, k=12):
     total = len(pr)
     val = round(100 * hits / total, 1)
     if val >= 50:
-        reading = "high — a model finds this very predictable (machine-like)"
+        reading = "easy to guess — much of the wording follows familiar patterns"
     elif val >= 33:
-        reading = "moderate — somewhat predictable"
+        reading = "moderately easy to guess"
     else:
-        reading = "low — the word choices surprise a model (human-like)"
+        reading = "hard to guess — the wording is less predictable"
     return {"predictability": val, "hits": hits, "total": total,
             "reading": reading, "backend": "harness-model"}
 
@@ -217,8 +217,8 @@ def main(argv=None):
             r = score(text, preds)
         except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
             ap.error(str(exc))
-        print(f"predictability: {r['predictability']}/100  ({r['hits']}/{r['total']} recovered)")
-        print(f"  {r['reading']}")
+        print(f"How easy the original wording was to guess: {r['predictability']}/100")
+        print(f"  The model guessed {r['hits']} of {r['total']} hidden words. {r['reading']}.")
         return 0
     return 2
 

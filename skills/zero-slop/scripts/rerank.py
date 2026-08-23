@@ -64,23 +64,24 @@ def rank(original, candidates, genre=None):
 
 
 def render(scored):
-    out = ["", "  candidate            soft   AI    burst  htells  fidelity",
-           "  " + "-" * 56]
-    labels = {0: "clean ✓", 1: "dropped a fact", 2: "INVENTED ✗"}
+    out = ["", "  version              writing score  sentence variety  strong flags  source check",
+           "  " + "-" * 88]
+    labels = {0: "source kept ✓", 1: "dropped a fact", 2: "ADDED A FACT ✗"}
     for i, s in enumerate(scored):
         mark = "→" if i == 0 else " "
-        out.append(f"  {mark} {s['name'][:18]:<18} {s['soft']:.3f}  {s['after_ai']:>4}  "
-                   f"{s['burstiness']:.2f}   {s['high_tells']:>3}    {labels[_tier(s)]}")
+        variety = "natural" if s["burstiness"] >= 0.45 else "too even"
+        out.append(f"  {mark} {s['name'][:18]:<18} {s['after_ai']:>13}  "
+                   f"{variety:<16} {s['high_tells']:>12}  {labels[_tier(s)]}")
     win = scored[0]
     out.append("")
     if _tier(win) == 0:
         out.append(
-            f"  winner: {win['name']} — cleanest of {len(scored)} versions "
+            f"  Chosen: {win['name']} — the clearest of {len(scored)} versions "
             "that preserve the source."
         )
     else:
         out.append(
-            f"  winner: {win['name']} — but every version changed or dropped "
+            f"  Chosen: {win['name']} — but every version changed or dropped "
             f"source material ({labels[_tier(win)]}). Regenerate or fix the fact "
             "before shipping."
         )
