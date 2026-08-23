@@ -87,7 +87,7 @@ prose can still sound stiff. The verifier checks the exact text a reader will re
 late edits can introduce errors. [Research notes](references/evidence.md) explain the
 rationale and limits.
 
-The local tools use Python's standard library and never send drafts over the network.
+Local tools use Python's standard library and never send drafts over the network.
 Word-guessing and cross-draft checks stay separate from the writing score.
 
 ## Private learning from writer edits
@@ -103,7 +103,7 @@ the writer keeps can quiet a rule, and old rules fade. The private, reversible r
 
 ## Does Zero Slop work?
 
-Tests cover editorial quality, repeatability, and processing speed. No single
+Tests check editing quality and repeatability. They measure speed too. No single
 number can settle writing quality.
 
 ### The clearest signal so far
