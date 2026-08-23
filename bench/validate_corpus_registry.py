@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "bench" / "corpus-registry.json"
-TIERS = {"release_gate", "release_research", "candidate_shadow",
+TIERS = {"release_gate", "release_research", "candidate_research",
          "restricted_research", "discovery_only"}
 STATUSES = {"measured", "not_run", "not_run_for_slop_accuracy",
             "indirectly_used_via_beemo", "reviewed"}
@@ -37,7 +37,7 @@ def validate(path=REGISTRY):
                        for field in FIELDS)):
             raise ValueError(f"dataset {index} has invalid values")
         ids.add(row["id"])
-        if row["tier"] in {"candidate_shadow", "restricted_research",
+        if row["tier"] in {"candidate_research", "restricted_research",
                            "discovery_only"} and row["status"] == "measured":
             raise ValueError(f"{row['id']} is measured despite its non-release tier")
         mismatch_text = (row["result"] + row["label_semantics"]).lower()

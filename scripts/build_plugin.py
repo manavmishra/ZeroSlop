@@ -33,7 +33,7 @@ ITEMS = ["SKILL.md", "references", "scripts", "data"]
 EXCLUDE = {
     "voices", "__pycache__", "build_plugin.py", "build_bundle.py",
     "build_onepager_pdf.py", "build_skill_zip.py", "check_svg.py",
-    ".DS_Store",
+    "contextual.py", "contextual-signals.md", ".DS_Store",
 }
 
 

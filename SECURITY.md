@@ -20,6 +20,8 @@ disabled with `ZS_NO_UPDATE_CHECK=1`.
 
 Build, packaging, benchmark, chart, PDF, website, and test utilities remain in the
 repository but are excluded from the installed plugin runtime.
+`scripts/contextual.py` is one of those maintainer-only research utilities; it is
+not a production feature and cannot change a live draft or score.
 
 ## Online-learning isolation
 

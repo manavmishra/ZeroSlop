@@ -5,9 +5,8 @@
   "commit": "3790a1f08ebeb2d45eaa435b6a920b57cc0a71fc"
  },
  "candidate": {
-  "version": "2.5.0",
-  "default_mode": "classic",
-  "rollback": "Set ZERO_SLOP_MODE=classic or leave it unset."
+  "version": "2.5.1",
+  "production_path": "single"
  },
  "deterministic_surface_ablation": {
   "documents": 152,
@@ -21,10 +20,10 @@
   "candidate_score_vector_sha256": "7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8",
   "exactly_unchanged": true,
   "blind_quality_consensus_accuracy_baseline": 0.7105,
-  "blind_quality_consensus_accuracy_candidate_classic": 0.7105,
+  "blind_quality_consensus_accuracy_candidate": 0.7105,
   "accuracy_change_percentage_points": 0.0
  },
- "structured_contextual_shadow": {
+ "structured_contextual_research": {
   "held_out_test_accuracy": 0.9545,
   "surface_accuracy_on_same_items": 0.7954,
   "accuracy_change_percentage_points": 15.91,
@@ -39,7 +38,7 @@
   "maximum_results": 20,
   "maximum_preferences": 50000,
   "performance_fixture_preferences": 5000,
-  "median_local_retrieval_seconds": 0.1935,
+  "median_local_retrieval_seconds": 0.1534,
   "calibrated_probability": false,
   "accuracy_result": null,
   "limits": "Retrieval needs repeated, source-bound edits from a real writer before a field-quality lift can be estimated. It remains advisory and cannot bypass fidelity or safety gates."
@@ -53,28 +52,9 @@
   "cohens_kappa": 0.6542,
   "gain": "Adds an independently split release-research lane and exposes unresolved labels; it does not change a draft or score."
  },
- "interleaved_local_performance": {
-  "environment": "Darwin arm64, Python 3.9.6; four alternating runs per version on the same machine",
-  "baseline_medians_seconds": {
-   "score_1000_documents": 2.71559,
-   "score_15201_word_document": 0.38476,
-   "reflect_8000_diff_words": 0.16891
-  },
-  "candidate_medians_seconds": {
-   "score_1000_documents": 2.81701,
-   "score_15201_word_document": 0.39144,
-   "reflect_8000_diff_words": 0.16355
-  },
-  "candidate_change_percent": {
-   "score_1000_documents": 3.73,
-   "score_15201_word_document": 1.74,
-   "reflect_8000_diff_words": -3.17
-  },
-  "verdict": "No material classic-path regression in this noisy local sample. Contextual packet preparation and validation remain separate from host-model latency."
- },
  "production_verdict": {
-  "decision": "ship_candidate_with_classic_default_and_shadow_sampling",
-  "reason": "Classic scoring is bit-for-bit unchanged, the added local paths are bounded and fail closed, and the contextual lane improved blind cross-rater agreement. The evidence is not yet strong enough to enable assisted mode globally.",
-  "promotion_requirement": "Promote assisted mode only after an independently human-labelled, source-grouped field set shows a material quality gain without fidelity, subgroup, latency, or cost regression."
+  "decision": "ship_one_production_path_keep_contextual_review_in_release_research",
+  "reason": "Production scoring is bit-for-bit unchanged. The contextual lane improved blind cross-rater agreement, but the evidence is not independent human field accuracy, so it remains outside the shipped workflow.",
+  "promotion_requirement": "Any future production change needs an independently human-labelled, source-grouped field set showing a material quality gain without fidelity, subgroup, latency, or cost regression."
  }
 }

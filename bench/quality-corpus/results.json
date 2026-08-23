@@ -73,7 +73,7 @@
    "roc_auc": 0.963
   }
  },
- "contextual_shadow_ablation": {
+ "contextual_research_ablation": {
   "field_accuracy": false,
   "design": "Each blind rater acts once as the structured contextual reviewer and once as the independent comparison label. Borderline calls abstain; each direction is scored on the same eligible items.",
   "directions": {

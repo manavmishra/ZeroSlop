@@ -194,33 +194,42 @@ def main():
         parser.error("--write requires --fetch")
     if not args.write and not args.check:
         parser.error("choose --check or --write")
-    pin = load_pin()
-    if args.fetch:
-        metadata, rows = fetch_rows(pin)
-        fresh = compute(pin, metadata, rows)
-        validate(fresh, pin)
-        if args.write:
-            atomic_write_text(RESULT, json.dumps(fresh, indent=1) + "\n")
-        if args.check:
-            committed = json.loads(RESULT.read_text())
-            validate(committed, pin)
-            if committed != fresh:
-                raise SystemExit("Beemo audit is stale; run with --fetch --write and review")
-        result = fresh
-    else:
-        result = json.loads(RESULT.read_text())
-        validate(result, pin)
-    groups = result["groups"]
-    pair = result["paired_model_to_expert_edit"]
-    print(f"Beemo {result['source']['rows']} paired records at {result['source']['revision'][:12]}")
-    for field in FIELDS:
-        row = groups[field]
-        print(f"  {row['label']:<25} mean {row['mean_surface_score']:>5.1f}  "
-              f">= {GATE:g}: {row['at_or_above_generic_gate']:>4}/{row['documents']}")
-    print(f"  expert edit lowered the score in {pair['lower_after_edit']}/"
-          f"{pair['pairs']} pairs ({pair['lower_after_edit_pct']:.1f}%)")
-    print("  provenance/edit-history audit only; not slop accuracy")
-    return 0
+    try:
+        pin = load_pin()
+        if args.fetch:
+            metadata, rows = fetch_rows(pin)
+            fresh = compute(pin, metadata, rows)
+            validate(fresh, pin)
+            if args.write:
+                atomic_write_text(RESULT, json.dumps(fresh, indent=1) + "\n")
+            if args.check:
+                committed = json.loads(RESULT.read_text())
+                validate(committed, pin)
+                if committed != fresh:
+                    raise ValueError(
+                        "committed result is stale; rerun with --fetch --write and review"
+                    )
+            result = fresh
+        else:
+            result = json.loads(RESULT.read_text())
+            validate(result, pin)
+        groups = result["groups"]
+        pair = result["paired_model_to_expert_edit"]
+        print(f"Beemo {result['source']['rows']} paired records at "
+              f"{result['source']['revision'][:12]}")
+        for field in FIELDS:
+            row = groups[field]
+            print(f"  {row['label']:<25} mean {row['mean_surface_score']:>5.1f}  "
+                  f">= {GATE:g}: {row['at_or_above_generic_gate']:>4}/"
+                  f"{row['documents']}")
+        print(f"  expert edit lowered the score in {pair['lower_after_edit']}/"
+              f"{pair['pairs']} pairs ({pair['lower_after_edit_pct']:.1f}%)")
+        print("  provenance/edit-history audit only; not slop accuracy")
+        return 0
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError,
+            RuntimeError, ValueError) as exc:
+        print(f"beemo audit: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

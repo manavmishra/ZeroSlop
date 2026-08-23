@@ -35,10 +35,10 @@ are examples, not limits.
   current-era text; `references/evidence.md` documents that negative result.
   Do not reintroduce a trained channel without a transfer test on drafts from
   the model generation users actually face.
-- `scripts/contextual.py` prepares and validates source-bound host-model reviews.
-  It never calls a model or changes the surface score. `ZERO_SLOP_MODE` defaults to
-  `classic`; `shadow` records validated contextual evidence without changing output,
-  and `assisted` may use it only behind the normal fidelity and editorial gates.
+- `scripts/contextual.py` is a maintainer-only release-research tool. It prepares and
+  validates source-bound host-model reviews, never calls a model, and never changes
+  production output or the surface score. It is deliberately excluded from the
+  packaged skill; Zero Slop has one production workflow and no runtime feature switch.
 - `scripts/learn.py --guide --for <draft>` retrieves reason-labelled private fix
   preferences. Retrieval is advisory lexical coverage, not a probability, and must
   abstain when no relevant evidence exists.

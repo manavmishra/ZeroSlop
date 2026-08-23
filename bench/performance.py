@@ -125,7 +125,7 @@ def compute():
             "retrieval_seconds": [round(value, 4) for value in retrieval],
             "median_retrieval_seconds": round(st.median(retrieval), 4),
         },
-        "contextual_shadow": {
+        "contextual_research": {
             "paragraphs": len(packet["paragraphs"]),
             "prepare_seconds": [round(value, 4) for value in contextual_prepare],
             "median_prepare_seconds": round(st.median(contextual_prepare), 4),

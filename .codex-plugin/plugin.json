@@ -1,7 +1,7 @@
 {
   "name": "zero-slop",
-  "version": "2.5.0",
-  "description": "Edits AI-assisted prose with an explainable local meter, source-bound contextual review, fidelity gates, fresh final editors, and private reason-labelled learning.",
+  "version": "2.5.1",
+  "description": "Edits AI-assisted prose through one guarded workflow with explainable local measurement, source-bound editorial judgment, fidelity gates, fresh final editors, and private reason-labelled learning.",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Zero Slop",
     "shortDescription": "Remove AI-sounding prose. Keep every fact. Verify the result.",
-    "longDescription": "A guarded editorial system: it measures a draft with an interpretable local surface score, can add source-bound contextual review, audits repeated templates, rewrites with fidelity first, runs dedicated copy and read-aloud passes, and learns from later human edits through a private reason-labelled overlay. Classic mode remains the rollback path; contextual behavior is shadow-tested before promotion. Draft scoring stays local and dependency-free; the optional release check sends only a version query.",
+    "longDescription": "One guarded editorial workflow measures a draft with an interpretable local surface score, applies source-bound editorial judgment, audits repeated templates, rewrites with fidelity first, runs dedicated copy and read-aloud passes, and learns from later human edits through a private reason-labelled overlay. Experimental contextual evaluation stays in a separate maintainer release-research lane. Draft scoring stays local and dependency-free; the optional version check sends only a version query.",
     "developerName": "Manav Mishra",
     "category": "Productivity",
     "capabilities": [

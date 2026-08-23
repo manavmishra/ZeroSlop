@@ -1,7 +1,8 @@
-# Source-bound contextual review
+# Release-research contextual review
 
-The surface meter is deliberately deterministic. This channel gives the host model a
-bounded way to judge problems that a regex or sentence statistic cannot settle:
+The production meter is deliberately deterministic. This maintainer tool gives a
+host model a bounded way to judge problems that a regex or sentence statistic
+cannot settle:
 empty substance, repeated meaning, vague references, canned argument shapes, genre
 mismatch, local repetition, unsupported attribution, and editing-process language
 that leaked into the copy.
@@ -58,14 +59,15 @@ Return exactly:
 `abstain` items add a reason. The validator requires full paragraph coverage and
 rejects unknown fields, labels, or evidence.
 
-## Runtime use
+## Research use
 
-- In `classic`, do not run this channel.
-- In `shadow`, validate and retain the result for evaluation, but do not let it alter
-  the draft, score, or release decision.
-- In `assisted`, validated evidence may inform the normal diagnosis and rewrite.
-  It never changes the surface score and never bypasses fidelity or final editing.
+This contract belongs to the maintainer release-research lane. It is not packaged in
+the installed skill, does not run during production editing, and cannot change a
+draft, surface score, or release decision by itself. Maintainers may use validated
+results in a source-grouped evaluation of a proposed release. Promotion still needs
+independent human labels plus the normal fidelity, safety, performance, and subgroup
+checks.
 
-If packet preparation, host review, or validation fails, continue in `classic` and
-report that the contextual result is unavailable. Never reconstruct a missing review
-from memory or coerce an abstention into a flag.
+If packet preparation, host review, or validation fails, exclude that result and
+record the failure. Never reconstruct a missing review from memory or coerce an
+abstention into a flag.

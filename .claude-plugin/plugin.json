@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "zero-slop",
-  "description": "Edits AI-assisted prose with an explainable local meter, source-bound contextual review, fidelity gates, a copy desk, a final read-aloud editor, and private reason-labelled learning. Classic mode remains the safe default; new behavior is shadow-tested before promotion.",
-  "version": "2.5.0",
+  "description": "Edits AI-assisted prose through one guarded workflow: explainable local measurement, source-bound editorial judgment, fidelity gates, a copy desk, a final read-aloud editor, and private reason-labelled learning.",
+  "version": "2.5.1",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"

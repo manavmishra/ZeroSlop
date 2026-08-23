@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare and validate evidence-bound host-model contextual reviews.
+"""Prepare and validate evidence-bound contextual reviews for release research.
 
 This script never calls a model and never changes Zero Slop's surface score. It
 turns a draft into stable paragraph IDs, then validates a host model's structured
@@ -8,7 +8,6 @@ review against the exact source bytes and quoted evidence.
 import argparse
 import hashlib
 import json
-import os
 import re
 import sys
 from collections import Counter
@@ -33,18 +32,10 @@ SIGNALS = {
 DECISIONS = {"clear", "flag", "abstain"}
 SEVERITIES = {"low", "medium", "high"}
 ACTIONS = {"repair", "cut", "rebuild", "ask_for_substance"}
-MODES = {"classic", "shadow", "assisted"}
 
 
 class ContractError(ValueError):
     """A review or source failed a bounded, user-facing contract check."""
-
-
-def current_mode():
-    mode = os.environ.get("ZERO_SLOP_MODE", "classic").strip().lower()
-    if mode not in MODES:
-        raise ContractError("ZERO_SLOP_MODE must be classic, shadow, or assisted")
-    return mode
 
 
 def read_bytes(path, limit, label):
@@ -136,7 +127,7 @@ def prepare(path):
         raise ContractError("draft contains no reviewable prose paragraphs")
     return {
         "schema": SCHEMA,
-        "result_kind": "contextual_review_packet",
+        "result_kind": "contextual_research_packet",
         "source_sha256": hashlib.sha256(raw).hexdigest(),
         "affects_surface_score": False,
         "paragraphs": [
@@ -239,7 +230,7 @@ def validate(path, review_path):
         raise ContractError(f"review omits {len(missing)} paragraph(s): {', '.join(missing[:5])}")
     return {
         "schema": SCHEMA,
-        "result_kind": "contextual_shadow_review",
+        "result_kind": "contextual_research_review",
         "source_sha256": packet["source_sha256"],
         "affects_surface_score": False,
         "reviewed_paragraphs": len(source),
@@ -255,18 +246,10 @@ def main():
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--prepare", metavar="DRAFT")
     mode.add_argument("--validate", nargs=2, metavar=("DRAFT", "REVIEW"))
-    mode.add_argument("--mode", action="store_true",
-                      help="report the validated ZERO_SLOP_MODE feature switch")
     parser.add_argument("--json", action="store_true",
                         help="print machine-readable validation output")
     args = parser.parse_args()
     try:
-        if args.mode:
-            if args.json:
-                parser.error("--json is implicit with --mode")
-            print(json.dumps({"mode": current_mode(), "default": "classic",
-                              "allowed": sorted(MODES)}, indent=1))
-            return 0
         if args.prepare:
             if args.json:
                 parser.error("--json is implicit with --prepare")
@@ -281,7 +264,7 @@ def main():
                   f"{result['abstentions']} abstention(s)")
             for row in result["evidence"]:
                 print(f"  {row['paragraph_id']} {row['signal']}: {row['quote']!r}")
-            print("  shadow evidence only; the 0-to-100 surface score is unchanged")
+            print("  research evidence only; the 0-to-100 surface score is unchanged")
         return 0
     except ContractError as exc:
         print(f"contextual: {exc}", file=sys.stderr)

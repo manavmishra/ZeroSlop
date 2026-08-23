@@ -33,8 +33,8 @@ Everything needed to reproduce, contest, or extend the evaluation in
   timings with the machine record, raw runs, medians, and CI ceilings.
 - `quality-corpus/` — a method-hidden, source-grouped 72-item editorial-quality
   panel with two independent label files, unresolved disagreements, and split metrics.
-- `feature-ablation/` — the reproducible v2.4.3-versus-v2.5.0 comparison, including
-  exact classic score-vector hashes and bounded local timing observations.
+- `feature-ablation/` — the reproducible v2.4.3-versus-v2.5.1 comparison, including
+  exact production score-vector hashes and bounded local timing observations.
 - `corpus-registry.json`, `validate_corpus_registry.py` — the admission decision for
   every proposed external corpus. Label semantics, provenance, access terms, and the
   claim a corpus may support are explicit; authorship labels never stand in for

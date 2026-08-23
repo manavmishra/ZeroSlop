@@ -417,16 +417,16 @@ export default function Home() {
           aria-labelledby="proof-title"
         >
           <div className="proof-copy">
-            <h2 id="proof-title">The benchmark is public.</h2>
+            <h2 id="proof-title">The saved benchmark is public.</h2>
             <p>
-              The benchmark covers 50 AI-heavy drafts in six kinds of writing,
-              compares four tools, and uses blind judging. The repository
-              includes both the data and the study&apos;s limitations, so you can
-              check the headline yourself.
+              This historical study covers 50 AI-heavy drafts in six kinds of
+              writing and compares four tools. The repository preserves the
+              100 blind decisions and the study&apos;s limitations. Recomputing the
+              55 total reads those saved decisions; it does not call new judges.
             </p>
             <a
               className="text-link"
-              href={`${githubUrl}#does-it-actually-work`}
+              href={`${githubUrl}#performance-and-historical-context`}
               target="_blank"
               rel="noreferrer"
             >
@@ -440,14 +440,14 @@ export default function Home() {
                 <source type="image/avif" srcSet="/bench-bestpicks.avif" />
                 <img
                   src="/bench-bestpicks.png"
-                  alt="Blind best-pick results across 100 judgments: Zero Slop, 55; blader, 40; no-ai-slop, 5; and de-slop, 0"
+                  alt="Historical saved blind judgments: Zero Slop, 55; blader, 40; no-ai-slop, 5; and de-slop, 0"
                   width="1240"
                   height="374"
                   loading="lazy"
                   decoding="async"
                 />
               </picture>
-              <figcaption>Results from 100 blind judgments.</figcaption>
+              <figcaption>Recomputed from 100 saved judgments; not a new judge run.</figcaption>
             </figure>
             <figure className="proof-secondary">
               <picture>

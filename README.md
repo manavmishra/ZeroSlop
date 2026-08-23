@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-CI%20gated-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.0-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.1-72528F">
 </p>
 
 Zero Slop is an editorial skill for prose written with AI assistance. It finds stock
@@ -63,14 +63,14 @@ zip with `python3 scripts/build_skill_zip.py`.
 
 ## How it works
 
-![Three guarded feature modes, two operational loops, and an independent release gate](assets/engine.svg)
+![One production path, two operational loops, and an independent release gate](assets/engine.svg)
 
-The production path is hybrid by design:
+One workflow combines local measurement with contextual editing:
 
 1. **Measure:** local Python reports a repeatable surface score and exact hits.
 2. **Diagnose:** the host model reads claims, substance, audience, genre, structure,
-   and voice. In shadow or assisted mode, its structured contextual report must match
-   the source hash, paragraph IDs, allowed signal names, and quoted spans.
+   and voice. Every finding stays tied to the current draft; missing context calls for
+   an abstention, not a guess.
 3. **Rewrite:** the model cuts, repairs, or reorders; fidelity outranks cleanliness.
    Relevant, reason-labelled preferences may guide the edit; when none matches, the
    model abstains.
@@ -81,9 +81,8 @@ The production path is hybrid by design:
    voice, format, and structure. Any textual repair repeats both editorial passes and
    every final check.
 
-`ZERO_SLOP_MODE=classic` is the default and rollback path. `shadow` records validated
-contextual evidence without changing the draft, score, or release decision. `assisted`
-may use that evidence during diagnosis and rewriting, but remains promotion-gated.
+There is one production workflow. Contextual experiments stay in the
+maintainer release-research lane and are not installed as live features.
 
 The local meter combines weighted phrases and context-gated terms with rhythm,
 followability, formatting, and register signals. Predictability and cross-draft
@@ -115,13 +114,13 @@ reversible overlay, and retrieves only relevant guidance on later drafts.
 This is post-deployment, human-in-the-loop online adaptation—not reinforcement
 learning, RLHF, self-modification, or neural training. One edit pair is one vote. A
 phrase needs three content-distinct pairs before promotion; a single word needs five
-and stays context-dependent. Candidates must be novel and safe on known-human text.
+and stays context-dependent. A proposed rule must be new and safe on known-human text.
 Unconfirmed detector weights decay after 18 months; stale fix preferences retire.
 Private state lives under `$ZERO_SLOP_HOME`, outside the installation.
 
-The third path in the diagram is deliberately not a runtime loop. It admits research
-corpora, runs blind and grouped evaluations, and tests performance, fidelity, safety,
-cost, and subgroup behavior. New behavior cannot promote itself.
+The release-research lane is not a runtime loop. It admits corpora, runs blind and
+grouped evaluations, and tests performance, fidelity, safety, cost, and subgroup
+behavior. New behavior cannot promote itself.
 
 ## What the fresh evidence says
 
@@ -158,10 +157,11 @@ clustered panel—not human field accuracy.
 
 ![Blind mean severity by editing method](assets/bench-blind-quality.png)
 
-### v2.4.3 versus v2.5.0
+### Production surface and contextual research
 
-Classic scoring was bit-for-bit identical across 152 documents: both score-vector
-hashes were `7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8`.
+The v2.5.1 production scoring output was bit-for-bit identical to v2.4.3 across
+152 documents. Both score-vector hashes were
+`7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8`.
 Consensus accuracy of the surface gate stayed 71.05%, a 0.00-point change. On the
 small held-out cross-rater panel, source-bound contextual review scored 95.45% against
 79.54% for the surface gate on the same eligible items, a 15.91-point lift. Because
@@ -169,12 +169,11 @@ the comparison reuses two LLM editorial raters, it measures reproducibility rath
 than field accuracy. In a retrieval test, the system found the relevant preference and
 abstained on an irrelevant draft; real-user accuracy remains unmeasured.
 
-![Classic scoring is unchanged; contextual shadow evidence improved on the small blind panel](assets/bench-contextual-ablation.png)
+![The production surface score is unchanged; a separate contextual research review improved agreement on the small blind panel](assets/bench-contextual-ablation.png)
 
-**Production verdict:** ship v2.5.0 with Classic as the default and collect Shadow
-evidence. Do not enable Assisted globally until a source-grouped holdout independently
-labelled by humans shows a material gain without fidelity, subgroup, latency, or cost
-regression.
+**Production verdict:** ship v2.5.1 with one guarded workflow. Keep contextual review
+in release research until a source-grouped holdout independently labelled by humans
+shows a material gain without fidelity, subgroup, latency, or cost regression.
 
 ### Public cross-check and paired edits
 
@@ -211,10 +210,10 @@ license, provenance, leakage risk, allowed use, and admission tier.
 
 | Tier | Sources | Permitted claim |
 |---|---|---|
+| Release gate | Zero Slop cross-genre regression corpus | Deterministic regression and same-session comparisons |
 | Release research | Internal blind-quality panel, AIStoryHub, Beemo, Slop Index | Narrow, explicitly caveated observations |
-| Provenance shadow | RAID, MAGE, HC3, ARB, MAGA, M4, M4GT-Bench, COLING 2025, AuTextification | Drift and human-safety checks; never slop-quality accuracy |
-| Restricted | EditLens, No Robots, PERSUADE 2.0 | Evaluate only under their access and license terms |
-| Human safety | Blog Authorship, Enron | False-positive research after privacy and domain review |
+| Candidate research | RAID, MAGE, HC3, ARB, MAGA, M4, M4GT-Bench, COLING 2025, AuTextification, Blog Authorship, Enron | Drift and human-safety checks; never slop-quality accuracy |
+| Restricted research | EditLens, No Robots, PERSUADE 2.0 | Evaluate only under their access and license terms |
 | Discovery only | LLM excess vocabulary, slop-forensics, SlopBench, Wikipedia's signs | Candidate signals; never automatic promotion |
 
 No listed corpus currently clears every field-accuracy requirement. The skill will not
@@ -224,15 +223,16 @@ restricted text, or report a hand-shaped score as a calibrated probability.
 ### Performance and historical context
 
 On Darwin arm64, Python 3.9.6, the current local run scored 1,000 documents in
-3.5551 s; 281.3 docs/s. A 15,201-word document took 0.4553 s. The worst pathological
-input took 3.1517 s; an 8,000-word reflection took 0.2110 s. Preparing and validating
-a 2,000-paragraph contextual packet took 0.0021 s and 0.0040 s, respectively, excluding
-host-model latency. All timings are observations from one machine, not throughput
-promises.
+2.4986 s; 400.2 docs/s. A 15,201-word document took 0.3526 s. The worst pathological
+input took 2.4453 s; an 8,000-word reflection took 0.1478 s. Preparing and
+validating a 2,000-paragraph contextual research packet took 0.0028 s and
+0.0045 s, respectively, excluding host-model latency. All timings are observations
+from one machine, not throughput promises.
 
 The repository also preserves two historical blind LLM-as-a-judge passes, although
-their exact model and inference settings were not recorded. Across 100 selections,
-Zero Slop received 55, blader/humanizer 40,
+their exact model and inference settings were not recorded. Running
+`bench/replication.py` recomputes the statistics from those saved decisions; it does
+not call new judges. Across 100 saved selections, Zero Slop received 55, blader/humanizer 40,
 no-ai-slop 5 and de-slop 0. The passes
 agreed on the winner for only 26 of 50 items; Cohen's kappa was 0.12. Zero Slop's 55%
 rate has a Wilson interval of 45.2% to 64.4%. A comparison of
@@ -276,10 +276,10 @@ Zero Slop builds on [no-ai-slop](https://github.com/petergyang/no-ai-slop),
 [de-slop](https://github.com/isatimur/de-slop), and
 [stop-slop](https://github.com/hardikpandya/stop-slop). It carries forward those
 projects' direct editing, broad tell coverage, voice protection, and attention to
-rhythm. It adds an
-explainable meter, source-bound contextual review, scripted fidelity checks,
-fidelity-first candidate selection, separate copy and read-aloud editors, private
-reason-labelled retrieval, cross-draft diagnosis, and a fail-closed release harness.
+rhythm. It adds an explainable meter, source-bound editorial diagnosis, scripted
+fidelity checks, fact-preserving rewrite selection, separate copy and read-aloud editors, private
+reason-labelled retrieval, cross-draft diagnosis, and a fail-closed release harness
+with a separate contextual research tool.
 
 A documented capability does not prove that it works well. The matrix audits repository
 contracts, not effectiveness, at these commits: Zero Slop `3790a1f08ebe`, humanizer
@@ -302,9 +302,10 @@ python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check
 ```
 
-`SKILL.md` defines runtime behavior. `scripts/slopscore.py`, `contextual.py`, and
-`learn.py` implement the local meter, contextual contract, and private overlay.
-`references/` holds the editorial briefs. `bench/` contains inputs, outputs, pins,
+`SKILL.md` defines runtime behavior. `scripts/slopscore.py` and `learn.py` implement
+the local meter and private overlay. `references/` holds the editorial briefs.
+The maintainer-only `scripts/contextual.py` supports release research; it is excluded
+from installed skills. `bench/` contains inputs, outputs, pins,
 admission decisions, timings, and chart data. The runtime ships no trained model and
 never changes the host model's weights. See [`SECURITY.md`](SECURITY.md) for trust
 boundaries and [`references/evidence.md`](references/evidence.md) for the research

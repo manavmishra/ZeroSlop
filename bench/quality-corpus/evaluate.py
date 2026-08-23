@@ -247,7 +247,7 @@ def compute(manifest_path, label_paths):
         "generic_surface_gate": GATE,
         "surface_meter": binary_metrics(metric_rows),
         "splits": split_results,
-        "contextual_shadow_ablation": contextual_ablation,
+        "contextual_research_ablation": contextual_ablation,
         "methods": methods,
         "limits": ("Blind LLM-as-a-judge labels on a small clustered panel are not "
                    "independent human field labels. Method rows describe this panel; "

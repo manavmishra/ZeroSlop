@@ -101,8 +101,8 @@ most other over should some such than that their them then there these they
 this those through under until very were what when where which while with
 would your""".split())
 
-# Editorial reasons are deliberately few, stable, and shared with the contextual
-# review. They describe why a change helped; they are not model probabilities.
+# Editorial reasons are deliberately few and stable. They describe why a change
+# helped; they are not model probabilities.
 REASON_LABELS = {
     "unspecified", "hollow_substance", "semantic_redundancy",
     "vague_reference", "canned_framing", "genre_mismatch",

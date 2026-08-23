@@ -10,6 +10,9 @@ can verify the whole thing. Tests that write data operate on a temp copy of
 data/ so a failing run can never corrupt the shipped taxonomy.
 """
 import json
+import contextlib
+import importlib.util
+import io
 import os
 import re
 import shutil
@@ -22,6 +25,7 @@ import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -353,28 +357,25 @@ class ContextualSignals(unittest.TestCase):
         self.assertNotIn("quoted source", joined)
         self.assertFalse(packet["affects_surface_score"])
 
-    def test_feature_mode_defaults_to_classic_and_rejects_unknown_values(self):
+    def test_contextual_research_tool_has_no_runtime_feature_switch(self):
+        result = run([str(CONTEXTUAL), "--mode"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
         env = dict(os.environ)
-        env.pop("ZERO_SLOP_MODE", None)
-        result = run([str(CONTEXTUAL), "--mode"], env=env)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(json.loads(result.stdout)["mode"], "classic")
         env["ZERO_SLOP_MODE"] = "assisted"
-        assisted = run([str(CONTEXTUAL), "--mode"], env=env)
-        self.assertEqual(json.loads(assisted.stdout)["mode"], "assisted")
-        env["ZERO_SLOP_MODE"] = "self-modifying"
-        invalid = run([str(CONTEXTUAL), "--mode"], env=env)
-        self.assertNotEqual(invalid.returncode, 0)
-        self.assertNotIn("Traceback", invalid.stderr)
+        prepared = run([str(CONTEXTUAL), "--prepare", str(self.draft)], env=env)
+        self.assertEqual(prepared.returncode, 0, prepared.stdout + prepared.stderr)
+        self.assertEqual(json.loads(prepared.stdout)["result_kind"],
+                         "contextual_research_packet")
 
-    def test_validate_accepts_exact_evidence_and_reports_shadow_result(self):
+    def test_validate_accepts_exact_evidence_and_reports_research_result(self):
         packet = self._packet()
         review = self._write_review(packet)
         result = run([str(CONTEXTUAL), "--validate", str(self.draft), str(review),
                       "--json"])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["result_kind"], "contextual_shadow_review")
+        self.assertEqual(report["result_kind"], "contextual_research_review")
         self.assertFalse(report["affects_surface_score"])
         self.assertEqual(report["flagged_paragraphs"], 1)
         self.assertEqual(report["signals"], {"semantic_redundancy": 1})
@@ -1645,6 +1646,21 @@ class BeemoCorpusAudit(unittest.TestCase):
         result = run([str(self.ROOT / "audit.py"), "--check"])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_fetch_failure_is_clean_and_actionable(self):
+        spec = importlib.util.spec_from_file_location(
+            "beemo_audit_test", self.ROOT / "audit.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        error = io.StringIO()
+        with (mock.patch.object(sys, "argv", ["audit.py", "--fetch", "--check"]),
+              mock.patch.object(module, "fetch_rows",
+                                side_effect=RuntimeError("rate limited")),
+              contextlib.redirect_stderr(error)):
+            result = module.main()
+        self.assertEqual(result, 2)
+        self.assertIn("beemo audit: rate limited", error.getvalue())
+        self.assertNotIn("Traceback", error.getvalue())
+
 
 class QualityCorpus(unittest.TestCase):
     """Blind slop-quality labels stay method-hidden, split-safe, and auditable."""
@@ -1715,10 +1731,10 @@ class QualityCorpus(unittest.TestCase):
         self.assertEqual(report["splits"]["test"]["items"], 2)
         self.assertEqual(set(report["methods"]), {"original", "zero-slop", "humanizer"})
         self.assertGreaterEqual(report["surface_meter"]["accuracy"], 0.75)
-        shadow = report["contextual_shadow_ablation"]["held_out_test_mean"]
-        self.assertEqual(shadow["contextual_accuracy"], 1.0)
-        self.assertGreaterEqual(shadow["contextual_minus_surface_accuracy"], 0.0)
-        self.assertFalse(report["contextual_shadow_ablation"]["field_accuracy"])
+        research = report["contextual_research_ablation"]["held_out_test_mean"]
+        self.assertEqual(research["contextual_accuracy"], 1.0)
+        self.assertGreaterEqual(research["contextual_minus_surface_accuracy"], 0.0)
+        self.assertFalse(report["contextual_research_ablation"]["field_accuracy"])
 
     def test_evaluation_rejects_hash_drift_label_gaps_and_source_split_leakage(self):
         manifest = json.loads(self.manifest.read_text())
@@ -1771,16 +1787,16 @@ class CorpusAdmission(unittest.TestCase):
 
 
 class FeatureAblation(unittest.TestCase):
-    """The old-versus-new claim stays tied to live data and a safe default."""
+    """The old-versus-new claim stays tied to live data and one production path."""
 
     def test_committed_ablation_is_current_and_caveated(self):
         result = run([str(FEATURE_ABLATION)])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads((ROOT / "bench" / "feature-ablation" / "results.json").read_text())
         self.assertTrue(report["deterministic_surface_ablation"]["exactly_unchanged"])
-        self.assertFalse(report["structured_contextual_shadow"]["field_accuracy"])
+        self.assertFalse(report["structured_contextual_research"]["field_accuracy"])
         self.assertIsNone(report["reason_labelled_retrieval"]["accuracy_result"])
-        self.assertEqual(report["candidate"]["default_mode"], "classic")
+        self.assertEqual(report["candidate"]["production_path"], "single")
 
 
 class AIStoryHubCorpusAudit(unittest.TestCase):
@@ -2160,9 +2176,11 @@ class Diagram(unittest.TestCase):
     def test_plugin_runtime_contains_only_runtime_modules(self):
         shipped = {p.name for p in (ROOT / "skills" / "zero-slop" / "scripts").glob("*.py")}
         self.assertEqual(shipped, {
-            "calibrate.py", "contextual.py", "learn.py", "predictability.py", "rerank.py",
+            "calibrate.py", "learn.py", "predictability.py", "rerank.py",
             "safeio.py", "slopscore.py", "version_check.py",
         })
+        self.assertFalse((ROOT / "skills" / "zero-slop" / "references" /
+                          "contextual-signals.md").exists())
 
     def test_engine_svg_has_no_overflow(self):
         r = run([str(ROOT / "scripts" / "check_svg.py"),
@@ -2192,15 +2210,27 @@ class Diagram(unittest.TestCase):
     def test_engine_svg_names_both_operational_loops(self):
         src = (ROOT / "assets" / "engine.svg").read_text().lower()
         for phrase in (
-                "editorial delivery", "measure", "diagnose", "rewrite",
+                "one production path", "editorial delivery", "measure", "diagnose", "rewrite",
                 "copy edit", "read aloud", "verify", "private online learning",
                 "observe", "bind", "gate", "store", "retrieve",
                 "local detector weights", "retrieved fixes", "no neural training",
                 "not a runtime loop", "admit corpora", "blind evaluation",
-                "performance · fidelity · safety · cost", "human-validated gain",
-                "classic", "shadow", "assisted"):
+                "contextual research", "performance · fidelity · safety · cost",
+                "human-validated gain"):
             with self.subTest(phrase):
                 self.assertIn(phrase, src)
+        for phrase in ("zero_slop_mode", "promotion-gated", "assisted"):
+            with self.subTest(absent=phrase):
+                self.assertNotIn(phrase, src)
+
+    def test_production_docs_expose_no_experimental_feature_modes(self):
+        for path in (ROOT / "README.md", ROOT / "SKILL.md",
+                     ROOT / "assets" / "engine.svg"):
+            source = path.read_text().lower()
+            with self.subTest(path=path.name):
+                self.assertNotIn("zero_slop_mode", source)
+                self.assertNotIn("promotion-gated", source)
+                self.assertNotIn("assisted mode", source)
 
     def test_engine_svg_is_theme_aware(self):
         src = (ROOT / "assets" / "engine.svg").read_text()

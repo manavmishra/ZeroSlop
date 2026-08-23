@@ -168,14 +168,14 @@ def compute():
         for method in quality_order
     ]
     ablation = json.loads(FEATURE_ABLATION.read_text())
-    shadow = ablation.get("structured_contextual_shadow", {})
-    if (ablation.get("schema") != 1 or shadow.get("field_accuracy") is not False):
+    research = ablation.get("structured_contextual_research", {})
+    if (ablation.get("schema") != 1 or research.get("field_accuracy") is not False):
         raise ValueError("feature ablation has an invalid contract")
     contextual_ablation = [
-        ("v2.4.3 / classic surface", round(
-            shadow["surface_accuracy_on_same_items"] * 100, 2)),
-        ("v2.5.0 contextual shadow", round(
-            shadow["held_out_test_accuracy"] * 100, 2)),
+        ("v2.4.3 surface meter", round(
+            research["surface_accuracy_on_same_items"] * 100, 2)),
+        ("contextual research review", round(
+            research["held_out_test_accuracy"] * 100, 2)),
     ]
     return {"best_picks": best, "detector_panel": panel,
             "search_corpus": search_panel,
@@ -306,8 +306,8 @@ def render(datasets):
     out = []
     out.append(_hbar(
         ASSETS / "bench-bestpicks.png",
-        "Blind LLM-as-a-judge selections",
-        "50 synthetic drafts; five judge runs per pass; no human raters. Higher is better.",
+        "Historical blind LLM-as-a-judge selections",
+        "100 saved decisions from two 2026 passes; recomputed, not re-judged. No human raters.",
         datasets["best_picks"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-detector.png",
@@ -358,10 +358,10 @@ def render(datasets):
         datasets["blind_quality"], "Zero Slop", axis_ticks=[0, 1, 2, 3, 4, 5]))
     out.append(_hbar(
         ASSETS / "bench-contextual-ablation.png",
-        "Held-out contextual shadow ablation",
+        "Held-out contextual research ablation",
         "Cross-rater accuracy on the same eligible blind test items. Higher is better. "
         "LLM editorial reproducibility, not independent human field accuracy.",
-        datasets["contextual_ablation"], "v2.5.0 contextual shadow",
+        datasets["contextual_ablation"], "contextual research review",
         axis_ticks=[0, 25, 50, 75, 100]))
     out.append(_capability_matrix(
         ASSETS / "competitor-capabilities.png",
