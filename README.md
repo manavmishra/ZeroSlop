@@ -10,14 +10,14 @@
 
 **Less slop, more pop in all your writing.**
 
-Zero Slop is an open-source Agent Skill for editing AI slop: stock phrasing, claims
-without evidence, uniform cadence, and formulaic structure in AI-assisted writing. It
+Zero Slop is an open-source Agent Skill that removes AI slop from AI-assisted writing:
+stock phrasing, unsupported claims, uniform cadence, and formulaic structure. It
 revises the draft without changing its claims, voice, or format. It works with Claude
-Code, Codex, Cursor, and other Agent Skills-compatible assistants.
+Code, Codex, Cursor, and other compatible assistants.
 
 The 0-to-100 score measures those signals, not AI authorship. In the shipped reference
-sets, human samples scored 9 to 21; unedited AI drafts averaged 77. The figures apply
-only to that corpus.
+sets, human samples scored 9 to 21; unedited AI drafts averaged 77. The figures are
+corpus-specific.
 
 ![A scored sentence before and after editing](assets/demo.png)
 
@@ -58,27 +58,27 @@ use the release zip.
 
 ## How Zero Slop works
 
-![One production path, two operational loops, and an independent release gate](assets/engine.svg)
+![One editing workflow, a private learning loop, and a separate release review](assets/engine.svg)
 
-Production follows six steps:
+When Zero Slop edits a draft, it follows six steps:
 
-1. **Measure.** Local Python scores 267 weighted patterns, a 96-term lexicon, 25
-   context-gated terms, cadence, readability, formatting, and register. It reports the
-   evidence behind the result.
-2. **Interpret.** The host AI assistant evaluates claims, evidence, audience,
+1. **Measure.** A local scorer checks 267 weighted patterns, a 96-term lexicon, 25
+   context-gated terms, cadence, readability, formatting, and register. It shows the
+   evidence behind the score.
+2. **Interpret.** The AI assistant running Zero Slop evaluates claims, evidence, audience,
    structure, and voice. It asks for missing facts rather than inventing them.
 3. **Rewrite.** The assistant removes generic wording, then revises order, cadence,
    and tone. Relevant private preferences can guide the edit.
-4. **Select.** A local reranker rejects versions that change the factual inventory,
-   then chooses the cleanest remaining option.
-5. **Edit.** A copy editor corrects mechanics. A separate read-aloud pass resolves
-   awkward flow, inconsistency, and repetition.
+4. **Select.** A local check rejects versions that add or drop names, numbers, quotes,
+   or links, then chooses the cleanest remaining option.
+5. **Edit.** A copy editor corrects grammar and consistency. A read-aloud pass resolves
+   awkward flow and repetition.
 6. **Verify.** The result is rescored and compared with the source for facts, meaning,
    qualifiers, voice, format, and structure. A repair repeats every final check.
 
 The scripts use only Python's standard library and do not send drafts over the
-network. Predictability and cross-draft repetition are reported separately from the
-surface score. `scripts/contextual.py` is a research tool, not a second runtime mode.
+network. Separate predictability and cross-draft checks do not affect the score.
+`scripts/contextual.py` is for research only.
 
 ## Private learning from writer edits
 
@@ -92,37 +92,43 @@ Recurring replacements guide later edits, retained phrases can lower a matching 
 weight, and stale rules decay. The private overlay lives under `$ZERO_SLOP_HOME`. It is
 reversible and does not retrain or modify the AI model.
 
-## Evaluation, evidence, and limits
+## Does Zero Slop work?
 
-Operational tests check whether the software behaves as specified. Editorial research
-asks whether the result reads better. Neither supports a universal accuracy score.
+Writing quality resists one number. Zero Slop instead publishes narrower tests of
+editorial quality, consistent behavior, and speed.
 
-Two independent LLM editorial raters reviewed 72 method-hidden passages from 12 drafts
-using one rubric. Exact agreement was 77.8%; Cohen's kappa was 0.65. They reached a
-shared label for 38 passages and left 34 unresolved. Mean severity fell from 4.75 for
-the unedited drafts to 2.38 for Zero Slop. This small study does not replace human
-evaluation.
+### The clearest signal so far
 
-![Mean editorial severity assigned by two LLM raters; lower is better](assets/bench-blind-quality.png)
+Two independent LLMs reviewed 72 passages drawn from 12 drafts without
+knowing which tool produced them. They labelled each passage clean, borderline, or
+sloppy, then assigned severity from 1 (clean) to 5 (pervasively sloppy). The original
+drafts averaged 4.75; Zero Slop averaged 2.38.
 
-An older study recorded 55 of 100 best picks for Zero Slop, versus 40 for humanizer. Its
-two passes agreed on 26 of 50 winners; Cohen's kappa was 0.12. The 95% Wilson interval
-was 45.2% to 64.4%, and the head-to-head gives p = 0.15. Because the model settings
-were not preserved, this is historical context rather than a current performance
-claim.
+The raters chose the same label 77.8% of the time. When they disagreed or chose
+borderline, the passage was excluded. That left 38 shared clean-or-sloppy decisions
+and 34 unresolved cases. The severity gap favors Zero Slop, but the sample is small
+and the opinions come from LLMs, not people.
 
-The v2.5.1 scorer matched v2.4.3 exactly across 152 documents. In a separate 22-item
-experiment, a research-only contextual review agreed with another LLM rater on 95.45%
-of eligible items, compared with 79.54% for the surface score. This measures agreement
-between LLMs, not people, so contextual review remains outside production.
+![Average revision severity from two LLM reviewers; lower is better](assets/bench-blind-quality.png)
 
-![Production scoring remained unchanged; contextual research improved agreement on a small LLM-rated panel](assets/bench-contextual-ablation.png)
+### Context catches what counting can miss
 
-The table compares five editing workflows on the same 18 deliberately obvious drafts
-across six genres. Each output is tested against Zero Slop's published gates, making
-this a reproducible regression test rather than an independent ranking.
+The score is deliberately literal: it counts visible language and structural signals.
+It cannot decide whether a paragraph is useful or whether a phrase fits the audience.
+A research-only LLM reviewed 22 passages in context. Its decisions matched another LLM
+95.45% of the time, compared with 79.54% for the score alone. Context
+appears to help, but the test still compares one LLM with another. The experiment is
+not part of the released workflow.
 
-| Method | Mean score ↓ | Full gate | Fact inventory | Mean word change |
+![The experimental context-aware check matched another LLM more often than the mechanical score](assets/bench-contextual-ablation.png)
+
+### The same drafts, edited five ways
+
+The regression test asks whether each workflow behaves consistently. We ran five
+workflows on the same 18 deliberately generic drafts. A passage passed only if it met
+the score and layout limits and cleared a source check for changed facts or feelings.
+
+| Method | Mean score ↓ | Passed all checks | Automated fact check | Average length change |
 |---|---:|---:|---:|---:|
 | Original drafts | 78.2 | 0/18 | — | — |
 | Zero Slop | 15.4 | 18/18 | 18/18 | -26.4% |
@@ -131,28 +137,36 @@ this a reproducible regression test rather than an independent ranking.
 | no-ai-slop | 28.5 | 12/18 | 18/18 | -28.0% |
 | de-slop | 54.3 | 6/18 | 18/18 | -18.5% |
 
-![Results of the same 18-draft replay; lower scores are cleaner on Zero Slop's meter](assets/bench-search-rewrites.png)
+Negative length change means the edited draft was shorter.
 
-No available corpus supports a field-accuracy claim. That requires independent human
-labels on samples from current models and varied writing, including work by non-native
-speakers. AIStoryHub, Beemo, and the Slop Index remain limited cross-checks documented
-in [`bench/README.md`](bench/README.md).
+![The same 18 drafts after each editing workflow; lower scores contain fewer tracked signals](assets/bench-search-rewrites.png)
 
-On the recorded Darwin arm64 run, scoring 1,000 documents took 2.4986 s; 400.2 docs/s.
-A 15,201-word document took 0.3526 s, the worst pathological input took 2.4453 s, and
-an 8,000-word reflection took 0.1478 s. These are measurements from one machine, not
-service-level guarantees.
+Zero Slop's edits passed all checks on 18 drafts. That is useful for catching regressions,
+but it is not a neutral contest: Zero Slop also defines the rules. No available dataset
+combines broad, current writing with independent human quality judgments, so the
+project does not publish a universal accuracy number. AIStoryHub, Beemo, and the Slop
+Index remain limited cross-checks. See [`bench/README.md`](bench/README.md).
+
+### The local tools are fast
+
+On one Apple silicon Mac, the scorer processed 1,000 documents in 2.4986 seconds
+(400.2 per second). A 15,201-word document took 0.3526 seconds. The slowest stress case
+took 2.4453 seconds; an 8,000-word learning pass took 0.1478 seconds. AI-assistant time
+is excluded.
 
 ## What Zero Slop adds
 
 Zero Slop builds on [no-ai-slop](https://github.com/petergyang/no-ai-slop),
 [humanizer](https://github.com/blader/humanizer),
 [de-slop](https://github.com/isatimur/de-slop), and
-[stop-slop](https://github.com/hardikpandya/stop-slop). It adds scoring, factual
-checks, dedicated editorial passes, private learning, and release controls.
+[stop-slop](https://github.com/hardikpandya/stop-slop). Those projects established much
+of the editorial playbook. Zero Slop adds controls around the edit: a local score,
+automated factual checks, separate copy-editing and read-aloud passes, private learning,
+and a tested release process.
 
-The audit compares documented capabilities, not effectiveness, at these versions: Zero
-Slop `3790a1f08ebe`, humanizer `e2e92e7b4b82`, and no-ai-slop `d30eddb9e045`.
+The chart is an inventory, not a horse race. It records the features documented in
+pinned versions of each repository; it does not decide which tool writes better. The
+underlying audit is in [`bench/README.md`](bench/README.md).
 
 ![Pinned repository capability audit](assets/competitor-capabilities.png)
 
@@ -171,10 +185,9 @@ python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check
 ```
 
-`SKILL.md` defines the runtime. `scripts/` contains the meter, fidelity check,
-reranker, and private learning tools. `references/` contains the editorial briefs.
-`bench/` contains the pinned inputs, saved outputs, raw labels, limits, and aggregation
-code. See [`SECURITY.md`](SECURITY.md) for trust boundaries and
+`SKILL.md` defines the runtime. `scripts/` holds the scorer, fidelity check, reranker,
+and learning tools. `references/` holds editorial briefs; `bench/` holds test inputs,
+labels, results, and methods. See [`SECURITY.md`](SECURITY.md) for trust boundaries and
 [`references/evidence.md`](references/evidence.md) for the research trail.
 
 MIT.

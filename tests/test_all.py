@@ -1415,8 +1415,8 @@ class DocsMatchReality(unittest.TestCase):
         readme = self.docs["README.md"]
         words = len(readme.split())
         self.assertGreaterEqual(words, 1000, "README lost essential operating detail")
-        self.assertLessEqual(words, 1150, "README exceeded the compact executive brief")
-        self.assertIn("independent LLM editorial raters", readme)
+        self.assertLessEqual(words, 1250, "README exceeded the two-page editorial brief")
+        self.assertIn("Two independent LLMs", readme)
         self.assertNotIn("blind judges", readme.lower())
 
     def test_documented_cli_flags_exist(self):
@@ -1566,43 +1566,32 @@ class SearchCorpus(unittest.TestCase):
         result = json.loads((ROOT / "bench" / "performance-results.json").read_text())
         readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         scorer = result["scorer"]
+        self.assertIn(f"{scorer['median_batch_seconds']:.4f} seconds", readme)
+        self.assertIn(f"{scorer['median_documents_per_second']:.1f} per second", readme)
+        self.assertIn(f"{scorer['median_large_document_seconds']:.4f} seconds", readme)
         self.assertIn(
-            f"{scorer['median_batch_seconds']:.4f} s; "
-            f"{scorer['median_documents_per_second']:.1f} docs/s",
-            readme,
-        )
-        self.assertIn(f"{scorer['median_large_document_seconds']:.4f} s", readme)
-        self.assertIn(
-            f"{max(scorer['pathological_input_seconds'].values()):.4f} s",
+            f"{max(scorer['pathological_input_seconds'].values()):.4f} seconds",
             readme,
         )
         self.assertIn(
-            f"{result['learning']['reflect_seconds']:.4f} s",
+            f"{result['learning']['reflect_seconds']:.4f} seconds",
             readme,
         )
 
-    def test_historical_judge_summary_matches_replication_record(self):
+    def test_historical_judge_record_is_well_formed_and_linked(self):
         record = json.loads((ROOT / "bench" / "replication.json").read_text())
-        readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         totals = {method: record["run1"][method] + record["run2"][method]
                   for method in record["run1"]}
-        self.assertRegex(
-            readme,
-            rf"(?:Zero Slop {totals['zeroslop']} of 100|"
-            rf"{totals['zeroslop']} of 100 best picks for Zero Slop)",
-        )
-        self.assertIn(f"versus {totals['blader']} for humanizer", readme)
-        self.assertIn(f"{record['agreement_count']} of {record['agreement_items']} winners",
-                      readme)
-        self.assertIn(f"Cohen's kappa was {record['kappa']:.2f}", readme)
+        self.assertEqual(sum(totals.values()), 100)
+        self.assertLessEqual(record["agreement_count"], record["agreement_items"])
         lo, hi = record["zero_slop_pooled"]["wilson_95_ci"]
-        self.assertIn(f"{lo:.1%} to {hi:.1%}", readme)
-        p_value = record["zero_slop_vs_humanizer"]["p_value"]
-        self.assertIn(f"gives p = {p_value:.2f}", readme)
+        self.assertLess(lo, record["zero_slop_pooled"]["selections"] / 100, hi)
+        self.assertIn("[`bench/README.md`](bench/README.md)",
+                      (ROOT / "README.md").read_text())
 
     def test_external_model_record_is_well_formed_and_linked_from_readme(self):
         result = json.loads((ROOT / "bench" / "external-models" / "results.json").read_text())
-        readme = (ROOT / "README.md").read_text()
+        readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         self.assertRegex(result["source"]["commit"], r"^[0-9a-f]{40}$")
         self.assertGreater(result["sample"]["preserved_generations"], 10000)
         self.assertEqual([row["rank"] for row in result["models"]],
@@ -2128,9 +2117,8 @@ class Diagram(unittest.TestCase):
 
         readme = (ROOT / "README.md").read_text()
         self.assertIn("assets/competitor-capabilities.png", readme)
-        self.assertIn("documented capabilities, not effectiveness", readme.lower())
-        self.assertIn(audit["products"]["blader"]["commit"][:12], readme)
-        self.assertIn(audit["products"]["no_ai_slop"]["commit"][:12], readme)
+        self.assertIn("does not decide which tool writes better", readme.lower())
+        self.assertIn("[`bench/README.md`](bench/README.md)", readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
 
     def test_benchmark_charts_are_current(self):
