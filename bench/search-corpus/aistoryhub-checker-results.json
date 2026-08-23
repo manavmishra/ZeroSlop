@@ -31,84 +31,15 @@
     "research-future-03": 87
    }
   },
-  "zero-slop": {
-   "input_sha256": "712b0fa47122c0a1a4140687c4dd26a53c8a4599d7431141b57647fa731aa31c",
-   "rows": {
-    "linkedin-lessons-01": 0,
-    "linkedin-contrarian-02": 96,
-    "linkedin-executive-03": 0,
-    "x-agents-01": 0,
-    "x-habit-02": null,
-    "x-future-03": 0,
-    "email-outreach-01": 0,
-    "email-launch-02": 0,
-    "email-followup-03": 0,
-    "blog-landscape-01": 0,
-    "blog-guide-02": 0,
-    "blog-transformation-03": 0,
-    "newsletter-productivity-01": 0,
-    "newsletter-edition-02": 0,
-    "newsletter-trends-03": null,
-    "research-framework-01": 0,
-    "research-approach-02": 0,
-    "research-future-03": 0
-   }
-  },
-  "no-ai-slop": {
-   "input_sha256": "b4761dbd671333e1ab7783a8b84934cb9850da3dfe360680f10ef2ee314acff3",
-   "rows": {
-    "linkedin-lessons-01": 0,
-    "linkedin-contrarian-02": 97,
-    "linkedin-executive-03": 0,
-    "x-agents-01": 0,
-    "x-habit-02": 0,
-    "x-future-03": null,
-    "email-outreach-01": 0,
-    "email-launch-02": 0,
-    "email-followup-03": 0,
-    "blog-landscape-01": 0,
-    "blog-guide-02": 0,
-    "blog-transformation-03": 0,
-    "newsletter-productivity-01": 0,
-    "newsletter-edition-02": 0,
-    "newsletter-trends-03": 0,
-    "research-framework-01": 98,
-    "research-approach-02": 98,
-    "research-future-03": 89
-   }
-  },
-  "humanizer": {
-   "input_sha256": "8058dc4d50306bea0b77059320cded121854a7c8367365d1eda78d7ae1d501cb",
-   "rows": {
-    "linkedin-lessons-01": 0,
-    "linkedin-contrarian-02": 96,
-    "linkedin-executive-03": 0,
-    "x-agents-01": 0,
-    "x-habit-02": 0,
-    "x-future-03": 0,
-    "email-outreach-01": 0,
-    "email-launch-02": 0,
-    "email-followup-03": 0,
-    "blog-landscape-01": 0,
-    "blog-guide-02": 0,
-    "blog-transformation-03": 0,
-    "newsletter-productivity-01": 0,
-    "newsletter-edition-02": 0,
-    "newsletter-trends-03": 0,
-    "research-framework-01": 98,
-    "research-approach-02": 98,
-    "research-future-03": 90
-   }
-  },
   "de-slop": {
-   "input_sha256": "01bb6c0d35c804bec4b236291d93905562f986a7b19648b04d5c7d803fbe5b55",
+   "input_sha256": "7f09e15d5079a078c5b68faca996b47b54b962b9d5a65b734f5c5e6f5e41bd11",
    "rows": {
     "linkedin-lessons-01": 0,
     "linkedin-contrarian-02": 97,
     "linkedin-executive-03": 0,
     "x-agents-01": 0,
-    "x-habit-02": 96,
-    "x-future-03": 0,
+    "x-habit-02": 0,
+    "x-future-03": 98,
     "email-outreach-01": 99,
     "email-launch-02": 99,
     "email-followup-03": 0,
@@ -123,8 +54,54 @@
     "research-future-03": 87
    }
   },
+  "humanizer": {
+   "input_sha256": "7709d096a626672232637cf4b4ff2f9e723379c24d05d8bad0b9e497848982b3",
+   "rows": {
+    "linkedin-lessons-01": 0,
+    "linkedin-contrarian-02": 97,
+    "linkedin-executive-03": 0,
+    "x-agents-01": 0,
+    "x-habit-02": 0,
+    "x-future-03": 98,
+    "email-outreach-01": 0,
+    "email-launch-02": 0,
+    "email-followup-03": 0,
+    "blog-landscape-01": 0,
+    "blog-guide-02": 0,
+    "blog-transformation-03": 0,
+    "newsletter-productivity-01": 0,
+    "newsletter-edition-02": 0,
+    "newsletter-trends-03": 0,
+    "research-framework-01": 98,
+    "research-approach-02": 98,
+    "research-future-03": 90
+   }
+  },
+  "no-ai-slop": {
+   "input_sha256": "8763cbdaedcb039d321d4101f7b6039e71f6bdbd1e35c2aebde9d4d28ba1a142",
+   "rows": {
+    "linkedin-lessons-01": 0,
+    "linkedin-contrarian-02": 97,
+    "linkedin-executive-03": 0,
+    "x-agents-01": 0,
+    "x-habit-02": 0,
+    "x-future-03": 98,
+    "email-outreach-01": 0,
+    "email-launch-02": 0,
+    "email-followup-03": 0,
+    "blog-landscape-01": 0,
+    "blog-guide-02": 0,
+    "blog-transformation-03": 0,
+    "newsletter-productivity-01": 0,
+    "newsletter-edition-02": 0,
+    "newsletter-trends-03": 0,
+    "research-framework-01": 98,
+    "research-approach-02": 98,
+    "research-future-03": 89
+   }
+  },
   "stop-slop": {
-   "input_sha256": "bb9dc1c73314c163f580db72db3819520d83a7a51aecc3525e37dbb622617d31",
+   "input_sha256": "7e091933a3a1dfbd6b4dccfc63c1fcd32796829e16cc598a935351a34143f56f",
    "rows": {
     "linkedin-lessons-01": 0,
     "linkedin-contrarian-02": 97,
@@ -143,6 +120,29 @@
     "newsletter-trends-03": null,
     "research-framework-01": 95,
     "research-approach-02": 95,
+    "research-future-03": 0
+   }
+  },
+  "zero-slop": {
+   "input_sha256": "7b17a3735bcebcd69bcb93e68ed20fdb7917265571947433b25ee54999fd04af",
+   "rows": {
+    "linkedin-lessons-01": 0,
+    "linkedin-contrarian-02": 95,
+    "linkedin-executive-03": 0,
+    "x-agents-01": 0,
+    "x-habit-02": 0,
+    "x-future-03": 0,
+    "email-outreach-01": 0,
+    "email-launch-02": 0,
+    "email-followup-03": 0,
+    "blog-landscape-01": 0,
+    "blog-guide-02": 0,
+    "blog-transformation-03": 0,
+    "newsletter-productivity-01": 0,
+    "newsletter-edition-02": 0,
+    "newsletter-trends-03": null,
+    "research-framework-01": 94,
+    "research-approach-02": 0,
     "research-future-03": 0
    }
   }

@@ -31,11 +31,11 @@ and `comparison-results.json` records every score and pass result.
 
 The comparison reports two narrow measurements. The first is the current Zero Slop
 surface score after editing. It favors a method designed to iterate against that meter,
-so it is not an independent quality ranking. The second requires the genre score gate
-and automated fact check to pass. The check covers figures, names, quotations, links,
-and asserted feelings; it cannot detect every semantic change. All five methods passed
-that automated fact check on all 18 items, so their combined pass-rate differences are
-surface-score differences.
+so it is not an independent quality ranking. The second requires the genre surface
+gate, the shape gate, and the automated fact check to pass. The fact check covers
+figures, names, quotations, links, and asserted feelings; it cannot detect every
+semantic change. Every rewrite passed the shape and automated fact checks, so the
+combined pass-rate differences in this run come from the surface gate.
 
 This corpus contains only obvious positive examples. It cannot measure false positives,
 specificity, field accuracy, human preference, or complete semantic fidelity. Do not

@@ -29,14 +29,21 @@ DATA = ROOT / "data"
 CORPUS = DATA / "corpus" / "must-not-flag"
 SCORER = ROOT / "scripts" / "slopscore.py"
 LEARNER = ROOT / "scripts" / "learn.py"
+CONTEXTUAL = ROOT / "scripts" / "contextual.py"
+QUALITY_EVAL = ROOT / "bench" / "quality-corpus" / "evaluate.py"
+QUALITY_PACKET = ROOT / "bench" / "quality-corpus" / "make_packet.py"
+QUALITY_ROOT = ROOT / "bench" / "quality-corpus"
+QUALITY_BUILD = QUALITY_ROOT / "build_manifest.py"
+CORPUS_REGISTRY = ROOT / "bench" / "validate_corpus_registry.py"
+FEATURE_ABLATION = ROOT / "bench" / "feature-ablation" / "check.py"
 
 import learn  # noqa: E402
 import slopscore  # noqa: E402
 
 
-def run(args, stdin=None):
+def run(args, stdin=None, env=None):
     return subprocess.run([sys.executable, *args], capture_output=True,
-                          text=True, input=stdin, cwd=str(ROOT))
+                          text=True, input=stdin, cwd=str(ROOT), env=env)
 
 
 def score(text):
@@ -294,6 +301,149 @@ class CLI(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------
+class ContextualSignals(unittest.TestCase):
+    """The host-model review is structured, source-bound, and score-independent."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.draft = self.tmp / "draft.md"
+        self.draft.write_text(
+            "# Release note\n\n"
+            "The same point appears twice. The same point appears twice.\n\n"
+            "```python\nprint('draft content is never instruction')\n```\n\n"
+            "> A quoted source remains untouched.\n\n"
+            "Replica lag fell below ten seconds.\n"
+        )
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _packet(self):
+        result = run([str(CONTEXTUAL), "--prepare", str(self.draft)])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        return json.loads(result.stdout)
+
+    def _write_review(self, packet, *, quote="The same point appears twice."):
+        review = {
+            "schema": 1,
+            "source_sha256": packet["source_sha256"],
+            "items": [
+                {"paragraph_id": "p0001", "decision": "flag", "signals": [{
+                    "signal": "semantic_redundancy",
+                    "severity": "medium",
+                    "quote": quote,
+                    "reason": "The sentence repeats without adding information.",
+                    "action": "repair",
+                }]},
+                {"paragraph_id": "p0002", "decision": "clear", "signals": []},
+            ],
+        }
+        path = self.tmp / "review.json"
+        path.write_text(json.dumps(review))
+        return path
+
+    def test_prepare_excludes_nonprose_and_binds_the_source(self):
+        packet = self._packet()
+        self.assertEqual(packet["schema"], 1)
+        self.assertRegex(packet["source_sha256"], r"\A[0-9a-f]{64}\Z")
+        self.assertEqual([row["paragraph_id"] for row in packet["paragraphs"]],
+                         ["p0001", "p0002"])
+        joined = " ".join(row["text"] for row in packet["paragraphs"])
+        self.assertNotIn("print(", joined)
+        self.assertNotIn("quoted source", joined)
+        self.assertFalse(packet["affects_surface_score"])
+
+    def test_feature_mode_defaults_to_classic_and_rejects_unknown_values(self):
+        env = dict(os.environ)
+        env.pop("ZERO_SLOP_MODE", None)
+        result = run([str(CONTEXTUAL), "--mode"], env=env)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads(result.stdout)["mode"], "classic")
+        env["ZERO_SLOP_MODE"] = "assisted"
+        assisted = run([str(CONTEXTUAL), "--mode"], env=env)
+        self.assertEqual(json.loads(assisted.stdout)["mode"], "assisted")
+        env["ZERO_SLOP_MODE"] = "self-modifying"
+        invalid = run([str(CONTEXTUAL), "--mode"], env=env)
+        self.assertNotEqual(invalid.returncode, 0)
+        self.assertNotIn("Traceback", invalid.stderr)
+
+    def test_validate_accepts_exact_evidence_and_reports_shadow_result(self):
+        packet = self._packet()
+        review = self._write_review(packet)
+        result = run([str(CONTEXTUAL), "--validate", str(self.draft), str(review),
+                      "--json"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["result_kind"], "contextual_shadow_review")
+        self.assertFalse(report["affects_surface_score"])
+        self.assertEqual(report["flagged_paragraphs"], 1)
+        self.assertEqual(report["signals"], {"semantic_redundancy": 1})
+
+    def test_validate_rejects_invented_quote_and_stale_source(self):
+        packet = self._packet()
+        invented = self._write_review(packet, quote="Words that are not in the draft.")
+        result = run([str(CONTEXTUAL), "--validate", str(self.draft), str(invented),
+                      "--json"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+
+        packet = self._packet()
+        review = self._write_review(packet)
+        self.draft.write_text(self.draft.read_text() + "\nChanged after review.\n")
+        stale = run([str(CONTEXTUAL), "--validate", str(self.draft), str(review),
+                     "--json"])
+        self.assertNotEqual(stale.returncode, 0)
+        self.assertNotIn("Traceback", stale.stderr)
+
+    def test_validate_rejects_unknown_labels_probabilities_and_partial_reviews(self):
+        packet = self._packet()
+        review = json.loads(self._write_review(packet).read_text())
+        review["items"][0]["signals"][0]["signal"] = "sounds_bad"
+        path = self.tmp / "bad-label.json"
+        path.write_text(json.dumps(review))
+        self.assertNotEqual(
+            run([str(CONTEXTUAL), "--validate", str(self.draft), str(path),
+                 "--json"]).returncode,
+            0,
+        )
+
+        review = json.loads(self._write_review(packet).read_text())
+        review["items"][0]["signals"][0]["probability"] = 0.99
+        path.write_text(json.dumps(review))
+        self.assertNotEqual(
+            run([str(CONTEXTUAL), "--validate", str(self.draft), str(path),
+                 "--json"]).returncode,
+            0,
+        )
+
+        review = json.loads(self._write_review(packet).read_text())
+        review["items"] = review["items"][:1]
+        path.write_text(json.dumps(review))
+        self.assertNotEqual(
+            run([str(CONTEXTUAL), "--validate", str(self.draft), str(path),
+                 "--json"]).returncode,
+            0,
+        )
+
+    def test_prepare_is_linear_enough_for_large_documents(self):
+        self.draft.write_text("\n\n".join(
+            f"Paragraph {i} records one specific operational fact." for i in range(2000)
+        ))
+        started = time.perf_counter()
+        packet = self._packet()
+        self.assertLess(time.perf_counter() - started, 3.0)
+        self.assertEqual(len(packet["paragraphs"]), 2000)
+
+    def test_mismatched_fence_marker_cannot_leak_code_into_review(self):
+        self.draft.write_text(
+            "Opening prose.\n\n```text\ninside code\n~~~\nstill code\n```\n\nClosing prose.\n"
+        )
+        packet = self._packet()
+        self.assertEqual([row["text"] for row in packet["paragraphs"]],
+                         ["Opening prose.", "Closing prose."])
+
+
+# --------------------------------------------------------------------------
 class ReflectLoop(unittest.TestCase):
     """The learning path. Every test runs against a throwaway copy of data/."""
 
@@ -316,14 +466,14 @@ class ReflectLoop(unittest.TestCase):
          learn.SHARED_LOG, learn.LOCAL, learn.LOCAL_LOG) = self._save
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def _pair(self, produced, shipped, doc):
+    def _pair(self, produced, shipped, doc, reason="unspecified", genre="general"):
         a, b = self.tmp / "p.md", self.tmp / "s.md"
         # Distinct surrounding content makes these distinct edit pairs. The
         # learning loop deliberately ignores caller-supplied IDs for recurrence.
         prefix = f"memo {doc}. "
         a.write_text(prefix + produced)
         b.write_text(prefix + shipped)
-        learn.reflect(str(a), str(b), doc)
+        learn.reflect(str(a), str(b), doc, reason=reason, genre=genre)
 
     def _obs(self):
         return json.loads(learn.OBS.read_text())["observations"]
@@ -385,6 +535,144 @@ class ReflectLoop(unittest.TestCase):
                          if p["source_span"] == "we're thrilled to announce")
         self.assertEqual(refreshed["seen_in_pairs"], learn.PROMOTE_AT + 1)
         self.assertTrue(refreshed["active"])
+
+    def test_reason_and_genre_survive_promotion(self):
+        for i in range(learn.PROMOTE_AT):
+            self._pair("We're thrilled to announce the release.",
+                       "The release is live.", f"reason-{i}",
+                       reason="canned_framing", genre="linkedin")
+        learn.promote(True, "test", 2.5)
+        pref = next(p for p in self._overlay()["fix_preferences"]
+                    if p["source_span"] == "we're thrilled to announce")
+        self.assertEqual(pref["reasons"], {"canned_framing": learn.PROMOTE_AT})
+        self.assertEqual(pref["genres"], {"linkedin": learn.PROMOTE_AT})
+
+    def test_invalid_reason_and_genre_fail_closed(self):
+        a, b = self.tmp / "p.md", self.tmp / "s.md"
+        a.write_text("We're thrilled to announce the release.")
+        b.write_text("The release is live.")
+        with self.assertRaises(SystemExit):
+            learn.reflect(str(a), str(b), reason="invented-label")
+        with self.assertRaises(SystemExit):
+            learn.reflect(str(a), str(b), genre="private-board-channel")
+
+    def test_per_edit_feedback_can_label_mixed_reasons(self):
+        for i in range(learn.PROMOTE_AT):
+            produced = (f"Memo {i}. We're thrilled to announce the release. "
+                        "Metrics held. At the end of the day, uptime improved.")
+            shipped = (f"Memo {i}. The release is live. Metrics held. "
+                       "Uptime improved.")
+            a, b = self.tmp / "p.md", self.tmp / "s.md"
+            a.write_text(produced)
+            b.write_text(shipped)
+            feedback = {
+                "schema": 1,
+                "source_sha256": learn.text_sha256(produced),
+                "target_sha256": learn.text_sha256(shipped),
+                "edits": [
+                    {"source_span": "We're thrilled to announce",
+                     "reason": "canned_framing", "genre": "linkedin"},
+                    {"source_span": "At the end of the day,",
+                     "reason": "semantic_redundancy", "genre": "linkedin"},
+                ],
+            }
+            feedback_path = self.tmp / f"feedback-{i}.json"
+            feedback_path.write_text(json.dumps(feedback))
+            learn.reflect(str(a), str(b), feedback=feedback_path)
+        learn.promote(True, "test", 2.5)
+        prefs = {p["source_span"]: p for p in self._overlay()["fix_preferences"]}
+        self.assertEqual(prefs["we're thrilled to announce"]["reasons"],
+                         {"canned_framing": learn.PROMOTE_AT})
+        self.assertEqual(prefs["at the end of the day"]["reasons"],
+                         {"semantic_redundancy": learn.PROMOTE_AT})
+
+    def test_per_edit_feedback_rejects_hash_mismatch_and_unknown_span(self):
+        a, b = self.tmp / "p.md", self.tmp / "s.md"
+        a.write_text("We're thrilled to announce the release.")
+        b.write_text("The release is live.")
+        payload = {
+            "schema": 1,
+            "source_sha256": "0" * 64,
+            "target_sha256": learn.text_sha256(b.read_text()),
+            "edits": [{"source_span": "We're thrilled to announce",
+                       "reason": "canned_framing", "genre": "linkedin"}],
+        }
+        feedback = self.tmp / "feedback.json"
+        feedback.write_text(json.dumps(payload))
+        with self.assertRaises(SystemExit):
+            learn.reflect(str(a), str(b), feedback=feedback)
+        payload["source_sha256"] = learn.text_sha256(a.read_text())
+        payload["edits"][0]["source_span"] = "not present in the diff"
+        feedback.write_text(json.dumps(payload))
+        with self.assertRaises(SystemExit):
+            learn.reflect(str(a), str(b), feedback=feedback)
+
+    def test_retrieval_is_relevant_bounded_and_not_a_probability(self):
+        overlay = learn.empty_learned("local")
+        overlay["fix_preferences"] = [
+            {"source_span": "we're thrilled to announce",
+             "preferred_fix": "the release is live", "seen_in_pairs": 5,
+             "reasons": {"canned_framing": 5}, "genres": {"linkedin": 5},
+             "active": True},
+            {"source_span": "at the end of the day",
+             "preferred_fix": "ultimately", "seen_in_pairs": 4,
+             "reasons": {"canned_framing": 4}, "genres": {"email": 4},
+             "active": True},
+            {"source_span": "moves the needle for teams",
+             "preferred_fix": "cuts deploy time", "seen_in_pairs": 3,
+             "reasons": {"vague_reference": 3}, "genres": {"linkedin": 3},
+             "active": True},
+        ]
+        learn.write_json(learn.LOCAL, overlay, private=True)
+        rows = learn.retrieve_preferences(
+            "We're thrilled to announce what shipped today.",
+            reason="canned_framing", genre="linkedin", limit=2)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["when"], "we're thrilled to announce")
+        self.assertIn("similarity", rows[0])
+        self.assertNotIn("probability", rows[0])
+        self.assertLessEqual(rows[0]["similarity"], 1.0)
+
+    def test_retrieval_abstains_without_lexical_relevance(self):
+        overlay = learn.empty_learned("local")
+        overlay["fix_preferences"] = [{
+            "source_span": "we're thrilled to announce",
+            "preferred_fix": "the release is live", "seen_in_pairs": 5,
+            "reasons": {"canned_framing": 5}, "genres": {"linkedin": 5},
+            "active": True,
+        }]
+        learn.write_json(learn.LOCAL, overlay, private=True)
+        self.assertEqual(
+            learn.retrieve_preferences("Replica lag fell below ten seconds.",
+                                       reason="canned_framing", genre="linkedin"),
+            [],
+        )
+
+    def test_retrieval_scales_to_large_private_overlays(self):
+        overlay = learn.empty_learned("local")
+        overlay["fix_preferences"] = [
+            {"source_span": f"stock framing phrase {i}",
+             "preferred_fix": f"plain wording {i}", "seen_in_pairs": 3,
+             "reasons": {"canned_framing": 3}, "genres": {"general": 3},
+             "active": True}
+            for i in range(5000)
+        ]
+        started = time.perf_counter()
+        rows = learn.retrieve_preferences("stock framing phrase 4242 appears here",
+                                          reason="canned_framing", genre="general",
+                                          limit=5, learned=overlay)
+        self.assertLess(time.perf_counter() - started, 1.0)
+        self.assertLessEqual(len(rows), 5)
+        self.assertEqual(rows[0]["when"], "stock framing phrase 4242")
+
+    def test_retrieval_fails_closed_on_unbounded_overlay(self):
+        overlay = learn.empty_learned("local")
+        row = {"source_span": "stock framing phrase",
+               "preferred_fix": "plain wording", "seen_in_pairs": 3,
+               "active": True}
+        overlay["fix_preferences"] = [row] * (learn.MAX_RETRIEVAL_PREFERENCES + 1)
+        with self.assertRaises(SystemExit):
+            learn.retrieve_preferences("stock framing phrase", learned=overlay)
 
     def test_stale_fix_preference_is_retired(self):
         old = str(date.today() - timedelta(days=30 * (learn.DECAY_MONTHS + 2)))
@@ -1198,6 +1486,7 @@ class SearchCorpus(unittest.TestCase):
         for method, row in results["methods"].items():
             with self.subTest(method):
                 self.assertEqual(row["automated_fact_check_passes"], 18)
+                self.assertEqual(row["shape_gate_passes"], 18)
         self.assertEqual(results["methods"]["zero-slop"]["combined_passes"], 18)
 
     def test_comparison_outputs_cover_the_same_anonymous_ids(self):
@@ -1229,6 +1518,269 @@ class SearchCorpus(unittest.TestCase):
                 self.assertNotIn("/Users/", source)
                 self.assertNotIn("\\\\Users\\\\", source)
                 self.assertNotIn("/private/tmp/", source)
+
+    def test_readme_tables_match_the_fresh_comparison_results(self):
+        """Published replay and public-checker rows must come from the JSON, not
+        from a manually remembered prior run."""
+        results = json.loads((self.PATH.parent / "comparison-results.json").read_text())
+        readme = (ROOT / "README.md").read_text().replace("−", "-").replace("**", "")
+        self.assertIn(
+            f"| Original drafts | {results['original_mean_surface_score']:.1f} | "
+            f"{results['original_combined_passes']}/{results['n_examples']} | — | — |",
+            readme,
+        )
+        for row in results["methods"].values():
+            expected = (
+                f"| {row['label']} | {row['mean_surface_score']:.1f} | "
+                f"{row['combined_passes']}/{results['n_examples']} | "
+                f"{row['automated_fact_check_passes']}/{results['n_examples']} | "
+                f"{row['mean_word_change_pct']:.1f}% |"
+            )
+            with self.subTest(method=row["label"]):
+                self.assertIn(expected, readme)
+
+        for row in results["external_cross_meter"]["methods"].values():
+            expected = (
+                f"| {row['label']} | {row['reads_clean']} "
+                f"({row['reads_clean_rate']:.1f}%) | {row['eligible_items']} | "
+                f"{row['abstentions']} | {row['mean_score']:.1f} |"
+            )
+            with self.subTest(external=row["label"]):
+                self.assertIn(expected, readme)
+
+    def test_readme_performance_table_matches_the_structured_record(self):
+        result = json.loads((ROOT / "bench" / "performance-results.json").read_text())
+        readme = (ROOT / "README.md").read_text()
+        scorer = result["scorer"]
+        self.assertIn(
+            f"{scorer['median_batch_seconds']:.4f} s; "
+            f"{scorer['median_documents_per_second']:.1f} docs/s",
+            readme,
+        )
+        self.assertIn(f"{scorer['median_large_document_seconds']:.4f} s", readme)
+        self.assertIn(
+            f"{max(scorer['pathological_input_seconds'].values()):.4f} s",
+            readme,
+        )
+        self.assertIn(
+            f"{result['learning']['reflect_seconds']:.4f} s",
+            readme,
+        )
+
+    def test_historical_judge_summary_matches_replication_record(self):
+        record = json.loads((ROOT / "bench" / "replication.json").read_text())
+        readme = (ROOT / "README.md").read_text()
+        totals = {method: record["run1"][method] + record["run2"][method]
+                  for method in record["run1"]}
+        self.assertIn(
+            f"Zero Slop received {totals['zeroslop']}, blader/humanizer "
+            f"{totals['blader']},\nno-ai-slop {totals['petergyang']} and de-slop "
+            f"{totals['deslop']}.",
+            readme,
+        )
+        self.assertIn(
+            f"agreed on the winner for only {record['agreement_count']} of "
+            f"{record['agreement_items']}",
+            readme,
+        )
+        self.assertIn(f"Cohen's kappa was {record['kappa']:.2f}", readme)
+        lo, hi = record["zero_slop_pooled"]["wilson_95_ci"]
+        self.assertIn(f"Wilson interval of {lo:.1%} to {hi:.1%}", readme)
+        p_value = record["zero_slop_vs_humanizer"]["p_value"]
+        self.assertIn(f"gives p = {p_value:.2f}", readme)
+
+    def test_external_model_table_matches_the_pinned_reproduction(self):
+        result = json.loads((ROOT / "bench" / "external-models" / "results.json").read_text())
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn(result["source"]["commit"][:12], readme)
+        self.assertIn(f"{result['sample']['preserved_generations']:,} raw generations", readme)
+        for row in result["models"]:
+            spread = row["rank_range"]
+            shown = str(spread[0]) if spread[0] == spread[1] else f"{spread[0]}–{spread[1]}"
+            with self.subTest(model=row["model"]):
+                self.assertIn(
+                    f"| {row['rank']} | {row['model']} | {row['overall']:.1f} | {shown} |",
+                    readme,
+                )
+
+    def test_readme_beemo_table_matches_the_paired_audit(self):
+        result = json.loads((ROOT / "bench" / "beemo-corpus" / "results.json").read_text())
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn(result["source"]["revision"][:12], readme)
+        for field in ("model_output", "human_edits", "human_output"):
+            row = result["groups"][field]
+            expected = (
+                f"| {row['label']} | {row['documents']:,} | "
+                f"{row['mean_surface_score']:.1f} | {row['median_surface_score']:.1f} | "
+                f"{row['at_or_above_generic_gate']} "
+                f"({row['at_or_above_generic_gate_pct']:.1f}%) |"
+            )
+            with self.subTest(field=field):
+                self.assertIn(expected, readme)
+
+
+class BeemoCorpusAudit(unittest.TestCase):
+    """The paired external audit stays pinned, aggregate-only, and caveated."""
+
+    ROOT = ROOT / "bench" / "beemo-corpus"
+
+    def test_committed_result_contract(self):
+        pin = json.loads((self.ROOT / "source.json").read_text())
+        result = json.loads((self.ROOT / "results.json").read_text())
+        self.assertEqual(result["result_kind"], "external_paired_edit_surface_audit")
+        self.assertFalse(result["calibrated_accuracy"])
+        self.assertEqual(result["source"]["revision"], pin["revision"])
+        self.assertEqual(result["source"]["rows"], pin["expected_rows"])
+        self.assertEqual(len(result["source"]["content_sha256"]), 64)
+        for field in ("model_output", "human_edits", "human_output"):
+            self.assertEqual(result["groups"][field]["documents"], pin["expected_rows"])
+
+    def test_source_text_is_not_redistributed(self):
+        shipped = [p.name for p in self.ROOT.iterdir() if p.is_file()]
+        self.assertEqual(set(shipped), {"README.md", "audit.py", "results.json", "source.json"})
+        self.assertFalse(any((self.ROOT / name).suffix in {".csv", ".parquet", ".jsonl"}
+                             for name in shipped))
+
+    def test_offline_contract_check(self):
+        result = run([str(self.ROOT / "audit.py"), "--check"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+class QualityCorpus(unittest.TestCase):
+    """Blind slop-quality labels stay method-hidden, split-safe, and auditable."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        rows = [
+            ("q001", "s1", "dev", "email", "original",
+             "Replica lag fell below ten seconds after the index rebuild."),
+            ("q002", "s2", "test", "linkedin", "original",
+             "We're beyond excited to announce a groundbreaking journey that "
+             "will seamlessly unlock unprecedented value. Let's dive in."),
+            ("q003", "s3", "dev", "blog", "zero-slop",
+             "The cache cut median response time from 240 ms to 90 ms."),
+            ("q004", "s4", "test", "newsletter", "humanizer",
+             "In today's fast-paced landscape, this powerful shift serves as a "
+             "testament to innovation and meaningful impact."),
+        ]
+        self.manifest = self.tmp / "manifest.json"
+        manifest = {
+            "schema": 1,
+            "corpus_kind": "blind_slop_quality_panel",
+            "label_protocol_sha256": "a" * 64,
+            "items": [{"id": item_id, "source_id": source_id, "split": split,
+                       "genre": genre, "method": method, "text": text,
+                       "text_sha256": learn.text_sha256(text)}
+                      for item_id, source_id, split, genre, method, text in rows],
+        }
+        self.manifest.write_text(json.dumps(manifest))
+        labels = {
+            "q001": ("clean", 1), "q002": ("sloppy", 5),
+            "q003": ("clean", 1), "q004": ("sloppy", 4),
+        }
+        self.label_paths = []
+        for rater in ("rater-a", "rater-b"):
+            path = self.tmp / f"{rater}.json"
+            path.write_text(json.dumps({
+                "schema": 1, "rater": rater, "protocol_sha256": "a" * 64,
+                "items": [{"id": item_id, "label": label, "severity": severity,
+                           "signals": ["canned_framing"] if label == "sloppy" else []}
+                          for item_id, (label, severity) in labels.items()],
+            }))
+            self.label_paths.append(path)
+        self.result = self.tmp / "results.json"
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_blind_packet_contains_no_method_source_split_or_score(self):
+        result = run([str(QUALITY_PACKET), str(self.manifest)])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        packet = json.loads(result.stdout)
+        self.assertEqual(set(packet), {"schema", "protocol_sha256", "items"})
+        for item in packet["items"]:
+            self.assertEqual(set(item), {"id", "text"})
+
+    def test_evaluation_computes_split_metrics_and_method_summary(self):
+        args = [str(QUALITY_EVAL), "--manifest", str(self.manifest)]
+        for label in self.label_paths:
+            args += ["--labels", str(label)]
+        result = run([*args, "--out", str(self.result), "--write"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        report = json.loads(self.result.read_text())
+        self.assertEqual(report["result_kind"], "blind_slop_quality_evaluation")
+        self.assertFalse(report["calibrated_field_accuracy"])
+        self.assertEqual(report["labels"]["consensus_items"], 4)
+        self.assertEqual(report["splits"]["dev"]["items"], 2)
+        self.assertEqual(report["splits"]["test"]["items"], 2)
+        self.assertEqual(set(report["methods"]), {"original", "zero-slop", "humanizer"})
+        self.assertGreaterEqual(report["surface_meter"]["accuracy"], 0.75)
+        shadow = report["contextual_shadow_ablation"]["held_out_test_mean"]
+        self.assertEqual(shadow["contextual_accuracy"], 1.0)
+        self.assertGreaterEqual(shadow["contextual_minus_surface_accuracy"], 0.0)
+        self.assertFalse(report["contextual_shadow_ablation"]["field_accuracy"])
+
+    def test_evaluation_rejects_hash_drift_label_gaps_and_source_split_leakage(self):
+        manifest = json.loads(self.manifest.read_text())
+        manifest["items"][0]["text"] += " changed"
+        self.manifest.write_text(json.dumps(manifest))
+        result = run([str(QUALITY_PACKET), str(self.manifest)])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+
+        manifest["items"][0]["text_sha256"] = learn.text_sha256(
+            manifest["items"][0]["text"])
+        manifest["items"][1]["source_id"] = manifest["items"][0]["source_id"]
+        self.manifest.write_text(json.dumps(manifest))
+        result = run([str(QUALITY_PACKET), str(self.manifest)])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_committed_panel_and_results_are_current(self):
+        built = run([str(QUALITY_BUILD), "--check"])
+        self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+        args = [str(QUALITY_EVAL), "--manifest", str(QUALITY_ROOT / "manifest.json")]
+        for name in ("labels-rater-a.json", "labels-rater-b.json"):
+            args += ["--labels", str(QUALITY_ROOT / name)]
+        evaluated = run([*args, "--out", str(QUALITY_ROOT / "results.json"), "--check"])
+        self.assertEqual(evaluated.returncode, 0,
+                         evaluated.stdout + evaluated.stderr)
+        report = json.loads((QUALITY_ROOT / "results.json").read_text())
+        self.assertEqual(report["source"]["items"], 72)
+        self.assertEqual(report["source"]["source_drafts"], 12)
+        self.assertFalse(report["calibrated_field_accuracy"])
+
+
+class CorpusAdmission(unittest.TestCase):
+    """Every proposed corpus gets a documented, label-matched admission decision."""
+
+    def test_registry_contract_and_requested_source_coverage(self):
+        result = run([str(CORPUS_REGISTRY)])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        registry = json.loads((ROOT / "bench" / "corpus-registry.json").read_text())
+        self.assertIn("No listed corpus currently clears every requirement",
+                      registry["policy"]["rule"])
+        authorship_only = {"raid", "mage", "hc3", "arb", "editlens",
+                           "maga-bench", "m4gt-bench", "coling-2025-mgt",
+                           "m4", "autextification"}
+        rows = {row["id"]: row for row in registry["datasets"]}
+        for corpus_id in authorship_only:
+            with self.subTest(corpus_id):
+                self.assertNotEqual(rows[corpus_id]["tier"], "release_gate")
+                self.assertNotEqual(rows[corpus_id]["status"], "measured")
+
+
+class FeatureAblation(unittest.TestCase):
+    """The old-versus-new claim stays tied to live data and a safe default."""
+
+    def test_committed_ablation_is_current_and_caveated(self):
+        result = run([str(FEATURE_ABLATION)])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        report = json.loads((ROOT / "bench" / "feature-ablation" / "results.json").read_text())
+        self.assertTrue(report["deterministic_surface_ablation"]["exactly_unchanged"])
+        self.assertFalse(report["structured_contextual_shadow"]["field_accuracy"])
+        self.assertIsNone(report["reason_labelled_retrieval"]["accuracy_result"])
+        self.assertEqual(report["candidate"]["default_mode"], "classic")
 
 
 class AIStoryHubCorpusAudit(unittest.TestCase):
@@ -1562,7 +2114,7 @@ class Diagram(unittest.TestCase):
 
         readme = (ROOT / "README.md").read_text()
         self.assertIn("assets/competitor-capabilities.png", readme)
-        self.assertIn("Capability presence is not effectiveness proof", readme)
+        self.assertIn("A documented capability does not prove that it works well", readme)
         self.assertIn(audit["products"]["blader"]["commit"][:12], readme)
         self.assertIn(audit["products"]["no_ai_slop"]["commit"][:12], readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
@@ -1608,7 +2160,7 @@ class Diagram(unittest.TestCase):
     def test_plugin_runtime_contains_only_runtime_modules(self):
         shipped = {p.name for p in (ROOT / "skills" / "zero-slop" / "scripts").glob("*.py")}
         self.assertEqual(shipped, {
-            "calibrate.py", "learn.py", "predictability.py", "rerank.py",
+            "calibrate.py", "contextual.py", "learn.py", "predictability.py", "rerank.py",
             "safeio.py", "slopscore.py", "version_check.py",
         })
 
@@ -1641,13 +2193,12 @@ class Diagram(unittest.TestCase):
         src = (ROOT / "assets" / "engine.svg").read_text().lower()
         for phrase in (
                 "editorial delivery", "measure", "diagnose", "rewrite",
-                "copy edit", "read aloud", "verify", "online learning",
-                "portfolio probe",
-                "observe", "gate evidence", "update private overlay",
-                "reconfirm / decay", "detector weights + fix preferences",
-                "adapts detection + fixing", "not a runtime loop",
-                "external taxonomy", "human-corpus regression",
-                "versioned release"):
+                "copy edit", "read aloud", "verify", "private online learning",
+                "observe", "bind", "gate", "store", "retrieve",
+                "local detector weights", "retrieved fixes", "no neural training",
+                "not a runtime loop", "admit corpora", "blind evaluation",
+                "performance · fidelity · safety · cost", "human-validated gain",
+                "classic", "shadow", "assisted"):
             with self.subTest(phrase):
                 self.assertIn(phrase, src)
 

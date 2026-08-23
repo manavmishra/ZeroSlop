@@ -5,7 +5,7 @@ The charts in the README are computed, not hand-drawn. This reads the same sourc
 the tables do — replication.json for the pooled best-picks, the raw method outputs
 re-scored by the current detector for the register panel, and the search-informed
 regression and rewrite results, plus the version-pinned competitor capability audit.
-It draws six bar charts and one capability matrix in assets/ and writes a small
+It draws ten bar charts and one capability matrix in assets/ and writes a small
 chart-data.json manifest.
 
     python3 bench/make_charts.py            # regenerate the PNGs and the manifest
@@ -32,6 +32,10 @@ MANIFEST = BENCH / "chart-data.json"
 SEARCH_RESULTS = BENCH / "search-corpus" / "results.json"
 CAPABILITY_AUDIT = BENCH / "competitor-capabilities.json"
 SEARCH_COMPARISON = BENCH / "search-corpus" / "comparison-results.json"
+EXTERNAL_MODELS = BENCH / "external-models" / "results.json"
+BEEMO_RESULTS = BENCH / "beemo-corpus" / "results.json"
+QUALITY_RESULTS = BENCH / "quality-corpus" / "results.json"
+FEATURE_ABLATION = BENCH / "feature-ablation" / "results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 from safeio import atomic_write_bytes, atomic_write_text  # noqa: E402
 
@@ -51,7 +55,7 @@ BEST_LABELS = {"zeroslop": "Zero Slop", "blader": "blader/humanizer",
 
 
 def compute():
-    """Return the five chart datasets, computed from the benchmark data."""
+    """Return the nine chart datasets, computed from the benchmark data."""
     import slopscore
     data = slopscore.load_patterns()
 
@@ -128,11 +132,60 @@ def compute():
          comparison["external_cross_meter"]["methods"][method]["reads_clean_rate"])
         for method in external_order
     ]
+    external_models = json.loads(EXTERNAL_MODELS.read_text())
+    source = external_models.get("source", {})
+    models = external_models.get("models", [])
+    if (external_models.get("result_kind") != "external_reproduction"
+            or not isinstance(source.get("commit"), str)
+            or len(source["commit"]) != 40
+            or len(models) != external_models.get("sample", {}).get("models")
+            or len({row.get("model") for row in models}) != len(models)):
+        raise ValueError("external model reproduction has an invalid contract")
+    if [row.get("rank") for row in models] != list(range(1, len(models) + 1)):
+        raise ValueError("external model rows must be ordered by published rank")
+    model_context = [(row["model"], row["overall"]) for row in models]
+    beemo = json.loads(BEEMO_RESULTS.read_text())
+    if (beemo.get("result_kind") != "external_paired_edit_surface_audit"
+            or beemo.get("calibrated_accuracy") is not False
+            or beemo.get("source", {}).get("rows") != 2187):
+        raise ValueError("Beemo paired-edit audit has an invalid contract")
+    beemo_surface = [
+        (beemo["groups"][field]["label"],
+         beemo["groups"][field]["mean_surface_score"])
+        for field in ("model_output", "human_edits", "human_output")
+    ]
+    quality = json.loads(QUALITY_RESULTS.read_text())
+    if (quality.get("result_kind") != "blind_slop_quality_evaluation"
+            or quality.get("calibrated_field_accuracy") is not False
+            or quality.get("source", {}).get("items") != 72):
+        raise ValueError("blind quality evaluation has an invalid contract")
+    quality_order = ["original", "de-slop", "stop-slop", "no-ai-slop",
+                     "humanizer", "zero-slop"]
+    blind_quality = [
+        (("Original drafts" if method == "original" else
+          "Zero Slop" if method == "zero-slop" else method),
+         quality["methods"][method]["mean_blind_severity"])
+        for method in quality_order
+    ]
+    ablation = json.loads(FEATURE_ABLATION.read_text())
+    shadow = ablation.get("structured_contextual_shadow", {})
+    if (ablation.get("schema") != 1 or shadow.get("field_accuracy") is not False):
+        raise ValueError("feature ablation has an invalid contract")
+    contextual_ablation = [
+        ("v2.4.3 / classic surface", round(
+            shadow["surface_accuracy_on_same_items"] * 100, 2)),
+        ("v2.5.0 contextual shadow", round(
+            shadow["held_out_test_accuracy"] * 100, 2)),
+    ]
     return {"best_picks": best, "detector_panel": panel,
             "search_corpus": search_panel,
             "search_rewrite_scores": rewrite_scores,
             "search_rewrite_passes": rewrite_passes,
             "external_checker_clean": external_clean,
+            "external_model_context": model_context,
+            "beemo_surface": beemo_surface,
+            "blind_quality": blind_quality,
+            "contextual_ablation": contextual_ablation,
             "capability_matrix": capability_matrix}
 
 
@@ -142,8 +195,9 @@ FONT_CANDIDATES = [
     "/System/Library/Fonts/Supplemental/Arial.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
 ]
-INK, MUTE, GRID = (27, 29, 34), (91, 98, 112), (226, 229, 233)
-BRAND, MUTEDBAR = (42, 120, 214), (176, 188, 204)
+PAPER = (248, 249, 246)
+INK, MUTE, GRID = (25, 29, 27), (91, 100, 95), (217, 222, 216)
+BRAND, MUTEDBAR = (34, 123, 91), (171, 183, 176)
 
 
 def _font(size, bold=False):
@@ -157,20 +211,21 @@ def _font(size, bold=False):
     return ImageFont.load_default()
 
 
-def _hbar(path, title, subtitle, rows, ours_label):
+def _hbar(path, title, subtitle, rows, ours_label, axis_ticks=None):
     from PIL import Image, ImageDraw
     W, padL, padR, top, rowh = 1240, 340, 90, 96, 52
     H = top + len(rows) * rowh + 70
-    img = Image.new("RGB", (W, H), (255, 255, 255))
+    img = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(img)
     d.text((44, 30), title, font=_font(27, True), fill=INK)
     d.text((44, 66), subtitle, font=_font(15), fill=MUTE)
-    vmax = (max(v for _, v in rows) * 1.16) or 1
+    vmax = max(axis_ticks) if axis_ticks else (max(v for _, v in rows) * 1.16) or 1
     x0, x1 = padL, W - padR
-    for i in range(5):
-        gx = x0 + (x1 - x0) * i / 4
+    ticks = axis_ticks or [vmax * i / 4 for i in range(5)]
+    for tick in ticks:
+        gx = x0 + (x1 - x0) * tick / vmax
         d.line([(gx, top - 6), (gx, H - 46)], fill=GRID, width=1)
-        d.text((gx - 8, H - 40), f"{vmax * i / 4:.0f}", font=_font(12), fill=MUTE)
+        d.text((gx - 8, H - 40), f"{tick:g}", font=_font(12), fill=MUTE)
     for i, (label, val) in enumerate(rows):
         y = top + i * rowh
         ours = ours_label is None or label == ours_label
@@ -195,11 +250,11 @@ def _capability_matrix(path, audit):
     rows = audit["rows"]
     centers = [750, 940, 1120]
     H = top + len(rows) * rowh + 112
-    img = Image.new("RGB", (W, H), (255, 255, 255))
+    img = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(img)
     d.text((44, 28), "Documented editorial system capabilities",
            font=_font(27, True), fill=INK)
-    d.text((44, 66), "Repository audit at pinned commits. Presence is not effectiveness proof.",
+    d.text((44, 66), "Repository audit at pinned commits. Documented does not mean effective.",
            font=_font(15), fill=MUTE)
     d.text((44, 96), "Native = dedicated component or named gate. Guided = instruction or self-check.",
            font=_font(13), fill=MUTE)
@@ -213,7 +268,7 @@ def _capability_matrix(path, audit):
         y = top + i * rowh
         if i % 2 == 0:
             d.rounded_rectangle([32, y, W - 32, y + rowh - 2], 5,
-                                fill=(247, 248, 250))
+                                fill=(241, 244, 240))
         d.text((44, y + rowh // 2), row[0], font=_font(14), fill=INK, anchor="lm")
         for x, status in zip(centers, row[1:]):
             cy, r = y + rowh // 2, 8
@@ -274,15 +329,40 @@ def render(datasets):
         datasets["search_rewrite_scores"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-search-passrate.png",
-        "Clean-and-fact-checked pass rate",
-        "Genre score gate plus automated fact check. Not semantic or field accuracy.",
+        "Combined editorial pass rate",
+        "Genre surface and shape gates plus automated fact check. Not semantic or field accuracy.",
         datasets["search_rewrite_passes"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-external-checker.png",
         "Reads-clean rate on the public AIStoryHub checker",
         "Corpus v1.8; item-level browser checks; eligible items only (20-word minimum). "
-        "Higher is better; 0-4 abstentions per method.",
+        "Higher is better; 0-1 abstention per method in this replay.",
         datasets["external_checker_clean"], "Zero Slop"))
+    out.append(_hbar(
+        ASSETS / "bench-beemo.png",
+        "External paired-edit surface audit",
+        "2,187 Beemo records. Lower means less tracked register; provenance and edit "
+        "history are not slop-quality labels.",
+        datasets["beemo_surface"], "__no_highlight__"))
+    out.append(_hbar(
+        ASSETS / "external-model-context.png",
+        "External model context: mechanical Slop Index",
+        "19,928 preserved generations from 18 models. Lower is closer to a pre-AI "
+        "human baseline; the published weights are sensitivity-dependent.",
+        datasets["external_model_context"], "__no_highlight__"))
+    out.append(_hbar(
+        ASSETS / "bench-blind-quality.png",
+        "Blind editorial severity after rewriting",
+        "Two method-blind LLM editors; 12 variants per method. Lower is better. "
+        "Small clustered panel, with unresolved labels retained; not field accuracy.",
+        datasets["blind_quality"], "Zero Slop", axis_ticks=[0, 1, 2, 3, 4, 5]))
+    out.append(_hbar(
+        ASSETS / "bench-contextual-ablation.png",
+        "Held-out contextual shadow ablation",
+        "Cross-rater accuracy on the same eligible blind test items. Higher is better. "
+        "LLM editorial reproducibility, not independent human field accuracy.",
+        datasets["contextual_ablation"], "v2.5.0 contextual shadow",
+        axis_ticks=[0, 25, 50, 75, 100]))
     out.append(_capability_matrix(
         ASSETS / "competitor-capabilities.png",
         datasets["capability_matrix"]))

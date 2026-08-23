@@ -1,0 +1,54 @@
+{
+ "result_kind": "external_reproduction",
+ "source": {
+  "name": "The Slop Index",
+  "repository": "https://github.com/hgaddipati1118/slop-index",
+  "commit": "f9dc3c75784547692abeede62c0c6eefdc5e723c",
+  "outputs_sha256": "43a6d8a42db4c8a5427de251831938d9e094c9930d62cee31ec1ea3abd6dd5a5",
+  "license": "MIT for code and derived statistics; model outputs published as research data"
+ },
+ "reproduced_at": "2026-08-23T03:30:00Z",
+ "commands": [
+  "python3 harness/score.py --run-id full-merged",
+  "python3 harness/rank_spread.py --run-id full-merged"
+ ],
+ "sample": {
+  "models": 18,
+  "scenarios": 112,
+  "preserved_generations": 19928,
+  "domains": ["email", "essay", "slack", "social"]
+ },
+ "metric": {
+  "name": "mechanical Slop Index",
+  "direction": "lower_is_closer_to_pre_ai_human_baseline",
+  "weights": {"conciseness": 0.35, "templating": 0.3, "rhythm": 0.2, "tells": 0.15},
+  "limits": "External style-distance benchmark. It does not measure factual accuracy, reasoning, safety, rewrite quality, or Zero Slop."
+ },
+ "sensitivity": {
+  "trials": 500,
+  "axis_weight_range": [0.1, 0.45],
+  "exact_ranking_preserved_pct": 0,
+  "sloppiest_mode": {"model": "mistral-large", "pct": 97},
+  "cleanest_mode": {"model": "kimi-k2p6", "pct": 58}
+ },
+ "models": [
+  {"rank": 1, "model": "mistral-large", "overall": 40.6, "email": 39.9, "essay": 42.6, "slack": 32.1, "social": 47.8, "conciseness": 4.7, "templating": 91.2, "rhythm": 6.1, "tells": 43.2, "rank_range": [1, 1]},
+  {"rank": 2, "model": "claude-fable-5", "overall": 35.6, "email": 43.4, "essay": 32.1, "slack": 27.0, "social": 39.8, "conciseness": 17.8, "templating": 65.8, "rhythm": 6.9, "tells": 35.5, "rank_range": [2, 3]},
+  {"rank": 3, "model": "gpt-5.6-terra", "overall": 32.8, "email": 35.1, "essay": 35.1, "slack": 25.1, "social": 36.0, "conciseness": 6.3, "templating": 68.6, "rhythm": 15.0, "tells": 33.1, "rank_range": [3, 6]},
+  {"rank": 4, "model": "claude-opus-4-8", "overall": 31.8, "email": 38.4, "essay": 31.7, "slack": 24.7, "social": 32.4, "conciseness": 8.9, "templating": 63.5, "rhythm": 10.9, "tells": 35.7, "rank_range": [3, 8]},
+  {"rank": 5, "model": "gpt-5.6-sol", "overall": 31.7, "email": 35.5, "essay": 30.7, "slack": 29.1, "social": 31.6, "conciseness": 2.7, "templating": 72.3, "rhythm": 13.7, "tells": 30.8, "rank_range": [3, 8]},
+  {"rank": 6, "model": "gpt-5.6-luna", "overall": 31.7, "email": 33.6, "essay": 31.0, "slack": 28.4, "social": 33.6, "conciseness": 4.5, "templating": 68.4, "rhythm": 12.5, "tells": 34.0, "rank_range": [3, 8]},
+  {"rank": 7, "model": "glm-5.2", "overall": 31.2, "email": 39.3, "essay": 30.9, "slack": 21.3, "social": 33.4, "conciseness": 16.8, "templating": 50.0, "rhythm": 5.5, "tells": 43.8, "rank_range": [4, 9]},
+  {"rank": 8, "model": "claude-sonnet-5", "overall": 30.5, "email": 34.7, "essay": 28.9, "slack": 22.8, "social": 35.6, "conciseness": 12.9, "templating": 57.5, "rhythm": 6.0, "tells": 32.9, "rank_range": [4, 9]},
+  {"rank": 9, "model": "qwen3.7-max", "overall": 28.7, "email": 32.4, "essay": 22.6, "slack": 22.8, "social": 37.0, "conciseness": 11.4, "templating": 47.3, "rhythm": 9.5, "tells": 44.1, "rank_range": [8, 11]},
+  {"rank": 10, "model": "gemini-3.5-flash", "overall": 27.8, "email": 39.3, "essay": 18.9, "slack": 21.8, "social": 30.9, "conciseness": 16.3, "templating": 41.8, "rhythm": 10.0, "tells": 40.1, "rank_range": [9, 12]},
+  {"rank": 11, "model": "gpt-5.4-mini", "overall": 26.8, "email": 30.9, "essay": 28.8, "slack": 20.8, "social": 26.8, "conciseness": 3.6, "templating": 56.3, "rhythm": 18.3, "tells": 27.1, "rank_range": [9, 12]},
+  {"rank": 12, "model": "claude-haiku-4-5", "overall": 24.9, "email": 33.6, "essay": 27.4, "slack": 18.1, "social": 20.6, "conciseness": 5.7, "templating": 45.9, "rhythm": 11.4, "tells": 37.4, "rank_range": [12, 16]},
+  {"rank": 13, "model": "gemini-3.1-pro-preview", "overall": 24.3, "email": 30.8, "essay": 20.0, "slack": 20.7, "social": 25.6, "conciseness": 11.9, "templating": 38.0, "rhythm": 10.0, "tells": 36.4, "rank_range": [12, 17]},
+  {"rank": 14, "model": "grok-4.5", "overall": 24.1, "email": 27.3, "essay": 20.4, "slack": 19.0, "social": 29.6, "conciseness": 3.2, "templating": 44.8, "rhythm": 9.7, "tells": 40.4, "rank_range": [13, 17]},
+  {"rank": 15, "model": "deepseek-v4-pro", "overall": 23.8, "email": 20.3, "essay": 20.9, "slack": 13.5, "social": 40.4, "conciseness": 19.2, "templating": 24.8, "rhythm": 1.2, "tells": 43.0, "rank_range": [8, 18]},
+  {"rank": 16, "model": "minimax-m3", "overall": 23.1, "email": 30.7, "essay": 20.2, "slack": 15.4, "social": 26.0, "conciseness": 15.7, "templating": 28.1, "rhythm": 6.5, "tells": 41.5, "rank_range": [13, 18]},
+  {"rank": 17, "model": "muse-spark-1.1", "overall": 23.1, "email": 35.7, "essay": 15.2, "slack": 18.4, "social": 23.0, "conciseness": 9.4, "templating": 39.9, "rhythm": 18.0, "tells": 27.5, "rank_range": [12, 18]},
+  {"rank": 18, "model": "kimi-k2p6", "overall": 21.1, "email": 26.9, "essay": 16.7, "slack": 16.1, "social": 24.6, "conciseness": 8.0, "templating": 32.2, "rhythm": 12.6, "tells": 35.5, "rank_range": [16, 18]}
+ ]
+}

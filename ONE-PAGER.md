@@ -106,5 +106,5 @@ easy-case regression guard, not a field-accuracy estimate.
 ---
 
 MIT · [github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) ·
-v2.4.3 · CI-gated · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+v2.5.0 · CI-gated · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

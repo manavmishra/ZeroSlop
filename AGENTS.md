@@ -35,6 +35,13 @@ are examples, not limits.
   current-era text; `references/evidence.md` documents that negative result.
   Do not reintroduce a trained channel without a transfer test on drafts from
   the model generation users actually face.
+- `scripts/contextual.py` prepares and validates source-bound host-model reviews.
+  It never calls a model or changes the surface score. `ZERO_SLOP_MODE` defaults to
+  `classic`; `shadow` records validated contextual evidence without changing output,
+  and `assisted` may use it only behind the normal fidelity and editorial gates.
+- `scripts/learn.py --guide --for <draft>` retrieves reason-labelled private fix
+  preferences. Retrieval is advisory lexical coverage, not a probability, and must
+  abstain when no relevant evidence exists.
 - `data/voices/` — per-user voice profiles. Git-ignored, personal, never
   commit.
 - `bench/` (if present) — reproducible benchmark harness and scorecard.
@@ -57,3 +64,6 @@ are examples, not limits.
   Runtime writes are limited to explicit outputs, `$ZERO_SLOP_HOME`, and the
   maintainer-only shared merge/calibration paths. Do not add `eval`, `exec`,
   pickle, or subprocess execution to runtime scripts.
+- Corpora are admitted by `bench/corpus-registry.json`. Match every evaluation to
+  the semantics of its labels; provenance corpora never become slop-quality accuracy
+  by proxy.

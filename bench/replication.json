@@ -11,10 +11,23 @@
   "petergyang": 5,
   "deslop": 0
  },
+ "agreement_count": 26,
+ "agreement_items": 50,
  "agreement": 0.52,
  "kappa": 0.12280701754385971,
- "pooled_ci": [
-  0.45244427031643447,
-  0.6438562489359654
- ]
+ "zero_slop_pooled": {
+  "selections": 55,
+  "items": 100,
+  "wilson_95_ci": [
+   0.45244427031643447,
+   0.6438562489359654
+  ]
+ },
+ "zero_slop_vs_humanizer": {
+  "zero_slop_selections": 55,
+  "humanizer_selections": 40,
+  "eligible_selections": 95,
+  "test": "two-sided exact binomial test under p=0.5, excluding other methods",
+  "p_value": 0.1505180638902296
+ }
 }

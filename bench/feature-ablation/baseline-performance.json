@@ -1,0 +1,21 @@
+{
+ "baseline_commit": "3790a1f08ebeb2d45eaa435b6a920b57cc0a71fc",
+ "measured_at": "2026-08-23T03:51:44+00:00",
+ "environment": {
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "logical_cpus": 10,
+  "python": "3.9.6"
+ },
+ "scorer": {
+  "median_batch_seconds": 2.6423,
+  "median_documents_per_second": 378.5,
+  "median_large_document_seconds": 0.3947,
+  "worst_pathological_input_seconds": 2.6585
+ },
+ "learning": {
+  "reflect_diff_words": 8000,
+  "reflect_seconds": 0.1573
+ },
+ "limits": "Pre-feature local observation preserved for same-machine ablation; wall-clock differences remain noisy."
+}

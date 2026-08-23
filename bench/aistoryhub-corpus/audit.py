@@ -51,7 +51,7 @@ def fetch(url, timeout):
         url,
         headers={
             "User-Agent": (
-                "ZeroSlop-Corpus-Audit/2.4.3 "
+                "ZeroSlop-Corpus-Audit/2.5.0 "
                 "(+https://github.com/manavmishra/ZeroSlop)"
             )
         },

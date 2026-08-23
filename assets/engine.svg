@@ -1,165 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Zero Slop has two connected operational loops. Editorial delivery moves a current draft through local measurement, contextual diagnosis and rewriting, a dedicated copy editor, a fresh read-aloud editor, and final verification. When a check fails, the text returns for repair; both editorial passes and every check then run again before delivery. Private online learning starts only when both Zero Slop's returned copy and the writer's later published edit are available. It observes the difference, gates the evidence for recurrence, novelty, and known-human safety, and updates a local overlay. Detector weights guide measurement on the next run, while preferred fixes guide rewriting. Later evidence reconfirms useful lessons; stale weights decay and stale fixes retire. The loop never retrains the host model. External taxonomies enter only through reviewed, tested, versioned maintenance releases.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1040" width="1600" height="1040" font-family="Helvetica,Arial,sans-serif" role="img" aria-labelledby="title desc" aria-label="Zero Slop has three guarded feature modes, two operational runtime loops, and one independent release gate. Classic is the production default and rollback path. Shadow records validated source-bound contextual evidence without changing the output. Assisted remains promotion-gated. Editorial delivery measures, diagnoses, rewrites, copy edits, reads aloud, and verifies. Private online learning observes later human edits, binds reasons to exact source hashes, gates evidence, stores a reversible overlay, and retrieves relevant guidance. Release evidence admits corpora by label quality and tests performance, fidelity, safety, and cost before promotion. No neural training occurs automatically.">
+  <title id="title">How Zero Slop works: three guarded modes, two runtime loops, and one release gate</title>
+  <desc id="desc">Classic is the production default and rollback path. Shadow adds a source-bound contextual review without changing the output. Assisted may use validated contextual evidence only after promotion. Runtime loop one measures, diagnoses, rewrites, copy edits, reads aloud, and verifies the exact finished copy, repeating both editorial passes after any repair. Runtime loop two learns from later published edits: it source-binds reason labels, gates recurrent evidence for novelty and known-human safety, updates a private reversible overlay, and retrieves only relevant fixes for the next run. A separate release gate admits corpora by label quality, runs blind evaluation and performance, fidelity, and security checks, and permits assisted promotion only after independently human-labelled held-out improvement. No neural training occurs automatically.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#7B8491"/>
-    </marker>
-    <marker id="repair-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#A66A20"/>
-    </marker>
-    <marker id="learn-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#82549A"/>
-    </marker>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#718078"/></marker>
+    <marker id="amberArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#A56625"/></marker>
+    <marker id="purpleArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#72528F"/></marker>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#17221C" flood-opacity=".07"/></filter>
     <style>
-      .grp { fill:#FBFCFD; stroke:#C9CED6; stroke-width:1.2; stroke-dasharray:4 4 }
-      .measure { fill:#EEF3FA; stroke:#2A78D6; stroke-width:1.2 }
-      .model { fill:#E8F3EC; stroke:#1E7A4C; stroke-width:1.2 }
-      .editor { fill:#F0F5ED; stroke:#5F7F4A; stroke-width:1.2 }
-      .verify { fill:#F7F1E6; stroke:#A66A20; stroke-width:1.2 }
-      .learn { fill:#F4EEF8; stroke:#82549A; stroke-width:1.2 }
-      .neutral { fill:#F7F8FA; stroke:#C9CED6; stroke-width:1.1 }
-      .title { font-size:14px; font-weight:700; fill:#191C21; letter-spacing:.08em }
-      .loop { font-size:11px; font-weight:700; fill:#4E5662; letter-spacing:.08em }
-      .stage { font-size:13px; font-weight:700; fill:#191C21 }
-      .role { font-size:9px; fill:#5B6270; letter-spacing:.08em }
-      .body { font-size:10px; fill:#4E5662 }
-      .note { font-size:9.5px; fill:#626B78 }
-      .learn-title { font-size:11px; font-weight:700; fill:#82549A; letter-spacing:.08em }
-      .learn-note { font-size:9.5px; fill:#82549A }
-      .ln { stroke:#7B8491; stroke-width:1.35; fill:none }
-      .rp { stroke:#A66A20; stroke-width:1.35; fill:none; stroke-dasharray:4 3 }
-      .lp { stroke:#82549A; stroke-width:1.35; fill:none; stroke-dasharray:4 3 }
-      @media (prefers-color-scheme: dark) {
-        svg { color-scheme:dark }
-        .grp { fill:#171A20; stroke:#3A404B }
-        .measure { fill:#16233A; stroke:#4B90E2 }
-        .model { fill:#14291D; stroke:#3FA872 }
-        .editor { fill:#202A1B; stroke:#789D61 }
-        .verify { fill:#302617; stroke:#C58A43 }
-        .learn { fill:#241B2E; stroke:#A972C4 }
-        .neutral { fill:#1E2128; stroke:#3A404B }
-        .title,.stage { fill:#E8EAED }
-        .loop,.role,.body,.note { fill:#A2A9B4 }
-        .learn-title,.learn-note { fill:#B987CF }
-        .ln { stroke:#737C89 }
-        .rp { stroke:#C58A43 }
-        .lp { stroke:#A972C4 }
-      }
+      .grt{fill:#F5F7F3}.grp{fill:#FBFCF9;stroke:#D2D9D2;stroke-width:1.3}.grl{fill:#F0F3F0;stroke:#AAB4AC}.node{fill:#FFFFFF;stroke:#D4DBD4;stroke-width:1.2}.green{fill:#E8F2EC;stroke:#227B5B}.olive{fill:#EFF3E8;stroke:#71804B}.amber{fill:#F7EFE3;stroke:#A56625}.purple{fill:#F2EDF6;stroke:#72528F}.slate{fill:#F0F3F0;stroke:#AAB4AC}.modeClassic{fill:#173D30;stroke:#173D30}.modeShadow{fill:#E8F2EC;stroke:#69A086}.modeAssisted{fill:#F7EFE3;stroke:#C28C52}.title{font:700 34px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:34px;fill:#17201B}.dek{font:400 15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;fill:#5E6A63}.eyebrow{font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:1.6px;fill:#597067}.eyebrowPurple{font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:1.6px;fill:#72528F}.eyebrowAmber{font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:1.6px;fill:#8B571D}.modeTitle{font:700 19px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:19px;fill:#18211C}.modeTitleWhite{font:700 19px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:19px;fill:#F5FAF7}.modeText{font:400 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13px;fill:#546159}.modeTextWhite{font:400 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13px;fill:#D6E6DE}.stage{font:700 17px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;fill:#17201B}.role{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:1.1px;fill:#6B776F}.body{font:400 12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:12px;fill:#526058}.small{font:400 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:11px;fill:#66736B}.smallStrong{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:11px;fill:#35433B}.whiteLabel{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:1.1px;fill:#CDE1D7}.ln{fill:none;stroke:#718078;stroke-width:1.6}.rp{fill:none;stroke:#A56625;stroke-width:1.7;stroke-dasharray:6 5}.lp{fill:none;stroke:#72528F;stroke-width:1.7;stroke-dasharray:6 5}.badge{fill:#FFFFFF;stroke:#CED6CF;stroke-width:1}.badgeText{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:.8px;fill:#56645C}.purpleText{fill:#72528F}.amberText{fill:#8B571D}
+      @media (prefers-color-scheme:dark){.grt{fill:#101512}.grp{fill:#171D18;stroke:#374139}.grl{fill:#1D231E;stroke:#4C574F}.node{fill:#1C231E;stroke:#3B463E}.green{fill:#142A21;stroke:#42A57B}.olive{fill:#242A1B;stroke:#94A561}.amber{fill:#302316;stroke:#C58A43}.purple{fill:#251D2B;stroke:#9D78B7}.slate{fill:#1D231E;stroke:#4C574F}.modeShadow{fill:#183126;stroke:#4E8E70}.modeAssisted{fill:#302316;stroke:#B77A39}.title,.modeTitle,.stage{fill:#EEF3EF}.dek,.modeText,.body,.small{fill:#AEB9B1}.eyebrow,.role,.badgeText{fill:#9EACA3}.smallStrong{fill:#D7DFD9}.badge{fill:#202721;stroke:#465149}.ln{stroke:#7D8A81}.rp{stroke:#C58A43}.lp{stroke:#9D78B7}.amberText{fill:#D4A05F}.purpleText{fill:#B899CC}}
     </style>
   </defs>
 
-  <text x="20" y="28" class="title">ZERO SLOP · TWO CONNECTED OPERATIONAL LOOPS</text>
-  <text x="20" y="48" class="note">The first loop finishes today's draft. The second learns cautiously from what the writer later publishes and informs the next run.</text>
+  <rect width="1600" height="1040" class="grt"/>
+  <text x="48" y="56" class="title">One editorial system. Three guarded modes.</text>
+  <text x="48" y="84" class="dek">The deterministic meter stays explainable. Contextual judgment is source-bound. Learning stays private, reversible, and outside the host model.</text>
 
-  <rect x="20" y="70" width="1160" height="286" rx="12" class="grp"/>
-  <text x="40" y="96" class="loop">LOOP 1 · EDITORIAL DELIVERY · CURRENT DRAFT</text>
-  <text x="40" y="114" class="note">measure → diagnose → rewrite → copy edit → read aloud → verify</text>
+  <text x="48" y="123" class="eyebrow">FEATURE MODE · ZERO_SLOP_MODE</text>
+  <rect x="48" y="140" width="472" height="100" rx="15" class="modeClassic" filter="url(#softShadow)"/>
+  <text x="72" y="174" class="whiteLabel">PRODUCTION DEFAULT · ROLLBACK</text><text x="72" y="202" class="modeTitleWhite">Classic</text><text x="174" y="202" class="modeTextWhite">Established diagnosis + deterministic gates</text><text x="72" y="224" class="modeTextWhite">Stable scorer; no structured-review dependency.</text>
+  <rect x="540" y="140" width="472" height="100" rx="15" class="modeShadow" filter="url(#softShadow)"/>
+  <text x="564" y="174" class="eyebrow">EVIDENCE ONLY</text><text x="564" y="202" class="modeTitle">Shadow</text><text x="658" y="202" class="modeText">Classic output + validated contextual review</text><text x="564" y="224" class="modeText">No change to draft, score, or release decision.</text>
+  <rect x="1032" y="140" width="520" height="100" rx="15" class="modeAssisted" filter="url(#softShadow)"/>
+  <text x="1056" y="174" class="eyebrowAmber">PROMOTION-GATED</text><text x="1056" y="202" class="modeTitle">Assisted</text><text x="1162" y="202" class="modeText">Validated context may guide diagnosis + rewrite</text><text x="1056" y="224" class="modeText">Fidelity and every editorial or semantic check still applies.</text>
 
-  <rect x="40" y="132" width="160" height="112" rx="8" class="measure"/>
-  <text x="54" y="156" class="stage">Measure</text>
-  <text x="54" y="174" class="role">LOCAL SCRIPT</text>
-  <text x="54" y="199" class="body">surface score</text>
-  <text x="54" y="216" class="body">quoted evidence</text>
-  <text x="54" y="233" class="body">document statistics</text>
-  <path d="M200 188 L224 188" class="ln" marker-end="url(#arrow)"/>
+  <rect x="40" y="270" width="1520" height="300" rx="22" class="grp"/>
+  <text x="70" y="308" class="eyebrow">RUNTIME LOOP 1 · EDITORIAL DELIVERY</text><text x="70" y="332" class="dek">Measure locally, edit in context, then verify the exact text the reader receives.</text>
+  <rect x="72" y="356" width="220" height="126" rx="14" class="node green"/><text x="92" y="386" class="stage">1 · Measure</text><text x="92" y="407" class="role">LOCAL · DETERMINISTIC</text><text x="92" y="435" class="body">surface score + exact hits</text><text x="92" y="456" class="body">rhythm · density · format</text><text x="92" y="476" class="small">other probes stay separate</text>
+  <path d="M292 419H318" class="ln" marker-end="url(#arrow)"/>
+  <rect x="318" y="356" width="220" height="126" rx="14" class="node olive"/><text x="338" y="386" class="stage">2 · Diagnose</text><text x="338" y="407" class="role">HOST MODEL · CONTEXT</text><text x="338" y="435" class="body">claims · substance</text><text x="338" y="456" class="body">voice · structure · genre</text><text x="338" y="476" class="small">structured review if enabled</text>
+  <path d="M538 419H564" class="ln" marker-end="url(#arrow)"/>
+  <rect x="564" y="356" width="220" height="126" rx="14" class="node olive"/><text x="584" y="386" class="stage">3 · Rewrite</text><text x="584" y="407" class="role">STRIP · THEN BUILD</text><text x="584" y="435" class="body">repair, cut, or reorder</text><text x="584" y="456" class="body">retrieve relevant fixes</text><text x="584" y="476" class="small">facts outrank cleanliness</text>
+  <path d="M784 419H810" class="ln" marker-end="url(#arrow)"/>
+  <rect x="810" y="356" width="220" height="126" rx="14" class="node"/><text x="830" y="386" class="stage">4 · Copy edit</text><text x="830" y="407" class="role">FRESH EDITOR</text><text x="830" y="435" class="body">grammar · spelling · usage</text><text x="830" y="456" class="body">diction · consistency</text><text x="830" y="476" class="small">edit the actual deliverable</text>
+  <path d="M1030 419H1056" class="ln" marker-end="url(#arrow)"/>
+  <rect x="1056" y="356" width="220" height="126" rx="14" class="node"/><text x="1076" y="386" class="stage">5 · Read aloud</text><text x="1076" y="407" class="role">FRESH EDITOR</text><text x="1076" y="435" class="body">flow · cohesion · joins</text><text x="1076" y="456" class="body">repetition · register</text><text x="1076" y="476" class="small">fix every safe stumble</text>
+  <path d="M1276 419H1302" class="ln" marker-end="url(#arrow)"/>
+  <rect x="1302" y="356" width="220" height="126" rx="14" class="node amber"/><text x="1322" y="386" class="stage">6 · Verify</text><text x="1322" y="407" class="role">SCRIPTS + HOST MODEL</text><text x="1322" y="435" class="body">score · facts · meaning</text><text x="1322" y="456" class="body">voice · format · structure</text><text x="1322" y="476" class="small">check the exact finished copy</text>
+  <path d="M1412 482V520H920V483" class="rp" marker-end="url(#amberArrow)"/><text x="1000" y="513" class="small amberText">any text repair → copy edit → read aloud → all checks again</text>
+  <rect x="1302" y="521" width="220" height="30" rx="15" class="modeClassic"/><text x="1412" y="541" text-anchor="middle" class="whiteLabel">FINISHED COPY · EXACT OUTPUT</text>
 
-  <rect x="225" y="132" width="160" height="112" rx="8" class="model"/>
-  <text x="239" y="156" class="stage">Diagnose</text>
-  <text x="239" y="174" class="role">HOST MODEL</text>
-  <text x="239" y="199" class="body">substance + claims</text>
-  <text x="239" y="216" class="body">structure + audience</text>
-  <text x="239" y="233" class="body">voice + delivery</text>
-  <path d="M385 188 L409 188" class="ln" marker-end="url(#arrow)"/>
+  <rect x="40" y="600" width="980" height="400" rx="22" class="grp"/>
+  <text x="70" y="638" class="eyebrowPurple">RUNTIME LOOP 2 · PRIVATE ONLINE LEARNING</text><text x="70" y="662" class="dek">Later human edits become bounded evidence. Nothing retrains the host model or edits the skill.</text>
+  <rect x="70" y="704" width="170" height="142" rx="14" class="node purple"/><text x="88" y="734" class="stage">1 · Observe</text><text x="88" y="755" class="role">RETURNED ↔ PUBLISHED</text><text x="88" y="783" class="body">cuts + replacements</text><text x="88" y="804" class="body">kept flagged text</text><text x="88" y="825" class="small">one pair = one vote</text>
+  <path d="M240 775H256" class="lp" marker-end="url(#purpleArrow)"/>
+  <rect x="256" y="704" width="170" height="142" rx="14" class="node purple"/><text x="274" y="734" class="stage">2 · Bind</text><text x="274" y="755" class="role">HASHES + REASONS</text><text x="274" y="783" class="body">exact before / after</text><text x="274" y="804" class="small">span · reason · genre</text><text x="274" y="825" class="small">bad hash/span → reject</text>
+  <path d="M426 775H442" class="lp" marker-end="url(#purpleArrow)"/>
+  <rect x="442" y="704" width="170" height="142" rx="14" class="node purple"/><text x="460" y="734" class="stage">3 · Gate</text><text x="460" y="755" class="role">FAIL CLOSED</text><text x="460" y="783" class="body">recurrence · novelty</text><text x="460" y="804" class="body">known-human safety</text><text x="460" y="825" class="small">distinct evidence</text>
+  <path d="M612 775H628" class="lp" marker-end="url(#purpleArrow)"/>
+  <rect x="628" y="704" width="170" height="142" rx="14" class="node purple"/><text x="646" y="734" class="stage">4 · Store</text><text x="646" y="755" class="role">PRIVATE OVERLAY</text><text x="646" y="783" class="body">patterns + weights</text><text x="646" y="804" class="body">fixes + dates</text><text x="646" y="825" class="small">private · reversible</text>
+  <path d="M798 775H814" class="lp" marker-end="url(#purpleArrow)"/>
+  <rect x="814" y="704" width="170" height="142" rx="14" class="node purple"/><text x="832" y="734" class="stage">5 · Retrieve</text><text x="832" y="755" class="role">NEXT EDITORIAL RUN</text><text x="832" y="783" class="body">relevant fixes only</text><text x="832" y="804" class="body">reconfirm or decay</text><text x="832" y="825" class="small">no match → abstain</text>
+  <path d="M713 704V686H182V570" class="lp" marker-end="url(#purpleArrow)"/><text x="230" y="681" class="small purpleText">local detector weights → Measure</text>
+  <path d="M899 704V678H674V570" class="lp" marker-end="url(#purpleArrow)"/><text x="698" y="673" class="small purpleText">retrieved fixes → Rewrite</text>
+  <rect x="70" y="882" width="914" height="72" rx="13" class="grl"/><text x="92" y="909" class="smallStrong">Lifecycle safeguards</text><text x="92" y="932" class="body">3 distinct edit pairs for a phrase · 5 for a single word · 18-month decay · private by default</text><rect x="764" y="899" width="194" height="30" rx="15" class="badge"/><text x="861" y="919" text-anchor="middle" class="badgeText">NO NEURAL TRAINING</text>
 
-  <rect x="410" y="132" width="160" height="112" rx="8" class="model"/>
-  <text x="424" y="156" class="stage">Rewrite</text>
-  <text x="424" y="174" class="role">HOST MODEL</text>
-  <text x="424" y="199" class="body">strip, then rebuild</text>
-  <text x="424" y="216" class="body">preserve facts + voice</text>
-  <text x="424" y="233" class="body">compare approaches</text>
-  <path d="M570 188 L594 188" class="ln" marker-end="url(#arrow)"/>
-
-  <rect x="595" y="132" width="160" height="112" rx="8" class="editor"/>
-  <text x="609" y="156" class="stage">Copy edit</text>
-  <text x="609" y="174" class="role">FRESH EDITOR</text>
-  <text x="609" y="199" class="body">grammar + spelling</text>
-  <text x="609" y="216" class="body">clarity + consistency</text>
-  <text x="609" y="233" class="body">professional finish</text>
-  <path d="M755 188 L779 188" class="ln" marker-end="url(#arrow)"/>
-
-  <rect x="780" y="132" width="160" height="112" rx="8" class="editor"/>
-  <text x="794" y="156" class="stage">Read aloud</text>
-  <text x="794" y="174" class="role">FRESH EDITOR</text>
-  <text x="794" y="199" class="body">spoken flow</text>
-  <text x="794" y="216" class="body">cohesion + rhythm</text>
-  <text x="794" y="233" class="body">fix every stumble</text>
-  <path d="M940 188 L964 188" class="ln" marker-end="url(#arrow)"/>
-
-  <rect x="965" y="132" width="195" height="112" rx="8" class="verify"/>
-  <text x="979" y="156" class="stage">Verify</text>
-  <text x="979" y="174" class="role">SCRIPTS + HOST MODEL</text>
-  <text x="979" y="199" class="body">score + fidelity checks</text>
-  <text x="979" y="216" class="body">meaning + qualifiers</text>
-  <text x="979" y="233" class="body">voice + format + flow</text>
-
-  <path d="M1062 244 L1062 272 L490 272 L490 245" class="rp" marker-end="url(#repair-arrow)"/>
-  <text x="612" y="266" class="note">failed check → repair → both editors → every check again</text>
-  <path d="M1118 244 L1118 293" class="ln" marker-end="url(#arrow)"/>
-  <text x="1127" y="273" class="note">pass</text>
-  <rect x="965" y="294" width="195" height="42" rx="7" class="neutral"/>
-  <text x="979" y="313" class="stage">Finished copy</text>
-  <text x="979" y="328" class="note">the exact text returned</text>
-
-  <text x="40" y="315" class="role">SEPARATE DIAGNOSTICS</text>
-  <text x="40" y="333" class="note">predictability · portfolio probe for repetition across 3+ related drafts · neither changes the surface score</text>
-
-  <path d="M1062 336 L1062 472" class="lp" marker-end="url(#learn-arrow)"/>
-  <text x="794" y="378" class="learn-note">later, when both versions are available</text>
-
-  <rect x="20" y="396" width="1160" height="278" rx="12" class="grp"/>
-  <text x="40" y="422" class="learn-title">LOOP 2 · PRIVATE ONLINE LEARNING · LATER HUMAN EDIT</text>
-  <text x="40" y="440" class="note">observe → gate evidence → update private overlay → use on the next run</text>
-  <text x="930" y="422" class="learn-note">local · inspectable · reversible</text>
-  <text x="930" y="440" class="learn-note">never retrains the host model</text>
-
-  <rect x="40" y="472" width="180" height="112" rx="8" class="learn"/>
-  <text x="54" y="496" class="stage">4 · Use on next run</text>
-  <text x="54" y="514" class="role">FEEDS LOOP 1</text>
-  <text x="54" y="539" class="body">weights → Measure</text>
-  <text x="54" y="556" class="body">fixes → Rewrite</text>
-  <text x="54" y="573" class="body">meaning must be preserved</text>
-
-  <path d="M280 528 L221 528" class="lp" marker-end="url(#learn-arrow)"/>
-  <rect x="280" y="472" width="240" height="112" rx="8" class="learn"/>
-  <text x="294" y="496" class="stage">3 · Update private overlay</text>
-  <text x="294" y="514" class="role">ACTIVATED LOCALLY</text>
-  <text x="294" y="539" class="body">detector weights + fix preferences</text>
-  <text x="294" y="556" class="body">provenance + dates</text>
-  <text x="294" y="573" class="learn-note">adapts detection + fixing</text>
-
-  <path d="M580 528 L521 528" class="lp" marker-end="url(#learn-arrow)"/>
-  <rect x="580" y="472" width="240" height="112" rx="8" class="learn"/>
-  <text x="594" y="496" class="stage">2 · Gate evidence</text>
-  <text x="594" y="514" class="role">SAFETY BEFORE ACTIVATION</text>
-  <text x="594" y="539" class="body">recurrence</text>
-  <text x="594" y="556" class="body">novelty</text>
-  <text x="594" y="573" class="body">known-human safety</text>
-
-  <path d="M880 528 L821 528" class="lp" marker-end="url(#learn-arrow)"/>
-  <rect x="880" y="472" width="280" height="112" rx="8" class="learn"/>
-  <text x="894" y="496" class="stage">1 · Observe</text>
-  <text x="894" y="514" class="role">RETURNED COPY ↔ PUBLISHED EDIT</text>
-  <text x="894" y="539" class="body">cut text · kept flagged text</text>
-  <text x="894" y="556" class="body">recurring replacement</text>
-  <text x="894" y="573" class="body">edit difference becomes evidence</text>
-
-  <rect x="280" y="610" width="240" height="42" rx="7" class="learn"/>
-  <text x="294" y="628" class="stage">Reconfirm / decay</text>
-  <text x="294" y="644" class="note">decay weights · retire fixes</text>
-  <path d="M400 584 L400 609" class="lp" marker-start="url(#learn-arrow)" marker-end="url(#learn-arrow)"/>
-
-  <path d="M130 472 L130 354" class="lp" marker-end="url(#learn-arrow)"/>
-  <text x="142" y="378" class="learn-note">feeds the next editorial cycle</text>
-
-  <rect x="20" y="700" width="1160" height="40" rx="8" class="neutral"/>
-  <text x="40" y="724" class="loop">MAINTENANCE · NOT A RUNTIME LOOP · external taxonomy → review → human-corpus regression → tests → versioned release</text>
+  <rect x="1044" y="600" width="516" height="400" rx="22" class="grp"/>
+  <text x="1074" y="638" class="eyebrowAmber">RELEASE EVIDENCE · NOT A RUNTIME LOOP</text><text x="1074" y="662" class="dek">New behavior earns promotion; it never promotes itself.</text>
+  <rect x="1074" y="704" width="210" height="108" rx="14" class="node slate"/><text x="1092" y="734" class="stage">Admit corpora</text><text x="1092" y="755" class="role">LABELS · LICENSE · HASHES</text><text x="1092" y="783" class="body">match labels to the claim</text><text x="1092" y="802" class="small">group sources; block leakage</text>
+  <path d="M1284 758H1304" class="ln" marker-end="url(#arrow)"/>
+  <rect x="1304" y="704" width="226" height="108" rx="14" class="node slate"/><text x="1322" y="734" class="stage">Blind evaluation</text><text x="1322" y="755" class="role">METHOD-HIDDEN · SPLIT-SAFE</text><text x="1322" y="783" class="body">retain disagreement</text><text x="1322" y="802" class="small">report uncertainty + subgroups</text>
+  <path d="M1417 812V832" class="ln" marker-end="url(#arrow)"/>
+  <rect x="1074" y="832" width="456" height="90" rx="14" class="node amber"/><text x="1094" y="862" class="stage">Performance · fidelity · safety · cost</text><text x="1094" y="885" class="body">Compare versions on the same held-out material.</text><text x="1094" y="906" class="small">Incompatible corpora stay documented, never forced into a score.</text>
+  <rect x="1074" y="944" width="456" height="36" rx="18" class="modeAssisted"/><text x="1302" y="967" text-anchor="middle" class="badgeText amberText">PROMOTE ON HUMAN-VALIDATED GAIN · ELSE STAY CLASSIC / SHADOW</text>
 </svg>

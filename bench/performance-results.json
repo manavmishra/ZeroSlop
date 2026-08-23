@@ -1,0 +1,73 @@
+{
+ "result_kind": "local_performance_observation",
+ "measured_at": "2026-08-23T05:55:55+00:00",
+ "environment": {
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "logical_cpus": 10,
+  "python": "3.9.6"
+ },
+ "scorer": {
+  "batch_documents": 1000,
+  "batch_repeats": 3,
+  "batch_seconds": [
+   4.9014,
+   3.5551,
+   3.4881
+  ],
+  "median_batch_seconds": 3.5551,
+  "median_documents_per_second": 281.3,
+  "median_milliseconds_per_document": 3.56,
+  "large_document_words": 15201,
+  "large_document_repeats": 3,
+  "large_document_seconds": [
+   0.4553,
+   0.4462,
+   0.4806
+  ],
+  "median_large_document_seconds": 0.4553,
+  "pathological_input_seconds": {
+   "single_character": 0.1741,
+   "repeated_word": 0.2684,
+   "repeated_dash": 0.0495,
+   "newlines": 3.1517
+  }
+ },
+ "learning": {
+  "reflect_diff_words": 8000,
+  "reflect_seconds": 0.211,
+  "retrieval_preferences": 5000,
+  "retrieval_seconds": [
+   0.216,
+   0.1912,
+   0.1935
+  ],
+  "median_retrieval_seconds": 0.1935
+ },
+ "contextual_shadow": {
+  "paragraphs": 2000,
+  "prepare_seconds": [
+   0.0021,
+   0.0021,
+   0.0038
+  ],
+  "median_prepare_seconds": 0.0021,
+  "validate_seconds": [
+   0.007,
+   0.004,
+   0.0039
+  ],
+  "median_validate_seconds": 0.004,
+  "host_model_seconds": null
+ },
+ "ci_thresholds": {
+  "batch_1000_seconds_lt": 60,
+  "large_document_seconds_lt": 30,
+  "each_pathological_input_seconds_lt": 15,
+  "reflect_seconds_lt": 30,
+  "retrieval_5000_preferences_seconds_lt": 1,
+  "contextual_2000_paragraph_prepare_seconds_lt": 3,
+  "contextual_2000_paragraph_validate_seconds_lt": 3
+ },
+ "limits": "Local wall-clock observation on one machine; useful for regression and capacity planning, not a universal throughput guarantee. Contextual timings cover local packet preparation and validation only, not host-model review latency."
+}

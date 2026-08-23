@@ -1,643 +1,313 @@
 # Zero Slop
 
 <p align="center">
-  <img alt="MIT" src="https://img.shields.io/badge/license-MIT-1B1D22">
-  <img alt="tests" src="https://img.shields.io/badge/tests-CI%20gated-1E7A4C">
-  <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-1E7A4C">
-  <img alt="privacy" src="https://img.shields.io/badge/scorer-offline-1E7A4C">
-  <img alt="version" src="https://img.shields.io/badge/version-2.4.3-2a78d6">
+  <img alt="MIT" src="https://img.shields.io/badge/license-MIT-202521">
+  <img alt="tests" src="https://img.shields.io/badge/tests-CI%20gated-227B5B">
+  <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
+  <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.0-72528F">
 </p>
 
-You used AI to help with your writing, and now it reads like a machine wrote every
-word. You can hear it, and so can everyone who reads it. That machine sound has a name:
-slop. On LinkedIn, it can get you accused of not thinking for yourself.
+Zero Slop is an editorial skill for prose written with AI assistance. It finds stock
+language, thin claims, repeated shapes, and overworked formatting, then edits the
+draft without changing what the writer meant. A local scorer cites visible surface
+evidence. The host language model supplies contextual judgment and performs the edit.
+Fresh copy-editing and read-aloud passes polish the exact text returned to the reader.
 
-Zero Slop finds the slop in your draft and removes it without changing what you
-actually said. It gives the draft a transparent surface score from 0 to 100, calculated
-with explicit heuristics. It points to the words and structural signals that contribute
-to the score, then rewrites the draft. The number is not the probability that AI wrote
-the text. A copy desk fixes grammar, spelling, punctuation, and awkward phrasing. A
-second editor then reads the copy aloud and fixes its flow and cohesion before Zero
-Slop double-checks that every fact survived and nothing new slipped in.
+The 0-to-100 score measures a register, not the probability that AI wrote the text.
+In the shipped reference sets, known-human writing lands between 9 and 21; raw AI
+drafts average 77. These are calibration anchors, not universal boundaries.
 
-![Zero Slop scoring a marketing sentence at 100, then its rewrite at 9.5](assets/demo.png)
+![A scored sentence before and after editing](assets/demo.png)
 
-That is a real before and after. The first sentence scores 100, which is as sloppy
-as it gets. Six phrases account for the score, and the tool names each one. Remove
-them, and the fact is clear: setup time dropped 40%. That is what slop usually is,
-once you look: a real point buried under decoration.
+## Install with an agent
 
-Lower is better. In our test set, known-human writing lands between 9 and 21, while raw
-AI drafts averaged 77. Read the list of flagged phrases first; the number is only a
-summary.
-
-## Who Zero Slop is for
-
-Anyone who creates content and would rather not sound like a robot. A founder shipping
-a launch post. A marketer with five posts due this week. A researcher whose paper
-needs to stay formal, not get "humanized" into mush. An engineering team that wants
-slop to fail a check the way a bug does. If AI helps you write and you want the result
-to still sound like you, this is for you.
-
-## Why Zero Slop matters now
-
-For a while, sounding like AI mainly cost you credibility with the readers who
-noticed. Platforms have started attaching product and policy consequences to it. In
-July 2026, [LinkedIn added a “Seems like AI slop” reporting
-signal](https://techcrunch.com/2026/07/30/linkedin-adds-a-button-to-report-ai-generated-slop/),
-[Snap made wholly AI-generated Spotlight videos ineligible for
-recommendation](https://newsroom.snap.com/rewarding-authentic-creativity-on-spotlight),
-and [Substack gave readers a “Scan for AI text”
-tool](https://support.substack.com/hc/en-us/articles/50891130623508-How-can-I-detect-AI-on-Substack).
-[YouTube's monetization policy](https://support.google.com/youtube/answer/1311392?hl=en)
-had already clarified in July 2025 that repetitive or mass-produced content was
-ineligible under its existing rules.
-
-Those changes have different effects: Snap and YouTube govern recommendations or
-monetization, while LinkedIn and Substack give users new ways to report or assess
-content. They do not create one universal reach penalty. Pangram Labs, an AI-detection
-vendor, reported that 25.72% of long-form items in its
-[opt-in data set of 1,002,627 social posts](https://www.pangram.com/blog/ai-in-your-feed)
-were flagged as fully AI-generated; for long-form LinkedIn posts, the figure was over
-40%. This was not a platform census. The data came from browser-extension users who
-opted to share their scans. Still, the result helps explain why readers and platforms
-are reacting.
-
-## Try it
-
-### Paste this into your agent
-
-Give this prompt to Claude Code, Codex, Cursor, OpenCode, Warp, Zed, or any other
-Agent Skills-compatible coding agent:
+Paste this into Claude Code, Codex, Cursor, OpenCode, Warp, Zed, or another
+Agent Skills-compatible assistant:
 
 ```text
 Install or update Zero Slop from https://github.com/manavmishra/ZeroSlop for
 this agent.
 
-1. Identify the current agent and any active Zero Slop installations. Record the
-   path, version, and install method of each one. Do not mix installation methods.
-   If more than one active copy exists, report every path and ask which one to keep;
-   do not delete any copy.
-2. Use the native user-level installer when one exists. In Codex, invoke
-   $skill-installer and install only the repository path `skills/zero-slop`. The
-   repository also has a root source copy; installing both creates duplicate
-   discovery. In Claude Code or Cowork, use the plugin marketplace's install or
-   update flow. For a first install in any other supported agent, run:
-   npx skills add manavmishra/ZeroSlop --global
-3. For an update, use the existing install method. If the existing copy was installed
-   with the third-party `skills` CLI, run:
-   npx skills update zero-slop --global
-   Preserve `ZERO_SLOP_HOME` (default: `~/.zero-slop`). Reflection evidence, the
-   private detector-and-fix overlay, learning logs, and voice profiles live there.
-   Never delete, replace, or copy that directory into the installation.
-4. Install the complete runtime: `SKILL.md`, `references/`, `scripts/`, and `data/`.
-   Do not substitute the README or single-file bundle unless this agent requires that
-   format. Do not create a second copy inside the discovered skill directory; a
-   plugin-owned `skills/zero-slop` directory is valid.
-5. Verify that the installed `SKILL.md` version matches the repository and that every
-   required runtime file and directory named in `SKILL.md` exists. User-created or
-   optional paths, such as voice profiles, may remain absent until needed. Confirm
-   that the agent can discover a skill named `zero-slop`. If Python is available,
-   run `python3 scripts/calibrate.py --selftest` from the installed skill directory.
-6. Report the install method, exact path, installed version, validation result, and
-   whether I need to restart the agent or open a new session.
+1. Find every active Zero Slop installation. Report each path, version, and install
+   method. Do not create a duplicate or delete an installation without asking.
+2. Keep the existing install method when updating. In Codex, invoke
+   $skill-installer and install only the repository path `skills/zero-slop`; do not
+   also install the root source copy. In Claude Code or Cowork, use the plugin
+   marketplace. Otherwise use `npx skills add manavmishra/ZeroSlop --global` for a
+   first install or `npx skills update zero-slop --global` for an existing CLI install.
+3. Preserve ZERO_SLOP_HOME (default: ~/.zero-slop). It contains private learning and
+   voice data. Never overwrite it or copy it into the skill directory.
+4. Install SKILL.md, references/, scripts/, and data/. Verify the installed version
+   against the repository, confirm every required path exists, and run
+   `python3 scripts/calibrate.py --selftest` when Python is available.
+5. Report the exact install path, method, version, validation result, and whether a
+   restart or new session is required. Do not claim success before verification.
 
-Do not claim success until verification passes. Do not modify the current project
-or unrelated configuration. If a user-level install is impossible and you need to
-fall back to a project-local install, ask me first.
+Do not modify the current project or unrelated configuration. Ask before falling
+back to a project-local installation.
 ```
 
-### Install from the terminal
+Direct terminal install:
 
 ```bash
-npx skills add manavmishra/ZeroSlop --global   # then open the agent and say "de-slop this"
+npx skills add manavmishra/ZeroSlop --global
 ```
 
-The command detects supported agents on your machine and installs Zero Slop globally.
-To target one agent, add `--agent` and name it (`claude-code`, `codex`, `cursor`,
-`opencode`, `warp`, or `zed`). Drop `--global` for a project-local installation.
-
-<details>
-<summary>Claude Code plugin · ChatGPT · Codex · Claude.ai · manual clone</summary>
-
-For Claude Code and Cowork, install the plugin:
-
-```
-/plugin marketplace add manavmishra/ZeroSlop
-/plugin install zero-slop@zero-slop
-```
-
-ChatGPT and ChatGPT at Work: paste the single-file version into a Project's
-instructions, or upload it as Custom GPT knowledge.
-
-```bash
-curl -sLO https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/dist/zero-slop-single-file.md
-```
-
-Codex has a built-in installer for skills from other repositories. Invoke it, then
-give it the repository and the user-level scope:
-
-```text
-$skill-installer
-Install zero-slop from https://github.com/manavmishra/ZeroSlop as a user-level skill.
-```
-
-Codex discovers skill changes automatically. If the skill does not appear, restart
-Codex. See OpenAI's [skill installation
-guide](https://developers.openai.com/codex/skills/#install-curated-skills-for-local-use).
-
-Claude.ai and Claude Desktop need a zip that contains only this skill. GitHub's green
-"Download ZIP" button packages the whole repository, so Claude rejects it. Build the
-right zip with these commands:
-
-```bash
-git clone https://github.com/manavmishra/ZeroSlop.git
-python3 ZeroSlop/scripts/build_skill_zip.py     # writes ZeroSlop/dist/zero-slop.zip
-```
-
-Then upload `dist/zero-slop.zip` under Settings, Capabilities, Skills. The same file is
-attached to the [latest release](https://github.com/manavmishra/ZeroSlop/releases/latest)
-if you would rather download it.
-
-For a manual Claude-compatible install:
-
-```bash
-git clone https://github.com/manavmishra/ZeroSlop.git ~/.claude/skills/zero-slop
-```
-
-The folder has to be named `zero-slop`. On Windows, clone into
-`$env:USERPROFILE\.claude\skills\zero-slop`.
-
-</details>
-
-You can also run the scorer straight from the command line:
-
-```bash
-python3 scripts/slopscore.py --explain draft.md          # score it, and see every flagged phrase
-python3 scripts/slopscore.py --gate 25 draft.md          # fail a build if the draft is too sloppy
-python3 scripts/slopscore.py --fidelity draft.md new.md  # check the rewrite kept your facts
-python3 scripts/slopscore.py --voice you draft.md        # score against your own writing style
-python3 scripts/slopscore.py --portfolio drafts/         # find reused openings across a batch
-```
-
-The scorer needs no third-party packages, account, or server. A single
-standard-library Python file does the scoring, and your writing never leaves your
-machine. If Python is unavailable, the skill still runs from its written rules, but
-local scores and scripted checks are unavailable.
-
-Zero Slop has three output modes. A normal rewrite returns the finished text with its
-scorecard and heatmaps. An inspect-only request quotes the evidence and suggests fixes
-without changing the draft or guessing who wrote it. When another agent uses Zero Slop
-as an internal quality gate, embedded mode runs the same checks but returns only the
-finished text, keeping editorial machinery out of the deliverable.
+Claude Code and Cowork can use `/plugin marketplace add manavmishra/ZeroSlop`, then
+`/plugin install zero-slop@zero-slop`. ChatGPT users can download
+[`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md). Claude.ai users can
+upload the single-skill zip attached to the
+[latest release](https://github.com/manavmishra/ZeroSlop/releases/latest), or build the
+zip with `python3 scripts/build_skill_zip.py`.
 
 ## How it works
 
-Zero Slop is a hybrid system. Local Python measures the draft before anything is
-changed, producing evidence that can be inspected and reproduced. The host language
-model — Claude, GPT, or another compatible model — then interprets that evidence in the
-context of the draft. It judges meaning, claims, structure, audience, and voice before
-rewriting the text. The measurement is deterministic; the editing is contextual.
+![Three guarded feature modes, two operational loops, and an independent release gate](assets/engine.svg)
 
-Four surface channels produce a score from 0 to 100. The pattern meter identifies
-specific words and phrases. The other three use structural counts and rates to measure
-rhythm, followability, and a combined formatting-and-register signal. Every result
-points back to a quoted phrase or a document-level statistic you can inspect.
+The production path is hybrid by design:
 
-| Channel | What it measures |
-|---|---|
-| Pattern meter | 267 weighted patterns, a 96-word watchlist, and 25 words that count only in a salesy sentence |
-| Rhythm | low variation in sentence length |
-| Followability | comma pile-ups, clusters of long words, and sentences longer than 38 words |
-| Formatting and register | em dash density, emoji, hashtags, heavy use of bold, and machine-formal language |
+1. **Measure:** local Python reports a repeatable surface score and exact hits.
+2. **Diagnose:** the host model reads claims, substance, audience, genre, structure,
+   and voice. In shadow or assisted mode, its structured contextual report must match
+   the source hash, paragraph IDs, allowed signal names, and quoted spans.
+3. **Rewrite:** the model cuts, repairs, or reorders; fidelity outranks cleanliness.
+   Relevant, reason-labelled preferences may guide the edit; when none matches, the
+   model abstains.
+4. **Copy edit:** a fresh editor fixes grammar, spelling, punctuation, diction, and
+   consistency in the deliverable itself.
+5. **Read aloud:** another fresh pass fixes flow, cohesion, repetition, and rough joins.
+6. **Verify:** scripts and the host model recheck score, facts, meaning, qualifiers,
+   voice, format, and structure. Any textual repair repeats both editorial passes and
+   every final check.
 
-For social posts, Zero Slop reports paragraph shape separately; it does not change the
-0-to-100 score. Changing a word to a synonym can remove a weighted phrase, but it
-cannot fix the structural signals and may leave much of the score unchanged.
+`ZERO_SLOP_MODE=classic` is the default and rollback path. `shadow` records validated
+contextual evidence without changing the draft, score, or release decision. `assisted`
+may use that evidence during diagnosis and rewriting, but remains promotion-gated.
 
-No single signal determines the result. Em dashes are common in good writing, so one
-carries little weight on its own. A dash matters only when several independent signals
-cluster in the same draft.
+The local meter combines weighted phrases and context-gated terms with rhythm,
+followability, formatting, and register signals. Predictability and cross-draft
+portfolio repetition stay separate from the score. The scripted fidelity check covers
+names, figures, quotations, and links; semantic review protects claims, qualifiers,
+voice, and non-prose structure.
 
-Word choice is also judged in context. *Leverage* and *robust* are ordinary in a
-runbook but can become useful signals in promotional copy. "Elevated write volume" is
-normal engineering language. A sentence that stacks those terms into a promotional
-promise is not.
-
-Predictability sits outside the main score. Zero Slop hides a handful of words and asks
-your assistant — whether Claude, GPT, or another supported model — to guess each one
-from the words that come before it. When the original word keeps appearing among the
-top three guesses, the prose may be too easy for a model to anticipate. This can expose
-polished, generic writing that slipped past the pattern meter. It does not require
-another model or service.
-
-A second diagnostic applies when you give Zero Slop three or more related drafts. It
-compares their first five words and recurring five-word phrases, exposing a campaign in
-which every post starts or pivots the same way. A reviewer can dismiss necessary product
-names, legal language, and domain terms. The portfolio result is reported separately
-because the current corpus is not large enough to justify folding cross-draft repetition
-into the 0-to-100 score.
-
-Before rewriting, Zero Slop reviews the draft passage by passage. It looks for four kinds
-of failure: content that adds no useful information, unsupported or weakened claims,
-repeated templates, and writing that is hard to follow. The review considers relevance,
-density, factuality, repetition, coherence, fluency, verbosity, word choice, and tone. It
-does not ask a model for one binary verdict.
-
-Editing starts with subtraction. The first pass removes stock phrases and fussy
-formatting while leaving the substance alone. The second works on the argument and the
-voice: what should lead, where a sentence needs room to breathe, and whether the result
-sounds like an expert speaking to peers. Separating those jobs keeps a wording cleanup
-from turning into a needless rewrite.
-
-For important pieces, Zero Slop tries two or three different edits. One may cut harder,
-another may keep more warmth, and a third may change the opening or order. Any version
-that drops or adds a fact is out. Zero Slop chooses the cleanest of the rest and runs
-the full verification.
-
-Before Zero Slop returns anything, it compares the names, numbers, quotations, links,
-and claims with the original. A copy editor fixes grammar, spelling, punctuation,
-consistency, and awkward phrasing. A second editor then reads the copy aloud and fixes
-anything that still sounds stiff, repetitive, or poorly joined. The finished piece is
-scored and compared with the original once more. If a late fix changes the wording,
-both editors see it again and all the checks run again. This repair loop stops after
-three rounds. If a check still cannot pass without guessing, Zero Slop returns the best
-version that completed both editorial passes while preserving the source's meaning. It
-names the failed check and unresolved passage instead of calling the result fully
-verified.
-
-## It will not touch your facts
-
-This is a common failure in rewriting tools: a smoother draft may invent a detail you
-never wrote or quietly drop a number. Zero Slop treats that as the one thing it must
-never do.
-
-Before it calls a rewrite finished, the scripted fact-preservation check confirms that
-every figure, name, quote, and link in the original survived and that none was added. A
-separate judgment pass compares the claims and qualifiers, including statements about
-the writer's feelings or experience, because software cannot reliably catch an
-invented feeling. Both checks matter: a dropped number is conspicuous, but an invented
-detail can read naturally enough to slip by. The safeguards exist because an early
-version of the tool did exactly that, handing a writer a feeling they never expressed.
-
-## Post-deployment online learning
-
-Zero Slop can **reflect** on edits you make after it returns a draft. The technical
-name is *post-deployment, human-in-the-loop online learning*. It is also a form of
-continual learning: the detector gathers evidence from real edits after the skill has
-been installed, then uses that evidence on later drafts.
-
-Here is exactly what that means. When Zero Slop hands a draft back and you edit it
-before publishing, it compares the two versions. A phrase you *cut* may be a tell it
-missed; a flagged phrase you *kept* may be a false positive. Both become evidence, but
-no detection rule or preferred fix becomes active on the strength of one edit pair.
-A phrase becomes eligible only after the same cut appears across three content-distinct
-edit pairs. The potential rule must also be new and pass a safety check against the
-reference set of human writing. Single words need five edit pairs and enter as
-context-dependent signals rather than universal tells.
-
-Once the evidence meets those requirements, Zero Slop can activate the change in a
-private local learning file at
-`$ZERO_SLOP_HOME/learned.json` (default: `~/.zero-slop/learned.json`). The scorer
-reloads that file on every run, so the new evidence affects the next draft without
-changing the installed skill or anyone else's detector. This is next-run adaptation,
-not a remote service changing a draft while it is open. After the writer makes the
-same replacement across three content-distinct edit pairs, the file also remembers
-that fix as a private preference. The next rewrite can consult the preference with
-`learn.py --guide`, but applies it only when doing so preserves the current meaning
-and facts.
-
-Repeated false-positive evidence can lower a local weight. Reconfirmation keeps
-detection rules and preferred fixes current. Without it, detection rules lose weight
-after 18 months, while stale preferred fixes are retired. An author-specific voice
-profile separately suppresses terms found in that writer's own work. The loop
-therefore adapts both detection and fixing while keeping every learned change
-inspectable and local.
+Useful local commands:
 
 ```bash
-python3 scripts/learn.py --reflect --produced out.md --shipped final.md --auto-apply
-python3 scripts/learn.py --promote --apply     # activate eligible evidence locally
-python3 scripts/learn.py --demote --apply      # lower repeatedly overruled patterns locally
-python3 scripts/learn.py --confirm known-slop/ # keep local patterns current
-python3 scripts/learn.py --decay               # reduce stale local patterns
-python3 scripts/learn.py --guide               # show recurring local fix preferences
-python3 scripts/learn.py --voice you --from ~/my-writing/   # teach it your style
-python3 scripts/learn.py --stats               # see what it has learned
+python3 scripts/slopscore.py --explain draft.md
+python3 scripts/slopscore.py --gate 25 draft.md
+python3 scripts/slopscore.py --fidelity draft.md rewrite.md
+python3 scripts/slopscore.py --portfolio drafts/
+python3 scripts/learn.py --guide --for draft.md --reason canned_framing --genre email
 ```
 
-Human corrections provide feedback, but Zero Slop does not perform reinforcement
-learning or RLHF. It does not retrain the host language model or alter its weights. It
-updates an external, interpretable detector and a private rewrite memory. You can
-inspect their patterns, evidence counts, weights, preferred fixes, provenance, and
-decay dates. Shared changes still go through ordinary code review, regression tests,
-versioning, and a release.
+The runtime uses only Python's standard library and calls no network service. Without
+Python, the agent follows the written workflow and reports the scripted gates as
+unavailable.
 
-Separately, Zero Slop checks for a newer release once per session. It shows you the
-one-line update if one exists. The check is a version query and nothing else; it never
-sends the draft.
+## Two loops, with different authority
 
-Online learning changes only private detection evidence, preferred fixes, and personal
-voice profiles. It does not rewrite `SKILL.md` or silently alter the shared skill.
+**Editorial delivery** turns the current draft into finished copy. **Private online
+learning** observes later human edits and records each change with exact
+before-and-after hashes, its reason, and its genre. It rejects weak evidence, stores a
+reversible overlay, and retrieves only relevant guidance on later drafts.
 
-## What the benchmark can and cannot show
+This is post-deployment, human-in-the-loop online adaptation—not reinforcement
+learning, RLHF, self-modification, or neural training. One edit pair is one vote. A
+phrase needs three content-distinct pairs before promotion; a single word needs five
+and stays context-dependent. Candidates must be novel and safe on known-human text.
+Unconfirmed detector weights decay after 18 months; stale fix preferences retire.
+Private state lives under `$ZERO_SLOP_HOME`, outside the installation.
 
-Here is where Zero Slop stands in the evidence currently preserved in this repository:
+The third path in the diagram is deliberately not a runtime loop. It admits research
+corpora, runs blind and grouped evaluations, and tests performance, fidelity, safety,
+cost, and subgroup behavior. New behavior cannot promote itself.
 
-| Check | Current result | What it supports |
-|---|---:|---|
-| Fresh 18-item instruction replay | 14.2 mean surface score; 18/18 passed the surface, shape, and automated fidelity gates | The current workflow completes its own measurable contract on obvious positive cases |
-| Fresh AIStoryHub cross-check | 15/16 eligible rewrites read clean; 2 checker abstentions | The reduction is visible to a second, independently maintained surface checklist |
-| Easy-case detector regressions | 18/18 obvious-slop paraphrases caught; 12/12 known-human samples classified correctly | The deterministic meter separates the deliberately easy cases in the shipped test sets |
-| Historical blind LLM-as-a-judge review | 55/100 best selections; humanizer received 40/100 | Zero Slop and humanizer were competitive in that small setup; the difference was not statistically significant |
+## What the fresh evidence says
 
-These are regression and comparison results, not a field-accuracy claim. The historical
-review used 50 synthetic drafts across six kinds of writing and four rewrite methods.
-The current 18-item replay uses anonymous public-post paraphrases and five methods. In
-both cases, competing outputs were recreated from published instructions rather than
-produced by live products. Only Zero Slop is designed to iterate against this
-repository's numeric gate.
+There is no defensible field-accuracy number yet. The high-bar release set still needs
+independent human slop-quality labels for samples spanning representative genres and
+dialects, current models, and writing by non-native speakers. The results below answer
+narrower questions.
 
-### How the blind LLM-as-a-judge review worked
+### Same 18 drafts, five editing methods
 
-No human raters took part. The benchmark used a blind LLM-as-a-judge review: the model
-saw four versions labeled A through D, not the names of the tools that produced them.
-The records say only that every judging run used the same model family; they do not name
-it. Each of the two passes used five separate runs, one for each ten-draft packet. The
-model received the writing brief, source draft, factual inventory, and four rewrites.
-It scored each rewrite from 1 to 10 for human-likeness, voice, fidelity, writing craft,
-and platform fit. It also flagged fabrication and selected the best and worst version.
-The second pass used the same text and label mapping but fresh model runs.
+One Codex desktop session replayed the pinned instructions on anonymous, deliberately
+obvious examples across six genres. The comparison tests complete workflows against
+Zero Slop's own surface and shape gates; it is not an independent quality ranking.
 
-The repository includes the packets, shuffle key, and resulting scores. It does not
-preserve the model name and version, inference settings, or full evaluation prompt.
-That omission prevents an exact reproduction of the judging and limits what the result
-can support.
+| Method | Mean surface score ↓ | Surface + shape + fact pass | Automated fact inventory | Mean word change |
+|---|---:|---:|---:|---:|
+| Original drafts | 78.2 | 0/18 | — | — |
+| Zero Slop | 15.4 | 18/18 | 18/18 | -26.4% |
+| humanizer | 24.3 | 13/18 | 18/18 | -25.7% |
+| stop-slop | 24.7 | 13/18 | 18/18 | -34.4% |
+| no-ai-slop | 28.5 | 12/18 | 18/18 | -28.0% |
+| de-slop | 54.3 | 6/18 | 18/18 | -18.5% |
 
-The first blind LLM-as-a-judge pass selected Zero Slop for 32 of 50 drafts and
-blader/humanizer for 18. The second selected them for 23 and 22. Across both passes,
-the counts were 55 and 40, but the passes chose the same winner on only 26 of 50 drafts.
-Cohen's kappa was 0.12, the confidence intervals overlapped, and the head-to-head
-difference was not statistically significant (p = 0.15). These data show that the two
-systems were competitive in this setup. They do not establish a general winner.
+![Fresh instruction replay: lower surface score is cleaner on Zero Slop's meter](assets/bench-search-rewrites.png)
 
-![Versions selected as best in a blind LLM-as-a-judge review: Zero Slop 55, blader 40, no-ai-slop 5, de-slop 0](assets/bench-bestpicks.png)
+### Small blind quality panel
 
-The second chart measures how much of the AI register each rewrite leaves behind. Zero
-Slop's own detector produces these numbers, so they are useful for checking the meter's
-target, not for independently grading Zero Slop against other tools.
+Two independent agents reviewed a 72-item packet with the methods hidden. They agreed
+on a binary label for 38 items and left 34 unresolved rather than forcing labels. Exact
+agreement was 77.8%; Cohen's kappa was 0.65. Mean blind severity was 4.75 for the
+originals, 4.08 for de-slop, 3.21 for stop-slop, 3.12 for no-ai-slop, 2.88 for
+humanizer, and 2.38 for Zero Slop. These are blind LLM-as-a-judge results on a small,
+clustered panel—not human field accuracy.
 
-![AI register remaining after de-slop, lower is cleaner: Zero Slop 10.6 versus 16.7 to 28.2 for others, from 77.1 for the raw drafts](assets/bench-detector.png)
+![Blind mean severity by editing method](assets/bench-blind-quality.png)
 
-In a separate discrimination test across LinkedIn, blogs, Reddit, newsletters, and
-short social posts, the scorer separated the obvious-slop samples from the known-human
-samples without overlap. We wrote that test set ourselves. It is a regression check for
-easy cases, not an accuracy estimate for writing in the wild.
+### v2.4.3 versus v2.5.0
 
-We added a second challenge after reviewing anonymous public examples found through
-Google and LinkedIn. It contains 18 paraphrases, three for each platform module:
-LinkedIn, X, email, blog, newsletter, and research. Every example crossed the surface
-gate or the separate social-shape check. The chart shows the mean surface score by
-genre. Because these are intentionally obvious positive examples and not copied posts,
-the result measures regression coverage, not real-world accuracy.
+Classic scoring was bit-for-bit identical across 152 documents: both score-vector
+hashes were `7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8`.
+Consensus accuracy of the surface gate stayed 71.05%, a 0.00-point change. On the
+small held-out cross-rater panel, source-bound contextual review scored 95.45% against
+79.54% for the surface gate on the same eligible items, a 15.91-point lift. Because
+the comparison reuses two LLM editorial raters, it measures reproducibility rather
+than field accuracy. In a retrieval test, the system found the relevant preference and
+abstained on an irrelevant draft; real-user accuracy remains unmeasured.
 
-![Mean surface scores for 18 anonymous search-informed slop paraphrases: blog 99.9, email 79.7, LinkedIn 61.7, newsletter 58.0, research 97.0, and X 73.3](assets/bench-search-corpus.png)
+![Classic scoring is unchanged; contextual shadow evidence improved on the small blind panel](assets/bench-contextual-ablation.png)
 
-### Same-corpus instruction replay
+**Production verdict:** ship v2.5.0 with Classic as the default and collect Shadow
+evidence. Do not enable Assisted globally until a source-grouped holdout independently
+labelled by humans shows a material gain without fidelity, subgroup, latency, or cost
+regression.
 
-On August 22, 2026, we reran the same 18 items from scratch with Zero Slop,
-no-ai-slop, humanizer, de-slop, and stop-slop. One current Codex session replayed each
-method's instructions at the pinned revisions with the same brief: preserve every
-claim and fact, add nothing, and return only the final text. The run record preserves
-the prompt, upstream commit hashes, outputs, and item-level results. The desktop task
-did not expose its exact hosted model identifier or inference settings, so the run is
-fresh and inspectable but not bit-for-bit reproducible. The records are in
-[`bench/search-corpus/`](bench/search-corpus/).
+### Public cross-check and paired edits
 
-Zero Slop's mean surface score fell to 14.2. Humanizer finished at 20.7, stop-slop at
-24.5, no-ai-slop at 27.1, and de-slop at 51.0, down from 78.2 for the source drafts.
-This is a performance check against Zero Slop's own meter, not independent evidence
-that its writing is better. Zero Slop explicitly measures, repairs, and verifies
-against this gate; the other skills do not optimize for it.
+The public [AIStoryHub checker](https://aistoryhub.co/slop-checker) was rerun item by
+item. It is a browser-local pattern checker, not a test of facts, meaning, or authorship.
 
-![Fresh mean surface score after one current host session replayed five pinned anti-slop instruction sets on the same 18 paraphrases: original 78.2, Zero Slop 14.2, humanizer 20.7, stop-slop 24.5, no-ai-slop 27.1, and de-slop 51.0](assets/bench-search-rewrites.png)
-
-The next chart requires the genre-specific surface and shape gates, along with the
-automated fact check, to pass. Zero Slop passed all three on all 18 items. Humanizer
-passed 15, no-ai-slop and stop-slop passed 13 each, and de-slop passed 7. Every method
-passed the automated fact check on all 18 items after its own repair pass, and every
-rewrite passed the shape gate. The remaining differences therefore come from the
-surface gate. The automated fact check cannot detect every reframed claim or shift in
-emphasis, so these results do not measure semantic accuracy.
-
-![Fresh clean-and-fact-checked pass rate on the same 18 paraphrases: Zero Slop 100 percent, humanizer 83.3 percent, no-ai-slop and stop-slop 72.2 percent, de-slop 38.9 percent, and original drafts 0 percent](assets/bench-search-passrate.png)
-
-This positive-only challenge cannot produce a defensible accuracy number for any
-method. That would require representative positive and negative samples, independent
-human fidelity and quality reviews, and fresh live runs with documented model settings.
-The charts report regression coverage and rewrite performance only.
-
-### External AIStoryHub cross-check
-
-[AIStoryHub's Corpus of AI Clichés](https://aistoryhub.co/corpus) publishes 758
-entries covering language and personas, system artifacts and formatting, and rhetorical
-structures. We pin version 1.8 by its date, entry count, and SHA-256, then
-fetch it only for an explicit maintainer audit. The repository does not bundle the
-source JSON because the site does not state a corpus-specific redistribution license.
-
-Of the corpus's 754 testable entries, 273 produced at least one Zero Slop rule hit,
-including all seven entries marked as hard evidence. The known-human guard remained
-12 for 12, with a maximum surface score of 20.2 against a gate of 25. This is taxonomy
-coverage, not accuracy: a hit does not prove a one-to-one match, and Zero Slop
-deliberately does not flag persona names or ambiguous words without context. The
-pin, audit code, aggregate result, and limitations are in
-[`bench/aistoryhub-corpus/`](bench/aistoryhub-corpus/).
-
-We also submitted the same 18 source drafts and all five fresh sets of rewrites, one
-item at a time, to AIStoryHub's [public AI Slop Checker](https://aistoryhub.co/slop-checker).
-The checker marked 15 of Zero Slop's 16 eligible rewrites as “Reads Clean.” It
-abstained on two Zero Slop rewrites because they were shorter than its 20-word
-minimum. The table keeps those varying denominators visible.
-
-| Text or method | Reads Clean | Eligible | Abstained | Mean checker score |
+| Text or method | Reads Clean | Eligible | Abstained | Mean checker score ↓ |
 |---|---:|---:|---:|---:|
 | Original drafts | 3 (16.7%) | 18 | 0 | 80.6 |
-| Zero Slop | 15 (93.8%) | 16 | 2 | 6.0 |
-| humanizer | 14 (77.8%) | 18 | 0 | 21.2 |
-| no-ai-slop | 13 (76.5%) | 17 | 1 | 22.5 |
+| Zero Slop | 15 (88.2%) | 17 | 1 | 11.1 |
 | stop-slop | 13 (76.5%) | 17 | 1 | 22.6 |
-| de-slop | 7 (38.9%) | 18 | 0 | 58.8 |
+| humanizer | 13 (72.2%) | 18 | 0 | 26.7 |
+| no-ai-slop | 13 (72.2%) | 18 | 0 | 26.7 |
+| de-slop | 7 (38.9%) | 18 | 0 | 58.9 |
 
-![Fresh Reads Clean rate from the public AIStoryHub checker on eligible rewrites from the same 18-item corpus: Zero Slop 93.8 percent, humanizer 77.8 percent, no-ai-slop and stop-slop 76.5 percent, de-slop 38.9 percent, and original drafts 16.7 percent. Short rewrites below the checker's 20-word minimum are abstentions and excluded from each denominator.](assets/bench-external-checker.png)
+[Beemo](https://huggingface.co/datasets/toloka/beemo) records model provenance and
+human editing history, not slop quality. Its pinned revision `9c014107fe9b` is useful
+as an out-of-domain paired stress test:
 
-AIStoryHub's checker is a deterministic surface checklist, not a human review. Its
-scores in this run were strongly bimodal, and it does not measure semantic fidelity,
-writing quality, field accuracy, or authorship. These results provide an independent
-cross-check of rewrite performance using another meter; they are not an accuracy
-ranking. The item-level observations, input hashes, threshold, and abstentions are
-committed in
-[`bench/search-corpus/aistoryhub-checker-results.json`](bench/search-corpus/aistoryhub-checker-results.json).
+| Beemo text | Documents | Mean score ↓ | Median score ↓ | At or above the generic 25-point gate |
+|---|---:|---:|---:|---:|
+| Raw model output | 2,187 | 32.0 | 20.2 | 848 (38.8%) |
+| Expert human edit | 2,187 | 26.4 | 20.2 | 604 (27.6%) |
+| Independent human answer | 2,187 | 20.6 | 15.8 | 352 (16.1%) |
 
-A separate 1,000-document test guards speed; CI fails if the batch takes longer than 60
-seconds. The full inputs, rewrites, anonymized packets, raw ratings, challenge corpus,
-and analysis scripts are in the [benchmark harness](bench/).
+Expert editing lowered the score for only 52.7% of pairs, a useful warning against
+treating a surface meter as a measure of accuracy.
+
+### Corpus admission: a deliberately high bar
+
+Each source listed below is registered in
+[`bench/corpus-registry.json`](bench/corpus-registry.json) with its label meaning,
+license, provenance, leakage risk, allowed use, and admission tier.
+
+| Tier | Sources | Permitted claim |
+|---|---|---|
+| Release research | Internal blind-quality panel, AIStoryHub, Beemo, Slop Index | Narrow, explicitly caveated observations |
+| Provenance shadow | RAID, MAGE, HC3, ARB, MAGA, M4, M4GT-Bench, COLING 2025, AuTextification | Drift and human-safety checks; never slop-quality accuracy |
+| Restricted | EditLens, No Robots, PERSUADE 2.0 | Evaluate only under their access and license terms |
+| Human safety | Blog Authorship, Enron | False-positive research after privacy and domain review |
+| Discovery only | LLM excess vocabulary, slop-forensics, SlopBench, Wikipedia's signs | Candidate signals; never automatic promotion |
+
+No listed corpus currently clears every field-accuracy requirement. The skill will not
+turn authorship labels into quality labels, train on its test split, redistribute
+restricted text, or report a hand-shaped score as a calibrated probability.
+
+### Performance and historical context
+
+On Darwin arm64, Python 3.9.6, the current local run scored 1,000 documents in
+3.5551 s; 281.3 docs/s. A 15,201-word document took 0.4553 s. The worst pathological
+input took 3.1517 s; an 8,000-word reflection took 0.2110 s. Preparing and validating
+a 2,000-paragraph contextual packet took 0.0021 s and 0.0040 s, respectively, excluding
+host-model latency. All timings are observations from one machine, not throughput
+promises.
+
+The repository also preserves two historical blind LLM-as-a-judge passes, although
+their exact model and inference settings were not recorded. Across 100 selections,
+Zero Slop received 55, blader/humanizer 40,
+no-ai-slop 5 and de-slop 0. The passes
+agreed on the winner for only 26 of 50 items; Cohen's kappa was 0.12. Zero Slop's 55%
+rate has a Wilson interval of 45.2% to 64.4%. A comparison of
+the 95 selections assigned to Zero Slop or humanizer gives p = 0.15. This is
+historical descriptive evidence, not a reproducible winner claim.
+
+<details>
+<summary>External model context: all 18 reproduced Slop Index rows</summary>
+
+[The Slop Index](https://github.com/hgaddipati1118/slop-index) commit `f9dc3c757845`
+contains 19,928 raw generations. Its mechanical ranking changed under every one of
+500 random axis reweightings, so the rows are context rather than a universal ranking.
+
+| Published rank | Model | Mechanical index ↓ | Bootstrap rank range |
+|---:|---|---:|---:|
+| 1 | mistral-large | 40.6 | 1 |
+| 2 | claude-fable-5 | 35.6 | 2–3 |
+| 3 | gpt-5.6-terra | 32.8 | 3–6 |
+| 4 | claude-opus-4-8 | 31.8 | 3–8 |
+| 5 | gpt-5.6-sol | 31.7 | 3–8 |
+| 6 | gpt-5.6-luna | 31.7 | 3–8 |
+| 7 | glm-5.2 | 31.2 | 4–9 |
+| 8 | claude-sonnet-5 | 30.5 | 4–9 |
+| 9 | qwen3.7-max | 28.7 | 8–11 |
+| 10 | gemini-3.5-flash | 27.8 | 9–12 |
+| 11 | gpt-5.4-mini | 26.8 | 9–12 |
+| 12 | claude-haiku-4-5 | 24.9 | 12–16 |
+| 13 | gemini-3.1-pro-preview | 24.3 | 12–17 |
+| 14 | grok-4.5 | 24.1 | 13–17 |
+| 15 | deepseek-v4-pro | 23.8 | 8–18 |
+| 16 | minimax-m3 | 23.1 | 13–18 |
+| 17 | muse-spark-1.1 | 23.1 | 12–18 |
+| 18 | kimi-k2p6 | 21.1 | 16–18 |
+
+</details>
 
 ## What Zero Slop adds
 
-[blader/humanizer](https://github.com/blader/humanizer) is a broad editing guide with
-35 named pattern families, voice-sample matching, and a strict no-fabrication check.
-[petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) has a clean detect
-mode, protects the writer's rough edges, and asks for the minimum effective edit. Zero
-Slop covers those editorial behaviors, including minimum effective edits, embedded
-delivery, and inspect-only findings. It also measures the draft, verifies the
-rewrite, checks related drafts for repeated templates, and learns from published edits.
+Zero Slop builds on [no-ai-slop](https://github.com/petergyang/no-ai-slop),
+[humanizer](https://github.com/blader/humanizer),
+[de-slop](https://github.com/isatimur/de-slop), and
+[stop-slop](https://github.com/hardikpandya/stop-slop). It carries forward those
+projects' direct editing, broad tell coverage, voice protection, and attention to
+rhythm. It adds an
+explainable meter, source-bound contextual review, scripted fidelity checks,
+fidelity-first candidate selection, separate copy and read-aloud editors, private
+reason-labelled retrieval, cross-draft diagnosis, and a fail-closed release harness.
 
-Capability presence is not effectiveness proof. The blind review above remains the
-head-to-head result in this repository, and it found Zero Slop and blader/humanizer
-competitive in that setup (p = 0.15). The matrix below answers a narrower question:
-what each pinned repository documents and ships. We audited Zero Slop at
-[`cc41ad688d99`](https://github.com/manavmishra/ZeroSlop/tree/cc41ad688d997f0c4a1d2970ce7f097d18fc3305),
-blader/humanizer at
-[`e2e92e7b4b82`](https://github.com/blader/humanizer/tree/e2e92e7b4b8229253ed5c8e81dc65463fdeddda5),
-and petergyang/no-ai-slop at
-[`d30eddb9e045`](https://github.com/petergyang/no-ai-slop/tree/d30eddb9e04562234f2070b5ee63ca4649d9a05e)
-on August 22, 2026.
+A documented capability does not prove that it works well. The matrix audits repository
+contracts, not effectiveness, at these commits: Zero Slop `3790a1f08ebe`, humanizer
+`e2e92e7b4b82`, and no-ai-slop `d30eddb9e045`.
 
-![Repository capability audit. Zero Slop ships a detect-only evidence report, a numeric meter, statistical signals, and a scripted fidelity check. It also ships candidate selection, separate final editing gates, a portfolio probe, private learning, recurring fix memory, evidence decay, external voice profiles, and a public regression harness. The two comparison projects document several instruction-guided editing checks but not the wider measured system.](assets/competitor-capabilities.png)
+![Pinned repository capability audit](assets/competitor-capabilities.png)
 
-| Area | Zero Slop | blader/humanizer | petergyang/no-ai-slop |
-|---|---|---|---|
-| Modes | Rewrite, inspect-only evidence report, embedded final-text gate, and a separate 3+ draft portfolio probe. | Pasted-text, file, and embedded rewrite workflows. | Edit and detect workflows. |
-| Measurement | Traceable surface score with statistical and context-gated signals. | Pattern review in the skill instructions. | Named findings. The detect mode explicitly does not score. |
-| Fact protection | Scripted fact inventory plus claim review. | No-fabrication instruction and final claim check. | Preserve-facts instruction and self-check. |
-| Selection and finish | Best-of-N reranker. Copy desk. Fresh read-aloud pass. Then every gate runs again. | Draft, read aloud, then check patterns and claims. | Minimum effective edit plus a written self-evaluation. |
-| Personalization | Private voice profile from the writer's samples. | Matches a supplied writing sample. | Preserves voice found in the current draft. |
-| Cross-draft diagnosis | Reused openings and phrases across 3+ related drafts. | Not documented in the pinned repository. | Not documented in the pinned repository. |
-| Learning | Private pattern weights and fix memory. Evidence thresholds, reconfirmation, and decay govern updates. | Not documented in the pinned repository. | Not documented in the pinned repository. |
-| Published evaluation | Raw blind-review records. Regression corpora. Speed gate. Scripts and explicit limits. | No outcome benchmark found in the pinned repository. | No outcome benchmark found in the pinned repository. |
-
-In the graphic, “Native” means a dedicated script, stored artifact, or named workflow
-gate. “Guided” means an instruction or self-check without a dedicated executable
-component. “Not documented” means we did not find the capability at that commit; it
-does not prove the project cannot do it. The audit data live in
-[`bench/competitor-capabilities.json`](bench/competitor-capabilities.json), and the chart
-is regenerated with the other benchmark graphics.
-
-## Prior work and scope
-
-Four MIT-licensed editing projects informed Zero Slop's initial taxonomy and rewrite
-guidance: [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop),
-[blader/humanizer](https://github.com/blader/humanizer),
-[isatimur/de-slop](https://github.com/isatimur/de-slop), and
-[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop). Their pattern
-catalogs shaped the first version of this skill. Zero Slop adds a traceable meter and
-scripted fact checks, then carries each revision through copy-editing and a separate
-read-aloud pass. It also checks batches for repeated templates and can learn privately
-from later human edits.
-
-It is an editor, not an authorship detector. Pangram and GPTZero estimate whether a
-machine wrote a passage. Zero Slop asks a narrower question: how much of the tracked
-AI register remains in the prose? It never rewrites text to evade an authorship test.
-
-## Open work
-
-Three gaps remain:
-
-1. **Field evaluation.** Accuracy requires representative positive and negative prose,
-   plus independent human reviews of quality and fidelity. RAID, HC3, M4, and
-   AuTextification are possible starting points. The AIStoryHub taxonomy and public
-   checker add external coverage, but they do not replace that evaluation.
-2. **Signals beyond word choice.** [NEULIF](https://arxiv.org/abs/2511.21744) points to
-   function-word pairings and sentence-length distributions. Zero Slop will not weight
-   either signal until it has been tuned on labeled data and tested across current model
-   generations.
-3. **Live product runs.** The current comparison replays pinned instruction sets in one
-   Codex session. A true product comparison still requires live runs of each product,
-   with the exact model, settings, and complete prompts recorded.
-
-## System design
-
-Together, the components described above form a three-layer editorial pipeline:
-
-1. **Deterministic measurement** runs locally. It reports quoted pattern matches,
-   sentence statistics, formatting counts, and the 0-to-100 surface score. The score
-   is evidence about the writing, not a probability that AI wrote it.
-2. **Contextual AI editing** is performed by the host language model. It evaluates the
-   draft's substance, factual scope, structure, audience, and voice before rewriting
-   it. Separate fresh-eyes model passes then copy-edit the text and read it aloud.
-3. **Final verification** combines scripts with a final review by the host model. The
-   scripts recheck the score, figures, names, quotations, and links. The host model
-   rechecks meaning, qualifiers, voice, format, structure, and flow. Any textual repair
-   sends the result through both editorial passes and every final check again.
-
-Around that pipeline, Zero Slop runs two operational loops:
-
-- **Editorial delivery** measures the current draft, diagnoses the problems, rewrites
-  it, copy-edits the result, reads it aloud, and verifies the text that will be returned.
-- **Private online learning** compares that result with later human edits. The same
-  change must recur across content-distinct edit pairs before it can affect a local
-  weight or become a preferred fix. Reconfirmation keeps detector rules and preferred
-  fixes current; without it, detector rules lose weight and stale preferred fixes retire.
-
-The predictability and portfolio probes are diagnostics attached to editorial delivery;
-neither changes the main surface score. External taxonomies sit outside both runtime
-loops. Maintainers review them against the known-human corpus before a tested, versioned
-release. They cannot modify an installed skill on their own.
-
-The private learning loop adapts detector weights and preferred fixes. It does not train
-or alter the host model. This separation keeps learned changes inspectable, reversible,
-and local while the host model supplies the contextual language understanding.
-
-The diagram below shows how the loops connect. Zero Slop can learn from a later edit
-only when both its returned version and the writer's published version are available.
-Evidence that clears the gates updates a private overlay: detector
-weights inform measurement on the next run, while preferred fixes inform rewriting.
-Later evidence reconfirms useful lessons; stale weights decay and stale fixes retire.
-
-![Zero Slop's two connected operational loops. Editorial delivery measures, diagnoses, rewrites, copy-edits, reads aloud, and verifies the current draft. Later published edits enter a private learning loop whose recurrence, novelty, and known-human safety gates control a local overlay. Detector weights feed the next measurement, preferred fixes feed the next rewrite, and stale lessons decay or retire without retraining the host model.](assets/engine.svg)
-
-### Repository map
-
-| Path | Role |
-|---|---|
-| `SKILL.md` | Runtime instructions, editorial stages and verification gates |
-| `scripts/` | Local scorer, fidelity check, reranker, learning tools and package builders |
-| `data/` | The 267 weighted rules, context terms and known-human safety corpus |
-| `references/` | Tell taxonomy, rewrite guidance, platform rules and editorial briefs |
-| `bench/` | Corpora, method comparisons, raw observations, charts and analysis scripts |
-| `tests/test_all.py` | Correctness, safety, concurrency, packaging and performance checks |
-
-Run the release checks locally:
+## Reproduce and inspect
 
 ```bash
-python3 -m unittest -v tests.test_all
+python3 tests/test_all.py
 python3 scripts/calibrate.py --selftest
+python3 bench/search-corpus/compare.py --check
+python3 bench/quality-corpus/evaluate.py --manifest bench/quality-corpus/manifest.json \
+  --labels bench/quality-corpus/labels-rater-a.json \
+  --labels bench/quality-corpus/labels-rater-b.json \
+  --out bench/quality-corpus/results.json --check
+python3 bench/feature-ablation/check.py
+python3 bench/validate_corpus_registry.py
+python3 bench/make_charts.py --check
 ```
 
-CI also verifies that documented counts match the data, charts match their inputs,
-packaged copies match the source and private writing stays out of tracked files.
-
-## Sources and acknowledgments
-
-The tell taxonomy also draws on Wikipedia's
-[Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
-Kagi's [SlopStop](https://help.kagi.com/kagi/features/slopstop.html) independently uses
-two safeguards that matter here: it requires corroborating signals and lets users
-reverse a bad judgment.
-
-The full research trail is in [references/evidence.md](references/evidence.md). The
-design relies most heavily on four findings:
-
-- instruction tuning creates a detectable register even when base-model text is rated
-  as human ([arXiv:2605.19516](https://arxiv.org/abs/2605.19516));
-- model-assisted prose overuses a measurable vocabulary
-  ([Kobak et al., arXiv:2406.07016](https://arxiv.org/abs/2406.07016));
-- commercial detectors disproportionately misclassify writing by non-native English
-  speakers ([arXiv:2304.02819](https://arxiv.org/abs/2304.02819)); and
-- cross-draft repetition is useful evidence, while binary slop judgments remain
-  unreliable ([The Slop Index](https://github.com/hgaddipati1118/slop-index),
-  [*Measuring AI “Slop” in Text*](https://arxiv.org/abs/2509.19163)).
-
-Those findings explain the cluster rule, the known-human safety corpus, the separate
-portfolio diagnostic, and the refusal to present the 0-to-100 meter as a probability.
+`SKILL.md` defines runtime behavior. `scripts/slopscore.py`, `contextual.py`, and
+`learn.py` implement the local meter, contextual contract, and private overlay.
+`references/` holds the editorial briefs. `bench/` contains inputs, outputs, pins,
+admission decisions, timings, and chart data. The runtime ships no trained model and
+never changes the host model's weights. See [`SECURITY.md`](SECURITY.md) for trust
+boundaries and [`references/evidence.md`](references/evidence.md) for the research
+trail.
 
 MIT.

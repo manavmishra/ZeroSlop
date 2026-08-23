@@ -1,0 +1,80 @@
+{
+ "schema": 1,
+ "baseline": {
+  "version": "2.4.3",
+  "commit": "3790a1f08ebeb2d45eaa435b6a920b57cc0a71fc"
+ },
+ "candidate": {
+  "version": "2.5.0",
+  "default_mode": "classic",
+  "rollback": "Set ZERO_SLOP_MODE=classic or leave it unset."
+ },
+ "deterministic_surface_ablation": {
+  "documents": 152,
+  "sources": [
+   "50-draft rewriting panel",
+   "18-item cross-genre corpus",
+   "12-item discrimination corpus",
+   "72-item blind quality panel"
+  ],
+  "baseline_score_vector_sha256": "7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8",
+  "candidate_score_vector_sha256": "7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8",
+  "exactly_unchanged": true,
+  "blind_quality_consensus_accuracy_baseline": 0.7105,
+  "blind_quality_consensus_accuracy_candidate_classic": 0.7105,
+  "accuracy_change_percentage_points": 0.0
+ },
+ "structured_contextual_shadow": {
+  "held_out_test_accuracy": 0.9545,
+  "surface_accuracy_on_same_items": 0.7954,
+  "accuracy_change_percentage_points": 15.91,
+  "precision": 0.9737,
+  "recall": 0.9737,
+  "field_accuracy": false,
+  "limits": "Two blind LLM editorial raters reviewed the same small clustered panel in opposite directions. This measures cross-rater reproducibility, not independent human field accuracy; borderline labels abstain."
+ },
+ "reason_labelled_retrieval": {
+  "relevant_fixture_top_match": true,
+  "irrelevant_fixture_abstained": true,
+  "maximum_results": 20,
+  "maximum_preferences": 50000,
+  "performance_fixture_preferences": 5000,
+  "median_local_retrieval_seconds": 0.1935,
+  "calibrated_probability": false,
+  "accuracy_result": null,
+  "limits": "Retrieval needs repeated, source-bound edits from a real writer before a field-quality lift can be estimated. It remains advisory and cannot bypass fidelity or safety gates."
+ },
+ "blind_evaluation_lane": {
+  "runtime_effect": "none",
+  "items": 72,
+  "source_drafts": 12,
+  "consensus_binary_items": 38,
+  "exact_rater_agreement": 0.7778,
+  "cohens_kappa": 0.6542,
+  "gain": "Adds an independently split release-research lane and exposes unresolved labels; it does not change a draft or score."
+ },
+ "interleaved_local_performance": {
+  "environment": "Darwin arm64, Python 3.9.6; four alternating runs per version on the same machine",
+  "baseline_medians_seconds": {
+   "score_1000_documents": 2.71559,
+   "score_15201_word_document": 0.38476,
+   "reflect_8000_diff_words": 0.16891
+  },
+  "candidate_medians_seconds": {
+   "score_1000_documents": 2.81701,
+   "score_15201_word_document": 0.39144,
+   "reflect_8000_diff_words": 0.16355
+  },
+  "candidate_change_percent": {
+   "score_1000_documents": 3.73,
+   "score_15201_word_document": 1.74,
+   "reflect_8000_diff_words": -3.17
+  },
+  "verdict": "No material classic-path regression in this noisy local sample. Contextual packet preparation and validation remain separate from host-model latency."
+ },
+ "production_verdict": {
+  "decision": "ship_candidate_with_classic_default_and_shadow_sampling",
+  "reason": "Classic scoring is bit-for-bit unchanged, the added local paths are bounded and fail closed, and the contextual lane improved blind cross-rater agreement. The evidence is not yet strong enough to enable assisted mode globally.",
+  "promotion_requirement": "Promote assisted mode only after an independently human-labelled, source-grouped field set shows a material quality gain without fidelity, subgroup, latency, or cost regression."
+ }
+}

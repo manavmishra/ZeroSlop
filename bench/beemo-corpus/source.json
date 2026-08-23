@@ -1,0 +1,11 @@
+{
+ "dataset": "toloka/beemo",
+ "revision": "9c014107fe9b85c4c784c1ce3a43b0b7b0a6d162",
+ "config": "default",
+ "split": "train",
+ "expected_rows": 2187,
+ "dataset_url": "https://huggingface.co/datasets/toloka/beemo",
+ "paper_url": "https://arxiv.org/abs/2411.04032",
+ "license_note": "Field-specific terms apply: prompts and human_output inherit No Robots CC-BY-NC-4.0; expert human_edits are MIT unless an underlying generator license says otherwise; model outputs inherit generator terms. No source text is redistributed here.",
+ "purpose": "External paired surface audit of model output, expert human edits, and independent human answers. Provenance labels are not slop-quality labels."
+}

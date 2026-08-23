@@ -3,8 +3,9 @@
 the identical rewrites with the identical shuffled labels?
 
 Reports run-to-run best-pick tallies, per-item agreement (how often the two
-runs pick the same winner), Cohen's kappa on the winner choice, and a
-Wilson confidence interval on the win rate.
+runs pick the same winner), Cohen's kappa on the winner choice, a
+Wilson confidence interval on the win rate, and a two-sided exact binomial
+test restricted to Zero Slop and humanizer best selections.
 """
 import json
 import math
@@ -77,6 +78,14 @@ def wilson(k, n, z=1.96):
     return (max(0, c - h), min(1, c + h))
 
 
+def exact_binomial_two_sided(k, n):
+    """Two-sided exact test of equally likely outcomes for a binary contest."""
+    if n <= 0:
+        return float("nan")
+    tail = min(k, n - k)
+    return min(1.0, 2 * sum(math.comb(n, i) for i in range(tail + 1)) / (2 ** n))
+
+
 def kappa(a, b, cats):
     ids = [i for i in a if i in b]
     if not ids:
@@ -128,6 +137,11 @@ pooled_n = len(r1_picks) + len(r2_picks)
 lo, hi = wilson(pooled_k, pooled_n)
 print(f"  pooled: {pooled_k}/{pooled_n} = {pooled_k/pooled_n:.0%}   "
       f"95% CI [{lo:.0%}, {hi:.0%}]")
+humanizer_k = t1["blader"] + t2["blader"]
+head_to_head_n = pooled_k + humanizer_k
+head_to_head_p = exact_binomial_two_sided(pooled_k, head_to_head_n)
+print("  Zero Slop vs humanizer best selections only: "
+      f"{pooled_k}/{head_to_head_n}; two-sided exact binomial p={head_to_head_p:.3f}")
 
 common = set(r1_picks) & set(r2_picks)
 agree = sum(1 for i in common if r1_picks[i] == r2_picks[i])
@@ -142,7 +156,21 @@ for m in METHODS:
     print(f"{m:14s} {c1:6.2f} {c2:6.2f} {c2-c1:+7.2f}")
 
 print(f"\nFabrication flags — run 1: {r1_fabs or 'none'}   run 2: {r2_fabs or 'none'}")
-payload = {"run1": t1, "run2": t2, "agreement": agree / len(common),
-           "kappa": kappa(r1_picks, r2_picks, METHODS),
-           "pooled_ci": wilson(pooled_k, pooled_n)}
+payload = {
+    "run1": t1,
+    "run2": t2,
+    "agreement_count": agree,
+    "agreement_items": len(common),
+    "agreement": agree / len(common),
+    "kappa": kappa(r1_picks, r2_picks, METHODS),
+    "zero_slop_pooled": {"selections": pooled_k, "items": pooled_n,
+                         "wilson_95_ci": wilson(pooled_k, pooled_n)},
+    "zero_slop_vs_humanizer": {
+        "zero_slop_selections": pooled_k,
+        "humanizer_selections": humanizer_k,
+        "eligible_selections": head_to_head_n,
+        "test": "two-sided exact binomial test under p=0.5, excluding other methods",
+        "p_value": head_to_head_p,
+    },
+}
 atomic_write_text(E / "replication.json", json.dumps(payload, indent=1) + "\n")

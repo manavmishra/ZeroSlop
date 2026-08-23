@@ -101,6 +101,48 @@ most other over should some such than that their them then there these they
 this those through under until very were what when where which while with
 would your""".split())
 
+# Editorial reasons are deliberately few, stable, and shared with the contextual
+# review. They describe why a change helped; they are not model probabilities.
+REASON_LABELS = {
+    "unspecified", "hollow_substance", "semantic_redundancy",
+    "vague_reference", "canned_framing", "genre_mismatch",
+    "local_repetition", "unsupported_attribution", "reader_process_leak",
+    "rhythm", "formatting", "grammar", "fidelity", "other",
+}
+GENRES = {
+    "general", "linkedin", "x", "email", "blog", "newsletter",
+    "research", "professional", "social",
+}
+MAX_RETRIEVAL_RESULTS = 20
+MAX_RETRIEVAL_TEXT = 500000
+MAX_RETRIEVAL_PREFERENCES = 50000
+MAX_FEEDBACK_BYTES = 1024 * 1024
+
+
+def validate_label(label, allowed, kind):
+    if label not in allowed:
+        raise SystemExit(f"unknown {kind} {label!r}; choose one of: "
+                         + ", ".join(sorted(allowed)))
+    return label
+
+
+def valid_counts(value, allowed, maximum):
+    return (isinstance(value, dict)
+            and all(isinstance(key, str) and key in allowed
+                    and isinstance(count, int) and not isinstance(count, bool)
+                    and count >= 0
+                    for key, count in value.items())
+            and sum(value.values()) <= maximum)
+
+
+def bump_count(record, field, label):
+    counts = record.setdefault(field, {})
+    counts[label] = counts.get(label, 0) + 1
+
+
+def text_sha256(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
 
 def write_json(path, obj, *, private=False):
     """Durably replace JSON; private observations are owner-readable only."""
@@ -221,6 +263,15 @@ def load_learned(path, scope):
                          or pattern["fix_seen_in_docs"] < 0)):
                 valid = False
                 break
+            evidence_n = pattern.get("seen_in_docs", pattern.get("fix_seen_in_docs", 0))
+            if ("reasons" in pattern
+                    and not valid_counts(pattern["reasons"], REASON_LABELS, evidence_n)):
+                valid = False
+                break
+            if ("genres" in pattern
+                    and not valid_counts(pattern["genres"], GENRES, evidence_n)):
+                valid = False
+                break
         for field in ("lexicon", "riders"):
             for term, weight in data.get(field, {}).items():
                 if (not isinstance(term, str) or not 1 <= len(term) <= 80
@@ -241,6 +292,10 @@ def load_learned(path, scope):
                     or pref.get("seen_in_pairs", 0) < 0
                     or ("active" in pref and not isinstance(pref["active"], bool))
                     or pref.get("source_span") in preference_spans
+                    or ("reasons" in pref and not valid_counts(
+                        pref["reasons"], REASON_LABELS, pref.get("seen_in_pairs", 0)))
+                    or ("genres" in pref and not valid_counts(
+                        pref["genres"], GENRES, pref.get("seen_in_pairs", 0)))
                     or any(key in pref and not isinstance(pref[key], str)
                            for key in ("first_seen", "last_confirmed", "decayed"))):
                 valid = False
@@ -279,6 +334,16 @@ def load_observations():
                     or not all(isinstance(doc, str) and doc for doc in docs)
                     or len(docs) != len(set(docs))
                     or rec.get("count", 0) != len(docs)):
+                raise SystemExit(
+                    f"{OBS} has an invalid reflection schema; repair it before re-running."
+                )
+            if ("reasons" in rec
+                    and not valid_counts(rec["reasons"], REASON_LABELS, rec["count"])):
+                raise SystemExit(
+                    f"{OBS} has an invalid reflection schema; repair it before re-running."
+                )
+            if ("genres" in rec
+                    and not valid_counts(rec["genres"], GENRES, rec["count"])):
                 raise SystemExit(
                     f"{OBS} has an invalid reflection schema; repair it before re-running."
                 )
@@ -325,7 +390,11 @@ def load_observations():
                             or not all(isinstance(doc, str) and doc for doc in fix_docs)
                             or len(fix_docs) != len(set(fix_docs))
                             or fix.get("count", 0) != len(fix_docs)
-                            or not set(fix_docs).issubset(set(docs))):
+                            or not set(fix_docs).issubset(set(docs))
+                            or ("reasons" in fix and not valid_counts(
+                                fix["reasons"], REASON_LABELS, fix.get("count", 0)))
+                            or ("genres" in fix and not valid_counts(
+                                fix["genres"], GENRES, fix.get("count", 0)))):
                         raise SystemExit(
                             f"{OBS} has an invalid reflection schema; repair it before re-running."
                         )
@@ -587,8 +656,48 @@ def diff_spans(produced, shipped):
     return out
 
 
+def load_edit_feedback(path, produced, shipped, diffs):
+    """Load optional per-edit reason labels bound to an exact before/after pair."""
+    source = Path(path)
+    if not source.is_file():
+        raise SystemExit(f"feedback is not a readable file: {source}")
+    try:
+        if source.stat().st_size > MAX_FEEDBACK_BYTES:
+            raise SystemExit(f"feedback exceeds {MAX_FEEDBACK_BYTES} bytes")
+        payload = json.loads(source.read_text())
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"feedback must be readable UTF-8 JSON: {exc}") from exc
+    if (not isinstance(payload, dict)
+            or set(payload) != {"schema", "source_sha256", "target_sha256", "edits"}
+            or payload.get("schema") != 1
+            or payload.get("source_sha256") != text_sha256(produced)
+            or payload.get("target_sha256") != text_sha256(shipped)
+            or not isinstance(payload.get("edits"), list)
+            or len(payload["edits"]) > 1000):
+        raise SystemExit("feedback schema or source/target hash is invalid")
+    available = {norm(item["span"]): item["span"] for item in diffs if norm(item["span"])}
+    labels = {}
+    for index, item in enumerate(payload["edits"], 1):
+        if (not isinstance(item, dict)
+                or set(item) != {"source_span", "reason", "genre"}
+                or not isinstance(item.get("source_span"), str)
+                or not 1 <= len(item["source_span"]) <= 500):
+            raise SystemExit(f"feedback edit {index} is malformed")
+        key = norm(item["source_span"])
+        if key not in available or key in labels:
+            raise SystemExit(f"feedback edit {index} has an unknown or duplicate source_span")
+        labels[key] = (
+            validate_label(item.get("reason"), REASON_LABELS, "reason label"),
+            validate_label(item.get("genre"), GENRES, "genre"),
+        )
+    return labels
+
+
 @state_locked(lambda *a, **k: OBS)
-def reflect(produced, shipped, doc_id=None):
+def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="general",
+            feedback=None):
+    reason = validate_label(reason, REASON_LABELS, "reason label")
+    genre = validate_label(genre, GENRES, "genre")
     base = load(DATA / "patterns.json")
     shared, local = learned_layers()
     pats = (base["patterns"] + shared.get("patterns", [])
@@ -610,6 +719,8 @@ def reflect(produced, shipped, doc_id=None):
     doc = hashlib.sha256(
         (prod_text + "\0" + ship_text).encode()).hexdigest()[:16]
     diffs = diff_spans(prod_text, ship_text)
+    edit_labels = (load_edit_feedback(feedback, prod_text, ship_text, diffs)
+                   if feedback else {})
     caught_words = {word for d in diffs if already_caught(d["span"], pats, lex)
                      for word in norm(d["span"]).split()}
 
@@ -630,6 +741,8 @@ def reflect(produced, shipped, doc_id=None):
             rec["count"] += 1
             rec["docs"].append(doc)
             rec["last_seen"] = today
+            bump_count(rec, "reasons", reason)
+            bump_count(rec, "genres", genre)
 
     # The meter was wrong here: it convicted text a human read and published.
     fps = survived_hits(prod_text, ship_text, pats)
@@ -651,6 +764,7 @@ def reflect(produced, shipped, doc_id=None):
         key = norm(d["span"])
         if not key:
             continue
+        edit_reason, edit_genre = edit_labels.get(key, (reason, genre))
         caught = already_caught(d["span"], pats, lex)
         why = is_content_specific(d["span"]) or (
             "all function words" if is_all_function_words(d["span"]) else None)
@@ -675,9 +789,13 @@ def reflect(produced, shipped, doc_id=None):
             if doc not in choice["docs"]:
                 choice["docs"].append(doc)
                 choice["count"] += 1
+                bump_count(choice, "reasons", edit_reason)
+                bump_count(choice, "genres", edit_genre)
                 frec["count"] = len(set(frec["docs"] + [doc]))
                 if doc not in frec["docs"]:
                     frec["docs"].append(doc)
+                    bump_count(frec, "reasons", edit_reason)
+                    bump_count(frec, "genres", edit_genre)
                 frec["last_seen"] = today
                 fix_recorded += 1
 
@@ -691,6 +809,8 @@ def reflect(produced, shipped, doc_id=None):
         rec["count"] += 1
         rec["docs"].append(doc)
         rec["last_seen"] = today
+        bump_count(rec, "reasons", edit_reason)
+        bump_count(rec, "genres", edit_genre)
         if len(rec["examples"]) < 3:
             rec["examples"].append(f"…{d['before']} [{d['span']}] {d['after']}…".strip())
         recorded += 1
@@ -835,6 +955,8 @@ def promote(apply_, cat, weight):
         pattern = {"name": name, "cat": cat, "rx": rx, "w": weight,
                    "first_seen": today, "last_confirmed": today,
                    "source": "reflect", "seen_in_docs": rec["count"],
+                   "reasons": dict(sorted(rec.get("reasons", {}).items())),
+                   "genres": dict(sorted(rec.get("genres", {}).items())),
                    "digest": hashlib.sha256(key.encode()).hexdigest()[:12],
                    # These readable fields stay in the private overlay and let
                    # the rewrite pass learn from repeated human replacements.
@@ -858,6 +980,8 @@ def promote(apply_, cat, weight):
             preferences[key] = pref
         pref.update(preferred_fix=preferred,
                     seen_in_pairs=evidence["count"],
+                    reasons=dict(sorted(evidence.get("reasons", {}).items())),
+                    genres=dict(sorted(evidence.get("genres", {}).items())),
                     last_confirmed=rec.get("last_seen", today), active=True)
         pref.pop("decayed", None)
         rec["applied_count"] = evidence["count"]
@@ -1193,27 +1317,103 @@ def decay_local():
     return 0
 
 
-def guide(as_json=False):
-    """Return private rewrite preferences learned from repeated human edits."""
-    learned = load_learned(LOCAL, "local")
+def all_preferences(learned):
+    """Read current and prerelease preference shapes without mutating either."""
+    preference_count = (len(learned.get("fix_preferences", []))
+                        + len(learned.get("patterns", [])))
+    if preference_count > MAX_RETRIEVAL_PREFERENCES:
+        raise SystemExit(
+            f"learning overlay exceeds the {MAX_RETRIEVAL_PREFERENCES}-record "
+            "retrieval limit; archive or review stale evidence first"
+        )
     rows = [{"when": p["source_span"], "prefer": p["preferred_fix"],
-             "edit_pairs": p.get("seen_in_pairs", 0)}
+             "edit_pairs": p.get("seen_in_pairs", 0),
+             "reasons": p.get("reasons", {}), "genres": p.get("genres", {})}
             for p in learned.get("fix_preferences", [])
             if p.get("active", True) and p.get("source_span")
             and p.get("preferred_fix")]
-    # Read preferences minted by 2.4.0 prerelease builds without keeping that
-    # representation alive for new data.
     seen = {row["when"] for row in rows}
     rows.extend({"when": p["source_span"], "prefer": p["preferred_fix"],
-                 "edit_pairs": p.get("fix_seen_in_docs", 0)}
+                 "edit_pairs": p.get("fix_seen_in_docs", 0),
+                 "reasons": p.get("reasons", {}), "genres": p.get("genres", {})}
                 for p in learned.get("patterns", [])
                 if p.get("source_span") not in seen and p.get("preferred_fix"))
-    if as_json:
-        print(json.dumps({"rewrite_preferences": rows}, indent=1))
-    elif not rows:
-        print("rewrite guidance: no recurring local replacement preferences yet")
+    return rows
+
+
+def retrieval_tokens(text):
+    return {token for token in norm(text).split()
+            if (len(token) > 2 or token.isdigit()) and token not in STOPWORDS}
+
+
+def retrieve_preferences(text, reason=None, genre=None, limit=5, learned=None):
+    """Retrieve relevant local fixes with a deterministic lexical rank.
+
+    Similarity is source-token coverage, not a probability. A result must share
+    at least half of its content-bearing source tokens with the current draft.
+    Reason and genre labels narrow and rerank that evidence; they never permit a
+    lexically unrelated replacement to surface.
+    """
+    if not isinstance(text, str) or not text.strip():
+        return []
+    if len(text) > MAX_RETRIEVAL_TEXT:
+        raise SystemExit(f"retrieval input exceeds {MAX_RETRIEVAL_TEXT} characters")
+    if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= MAX_RETRIEVAL_RESULTS:
+        raise SystemExit(f"retrieval limit must be 1-{MAX_RETRIEVAL_RESULTS}")
+    if reason is not None:
+        validate_label(reason, REASON_LABELS, "reason label")
+    if genre is not None:
+        validate_label(genre, GENRES, "genre")
+    if learned is None:
+        learned = load_learned(LOCAL, "local")
+    query_norm = " ".join(norm(text).split())
+    query_tokens = retrieval_tokens(text)
+    ranked = []
+    for row in all_preferences(learned):
+        source_norm = " ".join(norm(row["when"]).split())
+        source_tokens = retrieval_tokens(row["when"])
+        if not source_tokens:
+            continue
+        exact = bool(source_norm and re.search(
+            r"(?<!\w)" + re.escape(source_norm) + r"(?!\w)", query_norm
+        ))
+        similarity = 1.0 if exact else len(source_tokens & query_tokens) / len(source_tokens)
+        if similarity < 0.5:
+            continue
+        reasons, genres = row.get("reasons", {}), row.get("genres", {})
+        if reason is not None and reasons and reason not in reasons:
+            continue
+        if genre is not None and genres and genre not in genres:
+            continue
+        reason_match = bool(reason is not None and reasons.get(reason, 0))
+        genre_match = bool(genre is not None and genres.get(genre, 0))
+        recurrence = min(0.05, 0.01 * row.get("edit_pairs", 0))
+        rank_score = similarity + 0.15 * reason_match + 0.05 * genre_match + recurrence
+        ranked.append({**row, "similarity": round(similarity, 3),
+                       "rank_score": round(rank_score, 3),
+                       "reason_match": reason_match, "genre_match": genre_match})
+    ranked.sort(key=lambda row: (-row["rank_score"], -row["edit_pairs"],
+                                 row["when"], row["prefer"]))
+    return ranked[:limit]
+
+
+def guide(as_json=False, target=None, reason=None, genre=None, limit=5):
+    """Return private rewrite preferences learned from repeated human edits."""
+    learned = load_learned(LOCAL, "local")
+    if target is None:
+        rows = all_preferences(learned)
     else:
-        print("rewrite guidance from recurring local edits:")
+        text = required_text(target, "retrieval draft")
+        rows = retrieve_preferences(text, reason=reason, genre=genre,
+                                    limit=limit, learned=learned)
+    if as_json:
+        print(json.dumps({"result_kind": "retrieved_rewrite_preferences",
+                          "calibrated_probability": False,
+                          "rewrite_preferences": rows}, indent=1))
+    elif not rows:
+        print("rewrite guidance: no relevant recurring local replacement preferences")
+    else:
+        print("rewrite guidance retrieved from recurring local edits:")
         for row in rows:
             print(f"  when {row['when']!r}, consider {row['prefer']!r} "
                   f"({row['edit_pairs']} edit pairs)")
@@ -1307,6 +1507,11 @@ def main():
     ap.add_argument("--shipped", help="what the writer actually published")
     ap.add_argument("--doc-id", help="optional diagnostic label; duplicate edit "
                                      "content still counts as one vote")
+    ap.add_argument("--reason", help="editorial reason label for --reflect, or a "
+                                     "retrieval filter for --guide --for")
+    ap.add_argument("--genre", help="genre label for --reflect or --guide --for")
+    ap.add_argument("--feedback", metavar="JSON",
+                    help="optional source-bound per-edit reason labels for --reflect")
     ap.add_argument("--promote", action="store_true",
                     help="mint patterns from observations that cleared threshold")
     ap.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
@@ -1330,6 +1535,10 @@ def main():
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--guide", action="store_true",
                     help="show recurring private rewrite preferences")
+    ap.add_argument("--for", dest="guide_target", metavar="DRAFT",
+                    help="with --guide, retrieve only preferences relevant to this draft")
+    ap.add_argument("--limit", type=int, default=5,
+                    help=f"maximum retrieved preferences (1-{MAX_RETRIEVAL_RESULTS})")
     ap.add_argument("--json", action="store_true", help="machine-readable --guide output")
     ap.add_argument("--decay", action="store_true",
                     help="halve stale patterns in the private live overlay")
@@ -1342,7 +1551,9 @@ def main():
     if a.stats:
         return stats()
     if a.guide:
-        return guide(a.json)
+        if (a.reason or a.genre) and not a.guide_target:
+            ap.error("--reason and --genre need --guide --for <draft>")
+        return guide(a.json, a.guide_target, a.reason, a.genre, a.limit)
     if a.decay:
         return decay_local()
     if a.confirm:
@@ -1358,7 +1569,9 @@ def main():
     if a.reflect:
         if not (a.produced and a.shipped):
             ap.error("--reflect needs --produced and --shipped")
-        result = reflect(a.produced, a.shipped, a.doc_id)
+        result = reflect(a.produced, a.shipped, a.doc_id,
+                         reason=a.reason or "unspecified",
+                         genre=a.genre or "general", feedback=a.feedback)
         if a.auto_apply:
             promote(True, a.cat, a.weight)
             demote(True)

@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-08-22T19:41:56Z",
- "run_id": "fresh-replay-2026-08-22-2",
- "generator": "one current Codex desktop session replaying each method's instructions",
+ "generated_at": "2026-08-23T03:44:23Z",
+ "run_id": "independent-replay-2026-08-23-1",
+ "generator": "one current Codex desktop session replaying each pinned method independently",
  "model_record": {
   "family": "GPT-5",
   "exact_model_id_available": false,

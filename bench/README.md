@@ -10,7 +10,8 @@ Everything needed to reproduce, contest, or extend the evaluation in
 - `judging/` — blinded LLM-rating packets, the shuffle key, run-one scores
   (`scores-*.json`) and the replication scores (`rep2-scores-*.json`).
 - `replication.py` — run-to-run tally, per-item agreement, Cohen's kappa,
-  Wilson intervals. This is the script that moved the headline from 32/50 to
+  Wilson intervals and the exact Zero Slop–humanizer selection test. This is the
+  script that moved the headline from 32/50 to
   a pooled 55/100.
 - `aggregate.py`, `make_packets.py` — scorecard aggregation and packet
   construction (seeded shuffles, so packets rebuild identically).
@@ -22,6 +23,22 @@ Everything needed to reproduce, contest, or extend the evaluation in
 - `aistoryhub-corpus/` — a version-and-hash-pinned coverage audit against the
   public AIStoryHub taxonomy. It reports coverage, never accuracy, and does not
   redistribute the source JSON.
+- `beemo-corpus/` — a revision-pinned paired audit of raw model responses,
+  expert human edits, and independent human answers. It fetches on demand,
+  commits only aggregate results, and does not treat provenance as slop quality.
+- `external-models/` — a pinned reproduction of The Slop Index mechanical
+  benchmark on its 19,928 preserved generations. It is external model context,
+  not a Zero Slop result.
+- `performance.py`, `performance-results.json` — local scorer and learning-loop
+  timings with the machine record, raw runs, medians, and CI ceilings.
+- `quality-corpus/` — a method-hidden, source-grouped 72-item editorial-quality
+  panel with two independent label files, unresolved disagreements, and split metrics.
+- `feature-ablation/` — the reproducible v2.4.3-versus-v2.5.0 comparison, including
+  exact classic score-vector hashes and bounded local timing observations.
+- `corpus-registry.json`, `validate_corpus_registry.py` — the admission decision for
+  every proposed external corpus. Label semantics, provenance, access terms, and the
+  claim a corpus may support are explicit; authorship labels never stand in for
+  slop-quality labels.
 
 ## Reproducing
 
@@ -31,7 +48,17 @@ python3 bench/aggregate.py            # per-method scorecard
 python3 bench/search-corpus/evaluate.py --check
 python3 bench/search-corpus/compare.py --check
 python3 bench/aistoryhub-corpus/audit.py --fetch --check
+python3 bench/beemo-corpus/audit.py --fetch --check
+python3 bench/quality-corpus/build_manifest.py --check
+python3 bench/quality-corpus/evaluate.py --manifest bench/quality-corpus/manifest.json --labels bench/quality-corpus/labels-rater-a.json --labels bench/quality-corpus/labels-rater-b.json --out bench/quality-corpus/results.json --check
+python3 bench/feature-ablation/check.py
+python3 bench/validate_corpus_registry.py
+python3 bench/make_charts.py --check
 ```
+
+Refresh the local performance observation separately with
+`python3 bench/performance.py --write`; wall-clock results are intentionally not
+treated as bit-for-bit reproducible across machines.
 
 ## How the judging worked
 

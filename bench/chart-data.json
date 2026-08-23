@@ -80,23 +80,23 @@
   ],
   [
    "Zero Slop",
-   14.2
+   15.4
   ],
   [
    "no-ai-slop",
-   27.1
+   28.5
   ],
   [
    "humanizer",
-   20.7
+   24.3
   ],
   [
    "de-slop",
-   51.0
+   54.3
   ],
   [
    "stop-slop",
-   24.5
+   24.7
   ]
  ],
  "search_rewrite_passes": [
@@ -110,15 +110,15 @@
   ],
   [
    "no-ai-slop",
-   72.2
+   66.7
   ],
   [
    "humanizer",
-   83.3
+   72.2
   ],
   [
    "de-slop",
-   38.9
+   33.3
   ],
   [
    "stop-slop",
@@ -132,15 +132,15 @@
   ],
   [
    "Zero Slop",
-   93.8
+   88.2
   ],
   [
    "no-ai-slop",
-   76.5
+   72.2
   ],
   [
    "humanizer",
-   77.8
+   72.2
   ],
   [
    "de-slop",
@@ -151,13 +151,137 @@
    76.5
   ]
  ],
+ "external_model_context": [
+  [
+   "mistral-large",
+   40.6
+  ],
+  [
+   "claude-fable-5",
+   35.6
+  ],
+  [
+   "gpt-5.6-terra",
+   32.8
+  ],
+  [
+   "claude-opus-4-8",
+   31.8
+  ],
+  [
+   "gpt-5.6-sol",
+   31.7
+  ],
+  [
+   "gpt-5.6-luna",
+   31.7
+  ],
+  [
+   "glm-5.2",
+   31.2
+  ],
+  [
+   "claude-sonnet-5",
+   30.5
+  ],
+  [
+   "qwen3.7-max",
+   28.7
+  ],
+  [
+   "gemini-3.5-flash",
+   27.8
+  ],
+  [
+   "gpt-5.4-mini",
+   26.8
+  ],
+  [
+   "claude-haiku-4-5",
+   24.9
+  ],
+  [
+   "gemini-3.1-pro-preview",
+   24.3
+  ],
+  [
+   "grok-4.5",
+   24.1
+  ],
+  [
+   "deepseek-v4-pro",
+   23.8
+  ],
+  [
+   "minimax-m3",
+   23.1
+  ],
+  [
+   "muse-spark-1.1",
+   23.1
+  ],
+  [
+   "kimi-k2p6",
+   21.1
+  ]
+ ],
+ "beemo_surface": [
+  [
+   "Raw model output",
+   32.0
+  ],
+  [
+   "Expert human edit",
+   26.4
+  ],
+  [
+   "Independent human answer",
+   20.6
+  ]
+ ],
+ "blind_quality": [
+  [
+   "Original drafts",
+   4.75
+  ],
+  [
+   "de-slop",
+   4.08
+  ],
+  [
+   "stop-slop",
+   3.21
+  ],
+  [
+   "no-ai-slop",
+   3.12
+  ],
+  [
+   "humanizer",
+   2.88
+  ],
+  [
+   "Zero Slop",
+   2.38
+  ]
+ ],
+ "contextual_ablation": [
+  [
+   "v2.4.3 / classic surface",
+   79.54
+  ],
+  [
+   "v2.5.0 contextual shadow",
+   95.45
+  ]
+ ],
  "capability_matrix": {
   "audited_on": "2026-08-22",
   "products": [
    [
     "zero_slop",
     "Zero Slop",
-    "cc41ad688d997f0c4a1d2970ce7f097d18fc3305"
+    "3790a1f08ebeb2d45eaa435b6a920b57cc0a71fc"
    ],
    [
     "blader",

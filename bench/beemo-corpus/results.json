@@ -1,0 +1,56 @@
+{
+ "result_kind": "external_paired_edit_surface_audit",
+ "calibrated_accuracy": false,
+ "source": {
+  "dataset": "toloka/beemo",
+  "revision": "9c014107fe9b85c4c784c1ce3a43b0b7b0a6d162",
+  "last_modified": "2025-01-28T12:43:10.000Z",
+  "rows": 2187,
+  "content_sha256": "2ae7fa4f5f54630887b1019591fbc1084a1ec9257010953a9041e7366a1530fd",
+  "license_note": "Field-specific terms apply: prompts and human_output inherit No Robots CC-BY-NC-4.0; expert human_edits are MIT unless an underlying generator license says otherwise; model outputs inherit generator terms. No source text is redistributed here."
+ },
+ "generic_surface_gate": 25.0,
+ "groups": {
+  "model_output": {
+   "label": "Raw model output",
+   "documents": 2187,
+   "mean_surface_score": 32.0,
+   "median_surface_score": 20.2,
+   "at_or_above_generic_gate": 848,
+   "at_or_above_generic_gate_pct": 38.8
+  },
+  "human_edits": {
+   "label": "Expert human edit",
+   "documents": 2187,
+   "mean_surface_score": 26.4,
+   "median_surface_score": 20.2,
+   "at_or_above_generic_gate": 604,
+   "at_or_above_generic_gate_pct": 27.6
+  },
+  "human_output": {
+   "label": "Independent human answer",
+   "documents": 2187,
+   "mean_surface_score": 20.6,
+   "median_surface_score": 15.8,
+   "at_or_above_generic_gate": 352,
+   "at_or_above_generic_gate_pct": 16.1
+  }
+ },
+ "paired_model_to_expert_edit": {
+  "pairs": 2187,
+  "mean_score_reduction": 5.6,
+  "median_score_reduction": 0.7,
+  "lower_after_edit": 1153,
+  "lower_after_edit_pct": 52.7,
+  "unchanged": 349,
+  "higher_after_edit": 685
+ },
+ "categories": {
+  "Closed QA": 205,
+  "Generation": 585,
+  "Open QA": 483,
+  "Rewrite": 525,
+  "Summarize": 389
+ },
+ "limits": "Beemo labels provenance and editing history, not slop or writing quality. The generic Zero Slop surface gate is not tuned to these task categories. Results do not measure semantic fidelity, factual accuracy, authorship detection, or field accuracy."
+}
