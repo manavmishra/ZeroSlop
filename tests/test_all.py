@@ -1586,7 +1586,11 @@ class SearchCorpus(unittest.TestCase):
         readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         totals = {method: record["run1"][method] + record["run2"][method]
                   for method in record["run1"]}
-        self.assertIn(f"Zero Slop {totals['zeroslop']} of 100", readme)
+        self.assertRegex(
+            readme,
+            rf"(?:Zero Slop {totals['zeroslop']} of 100|"
+            rf"{totals['zeroslop']} of 100 best picks for Zero Slop)",
+        )
         self.assertIn(f"versus {totals['blader']} for humanizer", readme)
         self.assertIn(f"{record['agreement_count']} of {record['agreement_items']} winners",
                       readme)
@@ -2124,7 +2128,7 @@ class Diagram(unittest.TestCase):
 
         readme = (ROOT / "README.md").read_text()
         self.assertIn("assets/competitor-capabilities.png", readme)
-        self.assertIn("Documented capability is not proof of effectiveness", readme)
+        self.assertIn("documented capabilities, not effectiveness", readme.lower())
         self.assertIn(audit["products"]["blader"]["commit"][:12], readme)
         self.assertIn(audit["products"]["no_ai_slop"]["commit"][:12], readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
