@@ -1389,18 +1389,35 @@ class DocsMatchReality(unittest.TestCase):
         human = [slopscore.score_text(f.read_text(), data)["ai_likelihood"]
                  for f in CORPUS.glob("*.txt")]
         ai_mean, lo, hi = _st.mean(drafts), min(human), max(human)
-        m = re.search(r"raw AI drafts[^.]{0,45}?\b(\d{2})\b",
-                      re.sub(r"\s+", " ", self.docs["README.md"]))
+        normalized = re.sub(r"\s+", " ", self.docs["README.md"])
+        m = re.search(
+            r"(?:raw|unedited) AI drafts[^.]{0,45}?\b(?:average|averaged|mean)"
+            r"\D{0,10}(\d{2})\b",
+            normalized,
+            re.IGNORECASE,
+        )
         self.assertIsNotNone(m, "README no longer states the AI-draft anchor")
         self.assertAlmostEqual(int(m.group(1)), ai_mean, delta=2,
                                msg=f"README says drafts average {m.group(1)}, measured {ai_mean:.1f}")
-        m2 = re.search(r"lands between (\d+) and (\d+)",
-                       re.sub(r"\s+", " ", self.docs["README.md"]))
+        m2 = re.search(
+            r"human (?:writing|samples)[^.]{0,45}?"
+            r"(?:lands? between|scored(?: from)?) (\d+) (?:and|to) (\d+)",
+            normalized,
+            re.IGNORECASE,
+        )
         self.assertIsNotNone(m2, "README no longer states the human-writing anchor")
         c_lo, c_hi = int(m2.group(1)), int(m2.group(2))
         self.assertLessEqual(c_lo, lo, f"README floor {c_lo} above measured {lo:.1f}")
         self.assertGreaterEqual(c_hi, hi, f"README ceiling {c_hi} below measured {hi:.1f}")
         self.assertLess(c_hi - hi, 8, f"README ceiling {c_hi} overstates measured max {hi:.1f}")
+
+    def test_readme_is_compact_and_names_llm_raters_plainly(self):
+        readme = self.docs["README.md"]
+        words = len(readme.split())
+        self.assertGreaterEqual(words, 1000, "README lost essential operating detail")
+        self.assertLessEqual(words, 1150, "README exceeded the compact executive brief")
+        self.assertIn("independent LLM editorial raters", readme)
+        self.assertNotIn("blind judges", readme.lower())
 
     def test_documented_cli_flags_exist(self):
         """A flag named in the README must be a flag the script accepts."""
@@ -1520,9 +1537,12 @@ class SearchCorpus(unittest.TestCase):
                 self.assertNotIn("\\\\Users\\\\", source)
                 self.assertNotIn("/private/tmp/", source)
 
-    def test_readme_tables_match_the_fresh_comparison_results(self):
-        """Published replay and public-checker rows must come from the JSON, not
-        from a manually remembered prior run."""
+    def test_readme_table_matches_the_fresh_comparison_results(self):
+        """The compact published replay must come from the JSON, not memory.
+
+        External checker detail lives in bench/ rather than being duplicated in
+        the executive README.
+        """
         results = json.loads((self.PATH.parent / "comparison-results.json").read_text())
         readme = (ROOT / "README.md").read_text().replace("−", "-").replace("**", "")
         self.assertIn(
@@ -1540,18 +1560,11 @@ class SearchCorpus(unittest.TestCase):
             with self.subTest(method=row["label"]):
                 self.assertIn(expected, readme)
 
-        for row in results["external_cross_meter"]["methods"].values():
-            expected = (
-                f"| {row['label']} | {row['reads_clean']} "
-                f"({row['reads_clean_rate']:.1f}%) | {row['eligible_items']} | "
-                f"{row['abstentions']} | {row['mean_score']:.1f} |"
-            )
-            with self.subTest(external=row["label"]):
-                self.assertIn(expected, readme)
+        self.assertIn("[`bench/README.md`](bench/README.md)", readme)
 
     def test_readme_performance_table_matches_the_structured_record(self):
         result = json.loads((ROOT / "bench" / "performance-results.json").read_text())
-        readme = (ROOT / "README.md").read_text()
+        readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         scorer = result["scorer"]
         self.assertIn(
             f"{scorer['median_batch_seconds']:.4f} s; "
@@ -1570,54 +1583,35 @@ class SearchCorpus(unittest.TestCase):
 
     def test_historical_judge_summary_matches_replication_record(self):
         record = json.loads((ROOT / "bench" / "replication.json").read_text())
-        readme = (ROOT / "README.md").read_text()
+        readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         totals = {method: record["run1"][method] + record["run2"][method]
                   for method in record["run1"]}
-        self.assertIn(
-            f"Zero Slop received {totals['zeroslop']}, blader/humanizer "
-            f"{totals['blader']},\nno-ai-slop {totals['petergyang']} and de-slop "
-            f"{totals['deslop']}.",
-            readme,
-        )
-        self.assertIn(
-            f"agreed on the winner for only {record['agreement_count']} of "
-            f"{record['agreement_items']}",
-            readme,
-        )
+        self.assertIn(f"Zero Slop {totals['zeroslop']} of 100", readme)
+        self.assertIn(f"versus {totals['blader']} for humanizer", readme)
+        self.assertIn(f"{record['agreement_count']} of {record['agreement_items']} winners",
+                      readme)
         self.assertIn(f"Cohen's kappa was {record['kappa']:.2f}", readme)
         lo, hi = record["zero_slop_pooled"]["wilson_95_ci"]
-        self.assertIn(f"Wilson interval of {lo:.1%} to {hi:.1%}", readme)
+        self.assertIn(f"{lo:.1%} to {hi:.1%}", readme)
         p_value = record["zero_slop_vs_humanizer"]["p_value"]
         self.assertIn(f"gives p = {p_value:.2f}", readme)
 
-    def test_external_model_table_matches_the_pinned_reproduction(self):
+    def test_external_model_record_is_well_formed_and_linked_from_readme(self):
         result = json.loads((ROOT / "bench" / "external-models" / "results.json").read_text())
         readme = (ROOT / "README.md").read_text()
-        self.assertIn(result["source"]["commit"][:12], readme)
-        self.assertIn(f"{result['sample']['preserved_generations']:,} raw generations", readme)
-        for row in result["models"]:
-            spread = row["rank_range"]
-            shown = str(spread[0]) if spread[0] == spread[1] else f"{spread[0]}–{spread[1]}"
-            with self.subTest(model=row["model"]):
-                self.assertIn(
-                    f"| {row['rank']} | {row['model']} | {row['overall']:.1f} | {shown} |",
-                    readme,
-                )
+        self.assertRegex(result["source"]["commit"], r"^[0-9a-f]{40}$")
+        self.assertGreater(result["sample"]["preserved_generations"], 10000)
+        self.assertEqual([row["rank"] for row in result["models"]],
+                         list(range(1, len(result["models"]) + 1)))
+        self.assertIn("Slop Index", readme)
+        self.assertIn("bench/README.md", readme)
 
-    def test_readme_beemo_table_matches_the_paired_audit(self):
+    def test_readme_links_the_paired_audit_without_repeating_its_table(self):
         result = json.loads((ROOT / "bench" / "beemo-corpus" / "results.json").read_text())
         readme = (ROOT / "README.md").read_text()
-        self.assertIn(result["source"]["revision"][:12], readme)
-        for field in ("model_output", "human_edits", "human_output"):
-            row = result["groups"][field]
-            expected = (
-                f"| {row['label']} | {row['documents']:,} | "
-                f"{row['mean_surface_score']:.1f} | {row['median_surface_score']:.1f} | "
-                f"{row['at_or_above_generic_gate']} "
-                f"({row['at_or_above_generic_gate_pct']:.1f}%) |"
-            )
-            with self.subTest(field=field):
-                self.assertIn(expected, readme)
+        self.assertRegex(result["source"]["revision"], r"^[0-9a-f]{12,40}$")
+        self.assertIn("Beemo", readme)
+        self.assertIn("bench/README.md", readme)
 
 
 class BeemoCorpusAudit(unittest.TestCase):
@@ -2130,7 +2124,7 @@ class Diagram(unittest.TestCase):
 
         readme = (ROOT / "README.md").read_text()
         self.assertIn("assets/competitor-capabilities.png", readme)
-        self.assertIn("A documented capability does not prove that it works well", readme)
+        self.assertIn("Documented capability is not proof of effectiveness", readme)
         self.assertIn(audit["products"]["blader"]["commit"][:12], readme)
         self.assertIn(audit["products"]["no_ai_slop"]["commit"][:12], readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
