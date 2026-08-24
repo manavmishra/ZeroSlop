@@ -155,6 +155,15 @@ WORD = re.compile(r"[A-Za-z’']+")
 
 def strip_noise(text):
     text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    # Markdown table rules are layout syntax, not repeated dashes in prose.
+    # Leave the table's words available to the language and rhythm checks, but
+    # remove delimiter rows such as ``|---|---:|`` before punctuation scoring.
+    text = re.sub(
+        r"(?m)^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*"
+        r"(?:\|[ \t]*:?-{3,}:?[ \t]*)+\|?[ \t]*$",
+        " ",
+        text,
+    )
     # Inline `code` spans still render as visible prose, so their words are
     # scored; only the backticks go. Fenced blocks are genuinely code.
     text = re.sub(r"`([^`\n]*)`", r"\1", text)
@@ -268,9 +277,14 @@ def score_text(text, data, formal=False):
     emoji_penalty = min(emoji * 2.0, 12)
     # Bold as mid-sentence emphasis is the tell (WP:AICATCH); bold used as a
     # label at the start of a line/list item is ordinary document formatting.
-    bold = sum(1 for m in re.finditer(r"\*\*[^*\n]{2,60}\*\*", raw)
-               if not re.match(r"[\s>*#-]*(?:\d+\.\s*)?$",
-                               raw[raw.rfind("\n", 0, m.start()) + 1:m.start()]))
+    bold = 0
+    for match in re.finditer(r"\*\*[^*\n]{2,60}\*\*", raw):
+        prefix = raw[raw.rfind("\n", 0, match.start()) + 1:match.start()]
+        if re.match(r"[\s>*#-]*(?:\d+\.\s*)?$", prefix):
+            continue
+        if re.match(r"[ \t]*\|", prefix):
+            continue  # bold totals in a Markdown table are ordinary layout
+        bold += 1
     bold_penalty = min(max(0, bold - 1) * 1.5, 9)
     hashtags = len(re.findall(r"(?<!\S)#\w+", text))
     hashtag_penalty = min(hashtags * 1.2, 8)

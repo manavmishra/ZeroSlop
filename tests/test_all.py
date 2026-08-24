@@ -300,6 +300,19 @@ class CLI(unittest.TestCase):
         for field in ("emdash_per_100w", "emoji_count", "hashtags"):
             self.assertEqual(a[field], b[field], f"code changed {field}")
 
+    def test_markdown_tables_do_not_charge_cli_formatting(self):
+        data = slopscore.load_patterns()
+        plain = "A direct technical note about the release."
+        table = plain + (
+            "\n\n| Method | Result |\n"
+            "|---|---:|\n"
+            "| **Overall** | **18/18** |"
+        )
+        a = slopscore.score_text(plain, data, formal=True)
+        b = slopscore.score_text(table, data, formal=True)
+        for field in ("emdash_per_100w", "bold_spans"):
+            self.assertEqual(a[field], b[field], f"table changed {field}")
+
     def test_invalid_options_fail_cleanly(self):
         cases = [
             ["--gate"], ["--gate", "nan"], ["--gate", "101"],

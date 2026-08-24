@@ -91,7 +91,7 @@ responses, 26.4 for expert edits, and 20.6 for independent human answers. Expert
 editing lowered the score in 52.7 percent of pairs. Beemo also lacks writing-quality
 labels. The 18-draft workflow table was re-scored with v2.5.5, but its fixed rewrites
 were not regenerated; Zero Slop's outputs there came from version 2.4.3. The current
-1,000-document speed run took 2.6047 seconds on one Apple silicon Mac. These are
+1,000-document speed run took 2.4152 seconds on one Apple silicon Mac. These are
 reproducible checks with stated limits, not universal claims about writing quality.
 
 ---

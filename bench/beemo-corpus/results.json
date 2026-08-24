@@ -40,10 +40,10 @@
   "pairs": 2187,
   "mean_score_reduction": 5.6,
   "median_score_reduction": 0.7,
-  "lower_after_edit": 1153,
+  "lower_after_edit": 1152,
   "lower_after_edit_pct": 52.7,
   "unchanged": 349,
-  "higher_after_edit": 685
+  "higher_after_edit": 686
  },
  "categories": {
   "Closed QA": 205,

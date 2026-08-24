@@ -148,9 +148,9 @@ review, so no universal accuracy number exists. See [`bench/README.md`](bench/RE
 
 ### The local tools are fast
 
-On one Apple silicon Mac, the local checker processed 1,000 documents in 2.6047 seconds
-(383.9 per second). A 15,201-word document took 0.3676 seconds; the slowest stress case
-took 2.6362 seconds. An 8,000-word learning pass took 0.1623 seconds. AI-assistant time
+On one Apple silicon Mac, the local checker processed 1,000 documents in 2.4152 seconds
+(414.0 per second). A 15,201-word document took 0.3467 seconds; the slowest stress case
+took 2.5926 seconds. An 8,000-word learning pass took 0.1520 seconds. AI-assistant time
 is excluded.
 
 ## What Zero Slop adds

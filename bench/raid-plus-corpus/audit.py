@@ -187,6 +187,9 @@ def compute(pin, metadata, rows):
         },
         "scorer": {
             "version": "2.5.5",
+            "slopscore_sha256": hashlib.sha256(
+                (ROOT / "scripts" / "slopscore.py").read_bytes()
+            ).hexdigest(),
             "patterns_sha256": hashlib.sha256(
                 (ROOT / "data" / "patterns.json").read_bytes()
             ).hexdigest(),
@@ -236,6 +239,13 @@ def validate(result, pin):
             raise ValueError(f"results.json has an invalid {model} count")
     if result.get("overall", {}).get("documents") != source["scored_rows"]:
         raise ValueError("results.json overall count is invalid")
+    scorer = result.get("scorer", {})
+    current_scorer_hash = hashlib.sha256(
+        (ROOT / "scripts" / "slopscore.py").read_bytes()
+    ).hexdigest()
+    if scorer.get("version") != "2.5.5" \
+            or scorer.get("slopscore_sha256") != current_scorer_hash:
+        raise ValueError("results.json does not match the current scorer")
 
 
 def main():
