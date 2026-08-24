@@ -8,6 +8,10 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.5.5-72528F">
 </p>
 
+<p align="center">
+  <strong><a href="https://zero-slop.ai">zero-slop.ai</a></strong> &middot; the website, with live examples, the public benchmark, and the blog
+</p>
+
 **Less slop, more pop. No rewrites.**
 
 Zero Slop is an Agent Skill, not an AI model. Claude, GPT, or another compatible model
