@@ -6,7 +6,7 @@
  "by_genre": {
   "blog": {
    "n": 3,
-   "mean_surface_score": 99.9,
+   "mean_surface_score": 99.8,
    "range": [
     99.6,
     100.0
@@ -15,7 +15,7 @@
   },
   "email": {
    "n": 3,
-   "mean_surface_score": 79.7,
+   "mean_surface_score": 79.6,
    "range": [
     39.0,
     100.0
@@ -33,16 +33,16 @@
   },
   "newsletter": {
    "n": 3,
-   "mean_surface_score": 58.0,
+   "mean_surface_score": 46.5,
    "range": [
     26.7,
-    99.6
+    65.1
    ],
    "caught": 3
   },
   "research": {
    "n": 3,
-   "mean_surface_score": 97.0,
+   "mean_surface_score": 96.8,
    "range": [
     90.9,
     100.0
@@ -117,8 +117,8 @@
   {
    "id": "email-outreach-01",
    "genre": "email",
-   "surface_score": 100.0,
-   "tell_hits": 7,
+   "surface_score": 99.9,
+   "tell_hits": 6,
    "burstiness": 0.591,
    "broetry": null,
    "caught": true
@@ -127,7 +127,7 @@
    "id": "email-launch-02",
    "genre": "email",
    "surface_score": 100.0,
-   "tell_hits": 7,
+   "tell_hits": 6,
    "burstiness": 0.472,
    "broetry": null,
    "caught": true
@@ -162,8 +162,8 @@
   {
    "id": "blog-transformation-03",
    "genre": "blog",
-   "surface_score": 100.0,
-   "tell_hits": 6,
+   "surface_score": 99.9,
+   "tell_hits": 4,
    "burstiness": 0.552,
    "broetry": null,
    "caught": true
@@ -171,8 +171,8 @@
   {
    "id": "newsletter-productivity-01",
    "genre": "newsletter",
-   "surface_score": 99.6,
-   "tell_hits": 4,
+   "surface_score": 65.1,
+   "tell_hits": 2,
    "burstiness": 0.653,
    "broetry": null,
    "caught": true
@@ -199,7 +199,7 @@
    "id": "research-framework-01",
    "genre": "research",
    "surface_score": 100.0,
-   "tell_hits": 9,
+   "tell_hits": 8,
    "burstiness": 0.115,
    "broetry": null,
    "caught": true
@@ -207,8 +207,8 @@
   {
    "id": "research-approach-02",
    "genre": "research",
-   "surface_score": 100.0,
-   "tell_hits": 6,
+   "surface_score": 99.6,
+   "tell_hits": 4,
    "burstiness": 0.169,
    "broetry": null,
    "caught": true

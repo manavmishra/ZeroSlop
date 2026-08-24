@@ -111,18 +111,18 @@ remained after excluding failed or empty generations.
 
 | Model | Texts scored | Mean writing score ↓ | At or above 25 |
 |---|---:|---:|---:|
-| DeepSeek V3 | 1,995 | 15.2 | 12.0% |
-| Gemini 3.1 Pro | 1,998 | 18.9 | 23.9% |
-| Gemma 3 27B | 1,634 | 24.2 | 36.1% |
-| Llama 3.3 70B | 2,000 | 26.9 | 43.7% |
-| **Overall** | **7,627** | **21.2** | **28.6%** |
+| DeepSeek V3 | 1,995 | 14.5 | 10.1% |
+| Gemini 3.1 Pro | 1,998 | 17.0 | 18.2% |
+| Gemma 3 27B | 1,634 | 21.6 | 30.4% |
+| Llama 3.3 70B | 2,000 | 25.5 | 41.7% |
+| **Overall** | **7,627** | **19.6** | **24.8%** |
 
 ![Current Zero Slop writing scores across four RAID+ model families](assets/bench-raid-plus.png)
 
 RAID+ records model origin, not editorial quality, so this is a score distribution,
-not an accuracy claim. A fresh run on all 2,187 Beemo records found means of 32.0 for
-raw model responses, 26.4 for expert edits, and 20.6 for independent human answers.
-Expert editing lowered the score in 52.7% of pairs. Beemo also lacks quality labels.
+not an accuracy claim. A fresh run on all 2,187 Beemo records found means of 30.2 for
+raw model responses, 25.3 for expert edits, and 20.0 for independent human answers.
+Expert editing lowered the score in 52.2% of pairs. Beemo also lacks quality labels.
 
 ### Five workflows, one fixed set of drafts
 
@@ -133,12 +133,12 @@ or invented feelings.
 
 | Method | Mean writing score ↓ | Passed all checks | Automated fact check | Average length change |
 |---|---:|---:|---:|---:|
-| Original drafts | 78.2 | 0/18 | — | — |
+| Original drafts | 76.3 | 0/18 | — | — |
 | Zero Slop | 15.4 | 18/18 | 18/18 | -26.4% |
 | humanizer | 24.3 | 13/18 | 18/18 | -25.7% |
 | stop-slop | 24.7 | 13/18 | 18/18 | -34.4% |
-| no-ai-slop | 28.5 | 12/18 | 18/18 | -28.0% |
-| de-slop | 54.3 | 6/18 | 18/18 | -18.5% |
+| no-ai-slop | 28.1 | 12/18 | 18/18 | -28.0% |
+| de-slop | 52.3 | 6/18 | 18/18 | -18.5% |
 
 ![The same 18 drafts after each editing workflow; lower scores mean fewer generic AI-style patterns](assets/bench-search-rewrites.png)
 

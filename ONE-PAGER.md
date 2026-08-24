@@ -82,13 +82,13 @@ with a metadata-only version query. That query never sends the draft.
 Version 2.5.5 reran the complete test suite, scores, external corpus audits, speed
 record, and charts. The main new check covers all 8,000 rows in the MIT-licensed RAID+
 dataset. After excluding 373 failed or empty outputs, 7,627 abstracts remained. Mean
-writing scores ranged from 15.2 for DeepSeek V3 to 26.9 for Llama 3.3 70B. RAID+ labels
+writing scores ranged from 14.5 for DeepSeek V3 to 25.5 for Llama 3.3 70B. RAID+ labels
 model origin, not editorial quality, so this is a current-model distribution check,
 not an accuracy claim.
 
-A fresh pass over all 2,187 Beemo records found mean scores of 32.0 for raw model
-responses, 26.4 for expert edits, and 20.6 for independent human answers. Expert
-editing lowered the score in 52.7 percent of pairs. Beemo also lacks writing-quality
+A fresh pass over all 2,187 Beemo records found mean scores of 30.2 for raw model
+responses, 25.3 for expert edits, and 20.0 for independent human answers. Expert
+editing lowered the score in 52.2 percent of pairs. Beemo also lacks writing-quality
 labels. The 18-draft workflow table was re-scored with v2.5.5, but its fixed rewrites
 were not regenerated; Zero Slop's outputs there came from version 2.4.3. The current
 1,000-document speed run took 2.4152 seconds on one Apple silicon Mac. These are

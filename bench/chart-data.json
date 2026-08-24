@@ -2,29 +2,29 @@
  "raid_plus_surface": [
   [
    "DeepSeek V3",
-   15.2
+   14.5
   ],
   [
    "Gemini 3.1 Pro",
-   18.9
+   17.0
   ],
   [
    "Gemma 3 27B",
-   24.2
+   21.6
   ],
   [
    "Llama 3.3 70B",
-   26.9
+   25.5
   ]
  ],
  "detector_panel": [
   [
    "original drafts",
-   77.1
+   76.0
   ],
   [
    "isatimur/de-slop",
-   28.2
+   26.9
   ],
   [
    "stacked pipeline",
@@ -32,11 +32,11 @@
   ],
   [
    "blader/humanizer",
-   22.2
+   20.5
   ],
   [
    "petergyang/no-ai-slop",
-   21.7
+   21.2
   ],
   [
    "hardikpandya/stop-slop",
@@ -50,11 +50,11 @@
  "search_corpus": [
   [
    "blog",
-   99.9
+   99.8
   ],
   [
    "email",
-   79.7
+   79.6
   ],
   [
    "linkedin",
@@ -62,11 +62,11 @@
   ],
   [
    "newsletter",
-   58.0
+   46.5
   ],
   [
    "research",
-   97.0
+   96.8
   ],
   [
    "x",
@@ -76,7 +76,7 @@
  "search_rewrite_scores": [
   [
    "Original drafts",
-   78.2
+   76.3
   ],
   [
    "Zero Slop",
@@ -84,7 +84,7 @@
   ],
   [
    "no-ai-slop",
-   28.5
+   28.1
   ],
   [
    "humanizer",
@@ -92,7 +92,7 @@
   ],
   [
    "de-slop",
-   54.3
+   52.3
   ],
   [
    "stop-slop",
@@ -228,15 +228,15 @@
  "beemo_surface": [
   [
    "Raw model output",
-   32.0
+   30.2
   ],
   [
    "Expert human edit",
-   26.4
+   25.3
   ],
   [
    "Independent human answer",
-   20.6
+   20.0
   ]
  ],
  "blind_quality": [

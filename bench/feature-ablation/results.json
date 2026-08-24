@@ -16,8 +16,8 @@
    "12-item discrimination corpus",
    "72-item blind quality panel"
   ],
-  "baseline_score_vector_sha256": "7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8",
-  "candidate_score_vector_sha256": "7b98680faa19bd5b0d66383d36cc9b12eda26bdd40b1f5bfa32b82c6fbfe6ad8",
+  "baseline_score_vector_sha256": "152b7e478cef00d27a4cf663e5f4be1cc8fa402db4b17c6c6155468bb9536472",
+  "candidate_score_vector_sha256": "152b7e478cef00d27a4cf663e5f4be1cc8fa402db4b17c6c6155468bb9536472",
   "exactly_unchanged": true,
   "blind_quality_consensus_accuracy_baseline": 0.7105,
   "blind_quality_consensus_accuracy_candidate": 0.7105,

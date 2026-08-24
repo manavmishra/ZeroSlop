@@ -33,7 +33,7 @@
   "specificity": 0.5556,
   "f1": 0.8,
   "balanced_accuracy": 0.6571,
-  "roc_auc": 0.7682
+  "roc_auc": 0.7797
  },
  "splits": {
   "dev": {
@@ -114,7 +114,7 @@
       "specificity": 0.6,
       "f1": 0.8,
       "balanced_accuracy": 0.6793,
-      "roc_auc": 0.7741
+      "roc_auc": 0.7845
      },
      "contextual_minus_surface_accuracy": 0.2565
     },
@@ -236,7 +236,7 @@
       "specificity": 0.5556,
       "f1": 0.7857,
       "balanced_accuracy": 0.6444,
-      "roc_auc": 0.7574
+      "roc_auc": 0.7685
      },
      "contextual_minus_surface_accuracy": 0.2821
     },
@@ -338,7 +338,7 @@
    "consensus_sloppy": 7,
    "unresolved": 5,
    "mean_blind_severity": 4.08,
-   "mean_surface_score": 63.8
+   "mean_surface_score": 60.9
   },
   "humanizer": {
    "items": 12,
@@ -346,7 +346,7 @@
    "consensus_sloppy": 2,
    "unresolved": 9,
    "mean_blind_severity": 2.88,
-   "mean_surface_score": 31.5
+   "mean_surface_score": 29.8
   },
   "no-ai-slop": {
    "items": 12,
@@ -354,7 +354,7 @@
    "consensus_sloppy": 3,
    "unresolved": 8,
    "mean_blind_severity": 3.12,
-   "mean_surface_score": 34.8
+   "mean_surface_score": 34.7
   },
   "original": {
    "items": 12,
@@ -362,7 +362,7 @@
    "consensus_sloppy": 12,
    "unresolved": 0,
    "mean_blind_severity": 4.75,
-   "mean_surface_score": 84.3
+   "mean_surface_score": 81.5
   },
   "stop-slop": {
    "items": 12,
@@ -370,7 +370,7 @@
    "consensus_sloppy": 4,
    "unresolved": 6,
    "mean_blind_severity": 3.21,
-   "mean_surface_score": 28.7
+   "mean_surface_score": 27.3
   },
   "zero-slop": {
    "items": 12,

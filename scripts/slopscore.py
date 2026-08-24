@@ -21,6 +21,7 @@ Usage (runnable from any cwd; data resolves relative to this script):
 The phrase lists live beside this script in ../data/patterns.json and
 ../data/learned.json. Editing those files requires no code change.
 """
+import bisect
 import json
 import math
 import re
@@ -180,17 +181,53 @@ def strip_noise(text):
     return text
 
 
+def _sentence_spans(text):
+    """(start, end) spans of ``sentences(text)`` in ``text`` coordinates.
+
+    Newlines inside a paragraph flatten to spaces, which preserves length, so
+    a span's slice differs from its sentence string only by that replacement.
+    Rider hits are sentence-scoped but dedup against pattern hits needs
+    document offsets; this keeps one sentence definition for both.
+    """
+    spans = []
+    start = 0
+    breaks = [m.span() for m in re.finditer(r"\n\s*\n", text)]
+    for para_end, next_start in breaks + [(len(text), len(text))]:
+        flat = text[start:para_end].replace("\n", " ")
+        prev = 0
+        cuts = [m.span() for m in SENT_SPLIT.finditer(flat)]
+        for cut_start, cut_end in cuts + [(len(flat), len(flat))]:
+            seg = flat[prev:cut_start]
+            core = seg.strip()
+            if len(WORD.findall(core)) >= 2:
+                lead = len(seg) - len(seg.lstrip())
+                spans.append((start + prev + lead,
+                              start + prev + lead + len(core)))
+            prev = cut_end
+        start = next_start
+    return spans
+
+
 def sentences(text):
-    parts = []
-    for para in re.split(r"\n\s*\n", text):
-        para = para.strip()
-        if not para:
-            continue
-        for s in SENT_SPLIT.split(para.replace("\n", " ")):
-            s = s.strip()
-            if len(WORD.findall(s)) >= 2:
-                parts.append(s)
-    return parts
+    return [text[a:b].replace("\n", " ") for a, b in _sentence_spans(text)]
+
+
+def _merge_spans(spans):
+    merged = []
+    for s, e in sorted(spans):
+        if merged and s <= merged[-1][1]:
+            if e > merged[-1][1]:
+                merged[-1] = (merged[-1][0], e)
+        else:
+            merged.append((s, e))
+    return merged
+
+
+def _span_covered(span, merged):
+    """True if [s, e) intersects any interval in a merged, sorted list."""
+    s, e = span
+    i = bisect.bisect_left(merged, (e,))
+    return i > 0 and merged[i - 1][1] > s
 
 
 def cv(values):
@@ -211,8 +248,10 @@ def score_text(text, data, formal=False):
     words = WORD.findall(text)
     n_words = len(words)
     word_den = max(n_words, 1)
-    sents = sentences(text)
+    sent_spans = _sentence_spans(text)
+    sents = [text[a:b].replace("\n", " ") for a, b in sent_spans]
     hits = []
+    pattern_spans = []  # (start, end, rx) per pattern hit, for dedup below
 
     # 1. Pattern tells (regex, weighted)
     for p in data["patterns"]:
@@ -223,6 +262,7 @@ def score_text(text, data, formal=False):
                 "cat": p["cat"], "name": p["name"], "w": p["w"],
                 "quote": m.group(0)[:90].strip(),
             })
+            pattern_spans.append((m.start(), m.end(), p["rx"]))
 
     # 2. Lexicon. Two tiers, because context decides. Always-on terms
     # ("delve", "tapestry") almost never appear in honest prose. Rider terms
@@ -230,31 +270,67 @@ def score_text(text, data, formal=False):
     # and only count when a marketing-register trigger shares their sentence —
     # so "elevated write volume" in a runbook is silent while "elevate your
     # brand with our seamless platform" fires. Sentence-scoped, not global.
-    lower = text.lower()
+    #
+    # A term a pattern already charges is the same evidence counted twice —
+    # "is a testament to" must convict the phrase once, not the phrase plus
+    # the word. The pattern owns the term when its regex writes the term out
+    # ("testament" in puffery-testament) or matches the term's own text
+    # ("game.?chang" on "game-changing"); an independent tell that merely
+    # lands inside another tell's span — a lexicon word inside a
+    # rhetorical-structure match — still counts. Overlapping lexicon stems
+    # ("game-chang", "game-changing") collapse to one hit the same way.
+    claimed = _merge_spans([(s, e) for s, e, _ in pattern_spans])
+
+    def _pattern_owns(span, term, matched):
+        if not _span_covered(span, claimed):
+            return False
+        s, e = span
+        return any(ps < e and s < pe
+                   and (term in rx.lower() or re.search(rx, matched, re.I))
+                   for ps, pe, rx in pattern_spans)
+
+    candidates = []
     for term, w in data["lexicon"].items():
         if not w:
             continue
-        for m in re.finditer(r"\b" + re.escape(term) + r"\w*", lower):
-            hits.append({"cat": "lexicon", "name": term, "w": w, "quote": m.group(0)})
+        for m in re.finditer(r"\b" + re.escape(term) + r"\w*", text, re.I):
+            if _pattern_owns(m.span(), term, m.group(0)):
+                continue
+            candidates.append((m.start(), m.end(), term, w, m.group(0).lower()))
+    candidates.sort(key=lambda c: (c[0], -c[1]))
+    last_end = 0
+    for s, e, term, w, quote in candidates:
+        if s < last_end:
+            continue
+        last_end = e
+        hits.append({"cat": "lexicon", "name": term, "w": w, "quote": quote})
     riders, triggers = data.get("riders", {}), data.get("rider_triggers", [])
     if riders:
-        for sent in sents:
+        for (a, _), sent in zip(sent_spans, sents):
             sl = sent.lower()
             if not any(t in sl for t in triggers):
                 continue
             for term, w in riders.items():
                 if not w:
                     continue
-                for m in re.finditer(r"\b" + re.escape(term) + r"\w*", sl):
+                for m in re.finditer(r"\b" + re.escape(term) + r"\w*", sent, re.I):
+                    if _pattern_owns((a + m.start(), a + m.end()),
+                                     term, m.group(0)):
+                        continue
                     hits.append({"cat": "rider", "name": term, "w": w,
-                                 "quote": m.group(0)})
+                                 "quote": m.group(0).lower()})
 
     pattern_weight = sum(h["w"] for h in hits)
     # Density window is floored at 60 words (a single tell in a 7-word tweet
     # must not read as 100/100) and the long-text dilution is bounded by also
-    # tracking absolute weight: a 2000-word piece cannot hide 20 tells.
+    # tracking absolute weight: a 2000-word piece cannot hide 20 tells. The
+    # absolute floor scales with length past 1,000 words, because a fixed
+    # floor convicts on sheer accumulation — weight 42 anywhere meant a
+    # book-length text with one mild tell every couple thousand words scored
+    # the same as a tell-dense post and could never pass the gate.
     tell_density = 100.0 * pattern_weight / max(n_words, 60)
-    tell_density = max(tell_density, min(pattern_weight / 3.0, 14.0))
+    weight_floor = min(pattern_weight / 3.0, 14.0) * min(1.0, 1000.0 / word_den)
+    tell_density = max(tell_density, weight_floor)
 
     # 3. Rhythm: burstiness = coefficient of variation of sentence lengths.
     # Human prose ~0.55-0.75; machine prose clusters ~0.25-0.45.
@@ -309,9 +385,12 @@ def score_text(text, data, formal=False):
     # Clusters convict, singles don't. Em-dash density and missing contractions
     # are stylistic habits, not evidence on their own — 19th-century oratory and
     # plenty of excellent formal prose trip both. So corroborate them against
-    # lexical evidence: with no tells present they contribute little. Emoji,
-    # hashtags and bold spam stay at full strength (they convict alone), and
-    # burstiness is an independent statistical signal, so neither is scaled.
+    # lexical evidence: with no tells present they contribute little. Emoji and
+    # hashtags stay at full strength (they convict alone), and burstiness is an
+    # independent statistical signal, so neither is scaled. Bold emphasis rides
+    # in the stylistic sum below: heavy mid-sentence bold is a real tell in
+    # company, but on its own it is a formatting habit, and seven bold spans
+    # with zero other evidence must not reach the gate.
     # The floor was 0.45, which handed style 45% weight on text with no lexical
     # evidence whatsoever. Measured against genuine human technical prose that
     # convicted 5 of 8 documents: AGENTS.md scored 59.2 on one weight-2.5 hit in
@@ -319,23 +398,26 @@ def score_text(text, data, formal=False):
     # that dashes and formal register alone cannot carry a verdict.
     corroboration = min(1.0, 0.10 + tell_density / 2.5)
     stylistic = ((emdash_penalty + formality_penalty) * corroboration
-                 + uniformity_penalty + followability_penalty)
+                 + uniformity_penalty + followability_penalty + bold_penalty)
     # No lexical evidence at all means no cluster, and the rule is that
     # clusters convict. Style alone (dashes, long sentences, formal register,
-    # even rhythm) describes plenty of excellent human prose — 19th-century
-    # oratory, dense technical writing — so with zero tells and zero emoji or
-    # hashtag spam, style can raise suspicion but must never convict.
-    # Weighted evidence, not hit count. Keying on `not hits` meant a single
-    # light tell — one arrow in a spec, one borderline word — escaped the clamp
-    # entirely and unlocked the full stylistic penalty. A lone weak hit is not
-    # a cluster, and clusters are what convict.
-    if tell_density < 1.5 and emoji == 0 and hashtags == 0:
-        stylistic = min(stylistic, 3.5)
+    # even rhythm, bold-heavy emphasis) describes plenty of excellent human
+    # prose — 19th-century oratory, dense technical writing — so with zero
+    # emoji or hashtag spam, style can raise suspicion but must never convict.
+    # The cap releases gradually as lexical evidence accumulates. A step
+    # release at density 1.5 rebuilt the cliff this clamp exists to prevent:
+    # one weight-1 arrow in a 66-word note crossed the threshold and unlocked
+    # the whole stylistic budget in a single jump, 20 to 87. Interpolating the
+    # cap between density 1.5 and 4 means each increment of lexical evidence
+    # buys a proportional amount of style; a lone weak hit still charges its
+    # own density, but never someone else's category.
+    if emoji == 0 and hashtags == 0:
+        release = min(1.0, max(0.0, (tell_density - 1.5) / 2.5))
+        stylistic = min(stylistic, 3.5 + release * max(0.0, stylistic - 3.5))
     evidence = (
         tell_density * 1.15
         + stylistic
         + emoji_penalty
-        + bold_penalty
         + hashtag_penalty
     )
     ai_likelihood = round(100 / (1 + math.exp(-(evidence - 9.0) / 4.0)), 1)

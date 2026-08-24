@@ -41,7 +41,7 @@
   "combined_pass": "genre surface and shape gates plus automated names, figures, quotes, links, and asserted-feelings check",
   "not_measured": "semantic fidelity, human preference, field accuracy, authorship"
  },
- "original_mean_surface_score": 78.2,
+ "original_mean_surface_score": 76.3,
  "original_combined_passes": 0,
  "original_combined_pass_rate": 0.0,
  "external_cross_meter": {
@@ -120,7 +120,7 @@
   "zero-slop": {
    "label": "Zero Slop",
    "mean_surface_score": 15.4,
-   "mean_score_reduction": 62.8,
+   "mean_score_reduction": 60.9,
    "surface_gate_passes": 18,
    "shape_gate_passes": 18,
    "editorial_gate_passes": 18,
@@ -399,8 +399,8 @@
   },
   "no-ai-slop": {
    "label": "no-ai-slop",
-   "mean_surface_score": 28.5,
-   "mean_score_reduction": 49.7,
+   "mean_surface_score": 28.1,
+   "mean_score_reduction": 48.2,
    "surface_gate_passes": 12,
    "shape_gate_passes": 18,
    "editorial_gate_passes": 12,
@@ -431,7 +431,7 @@
     },
     "research": {
      "n": 3,
-     "mean_surface_score": 53.9,
+     "mean_surface_score": 51.4,
      "combined_passes": 1
     },
     "x": {
@@ -652,7 +652,7 @@
     {
      "id": "research-approach-02",
      "genre": "research",
-     "surface_score": 96.3,
+     "surface_score": 88.7,
      "gate": 40,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -680,7 +680,7 @@
   "humanizer": {
    "label": "humanizer",
    "mean_surface_score": 24.3,
-   "mean_score_reduction": 53.9,
+   "mean_score_reduction": 52.0,
    "surface_gate_passes": 13,
    "shape_gate_passes": 18,
    "editorial_gate_passes": 13,
@@ -959,7 +959,7 @@
   },
   "de-slop": {
    "label": "de-slop",
-   "mean_surface_score": 54.3,
+   "mean_surface_score": 52.3,
    "mean_score_reduction": 24.0,
    "surface_gate_passes": 6,
    "shape_gate_passes": 18,
@@ -976,7 +976,7 @@
     },
     "email": {
      "n": 3,
-     "mean_surface_score": 80.7,
+     "mean_surface_score": 80.6,
      "combined_passes": 0
     },
     "linkedin": {
@@ -986,12 +986,12 @@
     },
     "newsletter": {
      "n": 3,
-     "mean_surface_score": 54.1,
+     "mean_surface_score": 42.6,
      "combined_passes": 1
     },
     "research": {
      "n": 3,
-     "mean_surface_score": 93.9,
+     "mean_surface_score": 93.3,
      "combined_passes": 0
     },
     "x": {
@@ -1082,7 +1082,7 @@
     {
      "id": "email-outreach-01",
      "genre": "email",
-     "surface_score": 100.0,
+     "surface_score": 99.9,
      "gate": 35,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -1095,7 +1095,7 @@
     {
      "id": "email-launch-02",
      "genre": "email",
-     "surface_score": 100.0,
+     "surface_score": 99.9,
      "gate": 35,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -1160,7 +1160,7 @@
     {
      "id": "newsletter-productivity-01",
      "genre": "newsletter",
-     "surface_score": 99.6,
+     "surface_score": 65.1,
      "gate": 25,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -1212,7 +1212,7 @@
     {
      "id": "research-approach-02",
      "genre": "research",
-     "surface_score": 99.9,
+     "surface_score": 98.2,
      "gate": 40,
      "surface_gate_pass": false,
      "shape_gate_pass": true,
@@ -1240,7 +1240,7 @@
   "stop-slop": {
    "label": "stop-slop",
    "mean_surface_score": 24.7,
-   "mean_score_reduction": 53.6,
+   "mean_score_reduction": 51.6,
    "surface_gate_passes": 13,
    "shape_gate_passes": 18,
    "editorial_gate_passes": 13,
