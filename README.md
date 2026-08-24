@@ -8,7 +8,7 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.5.5-72528F">
 </p>
 
-**Less slop, more pop in all your writing.**
+**Less slop, more pop. No rewrites.**
 
 Zero Slop is an Agent Skill, not an AI model. Claude, GPT, or another compatible model
 in your assistant edits the draft; Zero Slop supplies the method and local checks. The
