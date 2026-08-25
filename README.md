@@ -5,11 +5,11 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.5-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.6-72528F">
 </p>
 
 <p align="center">
-  <strong><a href="https://zero-slop.ai">zero-slop.ai</a></strong> &middot; the website, with live examples, the public benchmark, and the blog
+  <strong><a href="https://zero-slop.ai">zero-slop.ai</a></strong> &middot; live examples, the public benchmark, and the blog
 </p>
 
 **Less slop, more pop. No rewrites.**
@@ -20,7 +20,7 @@ assistant removes generic language without changing meaning, voice, or format.
 
 The 0-to-100 writing score tracks generic AI-style language and lists flagged phrases;
 it does not identify the author. In the test sets, human samples scored 9 to 21;
-unedited AI drafts averaged 77. These are reference points, not universal boundaries.
+unedited AI drafts averaged 77 — reference points, not universal boundaries.
 
 ![A scored sentence before and after editing](assets/demo.png)
 
@@ -54,15 +54,15 @@ Direct terminal install:
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Claude Code and Cowork can install from the plugin marketplace. ChatGPT users can
-download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md); Claude.ai
-users can use the release zip.
+Claude Code and Cowork can install from the plugin marketplace; ChatGPT users can
+download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md), and
+Claude.ai users the release zip.
 
 ## How Zero Slop works
 
 ![One editing workflow, a private learning loop, and a separate release review](assets/engine.svg)
 
-Seven roles form one workflow. They are jobs, not separate models. Claude, GPT, or
+Seven roles form one workflow — jobs, not separate models. Claude, GPT, or
 another compatible model handles the editorial passes; local Python tools run
 repeatable checks. No Zero Slop AI service receives the draft.
 
@@ -78,7 +78,7 @@ repeatable checks. No Zero Slop AI service receives the draft.
 
 ### Why separate the work?
 
-The roles reflect the work. Research supports the checks, not the number seven.
+Research supports the checks, not the number seven.
 Studies find
 [predictable wording](https://arxiv.org/abs/2301.11305) and
 [excess vocabulary](https://arxiv.org/abs/2406.07016) in machine text, while detectors can
@@ -94,7 +94,7 @@ Zero Slop never monitors files, browsers, or publishing systems.
 
 A named profile exempts existing watchlist words found in your sample. One exact
 match is enough. It works only when selected by name and does not learn cadence,
-tone, or a complete writing style, including syntax, humor, or arbitrary phrases.
+tone, or a complete writing style.
 
 A phrase must be cut from three unrelated pieces before becoming a private rule;
 single-word cuts need five unrelated pieces. Each proposal must leave human writing
@@ -104,8 +104,10 @@ the writer keeps can quiet a rule, and old rules fade. Private, reversible rules
 
 ## What the current release measured
 
-Every score and timing was recomputed with v2.5.5, including the corpus audits,
-tables, and charts. Saved LLM selections from an older study are not reused.
+v2.5.6 adds a performed-writer tell family — theatrical framing ("we hired an
+adversary"), staccato antithesis, hyperbole, cute meta-taglines — and re-verified
+every corpus audit unchanged; timings are v2.5.5's. Saved LLM selections from an
+older study are not reused.
 
 ### Recent model output: RAID+
 
@@ -126,14 +128,13 @@ remained after excluding failed or empty generations.
 RAID+ records model origin, not editorial quality, so this is a score distribution,
 not an accuracy claim. A fresh run on all 2,187 Beemo records found means of 30.2 for
 raw model responses, 25.3 for expert edits, and 20.0 for independent human answers.
-Expert editing lowered the score in 52.2% of pairs. Beemo also lacks quality labels.
+Expert editing lowered the score in 52.2% of pairs; Beemo lacks quality labels.
 
 ### Five workflows, one fixed set of drafts
 
-We reran v2.5.5's checks on preserved rewrites of 18 generic drafts. One August 23
-session produced them using Zero Slop 2.4.3 and pinned competitor instructions; they
-were not regenerated. Passing requires clean writing and layout with no altered facts
-or invented feelings.
+One August 23 session produced the 18 preserved rewrites using Zero Slop 2.4.3 and
+pinned competitor instructions; they were not regenerated. Passing requires clean
+writing and layout with no altered facts or invented feelings.
 
 | Method | Mean writing score ↓ | Passed all checks | Automated fact check | Average length change |
 |---|---:|---:|---:|---:|
@@ -181,8 +182,8 @@ python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check
 ```
 
-`SKILL.md` defines the skill; `scripts/` holds the local tools; `bench/` holds test
-inputs and results. See the [security policy](SECURITY.md) for privacy and the
+`SKILL.md` defines the skill, `scripts/` the local tools, `bench/` test inputs
+and results. See the [security policy](SECURITY.md) for privacy and the
 [research notes](references/evidence.md) for sources.
 
 Released under the [MIT License](LICENSE).

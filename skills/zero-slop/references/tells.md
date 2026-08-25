@@ -1,6 +1,6 @@
 # The Tell Taxonomy
 
-Eighty-eight tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and one tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -58,6 +58,8 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | Fragmented heading warm-up: a heading followed by one line that restates it | Delete the warm-up; begin with the first useful sentence |
 | Diff-anchored description outside a changelog, release note, migration guide, or incident review | Describe the current behavior so the document stands on its own |
 | Mechanical sentence openings: several consecutive sentences begin with the same subject or frame without building deliberate rhythm | Merge or vary the sentences; preserve purposeful anaphora |
+| Jargon compression: invented compound terms in place of explanation — "threshold cliff", "length-blind floor", "pinned high forever" | Unpack into the plain explanation once, then a short name only if the document truly reuses it; the fix is unpacking, not a synonym |
+| Stat pile-up: several datasets or tests crammed into one paragraph with no connective explanation | One test per paragraph, opening with what the test checks in plain words ("The first test checks that the score falls as humans get more involved"), numbers after the plain-language setup |
 
 ## 3. Rhetorical
 
@@ -88,6 +90,32 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | Notability roll-call: outlet names, follower counts, or status markers with no relevance to the point | Keep only the evidence that serves the subject and give its context |
 | Unraised-objection defense: "I'm not saying…", "to be clear…", or "some might say…" when no source, reader, or argument raised it | State the positive claim; keep real counterarguments, corrections, safety limits, and FAQ answers |
 | Disposable alternative: "a tempting approach would be…" introduced only to reject it and never used again | State the actual constraint; keep alternatives that a reader may genuinely consider |
+| Theatrical process framing: "we hired an adversary", "we summoned a skeptic" — personifying an ordinary procedure as a character | Name the actual procedure ("we ran an adversarial review of our own scorer") and let it be ordinary |
+| Epigram cadence: a clever-clever aphorism where a plain statement belongs ("a cheap draft turns out to carry an expensive signal: it tells the reader how much of your attention you thought they were worth") | Keep the claim, cut the flourish; one earned aphorism per piece is already a lot |
+| Metaphor flourish standing in for a plain statement: "the other half lands on the sender's name" | Say it plainly ("the sender's reputation takes the other half"); judgment call — no safe regex exists |
+| Slang-cute idiom: "has receipts", "hits different", "living rent-free" | State the evidence itself; see the slang-costume ban in `overcorrection.md` |
+| Hyperbole universals: "nothing on earth", "on the planet", "in history", "known to man" | State the actual scope; the honest comparison is smaller and stronger |
+| Cute meta-taglines and campaign framing: "a meter you can argue with", "the fight against X" as a slogan | Describe the thing; "posts about writing quality" beats a campaign poster. "The fight against" is real usage in history and civic prose — flag the marketing register, not the phrase |
+| Staccato antithesis: two short balanced sentences, the second landing the twist — "Not perfect. Honest.", "Slop isn't a vibe. It's measurable.", "The draft was cheap. The signal it sent was not." | One plain sentence with the claim; at most one antithesis per piece |
+| Extended conceit: a process or abstraction dressed as physical drama — billing ("the bill lands on reputation", "gets billed to a reader"), courtroom ("never allowed to convict"), forensics ("rhythm leaves prints"), machinery ("opens the hood"), recipe ("has four ingredients") | At most one metaphor per piece, then plain language; name the actual mechanism |
+| Vibe-slang: "just a vibe", "vibe check", "argue with vibes", "has receipts" | The plain word: impression, judgment, evidence |
+| One-word drama beat: "Fine." dropped between claims as a rhythm device | Cut it or fold it into the sentence it interrupts |
+| Chiasmus and mirrored wordplay: "your ear catches the even pulse your eye forgives" | Once is a flourish; as a default cadence it is performance — say it straight |
+
+The rows from "Theatrical process framing" down are one register:
+**performed-writer prose**, an AI imitating a punchy human writer. They are
+the meter-side twins of the edgy-slop catalogue in `overcorrection.md` — the
+same costume seen at detection time instead of rewrite time. The scorer
+catches the mechanical subset (`hired-adversary`, `turns-out-payoff`,
+`has-receipts`, `hyperbole-universal`, `argue-with-artifact`,
+`vibe-register`, `where-x-lives`, `billed-conceit`, `on-the-tin`,
+`minding-own-business`, `economics-brutal`, `opens-the-hood`, and the
+rider-gated "fight against"); epigram cadence, staccato antithesis, most
+conceits, jargon compression, and tagline register need the judgment pass,
+because their literal forms are legitimate in news, history, crime, and
+civic writing. The human-flagged spans that motivated the family live in
+`data/corpus/performed-register/` — the mechanical half is regression-tested,
+the judgment half is the read-aloud pass's fixture list.
 
 ## 4. Punctuation & formatting
 

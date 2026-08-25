@@ -2037,6 +2037,102 @@
    "w": 3.5,
    "first_seen": "2026-08-15",
    "last_confirmed": "2026-08-15"
+  },
+  {
+   "name": "hired-adversary",
+   "cat": "performed",
+   "rx": "\\b(?:hired|recruited|enlisted|summoned) (?:an?|our(?: own)?|the|its(?: own)?|their(?: own)?) (?:adversar(?:y|ies)|skeptics?|saboteurs?|nemesis|devil(?:'|’)s advocates?)\\b",
+   "w": 2.5,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "turns-out-payoff",
+   "cat": "performed",
+   "rx": "\\bturn(?:s|ed)? out to (?:carry|hold|conceal|hide|contain|exact) (?:an?|the|its) [\\w’'-]+ (?:signal|lesson|truth|cost|price|tax|message|meaning|weight|story)\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "has-receipts",
+   "cat": "performed",
+   "rx": "\\b(?:has|got) receipts\\b|\\bthe receipts to prove it\\b",
+   "w": 2.5,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "hyperbole-universal",
+   "cat": "performed",
+   "rx": "\\b(?:nothing|no ?one|nobody|nowhere) (?:on (?:this )?earth|on the planet|in (?:human |recorded )?history)\\b|\\bknown to man(?:kind)?\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "argue-with-artifact",
+   "cat": "performed",
+   "rx": "\\b(?:meter|scorer|score|number|metric|model|tool|system|algorithm|dashboard|spreadsheet|checklist|rubric|benchmark|report|chart) (?:that )?you can (?:argue|reason|disagree) with\\b",
+   "w": 2.5,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "vibe-register",
+   "cat": "performed",
+   "rx": "\\b(?:is|isn(?:'|’)t|was|not|just) a vibe\\b|\\bvibe check\\b|\\bwith vibes\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "where-x-lives",
+   "cat": "performed",
+   "rx": "\\b(?:gap|middle|space|margin|delta|blind spot|seam|crack)s? (?:is|are) where [\\w-]+ (?:lives?|hides?)\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "billed-conceit",
+   "cat": "performed",
+   "rx": "\\b(?:bill|cost|tax|other half) lands on\\b|\\bgets? billed to\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "on-the-tin",
+   "cat": "performed",
+   "rx": "\\bon the tin\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "minding-own-business",
+   "cat": "performed",
+   "rx": "\\bminding (?:its|their) own business\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "economics-brutal",
+   "cat": "performed",
+   "rx": "\\bthe (?:economics|math|numbers) (?:is|are) brutal\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "opens-the-hood",
+   "cat": "performed",
+   "rx": "\\b(?:open|pop)s? the hood\\b",
+   "w": 2,
+   "first_seen": "2026-08-24",
+   "last_confirmed": "2026-08-24"
   }
  ],
  "lexicon": {
@@ -2161,7 +2257,8 @@
   "nuanc": 1.5,
   "catalys": 2,
   "profound": 1.5,
-  "orchestrat": 2
+  "orchestrat": 2,
+  "fight against": 2
  },
  "rider_triggers": [
   "seamless",

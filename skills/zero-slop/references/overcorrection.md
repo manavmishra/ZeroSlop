@@ -27,6 +27,12 @@ into text that didn't have them.
 - **Fake errors** — never inject typos or grammar mistakes to fool
   detectors. That's adversarial evasion, not writing, and it degrades the
   text.
+- **Performed-writer prose** — theatrical framing of ordinary work ("we
+  hired an adversary"), epigram closers, staccato antithesis ("Not perfect.
+  Honest."), extended conceits (billing, courtroom, forensics, recipe),
+  hyperbole ("nothing on earth"), slang-cute idioms ("has receipts"), and
+  cute meta-taglines. The detection-side rows live in `tells.md` §3;
+  injecting them is the same costume-swap.
 
 The bar is a *thinking* author, not a *loud* one.
 

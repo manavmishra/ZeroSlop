@@ -23,6 +23,14 @@ safe correction for:
   section arrives without a clear connection to what came before.
 - **Performed candor.** Remove announcements of honesty such as "honestly" or "to be
   fair" when the sentence can simply make its point.
+- **Performed-writer register.** Flatten theatrical framing of ordinary work ("we
+  hired an adversary"), epigram closers, staccato antithesis pairs ("Not perfect.
+  Honest."), extended conceits (billing, courtroom, forensics, recipe), one-word
+  drama beats, hyperbole ("nothing on earth"), and cute meta-taglines into the
+  plain statement each one replaced.
+- **Stat pile-ups.** Split a paragraph that stacks several datasets or tests.
+  Each test gets its own paragraph that opens with what it checks in plain words,
+  numbers after the setup.
 - **Repetition.** Fix a word, phrase, sentence shape, or idea repeated close enough
   to sound accidental.
 - **Register slips.** Rewrite sudden marketing gloss, generic formality, or folksy

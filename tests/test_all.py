@@ -137,6 +137,24 @@ class Detector(unittest.TestCase):
                         if h["cat"] not in ("lexicon", "rider")]
                 self.assertTrue(hits, f"no pattern hit on: {s!r}")
 
+    def test_performed_register_corpus_is_caught(self):
+        """The 2026-08-24 expansion: performed-writer prose, an AI imitating a
+        punchy human writer. Every span in the mechanical half of the corpus
+        was a human-editor-flagged miss that scored clean before v2.5.6; each
+        must keep drawing at least one pattern hit. The judgment half is
+        documented as regex-uncatchable in the corpus README and is not
+        asserted here."""
+        data = slopscore.load_patterns()
+        mech = DATA / "corpus" / "performed-register" / "mechanical"
+        files = sorted(mech.glob("*.txt"))
+        self.assertGreaterEqual(len(files), 16, "mechanical corpus went missing")
+        for f in files:
+            with self.subTest(f.name):
+                hits = [h for h in slopscore.score_text(f.read_text(), data)["hits"]
+                        if h["cat"] not in ("lexicon", "rider")]
+                self.assertTrue(hits, f"performed-register regression: {f.name} "
+                                      f"draws no pattern hit")
+
     def test_human_corpus_stays_clean(self):
         """The false-positive floor. Every one of these is real human writing."""
         for f in sorted(CORPUS.glob("*.txt")):
@@ -1448,7 +1466,8 @@ class DocsMatchReality(unittest.TestCase):
         self.assertLessEqual(words, 1250, "README exceeded the two-page editorial brief")
         self.assertIn("RAID+", readme)
         self.assertIn("7,627", readme)
-        self.assertIn("Every score and timing was recomputed with v2.5.5", readme)
+        self.assertIn("re-verified every corpus audit unchanged; timings are v2.5.5's",
+                      re.sub(r"\s+", " ", readme))
         self.assertNotIn("Two independent LLMs", readme)
         self.assertNotIn("55/40", readme)
         self.assertNotIn("blind judges", readme.lower())

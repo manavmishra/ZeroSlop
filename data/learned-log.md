@@ -8,6 +8,39 @@
 One line per change to `learned.json` or `patterns.json`: date, what, why,
 example that motivated it.
 
+- 2026-08-24 — v2.5.6. Performed-writer register: a human editor flagged 35
+  spans from the zero-slop.ai August blog drafts that the scorer passed clean
+  (zero pattern hits) — theatrical process framing ("Then we hired an
+  adversary"), epigram payoffs ("turns out to carry an expensive signal"),
+  staccato antithesis ("Not perfect. Honest.", "Slop isn't a vibe. It's
+  measurable."), metaphor flourishes and extended conceits ("the other half
+  lands on the sender's name", "rhythm leaves prints", "never allowed to
+  convict", "opens the hood"), slang-cute idioms ("it has receipts", "vibe
+  check"), hyperbole ("nothing on earth scores a perfect zero"), one-word
+  drama beats ("Fine."), jargon compression ("threshold cliff",
+  "length-blind floor"), and cute meta-taglines ("a writing meter you can
+  argue with", "the fight against slop"). Added twelve conservative patterns
+  (w 2–2.5, cat `performed`): `hired-adversary`, `turns-out-payoff`,
+  `has-receipts`, `hyperbole-universal`, `argue-with-artifact`,
+  `vibe-register`, `where-x-lives`, `billed-conceit`, `on-the-tin`,
+  `minding-own-business`, `economics-brutal`, `opens-the-hood`, plus rider
+  "fight against" (fires only beside a marketing trigger, so history and
+  civic prose stay silent). Spans no regex gates safely became judgment-pass
+  rows in tells.md plus a named performed-writer check and a statistics-
+  cohesion rule (one test per paragraph, plain-words setup before numbers) in
+  SKILL.md's diagnose and read-aloud briefs; the family is cross-referenced
+  with overcorrection.md as the meter-side twin of edgy-slop. All 35 spans
+  now live in `data/corpus/performed-register/` — the 16 mechanically
+  catchable ones are regression-tested
+  (`test_performed_register_corpus_is_caught`), the 19 judgment-only ones are
+  the read-aloud fixture list. Must-not-flag corpus 12/12 with zero new hits;
+  search-corpus, RAID+, and Beemo audits re-verified with identical numbers.
+  In the historical 50-draft chart panel, `billed-conceit` fires on one
+  humanizer and one stop-slop rewrite ("the cost/bill lands on"), nudging
+  those two competitor means up 0.2 (20.5→20.7, 16.7→16.9) — the meter
+  catching the conceit those tools injected. Every published Zero Slop
+  number stands; the detector chart was regenerated.
+
 - 2026-08-22 — AIStoryHub Corpus of AI Clichés v1.8 coverage audit. Fixed a
   detector-ordering bug that erased `utm_source=chatgpt.com` before the
   existing artifact rule could see it; added the `attributableIndex` and

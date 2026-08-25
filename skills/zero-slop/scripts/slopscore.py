@@ -628,7 +628,7 @@ CAT_MEANING = {
     "hedging":       ("empty hedge", "commit, or cut the sentence"),
     "lexicon":       ("overused AI-style word", "use the plain word"),
     "rider":         ("buzzword used as promotion", "use the plain word, or drop the hype around it"),
-    "performed":     ("staged sincerity", "say the thing instead of announcing it"),
+    "performed":     ("performed writer's voice", "say the thing plainly instead of performing it"),
     "contrast":      ("repeated 'not this, but that' formula", "state the point directly"),
     "puffery":       ("unearned significance", "state the fact, let the reader judge"),
     "drama":         ("manufactured drama", "the fact should carry the weight"),

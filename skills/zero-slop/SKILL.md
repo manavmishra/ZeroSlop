@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.5"
+  version: "2.5.6"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -165,8 +165,8 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (267 weighted tells plus
-a 96-term lexicon and 25 context-gated riders), rhythm and burstiness,
+Every channel runs on every draft: the pattern meter (279 weighted tells plus
+a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
 back as quoted spans, and the rhythm, followability and format channels report
@@ -274,6 +274,29 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   "the version we chose," or "the text you receive." Keep genuine technical terms
   when the audience needs them; the problem is leaked process jargon, not jargon
   itself.
+- **Performed-writer register:** flag prose performing "punchy human writer" —
+  theatrical framing of an ordinary process ("we hired an adversary"), epigram
+  or aphorism cadence where a plain statement belongs, staccato antithesis
+  pairs ("Not perfect. Honest.", "Slop isn't a vibe. It's measurable."), a
+  metaphor flourish or extended conceit standing in for the plain statement
+  ("the other half lands on the sender's name", courtroom, forensics, billing,
+  and recipe conceits), one-word drama beats ("Fine." between claims),
+  hyperbole universals ("nothing on earth", "in history"), slang-cute idioms
+  ("has receipts", "vibe check"), jargon compression (invented compound terms
+  like "threshold cliff" where the fix is unpacking, not a synonym), and cute
+  meta-taglines or campaign framing ("the fight against X", "a meter you can
+  argue with"). The scorer catches only the mechanical subset; judge the
+  register itself, sentence by sentence —
+  `data/corpus/performed-register/judgment/` holds the human-flagged spans no
+  regex gates safely. These are the meter-side twins of the edgy-slop
+  catalogue in `references/overcorrection.md`, and the same caution applies in
+  reverse: "the fight against" and plain superlatives are legitimate in news,
+  history, and civic prose — flag the performance, not the phrase.
+- **Statistics cohesion:** a validation or results passage that piles several
+  datasets or tests into one paragraph reads as a wall of numbers. Give each
+  test its own paragraph that opens with what the test checks in plain words
+  ("The first test checks that the score falls as humans get more involved"),
+  with the numbers after the plain-language setup.
 
 ### 3. Rewriter — the evidence ladder in two passes
 
@@ -438,7 +461,9 @@ flag any ambiguity that cannot be fixed without guessing. Read and follow
 
 The read-aloud editor handles what the scorer and copy desk cannot: a sentence
 that makes the reader stumble, a cold transition, performed candor stacked three
-deep, one word drummed twice in a breath, or a list overloaded into one sentence.
+deep, a paragraph performing punchy-writer register (theatrical framing, epigram
+cadence, hyperbole, cute meta-taglines — the named check from the diagnose step),
+one word drummed twice in a breath, or a list overloaded into one sentence.
 Use a dedicated fresh-eyes editor when the harness supports subagents; otherwise
 perform a separate, role-isolated pass. Return the corrected text, not a list of
 flags. Nothing ships with a safe-to-fix stumble in it.
@@ -729,10 +754,10 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (88 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (101 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 267 weighted regexes because some tells need more than one.
+  release carries 279 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

@@ -80,7 +80,8 @@ with a metadata-only version query. That query never sends the draft.
 ## What we tested
 
 Version 2.5.5 reran the complete test suite, scores, external corpus audits, speed
-record, and charts. The main new check covers all 8,000 rows in the MIT-licensed RAID+
+record, and charts; v2.5.6 added the performed-writer tell family and re-verified
+every corpus audit with identical numbers. The main check covers all 8,000 rows in the MIT-licensed RAID+
 dataset. After excluding 373 failed or empty outputs, 7,627 abstracts remained. Mean
 writing scores ranged from 14.5 for DeepSeek V3 to 25.5 for Llama 3.3 70B. RAID+ labels
 model origin, not editorial quality, so this is a current-model distribution check,
@@ -97,6 +98,6 @@ reproducible checks with stated limits, not universal claims about writing quali
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.5 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.6 ·
 tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
 to Kagi's SlopStop and the research listed in the repo.

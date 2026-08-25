@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.5"
+  version: "2.5.6"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -191,8 +191,8 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (267 weighted tells plus
-a 96-term lexicon and 25 context-gated riders), rhythm and burstiness,
+Every channel runs on every draft: the pattern meter (279 weighted tells plus
+a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
 back as quoted spans, and the rhythm, followability and format channels report
@@ -300,6 +300,29 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   "the version we chose," or "the text you receive." Keep genuine technical terms
   when the audience needs them; the problem is leaked process jargon, not jargon
   itself.
+- **Performed-writer register:** flag prose performing "punchy human writer" —
+  theatrical framing of an ordinary process ("we hired an adversary"), epigram
+  or aphorism cadence where a plain statement belongs, staccato antithesis
+  pairs ("Not perfect. Honest.", "Slop isn't a vibe. It's measurable."), a
+  metaphor flourish or extended conceit standing in for the plain statement
+  ("the other half lands on the sender's name", courtroom, forensics, billing,
+  and recipe conceits), one-word drama beats ("Fine." between claims),
+  hyperbole universals ("nothing on earth", "in history"), slang-cute idioms
+  ("has receipts", "vibe check"), jargon compression (invented compound terms
+  like "threshold cliff" where the fix is unpacking, not a synonym), and cute
+  meta-taglines or campaign framing ("the fight against X", "a meter you can
+  argue with"). The scorer catches only the mechanical subset; judge the
+  register itself, sentence by sentence —
+  `data/corpus/performed-register/judgment/` holds the human-flagged spans no
+  regex gates safely. These are the meter-side twins of the edgy-slop
+  catalogue in `references/overcorrection.md`, and the same caution applies in
+  reverse: "the fight against" and plain superlatives are legitimate in news,
+  history, and civic prose — flag the performance, not the phrase.
+- **Statistics cohesion:** a validation or results passage that piles several
+  datasets or tests into one paragraph reads as a wall of numbers. Give each
+  test its own paragraph that opens with what the test checks in plain words
+  ("The first test checks that the score falls as humans get more involved"),
+  with the numbers after the plain-language setup.
 
 ### 3. Rewriter — the evidence ladder in two passes
 
@@ -464,7 +487,9 @@ flag any ambiguity that cannot be fixed without guessing. Read and follow
 
 The read-aloud editor handles what the scorer and copy desk cannot: a sentence
 that makes the reader stumble, a cold transition, performed candor stacked three
-deep, one word drummed twice in a breath, or a list overloaded into one sentence.
+deep, a paragraph performing punchy-writer register (theatrical framing, epigram
+cadence, hyperbole, cute meta-taglines — the named check from the diagnose step),
+one word drummed twice in a breath, or a list overloaded into one sentence.
 Use a dedicated fresh-eyes editor when the harness supports subagents; otherwise
 perform a separate, role-isolated pass. Return the corrected text, not a list of
 flags. Nothing ships with a safe-to-fix stumble in it.
@@ -755,10 +780,10 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (88 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (101 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 267 weighted regexes because some tells need more than one.
+  release carries 279 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,
@@ -802,7 +827,7 @@ the author, which is the point: when specifics are missing, ask for a real one
 
 # The Tell Taxonomy
 
-Eighty-eight tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and one tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -860,6 +885,8 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | Fragmented heading warm-up: a heading followed by one line that restates it | Delete the warm-up; begin with the first useful sentence |
 | Diff-anchored description outside a changelog, release note, migration guide, or incident review | Describe the current behavior so the document stands on its own |
 | Mechanical sentence openings: several consecutive sentences begin with the same subject or frame without building deliberate rhythm | Merge or vary the sentences; preserve purposeful anaphora |
+| Jargon compression: invented compound terms in place of explanation — "threshold cliff", "length-blind floor", "pinned high forever" | Unpack into the plain explanation once, then a short name only if the document truly reuses it; the fix is unpacking, not a synonym |
+| Stat pile-up: several datasets or tests crammed into one paragraph with no connective explanation | One test per paragraph, opening with what the test checks in plain words ("The first test checks that the score falls as humans get more involved"), numbers after the plain-language setup |
 
 ## 3. Rhetorical
 
@@ -890,6 +917,32 @@ alone they prove nothing, five in a page is the machine's idiom autopilot.
 | Notability roll-call: outlet names, follower counts, or status markers with no relevance to the point | Keep only the evidence that serves the subject and give its context |
 | Unraised-objection defense: "I'm not saying…", "to be clear…", or "some might say…" when no source, reader, or argument raised it | State the positive claim; keep real counterarguments, corrections, safety limits, and FAQ answers |
 | Disposable alternative: "a tempting approach would be…" introduced only to reject it and never used again | State the actual constraint; keep alternatives that a reader may genuinely consider |
+| Theatrical process framing: "we hired an adversary", "we summoned a skeptic" — personifying an ordinary procedure as a character | Name the actual procedure ("we ran an adversarial review of our own scorer") and let it be ordinary |
+| Epigram cadence: a clever-clever aphorism where a plain statement belongs ("a cheap draft turns out to carry an expensive signal: it tells the reader how much of your attention you thought they were worth") | Keep the claim, cut the flourish; one earned aphorism per piece is already a lot |
+| Metaphor flourish standing in for a plain statement: "the other half lands on the sender's name" | Say it plainly ("the sender's reputation takes the other half"); judgment call — no safe regex exists |
+| Slang-cute idiom: "has receipts", "hits different", "living rent-free" | State the evidence itself; see the slang-costume ban in `overcorrection.md` |
+| Hyperbole universals: "nothing on earth", "on the planet", "in history", "known to man" | State the actual scope; the honest comparison is smaller and stronger |
+| Cute meta-taglines and campaign framing: "a meter you can argue with", "the fight against X" as a slogan | Describe the thing; "posts about writing quality" beats a campaign poster. "The fight against" is real usage in history and civic prose — flag the marketing register, not the phrase |
+| Staccato antithesis: two short balanced sentences, the second landing the twist — "Not perfect. Honest.", "Slop isn't a vibe. It's measurable.", "The draft was cheap. The signal it sent was not." | One plain sentence with the claim; at most one antithesis per piece |
+| Extended conceit: a process or abstraction dressed as physical drama — billing ("the bill lands on reputation", "gets billed to a reader"), courtroom ("never allowed to convict"), forensics ("rhythm leaves prints"), machinery ("opens the hood"), recipe ("has four ingredients") | At most one metaphor per piece, then plain language; name the actual mechanism |
+| Vibe-slang: "just a vibe", "vibe check", "argue with vibes", "has receipts" | The plain word: impression, judgment, evidence |
+| One-word drama beat: "Fine." dropped between claims as a rhythm device | Cut it or fold it into the sentence it interrupts |
+| Chiasmus and mirrored wordplay: "your ear catches the even pulse your eye forgives" | Once is a flourish; as a default cadence it is performance — say it straight |
+
+The rows from "Theatrical process framing" down are one register:
+**performed-writer prose**, an AI imitating a punchy human writer. They are
+the meter-side twins of the edgy-slop catalogue in `overcorrection.md` — the
+same costume seen at detection time instead of rewrite time. The scorer
+catches the mechanical subset (`hired-adversary`, `turns-out-payoff`,
+`has-receipts`, `hyperbole-universal`, `argue-with-artifact`,
+`vibe-register`, `where-x-lives`, `billed-conceit`, `on-the-tin`,
+`minding-own-business`, `economics-brutal`, `opens-the-hood`, and the
+rider-gated "fight against"); epigram cadence, staccato antithesis, most
+conceits, jargon compression, and tagline register need the judgment pass,
+because their literal forms are legitimate in news, history, crime, and
+civic writing. The human-flagged spans that motivated the family live in
+`data/corpus/performed-register/` — the mechanical half is regression-tested,
+the judgment half is the read-aloud pass's fixture list.
 
 ## 4. Punctuation & formatting
 
@@ -1268,6 +1321,12 @@ into text that didn't have them.
 - **Fake errors** — never inject typos or grammar mistakes to fool
   detectors. That's adversarial evasion, not writing, and it degrades the
   text.
+- **Performed-writer prose** — theatrical framing of ordinary work ("we
+  hired an adversary"), epigram closers, staccato antithesis ("Not perfect.
+  Honest."), extended conceits (billing, courtroom, forensics, recipe),
+  hyperbole ("nothing on earth"), slang-cute idioms ("has receipts"), and
+  cute meta-taglines. The detection-side rows live in `tells.md` §3;
+  injecting them is the same costume-swap.
 
 The bar is a *thinking* author, not a *loud* one.
 
@@ -1338,6 +1397,14 @@ safe correction for:
   section arrives without a clear connection to what came before.
 - **Performed candor.** Remove announcements of honesty such as "honestly" or "to be
   fair" when the sentence can simply make its point.
+- **Performed-writer register.** Flatten theatrical framing of ordinary work ("we
+  hired an adversary"), epigram closers, staccato antithesis pairs ("Not perfect.
+  Honest."), extended conceits (billing, courtroom, forensics, recipe), one-word
+  drama beats, hyperbole ("nothing on earth"), and cute meta-taglines into the
+  plain statement each one replaced.
+- **Stat pile-ups.** Split a paragraph that stacks several datasets or tests.
+  Each test gets its own paragraph that opens with what it checks in plain words,
+  numbers after the setup.
 - **Repetition.** Fix a word, phrase, sentence shape, or idea repeated close enough
   to sound accidental.
 - **Register slips.** Rewrite sudden marketing gloss, generic formality, or folksy
