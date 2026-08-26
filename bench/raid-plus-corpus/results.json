@@ -18,10 +18,10 @@
   "license": "MIT"
  },
  "scorer": {
-  "version": "2.5.8",
-  "slopscore_sha256": "b03d65df834e30cdc6cd524a1e7cc977b5ad62a370f5de56c30a95ae36ee851d",
-  "patterns_sha256": "67b92e8e96e33a26fe0b2b31dc57c22e5c4ca89258e38b9e3be1ee681f4b0daf",
-  "learned_sha256": "0d2b9075f58971991b632f53d61062633fbeefa36f2c9eac7bb5859efb34ea8e",
+  "version": "2.5.9",
+  "slopscore_sha256": "b8a7f5e5283a07a86ef191474b71d7727f5e29b1e8f7b53ef09d0f45e0a00793",
+  "patterns_sha256": "b20393ce8e84abcfd4a4c4fa7f5209bb8c4f22db52e30da25a6e18448aca6853",
+  "learned_sha256": "b423b1e3104788a6e206aec2212446c10ad474e6b946e2e2df44de7f00a9adc0",
   "generic_gate": 25.0,
   "formal_domains": [
    "abstracts"
@@ -35,8 +35,8 @@
    9.5,
    24.8
   ],
-  "at_or_above_generic_gate": 1895,
-  "at_or_above_generic_gate_pct": 24.8
+  "at_or_above_generic_gate": 1896,
+  "at_or_above_generic_gate_pct": 24.9
  },
  "models": {
   "deepseek-v3": {
@@ -71,7 +71,7 @@
     9.5,
     27.5
    ],
-   "at_or_above_generic_gate": 496,
+   "at_or_above_generic_gate": 497,
    "at_or_above_generic_gate_pct": 30.4,
    "failed_or_empty": 366
   },
@@ -97,8 +97,8 @@
     9.5,
     24.8
    ],
-   "at_or_above_generic_gate": 1895,
-   "at_or_above_generic_gate_pct": 24.8
+   "at_or_above_generic_gate": 1896,
+   "at_or_above_generic_gate_pct": 24.9
   }
  },
  "limits": "RAID+ supplies machine provenance, not slop-quality labels. These score distributions are not editorial quality, authorship accuracy, precision, recall, or a comparison with human writing."

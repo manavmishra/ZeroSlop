@@ -41,6 +41,10 @@ HOME = Path(os.environ.get("ZERO_SLOP_HOME", Path.home() / ".zero-slop")).expand
 VOICE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
 
 
+class PatternData(dict):
+    """JSON-compatible pattern mapping with an out-of-band compiled plan."""
+
+
 def _voice_path(name):
     """Resolve a profile name without letting it become a filesystem path."""
     if not VOICE_NAME.fullmatch(name or "") or name in (".", ".."):
@@ -117,7 +121,7 @@ def load_patterns(voice=None):
     _merge_learned(base, HOME / "learned.json")           # private, live
     if voice:
         _apply_voice(base, voice)
-    return base
+    return PatternData(base)
 
 
 def _apply_voice(base, name):
@@ -155,11 +159,83 @@ def _apply_voice(base, name):
 SENT_SPLIT = re.compile(r"(?<=[.!?])[\")”’]?\s+(?=[A-Z“\"(0-9])")
 WORD = re.compile(r"[A-Za-z’']+")
 
+# Normalise only detector-evasion characters, never ordinary non-Latin prose.
+# A Cyrillic or Greek lookalike is mapped only when it appears in the same word
+# as an ASCII letter (for example, dеlvе). This keeps Russian and Greek text
+# untouched while preventing an invisible substitution from bypassing a known
+# phrase. Adapted from the normalisation pre-pass in conorbronsdon/
+# avoid-ai-writing, reviewed at commit 40328bd292bc682d46010a6f9ac2cdbf4fb4ceca.
+ZERO_WIDTH_RX = re.compile(r"[\u200b-\u200d\ufeff\u2060]")
+SUSPICIOUS_UNICODE_RX = re.compile(
+    r"[\u200b-\u200d\ufeff\u2060\u0370-\u03ff\u0400-\u04ff]"
+)
+MIXED_SCRIPT_WORD_RX = re.compile(r"[A-Za-z\u0370-\u03ff\u0400-\u04ff]+")
+LOOKALIKES = {
+    "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "х": "x",
+    "у": "y", "к": "k", "м": "m", "н": "h", "в": "b", "т": "t",
+    "А": "A", "Е": "E", "О": "O", "Р": "P", "С": "C", "Х": "X",
+    "У": "Y", "К": "K", "М": "M", "Н": "H", "В": "B", "Т": "T",
+    "ο": "o", "Ο": "O", "α": "a", "Α": "A", "ρ": "p", "Ρ": "P",
+}
+
+
+def normalize_for_detection(text):
+    """Return detector text plus a count of hidden/lookalike characters."""
+    # Smart punctuation and accented prose are common, but neither requires a
+    # word-by-word mixed-script pass. Stop after one fast search unless the
+    # text actually contains a hidden, Cyrillic, or Greek code point.
+    if text.isascii() or not SUSPICIOUS_UNICODE_RX.search(text):
+        return text, {"zero_width": 0, "homoglyphs": 0}
+    text, zero_width = ZERO_WIDTH_RX.subn("", text)
+    if not re.search(r"[\u0370-\u03ff\u0400-\u04ff]", text):
+        return text, {"zero_width": zero_width, "homoglyphs": 0}
+    homoglyphs = 0
+
+    def mixed_word(match):
+        nonlocal homoglyphs
+        token = match.group(0)
+        if not re.search(r"[A-Za-z]", token):
+            return token
+        out = []
+        for char in token:
+            replacement = LOOKALIKES.get(char)
+            if replacement is not None:
+                homoglyphs += 1
+                out.append(replacement)
+            else:
+                out.append(char)
+        return "".join(out)
+
+    return MIXED_SCRIPT_WORD_RX.sub(mixed_word, text), {
+        "zero_width": zero_width,
+        "homoglyphs": homoglyphs,
+    }
+
 
 @functools.lru_cache(maxsize=1024)
 def _pattern_regex(rx, multiline):
     """Compile a weighted pattern once without changing its match semantics."""
     return re.compile(rx, re.I | (re.M if multiline else 0))
+
+
+def _pattern_plan(data):
+    """Compile and validate the current pattern layer once per loaded profile."""
+    cached = getattr(data, "_compiled_pattern_plan", None)
+    if cached is not None:
+        return cached
+    plan = []
+    for pattern in data["patterns"]:
+        hints = pattern.get("hints")
+        if not (isinstance(hints, list) and hints
+                and all(isinstance(hint, str) for hint in hints)):
+            hints = None
+        plan.append((pattern.get("w"), pattern["cat"], pattern["name"],
+                     _pattern_regex(pattern["rx"], bool(pattern.get("m"))),
+                     pattern["rx"].lower(), hints))
+    compiled = tuple(plan)
+    if isinstance(data, PatternData):
+        data._compiled_pattern_plan = compiled
+    return compiled
 
 
 @functools.lru_cache(maxsize=16)
@@ -242,7 +318,9 @@ def strip_noise(text):
     text = re.sub(
         r"https?://\S+",
         lambda m: " " + " ".join(re.findall(
-            r"utm_source=(?:chatgpt(?:\.com)?|openai)", m.group(0), re.I
+            r"(?:utm_source=(?:chatgpt(?:\.com)?|openai(?:\.com)?|"
+            r"copilot(?:\.com)?|claude\.ai|perplexity\.ai|gemini\.google\.com)"
+            r"|referrer=grok\.com)", m.group(0), re.I
         )) + " ",
         text,
     )
@@ -312,25 +390,54 @@ def score_text(text, data, formal=False):
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     raw = text
-    text = strip_noise(text)
+    text, normalization = normalize_for_detection(strip_noise(text))
     words = WORD.findall(text)
     n_words = len(words)
     word_den = max(n_words, 1)
+    type_token_ratio = (len({word.casefold() for word in words}) / word_den
+                        if n_words >= 200 else None)
     sent_spans = _sentence_spans(text)
     sents = [text[a:b].replace("\n", " ") for a, b in sent_spans]
     hits = []
-    pattern_spans = []  # (start, end, rx) per pattern hit, for dedup below
+    pattern_spans = []  # (start, end, lower-rx, compiled-rx) for dedup below
 
-    # 1. Pattern tells (regex, weighted)
-    for p in data["patterns"]:
-        if not p.get("w"):
+    # One stray hidden character can come from a rich-text paste. A cluster is
+    # worth reporting, but the normalised wording is scanned at either count.
+    if normalization["zero_width"] + normalization["homoglyphs"] >= 2:
+        hits.append({
+            "cat": "artifact", "name": "normalization-bypass", "w": 5,
+            "quote": (f"{normalization['zero_width']} hidden and "
+                      f"{normalization['homoglyphs']} lookalike characters"),
+        })
+    # The incumbent's published 1,654-paragraph provenance corpus gives this
+    # conservative long-form signal 22.46x machine/human lift (20/779 versus
+    # 1/875). Keep it weak and cluster-dependent: narrow vocabulary is normal
+    # in some technical writing and never convicts on its own.
+    if type_token_ratio is not None and type_token_ratio < 0.40:
+        hits.append({
+            "cat": "rhythm", "name": "low-word-variety", "w": 1.5,
+            "quote": f"{type_token_ratio:.0%} distinct words across {n_words} words",
+        })
+
+    # 1. Pattern tells (regex, weighted). A reviewed pattern may include literal
+    # hints that are guaranteed to cover every branch. They cheaply skip a full
+    # regex scan when none is present; patterns without that guarantee run as
+    # before.
+    lowercase_text = None
+    for weight, category, name, compiled, lower_rx, hints in _pattern_plan(data):
+        if not weight:
             continue
-        for m in _pattern_regex(p["rx"], bool(p.get("m"))).finditer(text):
+        if hints:
+            if lowercase_text is None:
+                lowercase_text = text.lower()
+            if not any(hint in lowercase_text for hint in hints):
+                continue
+        for m in compiled.finditer(text):
             hits.append({
-                "cat": p["cat"], "name": p["name"], "w": p["w"],
+                "cat": category, "name": name, "w": weight,
                 "quote": m.group(0)[:90].strip(),
             })
-            pattern_spans.append((m.start(), m.end(), p["rx"]))
+            pattern_spans.append((m.start(), m.end(), lower_rx, compiled))
 
     # 2. Lexicon. Two tiers, because context decides. Always-on terms
     # ("delve", "tapestry") almost never appear in honest prose. Rider terms
@@ -347,15 +454,15 @@ def score_text(text, data, formal=False):
     # lands inside another tell's span — a lexicon word inside a
     # rhetorical-structure match — still counts. Overlapping lexicon stems
     # ("game-chang", "game-changing") collapse to one hit the same way.
-    claimed = _merge_spans([(s, e) for s, e, _ in pattern_spans])
+    claimed = _merge_spans([(s, e) for s, e, _, _ in pattern_spans])
 
     def _pattern_owns(span, term, matched):
         if not _span_covered(span, claimed):
             return False
         s, e = span
         return any(ps < e and s < pe
-                   and (term in rx.lower() or re.search(rx, matched, re.I))
-                   for ps, pe, rx in pattern_spans)
+                   and (term in rx_lower or compiled.search(matched))
+                   for ps, pe, rx_lower, compiled in pattern_spans)
 
     candidates = [candidate for candidate in _term_candidates(text, data["lexicon"])
                   if not _pattern_owns(candidate[:2], candidate[2], candidate[4])]
@@ -495,6 +602,8 @@ def score_text(text, data, formal=False):
         "tell_density_per_100w": round(tell_density, 2),
         "n_words": n_words,
         "n_sentences": len(sents),
+        "type_token_ratio": (None if type_token_ratio is None
+                              else round(type_token_ratio, 3)),
         "burstiness": round(burstiness, 3),
         "emdash_per_100w": round(emdash, 2),
         "emoji_count": emoji,
@@ -505,6 +614,7 @@ def score_text(text, data, formal=False):
         "poly_ratio": round(poly_ratio, 3),
         "comma_chain_frac": round(chain_frac, 3),
         "overlong_frac": round(overlong_frac, 3),
+        "normalization": normalization,
         "categories": cats,
         "hits": hits,
     }
@@ -888,6 +998,13 @@ def facts(text, _other=""):
     # rewrite), so entity detection runs on the text with links removed.
     urls = text  # links keep their spelled forms; numbers in a slug are not facts
     prose = _spell_to_digits(re.sub(r"https?://\S+", " ", text))
+    # The first word in a prose-style Markdown heading is capitalised by
+    # position, not necessarily a named entity ("## Private learning"). Keep
+    # real multi-token title-case names such as "Basis Ventures" intact.
+    prose = re.sub(
+        r"(?m)^(#{1,6}\s+)([A-Z][a-z]{2,})(?=\s+(?![A-Z][a-z]+\b))",
+        lambda m: m.group(1) + m.group(2).lower(), prose,
+    )
     # Ordered-list markers describe structure, not quantities. Treating the
     # ``1.`` in a three-item list as a dropped fact penalises a faithful prose
     # rewrite and hides real numeric changes in noise.
@@ -984,6 +1101,145 @@ def interior_claims(text):
     return out
 
 
+# Exact or logical document structures that an editorial rewrite must not
+# silently alter. The content checks are intentionally narrow and deterministic;
+# the AI assistant still compares full meaning and format after this script.
+FENCED_CODE_RX = re.compile(
+    r"(?ms)^(?:```|~~~)[^\n]*\n.*?^(?:```|~~~)[ \t]*$"
+)
+YAML_FRONTMATTER_RX = re.compile(r"\A---\n.*?\n---(?=\n|\Z)", re.S)
+INLINE_CODE_RX = re.compile(r"`[^`\n]+`")
+BLOCKQUOTE_LINE_RX = re.compile(r"^[ \t]*>[^\n]*$", re.M)
+HEADING_RX = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$", re.M)
+PATH_RX = re.compile(
+    r"(?<![\w:])((?:\.\.?/|/)[A-Za-z0-9._~\-]+"
+    r"(?:/[A-Za-z0-9._~\-]+)*|[A-Za-z]:\\[A-Za-z0-9._\\~\-]+)"
+)
+
+
+def _mask_fenced(text):
+    return FENCED_CODE_RX.sub(
+        lambda match: re.sub(r"[^\n]", " ", match.group(0)), text
+    )
+
+
+def _line_blocks(text, predicate):
+    """Consecutive matching lines, without swallowing adjacent prose."""
+    blocks, current = [], []
+    for line in text.splitlines():
+        if predicate(line):
+            current.append(line)
+        elif current:
+            blocks.append("\n".join(current))
+            current = []
+    if current:
+        blocks.append("\n".join(current))
+    return blocks
+
+
+def _blockquote_blocks(text):
+    return _line_blocks(text, lambda line: bool(re.match(r"^[ \t]*>", line)))
+
+
+def _normalize_blockquote(block):
+    return "\n".join(
+        re.sub(r"^[ \t]*>[ \t]?", "", line).rstrip()
+        for line in block.splitlines()
+    ).rstrip()
+
+
+def _table_blocks(text):
+    blocks = _line_blocks(
+        text,
+        lambda line: bool(re.match(r"^[ \t]*\|.*\|[ \t]*$", line)),
+    )
+    return [block for block in blocks if len(block.splitlines()) >= 2]
+
+
+def _normalize_table(block):
+    rows = []
+    for line in block.splitlines():
+        cells = [re.sub(r"\s+", " ", cell.strip())
+                 for cell in line.strip().strip("|").split("|")]
+        if cells and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            cells = ["-" for _ in cells]
+        rows.append("|".join(cells))
+    return "\n".join(rows)
+
+
+def _missing_items(left, right):
+    """Multiset subtraction: duplicate protected spans stay significant."""
+    remaining = list(right)
+    missing = []
+    for item in left:
+        try:
+            remaining.remove(item)
+        except ValueError:
+            missing.append(item)
+    return missing
+
+
+def structure_changes(before, after):
+    """Blocking changes to code, reference blocks, paths, and hierarchy."""
+    findings = []
+
+    def add(code, message, added=False):
+        findings.append({"code": code, "message": message, "added": added})
+
+    original_code = FENCED_CODE_RX.findall(before)
+    edited_code = FENCED_CODE_RX.findall(after)
+    if len(original_code) != len(edited_code):
+        add("code-block-count",
+            f"fenced code block count changed: {len(original_code)} to {len(edited_code)}",
+            len(edited_code) > len(original_code))
+    elif any(left != right for left, right in zip(original_code, edited_code)):
+        add("code-block-modified", "a fenced code block changed")
+
+    original_yaml = YAML_FRONTMATTER_RX.search(before)
+    edited_yaml = YAML_FRONTMATTER_RX.search(after)
+    original_yaml = original_yaml.group(0) if original_yaml else None
+    edited_yaml = edited_yaml.group(0) if edited_yaml else None
+    if original_yaml != edited_yaml:
+        add("frontmatter-modified", "YAML front matter changed",
+            original_yaml is None and edited_yaml is not None)
+
+    original_prose, edited_prose = _mask_fenced(before), _mask_fenced(after)
+    # URL path segments are already checked as URLs and are not filesystem
+    # paths. Mask them here so sentence punctuation cannot manufacture a path
+    # mismatch ("https://acme.io/blog" versus the same link before a full stop).
+    original_path_prose = re.sub(r"https?://\S+", " ", original_prose)
+    edited_path_prose = re.sub(r"https?://\S+", " ", edited_prose)
+    protected = [
+        ("blockquote", [_normalize_blockquote(x) for x in _blockquote_blocks(original_prose)],
+         [_normalize_blockquote(x) for x in _blockquote_blocks(edited_prose)]),
+        ("table", [_normalize_table(x) for x in _table_blocks(original_prose)],
+         [_normalize_table(x) for x in _table_blocks(edited_prose)]),
+        ("inline-code", INLINE_CODE_RX.findall(before), INLINE_CODE_RX.findall(after)),
+        ("path", PATH_RX.findall(original_path_prose), PATH_RX.findall(edited_path_prose)),
+    ]
+    for label, original, edited in protected:
+        missing = _missing_items(original, edited)
+        added = _missing_items(edited, original)
+        if missing:
+            code = f"{label}-missing" if label in {"inline-code", "path"} else f"{label}-modified"
+            add(code, f"{len(missing)} {label} item(s) changed or disappeared")
+        if added:
+            add(f"{label}-added", f"{len(added)} new {label} item(s) appeared", True)
+
+    original_headings = [(len(markers), text) for markers, text
+                         in HEADING_RX.findall(before)]
+    edited_headings = [(len(markers), text) for markers, text
+                       in HEADING_RX.findall(after)]
+    if len(original_headings) != len(edited_headings):
+        add("heading-count",
+            f"heading count changed: {len(original_headings)} to {len(edited_headings)}",
+            len(edited_headings) > len(original_headings))
+    elif any(left[0] != right[0]
+             for left, right in zip(original_headings, edited_headings)):
+        add("heading-level", "heading hierarchy changed")
+    return findings
+
+
 def fidelity(before, after):
     """Did the rewrite keep every fact, and did it add any?
 
@@ -994,6 +1250,7 @@ def fidelity(before, after):
     added one is not.
     """
     a, b = facts(before, after), facts(after, before)
+    structure = structure_changes(before, after)
     rows, kept_all, invented_any = [], True, False
     def entity_tokens(entity):
         return {w for w in re.findall(r"[a-z]+", entity.lower())
@@ -1032,8 +1289,11 @@ def fidelity(before, after):
     if new_interior:
         rows.append(("feeling", set(), set(), new_interior))
         invented_any = True
+    if structure:
+        kept_all = False
+        invented_any = invented_any or any(row["added"] for row in structure)
     return {"rows": rows, "preserved": kept_all, "invented": invented_any,
-            "interior": new_interior}
+            "interior": new_interior, "structure": structure}
 
 
 # The shared rewrite-quality objective. One definition of "a better rewrite",
@@ -1087,12 +1347,17 @@ def render_fidelity(before, after):
     if r.get("interior"):
         out.append("  the author never said these; an added feeling is still a "
                    "fabrication")
+    if r.get("structure"):
+        out.append("  protected document content changed:")
+        for finding in r["structure"][:8]:
+            out.append(f"           {finding['code']:<23} {finding['message']}")
     out += ["",
             "  Result: " + ("facts preserved; nothing added"
                              if r["preserved"] and not r["invented"] else
-                             ("FACTS DROPPED" if not r["preserved"] else "")
+                             ("SOURCE CONTENT CHANGED" if not r["preserved"] else "")
                              + (" · CONTENT INVENTED" if r["invented"] else "")),
-            "  This checks figures, names, quotes, links, and stated feelings.",
+            "  This checks figures, names, quotes, links, stated feelings, code,",
+            "  front matter, tables, blockquotes, inline identifiers, paths, and headings.",
             "  Your AI assistant still compares the full meaning because a changed claim",
             "  or emphasis may use all the same names and numbers.", ""]
     return out

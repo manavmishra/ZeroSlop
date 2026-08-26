@@ -31,6 +31,7 @@ MANIFEST = BENCH / "chart-data.json"
 SEARCH_RESULTS = BENCH / "search-corpus" / "results.json"
 CAPABILITY_AUDIT = BENCH / "competitor-capabilities.json"
 SEARCH_COMPARISON = BENCH / "search-corpus" / "comparison-results.json"
+FRESH_REPLAY = BENCH / "fresh-replay" / "results.json"
 EXTERNAL_MODELS = BENCH / "external-models" / "results.json"
 BEEMO_RESULTS = BENCH / "beemo-corpus" / "results.json"
 RAID_PLUS_RESULTS = BENCH / "raid-plus-corpus" / "results.json"
@@ -84,7 +85,8 @@ def compute():
         for genre, row in sorted(search["by_genre"].items())
     ]
     audit = json.loads(CAPABILITY_AUDIT.read_text())
-    products = ["zero_slop", "blader", "no_ai_slop", "unslop_text"]
+    products = ["zero_slop", "avoid_ai_writing", "blader", "no_ai_slop",
+                "unslop_text"]
     capability_matrix = {
         "audited_on": audit["audited_on"],
         "products": [
@@ -97,22 +99,30 @@ def compute():
         ],
     }
     comparison = json.loads(SEARCH_COMPARISON.read_text())
+    fresh_replay = json.loads(FRESH_REPLAY.read_text())
+    if (fresh_replay.get("result_kind") != "fresh_same_model_rewrite_replay"
+            or fresh_replay.get("calibrated_field_accuracy") is not False
+            or fresh_replay.get("corpus", {}).get("drafts") != 18):
+        raise ValueError("fresh same-model replay has an invalid contract")
+    replay_order = ["zero-slop", "avoid-ai-writing", "no-ai-slop", "humanizer"]
+    rewrite_scores = [(fresh_replay["originals"]["label"],
+                       fresh_replay["originals"]["mean_writing_score"])]
+    rewrite_scores.extend(
+        (fresh_replay["methods"][method]["label"],
+         fresh_replay["methods"][method]["mean_writing_score"])
+        for method in replay_order
+    )
+    rewrite_passes = [(fresh_replay["originals"]["label"],
+                       round(100 * fresh_replay["originals"]["zero_slop_release_passes"]
+                             / fresh_replay["corpus"]["drafts"], 1))]
+    rewrite_passes.extend(
+        (fresh_replay["methods"][method]["label"],
+         round(100 * fresh_replay["methods"][method]["zero_slop_release_passes"]
+               / fresh_replay["corpus"]["drafts"], 1))
+        for method in replay_order
+    )
     comparison_order = ["zero-slop", "no-ai-slop", "humanizer",
                         "de-slop", "stop-slop"]
-    rewrite_scores = [("Original drafts",
-                       comparison["original_mean_surface_score"])]
-    rewrite_scores.extend(
-        (comparison["methods"][method]["label"],
-         comparison["methods"][method]["mean_surface_score"])
-        for method in comparison_order
-    )
-    rewrite_passes = [("Original drafts",
-                       comparison["original_combined_pass_rate"])]
-    rewrite_passes.extend(
-        (comparison["methods"][method]["label"],
-         comparison["methods"][method]["combined_pass_rate"])
-        for method in comparison_order
-    )
     external_order = ["original", *comparison_order]
     external_clean = [
         (comparison["external_cross_meter"]["methods"][method]["label"],
@@ -332,14 +342,14 @@ def render(datasets):
         datasets["search_corpus"], None))
     out.append(_hbar(
         ASSETS / "bench-search-rewrites.png",
-        "Surface score after instruction replay",
-        "Same 18 paraphrases and one host model. Lower is cleaner. Zero Slop's meter, "
-        "not an independent judge.",
+        "Writing score after a fresh editing replay",
+        "Same 18 drafts, model, reasoning level, and batch size. Lower is cleaner on "
+        "Zero Slop's meter; this is not an independent verdict.",
         datasets["search_rewrite_scores"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-search-passrate.png",
-        "Combined editorial pass rate",
-        "Genre surface and shape gates plus automated fact check. Not semantic or field accuracy.",
+        "Zero Slop release checks passed",
+        "Writing, layout, and protected-detail checks. These are Zero Slop's gates, not field accuracy.",
         datasets["search_rewrite_passes"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-external-checker.png",
@@ -349,7 +359,7 @@ def render(datasets):
         datasets["external_checker_clean"], "Zero Slop"))
     out.append(_hbar(
         ASSETS / "bench-beemo.png",
-        "External paired-edit surface audit",
+        "External paired-edit writing audit",
         "2,187 Beemo records. Lower means less generic AI-style language; provenance and edit "
         "history are not slop-quality labels.",
         datasets["beemo_surface"], "__no_highlight__"))
@@ -361,14 +371,14 @@ def render(datasets):
         datasets["external_model_context"], "__no_highlight__"))
     out.append(_hbar(
         ASSETS / "bench-blind-quality.png",
-        "Blind editorial severity after rewriting",
-        "Two method-blind LLM editors; 12 variants per method. Lower is better. "
+        "Method-hidden editorial severity after rewriting",
+        "Two method-hidden LLM editors; 12 variants per method. Lower is better. "
         "Small clustered panel, with unresolved labels retained; not field accuracy.",
         datasets["blind_quality"], "Zero Slop", axis_ticks=[0, 1, 2, 3, 4, 5]))
     out.append(_hbar(
         ASSETS / "bench-contextual-ablation.png",
-        "Held-out contextual research ablation",
-        "Cross-rater accuracy on the same eligible blind test items. Higher is better. "
+        "Held-out contextual research comparison",
+        "Cross-rater accuracy on the same eligible method-hidden test items. Higher is better. "
         "LLM editorial reproducibility, not independent human field accuracy.",
         datasets["contextual_ablation"], "contextual research review",
         axis_ticks=[0, 25, 50, 75, 100]))

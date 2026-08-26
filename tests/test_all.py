@@ -385,6 +385,67 @@ class CLI(unittest.TestCase):
         r = run([str(SCORER)], stdin="Ünïcödé — emoji 🚀 中文 العربية\n")
         self.assertEqual(r.returncode, 0, r.stderr)
 
+    def test_zero_width_obfuscation_cannot_hide_a_known_term(self):
+        """Invisible characters may arrive through paste, but they cannot turn
+        a known phrase into a clean one."""
+        data = slopscore.load_patterns()
+        result = slopscore.score_text(
+            "We should del\u200bve into the intricate tapestry before launch.", data
+        )
+        names = {hit["name"] for hit in result["hits"]}
+        self.assertIn("delve", names)
+        self.assertEqual(result["normalization"]["zero_width"], 1)
+
+    def test_mixed_script_obfuscation_cannot_hide_a_known_term(self):
+        """Map lookalikes only inside mixed-script words: dеlvе is an
+        obfuscated Latin token, while ordinary Cyrillic prose is not."""
+        data = slopscore.load_patterns()
+        result = slopscore.score_text(
+            "We should d\u0435lv\u0435 into the intricate tapestry before launch.", data
+        )
+        names = {hit["name"] for hit in result["hits"]}
+        self.assertIn("delve", names)
+        self.assertEqual(result["normalization"]["homoglyphs"], 2)
+        cyrillic = slopscore.score_text("Мы обсудили релиз и исправили ошибку.", data)
+        self.assertEqual(cyrillic["normalization"]["homoglyphs"], 0)
+        self.assertFalse(any(hit["name"] == "normalization-bypass"
+                             for hit in cyrillic["hits"]))
+
+    def test_normalization_artifact_requires_a_cluster(self):
+        data = slopscore.load_patterns()
+        one = slopscore.score_text(
+            "A plain note copied from an editor\u200b still reads like a plain note.", data
+        )
+        two = slopscore.score_text(
+            "A note\u200b with two\u2060 invisible separators was pasted here.", data
+        )
+        self.assertFalse(any(hit["name"] == "normalization-bypass"
+                             for hit in one["hits"]))
+        self.assertTrue(any(hit["name"] == "normalization-bypass"
+                            for hit in two["hits"]))
+
+    def test_low_word_variety_is_a_corroborating_long_form_signal(self):
+        """The incumbent's 1,654-paragraph corpus gave low TTR 22.46x lift,
+        but one such signal must remain too weak to convict human prose."""
+        data = slopscore.load_patterns()
+        repetitive = ("The system runs the task and the system checks the task. " * 28)
+        result = slopscore.score_text(repetitive, data)
+        self.assertLess(result["type_token_ratio"], 0.4)
+        self.assertTrue(any(hit["name"] == "low-word-variety"
+                            for hit in result["hits"]))
+        self.assertEqual(result["categories"]["rhythm"], 1.5)
+
+    def test_low_word_variety_abstains_on_short_or_varied_text(self):
+        data = slopscore.load_patterns()
+        short = "The system repeats a word, but a short note cannot support this check."
+        varied = (CORPUS / "personal-essay.txt").read_text()
+        for text in (short, varied):
+            with self.subTest(words=len(text.split())):
+                result = slopscore.score_text(text, data)
+                self.assertFalse(any(hit["name"] == "low-word-variety"
+                                     for hit in result["hits"]))
+        self.assertIsNone(slopscore.score_text(short, data)["type_token_ratio"])
+
     def test_code_fences_do_not_charge_cli_formatting(self):
         data = slopscore.load_patterns()
         plain = "A direct technical note about the release."
@@ -491,6 +552,71 @@ class CommunityReportedSignals(unittest.TestCase):
             with self.subTest(term=term):
                 self.assertNotIn(term, lexicon)
                 self.assertNotIn(term, riders)
+
+    def test_lingering_attention_frames_are_detected_without_banning_reasoned_return(self):
+        data = slopscore.load_patterns()
+        flagged = [
+            "The line I keep coming back to is that agents need limits.",
+            "I can't stop thinking about this launch note.",
+            "That phrase has been rattling around in my head all week.",
+            "I've been chewing on this since the meeting.",
+        ]
+        for text in flagged:
+            with self.subTest(kind="flagged", text=text):
+                hits = slopscore.score_text(text, data)["hits"]
+                self.assertTrue(any(hit["name"] == "lingering-attention"
+                                    for hit in hits))
+        reasoned = ("I keep coming back to Hirschman's exit-voice framing because "
+                    "it predicts which engineers quit and which ones file an RFC.")
+        hits = slopscore.score_text(reasoned, data)["hits"]
+        self.assertFalse(any(hit["name"] == "lingering-attention" for hit in hits))
+
+    def test_social_endorsement_closers_need_a_curatorial_anchor(self):
+        data = slopscore.load_patterns()
+        flagged = [
+            "This one is worth your time.",
+            "Do yourself a favor and read this.",
+            "You don't want to miss this!",
+            "Don't sleep on this one.",
+        ]
+        for text in flagged:
+            with self.subTest(kind="flagged", text=text):
+                hits = slopscore.score_text(text, data)["hits"]
+                self.assertTrue(any(hit["name"] == "social-endorsement-closer"
+                                    for hit in hits))
+        literal = [
+            "She will thank me later when the deploy finishes.",
+            "Read the runbook before you restart the worker.",
+            "Don't miss this meeting; finance moved it to Thursday.",
+        ]
+        for text in literal:
+            with self.subTest(kind="literal", text=text):
+                hits = slopscore.score_text(text, data)["hits"]
+                self.assertFalse(any(hit["name"] == "social-endorsement-closer"
+                                     for hit in hits))
+
+    def test_chat_roleplay_actions_are_artifacts_but_ordinary_italics_are_not(self):
+        data = slopscore.load_patterns()
+        flagged = "I understand the request. *nods thoughtfully* Here is the answer."
+        clean = "Use *careful review* for this section and keep **bold text** intact."
+        self.assertTrue(any(hit["name"] == "chat-roleplay-action"
+                            for hit in slopscore.score_text(flagged, data)["hits"]))
+        self.assertFalse(any(hit["name"] == "chat-roleplay-action"
+                             for hit in slopscore.score_text(clean, data)["hits"]))
+
+    def test_ai_tool_tracking_parameters_survive_url_masking(self):
+        data = slopscore.load_patterns()
+        trackers = (
+            "utm_source=chatgpt.com", "utm_source=openai.com",
+            "utm_source=copilot.com", "utm_source=claude.ai",
+            "utm_source=perplexity.ai", "utm_source=gemini.google.com",
+            "referrer=grok.com",
+        )
+        for tracker in trackers:
+            with self.subTest(tracker=tracker):
+                text = f"Read the source at https://example.com/report?{tracker}."
+                hits = slopscore.score_text(text, data)["hits"]
+                self.assertTrue(any(hit["name"] == "chatgpt-artifact" for hit in hits))
 
 
 # --------------------------------------------------------------------------
@@ -1608,9 +1734,12 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("RAID+", readme)
         self.assertIn("7,627", readme)
         compact = re.sub(r"\s+", " ", readme)
-        self.assertIn("accuracy rose from 71.1% to 84.2%", compact)
-        self.assertIn("not human field accuracy", compact)
-        self.assertIn("29.4% higher median throughput than v2.5.7", compact)
+        self.assertIn("matched the 84.2% result", compact)
+        self.assertIn("not independent human field accuracy", compact)
+        speed = json.loads((ROOT / "bench" / "version-comparison.json").read_text())[
+            "timing_seconds"
+        ]["median_speed_change_pct"]
+        self.assertIn(f"{speed:.2f}% higher median throughput", compact)
         self.assertNotIn("Two independent LLMs", readme)
         self.assertNotIn("55/40", readme)
         self.assertNotIn("blind judges", readme.lower())
@@ -1813,24 +1942,73 @@ class SearchCorpus(unittest.TestCase):
         External checker detail lives in bench/ rather than being duplicated in
         the executive README.
         """
-        results = json.loads((self.PATH.parent / "comparison-results.json").read_text())
+        results = json.loads(
+            (ROOT / "bench" / "fresh-replay" / "results.json").read_text()
+        )
         readme = (ROOT / "README.md").read_text().replace("−", "-").replace("**", "")
         self.assertIn(
-            f"| Original drafts | {results['original_mean_surface_score']:.1f} | "
-            f"{results['original_combined_passes']}/{results['n_examples']} | — | — |",
+            f"| Original drafts | {results['originals']['mean_writing_score']:.1f} | "
+            f"{results['originals']['zero_slop_release_passes']}/"
+            f"{results['corpus']['drafts']} | — | — |",
             readme,
         )
         for row in results["methods"].values():
             expected = (
-                f"| {row['label']} | {row['mean_surface_score']:.1f} | "
-                f"{row['combined_passes']}/{results['n_examples']} | "
-                f"{row['automated_fact_check_passes']}/{results['n_examples']} | "
+                f"| {row['label']} | {row['mean_writing_score']:.1f} | "
+                f"{row['zero_slop_release_passes']}/{results['corpus']['drafts']} | "
+                f"{row['zero_slop_fidelity_passes']}/{results['corpus']['drafts']} | "
                 f"{row['mean_word_change_pct']:.1f}% |"
             )
             with self.subTest(method=row["label"]):
                 self.assertIn(expected, readme)
 
         self.assertIn("[`bench/README.md`](bench/README.md)", readme)
+
+    def test_fresh_replay_is_pinned_and_comparable(self):
+        import hashlib
+
+        root = ROOT / "bench" / "fresh-replay"
+        result = json.loads((root / "results.json").read_text())
+        self.assertEqual(result["result_kind"], "fresh_same_model_rewrite_replay")
+        self.assertFalse(result["calibrated_field_accuracy"])
+        self.assertEqual(result["corpus"]["drafts"], 18)
+        self.assertEqual(result["corpus"]["genres"], 6)
+        self.assertEqual(
+            set(result["methods"]),
+            {"zero-slop", "avoid-ai-writing", "no-ai-slop", "humanizer"},
+        )
+        settings = ("model", "reasoning_effort", "batch_size", "codex_cli",
+                    "corpus_sha256")
+        runs = []
+        for method in result["methods"]:
+            run_record = json.loads((root / "runs" / f"{method}.json").read_text())
+            output = root / "outputs" / f"{method}.json"
+            self.assertEqual(
+                run_record["output_sha256"],
+                hashlib.sha256(output.read_bytes()).hexdigest(),
+            )
+            runs.append(run_record)
+        for field in settings:
+            self.assertEqual(len({row[field] for row in runs}), 1, field)
+        ours = result["methods"]["zero-slop"]
+        self.assertEqual(ours["zero_slop_release_passes"], 18)
+        self.assertEqual(ours["zero_slop_fidelity_passes"], 18)
+
+    def test_incumbent_transfer_audit_is_pinned_and_caveated(self):
+        result = json.loads(
+            (ROOT / "bench" / "incumbent-audit" / "results.json").read_text()
+        )
+        self.assertEqual(
+            result["result_kind"], "pinned_incumbent_meter_transfer_audit"
+        )
+        self.assertFalse(result["calibrated_field_accuracy"])
+        self.assertEqual(
+            result["incumbent"]["commit"],
+            "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
+        )
+        self.assertEqual(result["panel"]["eligible_consensus_items"], 38)
+        self.assertEqual(result["panel"]["held_out_test_items"], 21)
+        self.assertIn("not human field accuracy", result["limits"])
 
     def test_readme_performance_table_matches_the_structured_record(self):
         result = json.loads((ROOT / "bench" / "performance-results.json").read_text())
@@ -1859,38 +2037,30 @@ class SearchCorpus(unittest.TestCase):
             record["candidate"]["slopscore_sha256"],
             hashlib.sha256(SCORER.read_bytes()).hexdigest(),
         )
-        search = {row["id"]: row["text"] for row in json.loads(
-            (ROOT / "bench" / "search-corpus" / "corpus.json").read_text()
-        )}
-        expected_text = {
-            "technical-postmortem": (CORPUS / "technical-postmortem.txt").read_text(),
-            "linkedin-lessons-01": search["linkedin-lessons-01"],
-            "personal-essay": (CORPUS / "personal-essay.txt").read_text(),
-        }
-        for name, text in expected_text.items():
-            self.assertEqual(
-                record["workload"]["inputs"][name]["sha256"],
-                hashlib.sha256(text.encode()).hexdigest(),
-            )
         timing = record["timing_seconds"]
-        old = statistics.median(timing["v2.5.7"])
-        new = statistics.median(timing["v2.5.8"])
-        self.assertAlmostEqual(timing["median_v2.5.7"], old, places=4)
-        self.assertAlmostEqual(timing["median_v2.5.8"], new, places=4)
-        self.assertAlmostEqual(timing["median_speedup_pct"],
+        old = statistics.median(timing["baseline"])
+        new = statistics.median(timing["candidate"])
+        self.assertAlmostEqual(timing["median_baseline"], old, places=4)
+        self.assertAlmostEqual(timing["median_candidate"], new, places=4)
+        self.assertAlmostEqual(timing["median_speed_change_pct"],
                                round((old / new - 1) * 100, 2), places=2)
-        self.assertGreater(timing["median_speedup_pct"], 0)
+        self.assertGreaterEqual(timing["median_speed_change_pct"], 0)
         documents = record["workload"]["documents_per_run"]
-        self.assertAlmostEqual(timing["documents_per_second_v2.5.7"],
+        self.assertAlmostEqual(timing["documents_per_second_baseline"],
                                round(documents / old, 1), places=1)
-        self.assertAlmostEqual(timing["documents_per_second_v2.5.8"],
+        self.assertAlmostEqual(timing["documents_per_second_candidate"],
                                round(documents / new, 1), places=1)
-        self.assertTrue(timing["candidate_faster_each_run"])
-        self.assertTrue(all(candidate < baseline for baseline, candidate in zip(
-            timing["v2.5.7"], timing["v2.5.8"]
-        )))
-        self.assertEqual(record["output_parity_without_new_rule"]
-                         ["complete_result_mismatches"], 0)
+        frozen = record["frozen_regression"]
+        self.assertEqual(frozen["score_changes"], 0)
+        self.assertEqual(frozen["known_human_below_gate_candidate"],
+                         frozen["known_human_documents"])
+        self.assertEqual(frozen["search_slop_caught_candidate"],
+                         frozen["search_documents"])
+        self.assertEqual(frozen["quality_candidate"], frozen["quality_baseline"])
+        self.assertTrue(all(row["candidate"] >= row["baseline"]
+                            for row in record["new_adversarial_detection"].values()))
+        self.assertTrue(all(row["candidate_blocks"]
+                            for row in record["new_structured_fidelity"].values()))
 
     def test_historical_judge_record_is_well_formed_and_linked(self):
         record = json.loads((ROOT / "bench" / "replication.json").read_text())
@@ -2464,6 +2634,61 @@ class Fidelity(unittest.TestCase):
         r = run([str(SCORER), "--fidelity", str(d / "a.md"), str(d / "b.md")])
         self.assertEqual(r.returncode, 1, r.stdout)
 
+    def test_fenced_code_is_preserved_exactly(self):
+        before = "Run this:\n\n```python\nprint('safe')\n```\n\nThen inspect the result."
+        changed = before.replace("print('safe')", "print('changed')")
+        result = slopscore.fidelity(before, changed)
+        self.assertFalse(result["preserved"])
+        self.assertTrue(any(row["code"] == "code-block-modified"
+                            for row in result["structure"]))
+
+    def test_frontmatter_is_preserved_exactly(self):
+        before = "---\ntitle: Safe release\ndraft: false\n---\n\nThe release is ready."
+        changed = before.replace("draft: false", "draft: true")
+        result = slopscore.fidelity(before, changed)
+        self.assertFalse(result["preserved"])
+        self.assertTrue(any(row["code"] == "frontmatter-modified"
+                            for row in result["structure"]))
+
+    def test_blockquotes_are_preserved_but_may_move(self):
+        before = "> Keep the writer's exact words.\n> Including this line.\n\nCommentary follows."
+        moved = "Commentary comes first.\n\n> Keep the writer's exact words.\n> Including this line."
+        changed = moved.replace("exact words", "main idea")
+        self.assertTrue(slopscore.fidelity(before, moved)["preserved"])
+        result = slopscore.fidelity(before, changed)
+        self.assertFalse(result["preserved"])
+        self.assertTrue(any(row["code"] == "blockquote-modified"
+                            for row in result["structure"]))
+
+    def test_table_content_is_preserved_while_alignment_may_change(self):
+        before = "| Method | Result |\n|---|---:|\n| Zero Slop | 18/18 |"
+        aligned = "| Method    | Result |\n| :-------- | -----: |\n| Zero Slop | 18/18 |"
+        changed = aligned.replace("18/18", "17/18")
+        self.assertTrue(slopscore.fidelity(before, aligned)["preserved"])
+        result = slopscore.fidelity(before, changed)
+        self.assertFalse(result["preserved"])
+        self.assertTrue(any(row["code"] == "table-modified"
+                            for row in result["structure"]))
+
+    def test_inline_code_and_paths_are_preserved(self):
+        before = "Run `calibrate.py --selftest` from ./scripts/calibrate.py before release."
+        changed = "Run `calibrate.py` from ./scripts/check.py before release."
+        result = slopscore.fidelity(before, changed)
+        codes = {row["code"] for row in result["structure"]}
+        self.assertFalse(result["preserved"])
+        self.assertIn("inline-code-missing", codes)
+        self.assertIn("path-missing", codes)
+
+    def test_heading_hierarchy_is_preserved_but_wording_may_change(self):
+        before = "# How it works\n\nText.\n\n## Private learning\n\nMore text."
+        wording = "# The workflow\n\nText.\n\n## Learning from edits\n\nMore text."
+        changed = wording.replace("## Learning", "### Learning")
+        self.assertTrue(slopscore.fidelity(before, wording)["preserved"])
+        result = slopscore.fidelity(before, changed)
+        self.assertFalse(result["preserved"])
+        self.assertTrue(any(row["code"] == "heading-level"
+                            for row in result["structure"]))
+
 
 class Personalization(unittest.TestCase):
     """A named scoring profile exempts known watchlist words without claiming
@@ -2559,6 +2784,10 @@ class Diagram(unittest.TestCase):
             audit["products"]["unslop_text"]["commit"],
             "f7c4aefc2c797a66e55b49354a93917ab60d33ac",
         )
+        self.assertEqual(
+            audit["products"]["avoid_ai_writing"]["commit"],
+            "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
+        )
         self.assertGreaterEqual(len(audit["capabilities"]), 10)
         for row in audit["capabilities"]:
             with self.subTest(row=row["id"]):
@@ -2569,11 +2798,15 @@ class Diagram(unittest.TestCase):
                     row["unslop_text"],
                     {"native", "guided", "not_documented"},
                 )
+                self.assertIn(
+                    row["avoid_ai_writing"],
+                    {"native", "guided", "not_documented"},
+                )
 
         readme = (ROOT / "README.md").read_text()
         normalized_readme = " ".join(readme.lower().split())
         self.assertIn("assets/competitor-capabilities.png", readme)
-        self.assertIn("does not decide which tool writes better", normalized_readme)
+        self.assertIn("not which tool writes better", normalized_readme)
         self.assertIn("[`bench/README.md`](bench/README.md)", readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
 

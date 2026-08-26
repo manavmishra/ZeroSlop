@@ -39,7 +39,8 @@ the way a bug does.
 
 The local scorer finds exact phrases and problems with rhythm, readability, and
 formatting. The AI assistant acts as interpreter, then rewriter. The local fact gate
-rejects versions that add or lose names, numbers, quotations, or links. Fresh AI passes
+rejects versions that change names, numbers, quotations, links, code, tables, or
+document structure. Fresh AI passes
 act as the copy desk, then the read-aloud editor. Finally, local tools and the assistant
 share the verifier role, comparing the exact finished text with the source. These are seven
 roles, not seven models. Separating them stops the rewriter from certifying its own work
@@ -47,9 +48,10 @@ and keeps late edits from bypassing the final checks.
 
 ## What makes it different
 
-It builds on five open-source projects that worked out this craft first: no-ai-slop,
+It builds on open-source projects that worked out this craft first: no-ai-slop,
 humanizer, de-slop, stop-slop, and
-[unslop-text](https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text).
+[unslop-text](https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text),
+along with the published work in avoid-ai-writing.
 It adds three things a plain rewrite lacks.
 
 A score you can inspect. The rules and structural measures are visible, and the same
@@ -81,31 +83,31 @@ with a metadata-only version query. That query never sends the draft.
 
 ## What we tested
 
-Version 2.5.5 reran the complete test suite, scores, external corpus audits, speed
-record, and charts; v2.5.6 added the performed-writer tell family. Version 2.5.7 put
-context before isolated vocabulary and fixed machine-readable batch output. Version
-2.5.8 adds one conservative generic-benefit cluster. Its faster scanning engine matched
-v2.5.7 on all 280 tracked documents; only the new rule changes a score. The main check
-covers all 8,000 rows in the MIT-licensed RAID+
-dataset. After excluding 373 failed or empty outputs, 7,627 abstracts remained. Mean
-writing scores ranged from 14.5 for DeepSeek V3 to 25.5 for Llama 3.3 70B. RAID+ labels
-model origin, not editorial quality, so this is a current-model distribution check,
-not an accuracy claim.
+Version 2.5.9 adds hidden-character and mixed-script normalization, broader AI-tool
+tracking residue, chat role-play actions, a cautious long-document check, and
+protection for structured material. Compared with v2.5.8, it changed none of 114
+frozen scores, kept all 18 known-human controls clean, and matched the 84.2 percent
+result on the 38-item LLM editorial panel. It caught all five new edge cases and
+blocked four tested classes of structured-document damage. A 12-run interleaved check
+measured 0.41 percent higher median throughput.
 
-A fresh pass over all 2,187 Beemo records found mean scores of 30.2 for raw model
-responses, 25.3 for expert edits, and 20.0 for independent human answers. Expert
-editing lowered the score in 52.2 percent of pairs. Beemo also lacks writing-quality
-labels. On a frozen 38-passage consensus panel, the writing gate's accuracy rose from
-71.1 percent to 84.2 percent, correcting five false negatives without changing a clean
-consensus item. Two LLM editorial raters supplied those labels, so this is an internal
-regression result, not human field accuracy. The current 1,000-document speed run took
-2.0147 seconds on one Apple silicon Mac; an alternating comparison measured 29.4 percent
-higher median throughput than v2.5.7. These are reproducible checks with stated limits,
-not universal claims about writing quality.
+We also regenerated four sets of rewrites on the same 18 drafts with GPT-5.4 and the
+same reasoning level and batch size. Zero Slop passed all of its checks on 18 of 18;
+avoid-ai-writing passed 15, no-ai-slop 12, and humanizer 9. Because those checks belong
+to Zero Slop, this is a regression comparison, not independent human field accuracy.
+The incumbent's own meter preferred its own outputs.
+
+The external distribution checks remain current. RAID+ contributed 7,627 usable
+generations from four model families; their mean writing scores ranged from 14.5 to
+25.5. In Beemo, raw model responses averaged 30.2, expert edits 25.3, and independent
+human answers 20.0. Neither dataset labels editorial quality. On one Apple silicon
+Mac, the local checker processed 1,000 documents in 2.0566 seconds, or 486.2 per
+second. These are reproducible checks with stated limits, not universal claims.
 
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.8 ·
-tested · built on no-ai-slop, humanizer, de-slop, stop-slop, and unslop-text, with thanks
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.9 ·
+tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
+avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

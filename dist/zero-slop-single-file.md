@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.8"
+  version: "2.5.9"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -191,13 +191,20 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (280 weighted tells plus
+Every channel runs on every draft: the pattern meter (283 weighted tells plus
 a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
-followability, formatting
+long-form word variety, followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
 back as quoted spans, and the rhythm, followability and format channels report
 document-level statistics. `--explain` prints both, so you can always see what
 the number is made of.
+
+The scorer normalizes invisible separators and mixed-script lookalikes before
+matching, so an obfuscated known phrase is still found. It reports a separate
+artifact only when at least two such characters appear; one stray character
+from a rich-text paste does not convict a draft. For drafts of 200 words or
+more, unusually narrow word variety is one weak corroborating signal. It never
+fails the gate by itself.
 
 Pass `--genre social` for LinkedIn and X, which switches on the shape channel
 (paragraph structure and fragment runs). Genre comes from step 0, never from
@@ -445,13 +452,13 @@ Re-run the local tools. A version clears the fact gate only when ALL hold:
   python3 <skill-root>/scripts/slopscore.py --fidelity <original> <rewrite>
   ```
 
-  It exits non-zero if a figure, name, quote or link was dropped, or if one
-  appears in the rewrite that was not in the source. Benchmarking found this
-  was the one dimension the gate never measured, and the one the skill ranked
-  worst on: a rewrite invented a feeling the author never described and two
-  judges caught it, because nothing in the loop did. The check catches invented
-  figures and names; it cannot see an invented *feeling* or a reframed claim,
-  so the judgment pass below still applies to those
+  It exits non-zero if a figure, name, quote or link was dropped or added, if
+  the rewrite invents a stated feeling, or if it changes protected document
+  content: fenced code, YAML front matter, blockquotes, Markdown tables, inline
+  identifiers, file paths, or heading hierarchy. Table alignment and heading
+  wording may change; their content and nesting may not. This deterministic
+  check still cannot see a subtly reframed claim, changed emphasis, or shifted
+  implication, so the judgment pass below remains mandatory
 - shape (social genres only): the scorer reports `broetry` when most
   paragraphs are single sentences and fragments run three or more deep. This
   is its own axis, never folded into the score, because broetry is a slop tell
@@ -791,7 +798,7 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 - `references/tells.md` — the master taxonomy (105 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 280 weighted regexes because some tells need more than one.
+  release carries 283 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,
@@ -1668,6 +1675,28 @@ not a deception.
    kill participial openers.
 8. **Affect skew.** LLM text is joy-skewed and uniformly positive
    (Muñoz-Ortiz). Counter: widen affect.
+
+## Incumbent audit: what transferred and what did not
+
+Zero Slop v2.5.9 audited
+[`conorbronsdon/avoid-ai-writing`](https://github.com/conorbronsdon/avoid-ai-writing)
+at commit `40328bd292bc682d46010a6f9ac2cdbf4fb4ceca`. The ideas that survived
+transfer tests were zero-width and mixed-script normalization, exact protection
+for structured document spans, broader AI-tool tracker residue, three narrowly
+defined phrase families, and one conservative long-form word-variety signal.
+On the incumbent's pinned 875-human/779-machine
+paragraph corpus, its low-TTR signal fired on 1 human and 20 machine paragraphs
+(22.46x lift). Zero Slop keeps it weak and corroboration-dependent.
+
+Function-word entropy, punctuation-distribution uniformity, and cross-paragraph
+rhythm were also tested. None fired on Zero Slop's 38 consensus-labelled
+editorial passages; on the Beemo paired set they were rare and only directional
+proxies because Beemo labels provenance and editing history, not slop quality.
+They were not promoted. The incumbent's hand-shaped class probabilities were
+also rejected: its documentation correctly says they are not calibrated against
+a labelled corpus, and its own composite reports paragraph ROC-AUC 0.501 and
+document ROC-AUC 0.623. Zero Slop does not turn an uncalibrated writing score
+into an authorship probability.
 
 ## Why the scorer measures features, not detector verdicts
 

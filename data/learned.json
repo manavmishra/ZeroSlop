@@ -120,6 +120,36 @@
    "first_seen": "2026-08-04",
    "last_confirmed": "2026-08-04",
    "source": "community-taxonomy"
+  },
+  {
+   "name": "lingering-attention",
+   "cat": "performed",
+   "rx": "\\b(?:the|that|this)\\s+(?:one\\s+)?(?:line|quote|bit|part|idea|point|framing|comment|thing|phrase)\\s+(?:that\\s+)?i\\s+keep\\s+(?:coming\\s+back\\s+to|thinking\\s+about)\\b|\\bi\\s+can(?:'|’)?t\\s+stop\\s+thinking\\s+about\\b|\\b(?:has|have|had|been|be)\\s+(?:been\\s+)?rattling\\s+around\\s+(?:in\\s+)?my\\s+(?:head|brain)\\b|\\bi(?:'|’)?ve\\s+been\\s+chewing\\s+on\\s+(?:this|that)\\b",
+   "hints": ["i keep", "i can't", "i can’t", "rattling", "been chewing"],
+   "w": 3.5,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
+  },
+  {
+   "name": "social-endorsement-closer",
+   "cat": "linkedin",
+   "rx": "\\bthis\\s+one(?:'|’)?s?\\s+(?:is\\s+)?(?:well\\s+|really\\s+|definitely\\s+)?worth\\s+(?:your\\s+time|the\\s+read|a\\s+read|reading|watching|a\\s+listen|a\\s+watch|a\\s+look)\\b|\\bdo\\s+yourself\\s+a\\s+favou?r\\s+and\\s+(?:read|watch|check\\s+out)\\s+(?:this|it)\\b|\\byou\\s+(?:really\\s+)?(?:won(?:'|’)?t|do(?:n(?:'|’)?t|\\s+not)|will\\s+not)\\s+want\\s+to\\s+miss\\s+this(?:\\s+one)?\\s*(?:[:.!?]|$)|\\bdo(?:n(?:'|’)?t|\\s+not)\\s+sleep\\s+on\\s+this(?:\\s+one)?\\b",
+   "hints": ["worth", "favor", "favour", "miss this", "sleep on"],
+   "w": 4,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
+  },
+  {
+   "name": "chat-roleplay-action",
+   "cat": "artifact",
+   "rx": "(?:^|[^*])\\*(?:nods?|sighs?|laughs?|smiles?|frowns?|shrugs?|grins?|winks?|chuckles?|gasps?|pauses?|thinks?|wonders?|whispers?|shouts?|gestures?|raises?|leans?|turns?|looks?|glances?|smirks?|blinks?|nodding|sighing|laughing|smiling|thinking|gesturing)\\b[^*\\n]{0,70}\\*(?:$|[^*])",
+   "hints": ["*"],
+   "w": 8,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
   }
  ],
  "lexicon": {

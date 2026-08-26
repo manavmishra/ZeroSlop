@@ -1,0 +1,105 @@
+{
+ "schema": 1,
+ "result_kind": "pinned_incumbent_meter_transfer_audit",
+ "calibrated_field_accuracy": false,
+ "incumbent": {
+  "repository": "https://github.com/conorbronsdon/avoid-ai-writing",
+  "commit": "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
+  "published_gate": 16,
+  "published_gate_metrics": {
+   "all": {
+    "items": 38,
+    "gate": 16,
+    "true_positive": 3,
+    "true_negative": 9,
+    "false_positive": 0,
+    "false_negative": 26,
+    "accuracy": 0.3158,
+    "balanced_accuracy": 0.5517,
+    "precision": 1.0,
+    "recall": 0.1034,
+    "specificity": 1.0,
+    "f1": 0.1875,
+    "roc_auc": 0.7586
+   },
+   "dev": {
+    "items": 17,
+    "gate": 16,
+    "true_positive": 2,
+    "true_negative": 6,
+    "false_positive": 0,
+    "false_negative": 9,
+    "accuracy": 0.4706,
+    "balanced_accuracy": 0.5909,
+    "precision": 1.0,
+    "recall": 0.1818,
+    "specificity": 1.0,
+    "f1": 0.3077,
+    "roc_auc": 0.7727
+   },
+   "test": {
+    "items": 21,
+    "gate": 16,
+    "true_positive": 1,
+    "true_negative": 3,
+    "false_positive": 0,
+    "false_negative": 17,
+    "accuracy": 0.1905,
+    "balanced_accuracy": 0.5278,
+    "precision": 1.0,
+    "recall": 0.0556,
+    "specificity": 1.0,
+    "f1": 0.1053,
+    "roc_auc": 0.75
+   }
+  },
+  "dev_selected_gate": 10,
+  "held_out_at_dev_selected_gate": {
+   "items": 21,
+   "gate": 10,
+   "true_positive": 4,
+   "true_negative": 3,
+   "false_positive": 0,
+   "false_negative": 14,
+   "accuracy": 0.3333,
+   "balanced_accuracy": 0.6111,
+   "precision": 1.0,
+   "recall": 0.2222,
+   "specificity": 1.0,
+   "f1": 0.3636,
+   "roc_auc": 0.75
+  },
+  "candidate_signal_firings": {
+   "punct-distribution": 0,
+   "fnword-trigram-entropy": 0,
+   "cross-para-burstiness": 0,
+   "low-ttr": 0,
+   "uniformity": 0
+  }
+ },
+ "zero_slop_current_fixed_gate": {
+  "items": 38,
+  "true_positive": 27,
+  "true_negative": 5,
+  "false_positive": 4,
+  "false_negative": 2,
+  "accuracy": 0.8421,
+  "accuracy_wilson_95_ci": [
+   0.6958,
+   0.9256
+  ],
+  "precision": 0.871,
+  "recall": 0.931,
+  "specificity": 0.5556,
+  "f1": 0.9,
+  "balanced_accuracy": 0.7433,
+  "roc_auc": 0.8142
+ },
+ "panel": {
+  "eligible_consensus_items": 38,
+  "dev_items": 17,
+  "held_out_test_items": 21,
+  "labels": "Consensus clean/sloppy calls from two method-hidden LLM editorial raters; disagreements and borderline calls abstain."
+ },
+ "limits": "This small clustered LLM-labelled panel measures transfer to an editorial rubric, not human field accuracy or authorship. The dev-selected incumbent gate is reported only on held-out test items; the incumbent's published gate is also shown without retuning."
+}

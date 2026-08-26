@@ -1,8 +1,10 @@
+/* eslint-disable @next/next/no-img-element -- static Cloudflare export uses pre-sized local assets */
 import { CopyCommand } from "./CopyCommand";
 import { ExampleGallery } from "./ExampleGallery";
 
 const githubUrl = "https://github.com/manavmishra/ZeroSlop";
 const releaseUrl = `${githubUrl}/releases/latest`;
+const skillVersion = "2.5.9";
 const compatibleAgents = [
   "Codex",
   "Claude Code",
@@ -60,6 +62,7 @@ const softwareJsonLd = {
   isAccessibleForFree: true,
   license: "https://opensource.org/license/mit",
   codeRepository: githubUrl,
+  softwareVersion: skillVersion,
   provider: { "@id": "https://zero-slop.ai/#organization" },
   featureList: [
     "AI writing pattern scoring",
@@ -171,7 +174,7 @@ export default function Home() {
       <main id="main-content">
         <section className="hero section-shell" id="top">
           <div className="hero-copy">
-            <p className="eyebrow">Open source with local scoring</p>
+            <p className="eyebrow">Open source · v{skillVersion} · local scoring</p>
             <h1>Make AI writing sound like you.</h1>
             <p className="hero-lede">
               Zero Slop finds the AI accent, rewrites your draft, and checks
@@ -266,150 +269,28 @@ export default function Home() {
           aria-labelledby="method-title"
         >
           <div className="section-heading">
-            <h2 id="method-title">The meter is only one layer.</h2>
+            <h2 id="method-title">Seven roles. Two loops. One clean handoff.</h2>
             <p>
-              Zero Slop pairs local checks with the AI already running in your
-              assistant. The checks point to the wording that raised the score;
-              your AI reads the draft in context and edits it.
+              Local tools handle repeatable checks. The AI already running in
+              your assistant handles context and editing. Each role has one job,
+              and any repair goes back through the final editorial passes.
             </p>
           </div>
 
-          <div
-            className="system-map"
-            aria-label="Zero Slop implementation layers"
-          >
-            <article className="system-layer meter-layer">
-              <div className="system-layer-heading">
-                <p className="method-name">Local writing check</p>
-                <span>Local Python</span>
-              </div>
-              <h3>Show what raised the score.</h3>
-              <p>
-                The scorer checks 267 weighted patterns, along with rhythm,
-                density, formatting, and tone. It quotes the flagged text
-                and reports document statistics. It does not guess who wrote
-                the draft.
-              </p>
-              <div className="meter-output" aria-label="Example local scorer output">
-                <span>flagged wording</span>
-                <strong>quoted phrase</strong>
-                <span>sentence statistics</span>
-              </div>
-            </article>
-
-            <div className="system-connector" aria-hidden="true">
-              <span>guides</span>
-              <b>→</b>
-            </div>
-
-            <article className="system-layer agent-layer">
-              <div className="system-layer-heading">
-                <p className="method-name">Editing in context</p>
-                <span>Your AI assistant</span>
-              </div>
-              <h3>Interpret the draft before changing it.</h3>
-              <p>
-                Claude, GPT, or another compatible AI assistant evaluates
-                substance, claims, structure, audience, and voice. It rewrites
-                and copy-edits the draft, then reads it aloud and fixes its flow.
-              </p>
-              <ul className="agent-checks">
-                <li>Meaning and factual scope</li>
-                <li>Structure and audience</li>
-                <li>Voice and spoken flow</li>
-              </ul>
-            </article>
-
-            <div className="system-connector" aria-hidden="true">
-              <span>checks</span>
-              <b>→</b>
-            </div>
-
-            <article className="system-layer gate-layer">
-              <div className="system-layer-heading">
-                <p className="method-name">Final verification</p>
-                <span>Scripts + model</span>
-              </div>
-              <h3>Check the exact text you receive.</h3>
-              <p>
-                Scripts recheck the score, figures, names, quotations, and links.
-                The model rechecks meaning, qualifiers, voice, format, and flow.
-                Any change to the text sends it through both editorial passes
-                and every final check again.
-              </p>
-            </article>
-
-            <aside className="learning-return">
-              <div>
-                <p className="method-name">Private feedback loop</p>
-                <h3>Edits you provide can improve the next run.</h3>
-                <p>
-                  Give Zero Slop its version and the final version you kept.
-                  Recurring changes can adjust how strongly an existing pattern
-                  counts or save a preferred fix, but only after novelty and
-                  known-human safety checks. This does not retrain your AI.
-                </p>
-              </div>
-              <div className="learning-path" aria-label="Private learning path">
-                <span>Version you kept</span>
-                <b aria-hidden="true">→</b>
-                <span>Repeat + safety checks</span>
-                <b aria-hidden="true">→</b>
-                <span>Private settings</span>
-                <b aria-hidden="true">→</b>
-                <span>Next draft</span>
-              </div>
-            </aside>
-          </div>
-        </section>
-
-        <section className="process section-block" aria-labelledby="process-title">
-          <div className="section-shell process-inner">
-            <div>
-              <h2 id="process-title">Two loops. One finished draft.</h2>
-              <p>
-                The editorial loop finishes today&apos;s draft. The private learning
-                loop uses reviewed edits to improve detection and fixing on the
-                next run.
-              </p>
-            </div>
-            <div className="process-loops">
-              <div>
-                <p className="process-label">Loop 1: Editorial delivery</p>
-                <ol className="process-list">
-                  <li>
-                    <span>Measure and diagnose</span>
-                    <p>Find the tells, rhythm, formatting, and readability problems.</p>
-                  </li>
-                  <li>
-                    <span>Rewrite and copy edit</span>
-                    <p>Keep the substance, rebuild weak passages, and correct the mechanics.</p>
-                  </li>
-                  <li>
-                    <span>Read aloud and verify</span>
-                    <p>Fix spoken flow, then recheck the final text against the original.</p>
-                  </li>
-                </ol>
-              </div>
-              <div>
-                <p className="process-label">Loop 2: Learning from your edits</p>
-                <ol className="process-list">
-                  <li>
-                    <span>Observe and gate</span>
-                    <p>Compare the assistant&apos;s draft with the final version you provide.</p>
-                  </li>
-                  <li>
-                    <span>Update privately</span>
-                    <p>Adjust how strongly patterns count and save recurring fixes for the next run.</p>
-                  </li>
-                  <li>
-                    <span>Reconfirm or decay</span>
-                    <p>Keep useful guidance current and retire stale local rules.</p>
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
+          <figure className="engine-diagram">
+            <img
+              src="/engine.svg"
+              alt="Zero Slop moves a draft through seven editorial roles, learns privately only from before-and-after versions supplied by the writer, and evaluates shared changes in a separate release review"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+            />
+            <figcaption>
+              Loop 1 finishes the current draft. Loop 2 learns only from edits
+              you provide. Release review stays separate from both.
+            </figcaption>
+          </figure>
         </section>
 
         <section
@@ -420,10 +301,10 @@ export default function Home() {
           <div className="proof-copy">
             <h2 id="proof-title">Fresh scores. Public inputs.</h2>
             <p>
-              Version 2.5.8 scored every usable row in the pinned RAID+ corpus and
-              reran its current checks on the fixed 18-draft workflow comparison.
-              The pinned inputs, aggregate results, and limits are in the repository.
-              RAID+ records model origin, not editorial quality.
+              Version {skillVersion} rescored the pinned RAID+ sample and regenerated
+              four editing workflows on the same 18 drafts with GPT-5.4. The inputs,
+              hashes, results, and limits are public. RAID+ records model origin, not
+              editorial quality.
             </p>
             <a
               className="text-link"
@@ -450,13 +331,13 @@ export default function Home() {
             <figure className="proof-secondary">
               <img
                 src="/bench-search-rewrites.png"
-                alt="Current writing scores on fixed rewrites of 18 drafts: Zero Slop 16.4, humanizer 25.3, stop-slop 25.7, no-ai-slop 29.1, and de-slop 52.3"
+                alt="Fresh same-model editing replay on 18 drafts: Zero Slop 12.8, avoid-ai-writing 23.3, no-ai-slop 28.4, and humanizer 35.4"
                 width="1240"
                 height="478"
                 loading="lazy"
                 decoding="async"
               />
-              <figcaption>Re-scored with v2.5.8; the preserved rewrites were not regenerated.</figcaption>
+              <figcaption>Fresh GPT-5.4 rewrites with the same model settings; Zero Slop&apos;s meter, not independent human accuracy.</figcaption>
             </figure>
           </div>
         </section>
@@ -512,7 +393,7 @@ export default function Home() {
           <div className="install-workspace">
             <div className="install-workspace-bar" aria-hidden="true">
               <span>Terminal</span>
-              <span>one skill, seven agents</span>
+              <span>one skill, seven roles</span>
             </div>
             <CopyCommand />
             <div className="compatibility-map">

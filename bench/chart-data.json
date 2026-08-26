@@ -80,23 +80,19 @@
   ],
   [
    "Zero Slop",
-   16.4
+   12.8
+  ],
+  [
+   "avoid-ai-writing",
+   23.3
   ],
   [
    "no-ai-slop",
-   29.1
+   28.4
   ],
   [
    "humanizer",
-   25.3
-  ],
-  [
-   "de-slop",
-   52.3
-  ],
-  [
-   "stop-slop",
-   25.7
+   35.4
   ]
  ],
  "search_rewrite_passes": [
@@ -109,20 +105,16 @@
    100.0
   ],
   [
+   "avoid-ai-writing",
+   83.3
+  ],
+  [
    "no-ai-slop",
    66.7
   ],
   [
    "humanizer",
-   72.2
-  ],
-  [
-   "de-slop",
-   33.3
-  ],
-  [
-   "stop-slop",
-   72.2
+   50.0
   ]
  ],
  "external_checker_clean": [
@@ -267,7 +259,7 @@
  ],
  "contextual_ablation": [
   [
-   "v2.5.8 local score",
+   "v2.5.9 local score",
    93.18
   ],
   [
@@ -282,6 +274,11 @@
     "zero_slop",
     "Zero Slop",
     "6cbf29e1e2540711a83a3629d6c1912fe5b3baf2"
+   ],
+   [
+    "avoid_ai_writing",
+    "avoid-ai-writing",
+    "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca"
    ],
    [
     "blader",
@@ -303,12 +300,14 @@
    [
     "Findings report without rewriting",
     "native",
+    "native",
     "not_documented",
     "guided",
     "native"
    ],
    [
     "Traceable numeric writing score",
+    "native",
     "native",
     "not_documented",
     "not_documented",
@@ -319,10 +318,12 @@
     "native",
     "not_documented",
     "not_documented",
+    "not_documented",
     "native"
    ],
    [
     "Statistical rhythm and format signals",
+    "native",
     "native",
     "guided",
     "guided",
@@ -330,6 +331,7 @@
    ],
    [
     "Scripted fact and claim check",
+    "native",
     "native",
     "guided",
     "guided",
@@ -340,11 +342,13 @@
     "native",
     "not_documented",
     "not_documented",
+    "not_documented",
     "not_documented"
    ],
    [
     "Separate copy desk and read-aloud gates",
     "native",
+    "guided",
     "guided",
     "guided",
     "not_documented"
@@ -354,11 +358,13 @@
     "native",
     "not_documented",
     "not_documented",
+    "not_documented",
     "not_documented"
    ],
    [
     "Private learning with safety checks",
     "native",
+    "not_documented",
     "not_documented",
     "not_documented",
     "not_documented"
@@ -368,11 +374,13 @@
     "native",
     "not_documented",
     "not_documented",
+    "not_documented",
     "not_documented"
    ],
    [
     "Old private rules fade without support",
     "native",
+    "not_documented",
     "not_documented",
     "not_documented",
     "not_documented"
@@ -381,12 +389,30 @@
     "External voice sample or profile",
     "native",
     "guided",
+    "guided",
     "not_documented",
     "guided"
    ],
    [
     "Public tests of finished rewrites",
     "native",
+    "native",
+    "not_documented",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Obfuscation-resistant phrase matching",
+    "native",
+    "native",
+    "not_documented",
+    "not_documented",
+    "not_documented"
+   ],
+   [
+    "Scores long documents without a hard cutoff",
+    "native",
+    "not_documented",
     "not_documented",
     "not_documented",
     "not_documented"

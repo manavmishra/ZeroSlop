@@ -337,3 +337,19 @@ example that motivated it.
   penalty. Six community tells added, `--explain` and `--json --gate` repaired,
   `--dna` added, a ReDoS and two quadratics removed, and user prose stopped
   reaching git-tracked files.
+- 2026-08-26 — v2.5.9 incumbent audit. Added three precision-scoped shared
+  patterns from `conorbronsdon/avoid-ai-writing@40328bd`: noun-anchored
+  lingering-attention framing, generic social endorsement closers, and
+  asterisked chat-roleplay actions. Literal return-to-an-idea clauses with a
+  reason, ordinary instructional verbs, and ordinary italics stay silent.
+  Expanded the existing AI-tool residue rule to cover tracker parameters from
+  Claude, Copilot, Gemini, Perplexity, and Grok. Added mixed-script and
+  zero-width normalization, exact protection for
+  code/front matter/blockquotes/tables/inline identifiers/paths/heading levels,
+  and a weak long-form low-word-variety check. The latter was the only new
+  stylometric feature to clear the incumbent's 1,654-paragraph corpus with
+  useful lift (20/779 machine paragraphs, 1/875 human; 22.46x). Function-word
+  entropy, punctuation uniformity, and cross-paragraph rhythm were tested but
+  did not fire on the 38-item editorial panel; they remain unshipped. Frozen
+  editorial metrics were unchanged, 12/12 known-human files stayed below the
+  gate, and the adversarial fixtures moved from missed to caught.

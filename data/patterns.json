@@ -1709,7 +1709,7 @@
   {
    "name": "chatgpt-artifact",
    "cat": "artifact",
-   "rx": "\\boaicite\\b|\\boai_citation\\b|\\bciteturn\\d|\\butm_source=(?:chatgpt(?:\\.com)?|openai)\\b|:contentReference\\[|\\battributableIndex\\b|\\[cite: ?\\d|\\bturn\\d+(?:search|news|image|view)\\d+\\b|\\[span_\\d|\\(start_span\\)|\\bgrok_(?:card|render)|\\bppl-ai-file-upload\\b|\\battached_file\\b",
+   "rx": "\\boaicite\\b|\\boai_citation\\b|\\bciteturn\\d|\\butm_source=(?:chatgpt(?:\\.com)?|openai(?:\\.com)?|copilot(?:\\.com)?|claude\\.ai|perplexity\\.ai|gemini\\.google\\.com)\\b|\\breferrer=grok\\.com\\b|:?contentReference\\[(?:oaicite:)?|\\battributableIndex\\b|\\[cite: ?\\d|\\bturn\\d+(?:search|news|image|view)\\d+\\b|\\[span_\\d|\\(start_span\\)|\\bgrok_(?:card|render)|\\bppl-ai-file-upload\\b|\\battached_file\\b",
    "w": 10,
    "first_seen": "2026-08-14",
    "last_confirmed": "2026-08-22"

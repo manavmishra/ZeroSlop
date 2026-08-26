@@ -3,10 +3,11 @@
 Canonical website: https://zero-slop.ai/
 Source and documentation: https://github.com/manavmishra/ZeroSlop
 Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
+Current version: 2.5.9
 
 ## Direct answer
 
-Zero Slop is a free, open-source AI writing humanizer and anti-slop checker. It identifies familiar AI writing patterns, rewrites the draft, and checks figures, names, quotes, and links against the original. Its local checker runs with Python's standard library and does not send the draft to a server.
+Zero Slop is a free, open-source AI writing humanizer and anti-slop checker. It identifies familiar AI writing patterns, rewrites the draft, and checks figures, names, quotes, links, code, tables, paths, and document structure against the original. Its local checker runs with Python's standard library and does not send the draft to a server.
 
 Zero Slop is not an authorship detector. It evaluates the writing rather than claiming who or what wrote it.
 
@@ -16,9 +17,9 @@ Zero Slop is not an authorship detector. It evaluates the writing rather than cl
 
 ## Workflow
 
-Zero Slop has two operational loops.
+Zero Slop has seven editorial roles and two operational loops.
 
-1. Editorial delivery measures and diagnoses the current draft, rewrites it, copy-edits it, reads it aloud, and verifies the final text against the original.
+1. Editorial delivery moves the draft through a scorer, interpreter, rewriter, fact gate, copy desk, read-aloud editor, and verifier. These are separate jobs, not seven models.
 2. Learning from your edits compares the assistant's version with the final version you provide. Repeated, safe changes can update private rules and preferred fixes; later edits can confirm them, while stale guidance fades or retires.
 
 Private rules load on the next run and can improve both detection and fixing. Zero Slop does not watch files or publishing systems, retrain the AI model, or perform reinforcement learning or RLHF.
@@ -41,4 +42,4 @@ The same workflow can be used for LinkedIn posts, blog articles, strategy docume
 
 ## Current validation
 
-Version 2.5.8 rescored all 8,000 rows in the pinned RAID+ corpus, with 7,627 non-empty generations from four recent model families. RAID+ records model origin, not editorial quality, so those results describe score distributions rather than accuracy. The repository includes the aggregate results, source pin, current speed record, regression data, and limitations.
+Version 2.5.9 matched v2.5.8 on 114 frozen document scores and the 38-item editorial panel, kept all 18 known-human controls clean, added five tested edge-case checks and four classes of structured-document protection, and measured 0.41 percent higher median throughput in a 12-run interleaved comparison. In a fresh same-model replay on 18 drafts, Zero Slop passed 18 of 18 of its checks, avoid-ai-writing 15, no-ai-slop 12, and humanizer 9. Those checks belong to Zero Slop, so this is a regression comparison rather than independent human field accuracy. The repository includes hashes, aggregate results, source pins, and limitations.

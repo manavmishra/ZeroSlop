@@ -1,0 +1,71 @@
+{
+ "schema": 1,
+ "method": "no-ai-slop",
+ "label": "no-ai-slop",
+ "revision": "d30eddb9e04562234f2070b5ee63ca4649d9a05e",
+ "model": "gpt-5.4",
+ "reasoning_effort": "high",
+ "batch_size": 3,
+ "codex_cli": "codex-cli 0.148.0-alpha.15",
+ "generated_at": "2026-08-26T17:18:43+00:00",
+ "instruction_sha256": "16719efd6dc6fe5978be7f6db41a474ca246970e5014acc057e29d7bfbd63b0e",
+ "corpus_sha256": "78626533120d341dcf1193ce98a4274170bff6901af2057b66a256a7f12fa342",
+ "batches": [
+  {
+   "ids": [
+    "linkedin-lessons-01",
+    "linkedin-contrarian-02",
+    "linkedin-executive-03"
+   ],
+   "prompt_sha256": "116420a4d93e15abef949f62dc6e1c2a263d2a445899751849e1a641e3b26c20",
+   "response_sha256": "d78f91d9e5fee2c1c17183cd27da37e45f332d8eca09a3b9ce0b55e5158fbe69"
+  },
+  {
+   "ids": [
+    "x-agents-01",
+    "x-habit-02",
+    "x-future-03"
+   ],
+   "prompt_sha256": "4459d052033c5b6fd2a84ae8c81f2e7db61f84671ae1b8c4f4d8cc58071ce6fe",
+   "response_sha256": "1809aff21903777ac97cf6e9bddde26f5145822abe6fbabd700e6f7bf5ef2dc9"
+  },
+  {
+   "ids": [
+    "email-outreach-01",
+    "email-launch-02",
+    "email-followup-03"
+   ],
+   "prompt_sha256": "cb2194bf201279f486cb5856f5ab340d46ebfe34165890a7e7504e7f004988d9",
+   "response_sha256": "cbe508300b2b4efe0c61d72632e7af8ccf16ceecf3dbb2400b9ca8d98dde1143"
+  },
+  {
+   "ids": [
+    "blog-landscape-01",
+    "blog-guide-02",
+    "blog-transformation-03"
+   ],
+   "prompt_sha256": "9c7f28f4b02e65553812029f3f8a2e1dc8618ad635e6dddc6c009344c2be423a",
+   "response_sha256": "d79cdb2a512975fb6610c1d2dcd2686bf3ecb9fa206d2e1e4b075d9030990143"
+  },
+  {
+   "ids": [
+    "newsletter-productivity-01",
+    "newsletter-edition-02",
+    "newsletter-trends-03"
+   ],
+   "prompt_sha256": "79150ffff8654bd24d23be2adb8e0c83509fb9ad7c07ee261874d15699148e37",
+   "response_sha256": "8582fc4c73ae07618fd530cfb8e5433c96f9f3b3c4df3e61d5f534e401d687eb"
+  },
+  {
+   "ids": [
+    "research-framework-01",
+    "research-approach-02",
+    "research-future-03"
+   ],
+   "prompt_sha256": "82b78ca770503eb0a8ef3606422fe754dae280623fd75b48006bf5903724c6c1",
+   "response_sha256": "a46e452c01a56cdd1e2f33309cb38ce6ec3dee8adf12e635ff55d0b054e811c7"
+  }
+ ],
+ "output_sha256": "9895faeaeca1af774898ad5c3be0e27de23b527142ee2fd0b6c3692b266cc195",
+ "limits": "The model and CLI are pinned; the hosted inference settings and seed are not exposed."
+}

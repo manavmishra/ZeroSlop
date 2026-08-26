@@ -8,7 +8,7 @@ current corpus checks.
   5 X/Twitter, 4 email, 3 research), each with the brief and ground-truth
   facts used for fidelity checking.
 - `outputs/` — every method's rewrites, one file per method per half.
-- `judging/` — blinded LLM-rating packets, the shuffle key, run-one scores
+- `judging/` — method-hidden LLM-rating packets, the shuffle key, run-one scores
   (`scores-*.json`) and the replication scores (`rep2-scores-*.json`).
 - `replication.py` — run-to-run tally, per-item agreement, Cohen's kappa,
   Wilson intervals and the exact Zero Slop–humanizer selection test. This is the
@@ -21,6 +21,13 @@ current corpus checks.
 - `search-corpus/` — 18 anonymous, search-informed slop paraphrases across
   LinkedIn, X, email, blog, newsletter, and research, plus five pinned rewrite
   methods and an item-level public AIStoryHub checker cross-check.
+- `fresh-replay/` — fresh GPT-5.4 rewrites of those 18 drafts from Zero Slop,
+  avoid-ai-writing, no-ai-slop, and humanizer. Every run used the same model,
+  reasoning level, batch size, corpus, and isolated harness; hashes bind the
+  instructions, prompts, and outputs.
+- `incumbent-audit/` — the avoid-ai-writing detector at its pinned commit applied
+  to Zero Slop's frozen 38-item consensus panel. It preserves the published gate,
+  a development-selected gate, and the held-out result.
 - `aistoryhub-corpus/` — a version-and-hash-pinned coverage audit against the
   public AIStoryHub taxonomy. It reports coverage, never accuracy, and does not
   redistribute the source JSON.
@@ -35,19 +42,21 @@ current corpus checks.
   not a Zero Slop result.
 - `performance.py`, `performance-results.json` — local scorer and learning-loop
   timings with the machine record, raw runs, medians, and CI ceilings.
-- `version-comparison.json` — the interleaved v2.5.7/v2.5.8 timing vectors,
-  exact input hashes, and optimization-parity result behind the release claim.
+- `version_compare.py`, `version-comparison.json` — the 12-run interleaved
+  v2.5.8/v2.5.9 timing vectors, exact scorer hashes, frozen score parity, new
+  adversarial cases, and structured-document protections.
 - `quality-corpus/` — a method-hidden, source-grouped 72-item editorial-quality
   panel with two independent label files, unresolved disagreements, and split metrics.
-- `feature-ablation/` — the reproducible v2.5.7-versus-v2.5.8 comparison, including
+- `feature-ablation/` — the reproducible contextual research comparison, including
   exact score-vector hashes and the frozen quality-panel result.
 - `corpus-registry.json`, `validate_corpus_registry.py` — the admission decision for
   every proposed external corpus. Label semantics, provenance, access terms, and the
   claim a corpus may support are explicit; authorship labels never stand in for
   slop-quality labels.
 - `competitor-capabilities.json` — a feature-presence audit at pinned commits for
-  Zero Slop, humanizer, no-ai-slop, and JCarterJohnson's unslop-text. It records what
-  each repository documents; it does not measure which editor writes better.
+  Zero Slop, avoid-ai-writing, humanizer, no-ai-slop, and JCarterJohnson's
+  unslop-text. It records what each repository documents; it does not measure which
+  editor writes better.
 
 ## Reproducing
 
@@ -56,6 +65,8 @@ python3 bench/replication.py          # agreement and pooled statistics
 python3 bench/aggregate.py            # per-method scorecard
 python3 bench/search-corpus/evaluate.py --check
 python3 bench/search-corpus/compare.py --check
+python3 bench/fresh-replay/evaluate.py --avoid-root /path/to/pinned/avoid-ai-writing
+python3 bench/incumbent-audit/evaluate.py --avoid-root /path/to/pinned/avoid-ai-writing
 python3 bench/aistoryhub-corpus/audit.py --fetch --check
 python3 bench/beemo-corpus/audit.py --fetch --check
 python3 bench/raid-plus-corpus/audit.py --fetch --check
@@ -95,7 +106,7 @@ a general ranking of the tools.
 Drop `outputs/<yourmethod>_h1.json` and `_h2.json` (id → rewritten text),
 add the name to the `METHODS` list in `make_packets.py`, and rebuild the
 packets. To compare results with the existing ratings, document the model,
-version, settings, and complete evaluation prompt used for the new blinded pass.
+version, settings, and complete evaluation prompt used for the new method-hidden pass.
 
 ## Known limits
 

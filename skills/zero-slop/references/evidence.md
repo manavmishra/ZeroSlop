@@ -47,6 +47,28 @@ not a deception.
 8. **Affect skew.** LLM text is joy-skewed and uniformly positive
    (Muñoz-Ortiz). Counter: widen affect.
 
+## Incumbent audit: what transferred and what did not
+
+Zero Slop v2.5.9 audited
+[`conorbronsdon/avoid-ai-writing`](https://github.com/conorbronsdon/avoid-ai-writing)
+at commit `40328bd292bc682d46010a6f9ac2cdbf4fb4ceca`. The ideas that survived
+transfer tests were zero-width and mixed-script normalization, exact protection
+for structured document spans, broader AI-tool tracker residue, three narrowly
+defined phrase families, and one conservative long-form word-variety signal.
+On the incumbent's pinned 875-human/779-machine
+paragraph corpus, its low-TTR signal fired on 1 human and 20 machine paragraphs
+(22.46x lift). Zero Slop keeps it weak and corroboration-dependent.
+
+Function-word entropy, punctuation-distribution uniformity, and cross-paragraph
+rhythm were also tested. None fired on Zero Slop's 38 consensus-labelled
+editorial passages; on the Beemo paired set they were rare and only directional
+proxies because Beemo labels provenance and editing history, not slop quality.
+They were not promoted. The incumbent's hand-shaped class probabilities were
+also rejected: its documentation correctly says they are not calibrated against
+a labelled corpus, and its own composite reports paragraph ROC-AUC 0.501 and
+document ROC-AUC 0.623. Zero Slop does not turn an uncalibrated writing score
+into an authorship probability.
+
 ## Why the scorer measures features, not detector verdicts
 
 Detectors are brittle: RAID (2405.07940) shows trivial perturbations fool
