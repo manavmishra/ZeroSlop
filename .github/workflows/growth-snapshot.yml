@@ -1,0 +1,39 @@
+name: growth snapshot
+
+# GitHub's traffic API retains 14 days. Without a daily capture, referrer and
+# clone history is lost permanently. Data is pushed to a private gist, never
+# committed to this public repo.
+
+on:
+  schedule:
+    - cron: "10 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Capture
+        env:
+          GITHUB_TOKEN: ${{ secrets.GROWTH_TOKEN }}
+          REPO: ${{ github.repository }}
+          OUT: growth-data.jsonl
+        run: node growth/growth-snapshot.mjs
+      - name: Append to private gist
+        env:
+          GH_TOKEN: ${{ secrets.GROWTH_TOKEN }}
+          GIST_ID: ${{ secrets.GROWTH_GIST_ID }}
+        run: |
+          gh api "gists/$GIST_ID" --jq '.files["growth-data.jsonl"].content' > prior.jsonl || : > prior.jsonl
+          cat prior.jsonl growth-data.jsonl > merged.jsonl
+          jq -Rn --rawfile c merged.jsonl \
+            '{files:{"growth-data.jsonl":{content:$c}}}' > payload.json
+          gh api -X PATCH "gists/$GIST_ID" --input payload.json > /dev/null
+          echo "appended $(wc -l < growth-data.jsonl) row(s); total $(wc -l < merged.jsonl)"
