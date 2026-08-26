@@ -47,8 +47,10 @@ and keeps late edits from bypassing the final checks.
 
 ## What makes it different
 
-It is built on four open-source projects that worked out this craft first: no-ai-slop,
-humanizer, de-slop, and stop-slop. It adds three things a plain rewrite lacks.
+It builds on five open-source projects that worked out this craft first: no-ai-slop,
+humanizer, de-slop, stop-slop, and
+[unslop-text](https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text).
+It adds three things a plain rewrite lacks.
 
 A score you can inspect. The rules and structural measures are visible, and the same
 threshold check can run in a build. It is a repeatable writing check, not authorship
@@ -80,8 +82,10 @@ with a metadata-only version query. That query never sends the draft.
 ## What we tested
 
 Version 2.5.5 reran the complete test suite, scores, external corpus audits, speed
-record, and charts; v2.5.6 added the performed-writer tell family and re-verified
-every corpus audit with identical numbers. The main check covers all 8,000 rows in the MIT-licensed RAID+
+record, and charts; v2.5.6 added the performed-writer tell family. Version 2.5.7 puts
+context before isolated vocabulary, adds three contextual review checks, and fixes
+machine-readable batch output. The scorer itself did not change. The main check covers
+all 8,000 rows in the MIT-licensed RAID+
 dataset. After excluding 373 failed or empty outputs, 7,627 abstracts remained. Mean
 writing scores ranged from 14.5 for DeepSeek V3 to 25.5 for Llama 3.3 70B. RAID+ labels
 model origin, not editorial quality, so this is a current-model distribution check,
@@ -98,6 +102,6 @@ reproducible checks with stated limits, not universal claims about writing quali
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.6 ·
-tested · built on no-ai-slop, humanizer, de-slop, and stop-slop, with thanks
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.7 ·
+tested · built on no-ai-slop, humanizer, de-slop, stop-slop, and unslop-text, with thanks
 to Kagi's SlopStop and the research listed in the repo.

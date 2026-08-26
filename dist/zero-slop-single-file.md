@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.6"
+  version: "2.5.7"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -216,6 +216,14 @@ tell density, and every hit. The score is a surface meter, not a verdict — a
 clean score with hollow content is still slop, and one flagged word in honest
 technical prose is not. Treat an isolated hit cautiously; act when independent
 signals agree.
+
+Before reviewing vocabulary, run a **reader-salience pass**. Check for flat or
+repetitive rhythm, reflexive agreement or praise, formulaic structure,
+communicative drift, rhetorical scale mismatch, and polished prose that makes
+no claim. These are contextual questions, not proof of authorship. Do not turn
+a lone em dash or ordinary words such as "however", "thus", "nuanced", or
+"comprehensive" into a verdict. The research and its limits are recorded in
+`references/evidence.md`.
 
 **Portfolio probe (three or more related drafts).** A single draft cannot show
 that a whole campaign opens with the same five words or recycles the same
@@ -780,7 +788,7 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (101 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (104 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
   release carries 279 weighted regexes because some tells need more than one.
@@ -827,7 +835,7 @@ the author, which is the point: when specifics are missing, ask for a real one
 
 # The Tell Taxonomy
 
-A hundred and one tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and four tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -837,6 +845,21 @@ judgment. **Require corroboration** — one "robust" in technical prose
 is nothing; five tells in one paragraph is a verdict. Shared idioms humans
 still use ("elephant in the room") carry low weights for exactly that reason:
 alone they prove nothing, five in a page is the machine's idiom autopilot.
+
+### How to prioritize the catalogue
+
+A 2026 analysis of 89,239 Reddit posts adds a useful check on what readers
+notice first. In its reviewed sample, people cited flat rhythm, reflexive
+praise, formulaic shape, and polished-but-empty prose more often than most
+individual words. Its keyword pass also over-counted ordinary words such as
+"however", "thus", "hence", "nuanced", "comprehensive", and "utilize".
+Use that result to order the review, not as a probability or a blacklist.
+
+Start with meaning, stance, rhythm, and shape. Then inspect repeated
+constructions, assistant residue, and formatting. Treat isolated vocabulary
+as weak evidence unless it is generic in context or appears in a cluster. A
+lone dash, formal sentence, transition, or supported contrast remains a style
+choice. See `evidence.md` for the study, limitations, and adoption decision.
 
 ## 1. Lexical
 
@@ -963,6 +986,7 @@ the judgment half is the read-aloud pass's fixture list.
 | Tell | Fix |
 |---|---|
 | Assistant voice: "Great question!", "I hope this helps", "I'd be happy to" | Delete |
+| Reflexive agreement or praise: approving the premise before checking it, flattering the writer, or refusing to take a supported position | Answer the substance first; agree, qualify, or disagree according to the facts |
 | Chatbot residue: "Would you like me to…", "Let me know if you'd like…", "my training data" | Delete — it is proof of paste, not style |
 | Knowledge-cutoff residue: "as of my last update", "not widely documented" | Delete; verify the claim |
 | Passive or subjectless wording that hides an actor who matters | Name the actor and use the direct verb; keep passive voice when the actor is unknown, irrelevant, or native to the genre |
@@ -978,6 +1002,8 @@ the judgment half is the read-aloud pass's fixture list.
 | Tell | Test | Action |
 |---|---|---|
 | Hollowness — no claim at all | Removal test: delete it; anything lost? | Flag, never pad |
+| Communicative drift — fluent sentences accumulate without serving a clear point or reader need | Purpose test: what job does this paragraph do here? | Cut it, rebuild it around the real point, or ask for the missing intent |
+| Rhetorical scale mismatch — a grand contrast, lesson, or reveal is applied to a trivial or unsupported claim | Proportion test: does the framing match the importance and support of the point? | State the point at its real scale; preserve a contrast when it corrects a real misconception |
 | Regression to the mean — specifics smoothed into generic + inflated importance | Compare against source facts | Restore the specific |
 | Smooth-but-empty specificity — "modern technologies that ensure reliability" | Can you name the referent? | Name it or cut |
 | Superficial analysis — unearned significance commentary | Who says it matters? | State the mechanism or cut |
@@ -991,6 +1017,7 @@ isolation. Long sentences that earn their length. Technical vocabulary used
 technically. A single em-dash doing real work. First-person hedging that
 encodes real uncertainty. Unsourced-but-checkable claims. And any pattern that
 is demonstrably the writer's own voice in a sample the AI assistant can read.
+A single contrast that corrects a real, supported misconception is not a tell.
 The named `--voice` scoring profile is narrower: it exempts only existing
 watchlist words found by exact match. One match is enough, but the exceptions
 apply only when the profile is selected. The profile does not model the
@@ -1318,6 +1345,9 @@ into text that didn't have them.
   "literally" sprinkled for flavor.
 - **Slang costume** — forced colloquialisms a professional author wouldn't
   use ("chef's kiss", "hits different") unless the voice sample has them.
+- **Manufactured informality** — forced lowercase, stray "lol", conspicuous
+  swearing, or broken grammar added to look human. Preserve these when they are
+  already part of the writer's voice; never inject them as camouflage.
 - **Fake errors** — never inject typos or grammar mistakes to fool
   detectors. That's adversarial evasion, not writing, and it degrades the
   text.
@@ -1397,6 +1427,15 @@ safe correction for:
   section arrives without a clear connection to what came before.
 - **Performed candor.** Remove announcements of honesty such as "honestly" or "to be
   fair" when the sentence can simply make its point.
+- **Reflexive agreement.** Remove automatic praise or agreement that appears before
+  the substance has been checked. Let the facts determine whether the draft agrees,
+  qualifies, or disagrees.
+- **Communicative drift.** Stop when fluent sentences no longer advance a clear
+  point or reader need. Cut the passage, rebuild it around its purpose, or flag the
+  missing intent rather than inventing one.
+- **Rhetorical scale mismatch.** Reduce grand reveals, lessons, or contrasts when
+  the underlying point is too small or unsupported for the framing. Preserve a
+  contrast that corrects a real, supported misconception.
 - **Performed-writer register.** Flatten theatrical framing of ordinary work ("we
   hired an adversary"), epigram closers, staccato antithesis pairs ("Not perfect.
   Honest."), extended conceits (billing, courtroom, forensics, recipe), one-word
@@ -1698,6 +1737,46 @@ Source: <https://github.com/hgaddipati1118/slop-index> (MIT).
   claim can still pass it. Semantic fidelity, entailment between the draft and
   the rewrite, is the roadmap; until then the judgment pass carries what the
   token check cannot see.
+
+## Reader-reported salience: the Reddit study
+
+JCarterJohnson's 2026 analysis pulled 89,239 Reddit posts from 47 subreddits
+covering 2021–2026, filtered 7,984 posts about recognizing AI-flavoured
+writing, and manually reviewed a 600-post high-engagement sample. In that
+sample, readers cited flat rhythm, reflexive praise or agreement, formulaic
+shape, and fluent-but-empty prose more often than most individual words. The
+keyword pass produced the opposite error: ordinary words such as "however",
+"thus", "hence", "nuanced", "comprehensive", and "utilize" matched often
+even though audited readers almost never named them as tells.
+
+This is useful evidence about reader salience, not a prevalence estimate or
+authorship detector. The source describes its audience as vocal, online
+people; the sample is biased toward recent, high-engagement posts, and its
+keyword analysis can confuse using a term with discussing it. Zero Slop uses
+the relative ordering to put meaning, stance, rhythm, and document shape
+before isolated vocabulary. It adds three context-only review traits:
+reflexive agreement, communicative drift, and rhetorical scale mismatch. It
+does not import the study's percentages as weights, ban em dashes, or promote
+ordinary connectors into the mechanical scorer.
+
+The accompanying `unslop-ai-text` skill and scanner were audited at commit
+`f7c4aefc2c797a66e55b49354a93917ab60d33ac`. Its severity levels, JSON/CI
+interface, sample-based register guidance, and read-aloud review are useful
+corroboration. Zero Slop already covered all 25 categories in the published
+tally through its six-family taxonomy, contextual review, scorer, voice
+profile, and final editorial passes. We adopted the useful machine-readable
+batch contract and reader-priority lesson, but no code, weights, or blanket
+single-mark rule. On Zero Slop's 13-file known-human safety set, that upstream
+scanner reported three high, two medium, and one low finding and returned a
+"strong" verdict; Zero Slop kept all 13 files below its gate. That comparison
+is a false-positive safety check, not an independent test of editorial quality.
+
+Sources:
+
+- Study and methodology: <https://www.reddit.com/r/ClaudeAI/comments/1ucpw87/i_pulled_90000_reddit_posts_about_what_makes/>
+- Skill comparison: <https://www.reddit.com/r/ClaudeAI/comments/1uel1dc/unsloptext_skill_vs_humanizer_skill_part_2/>
+- Launch discussion: <https://www.reddit.com/r/ClaudeAI/comments/1udl9hg/unsloptext_a_claude_skill_that_flags_and_removes/>
+- Data, scanner, and skill: <https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text> (MIT).
 
 ## Practitioner corroboration
 

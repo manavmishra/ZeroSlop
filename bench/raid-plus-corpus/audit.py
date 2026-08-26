@@ -32,7 +32,7 @@ def fetch_json(url, attempts=8):
         url,
         headers={
             "User-Agent": (
-                "ZeroSlop-RAID-Plus-audit/2.5.6 "
+                "ZeroSlop-RAID-Plus-audit/2.5.7 "
                 "(+https://github.com/manavmishra/ZeroSlop)"
             )
         },
@@ -186,7 +186,7 @@ def compute(pin, metadata, rows):
             "license": pin["license"],
         },
         "scorer": {
-            "version": "2.5.6",
+            "version": "2.5.7",
             "slopscore_sha256": hashlib.sha256(
                 (ROOT / "scripts" / "slopscore.py").read_bytes()
             ).hexdigest(),
@@ -243,7 +243,7 @@ def validate(result, pin):
     current_scorer_hash = hashlib.sha256(
         (ROOT / "scripts" / "slopscore.py").read_bytes()
     ).hexdigest()
-    if scorer.get("version") != "2.5.6" \
+    if scorer.get("version") != "2.5.7" \
             or scorer.get("slopscore_sha256") != current_scorer_hash:
         raise ValueError("results.json does not match the current scorer")
 

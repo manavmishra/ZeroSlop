@@ -84,7 +84,7 @@ def compute():
         for genre, row in sorted(search["by_genre"].items())
     ]
     audit = json.loads(CAPABILITY_AUDIT.read_text())
-    products = ["zero_slop", "blader", "no_ai_slop"]
+    products = ["zero_slop", "blader", "no_ai_slop", "unslop_text"]
     capability_matrix = {
         "audited_on": audit["audited_on"],
         "products": [
@@ -249,10 +249,14 @@ def _hbar(path, title, subtitle, rows, ours_label, axis_ticks=None):
 def _capability_matrix(path, audit):
     """Render a presence matrix without turning capabilities into a quality score."""
     from PIL import Image, ImageDraw
-    W, left, top, rowh = 1240, 620, 168, 43
+    W, left, top, rowh = 1500, 620, 168, 43
     products = audit["products"]
     rows = audit["rows"]
-    centers = [750, 940, 1120]
+    column_left, column_right = 720, W - 90
+    centers = [
+        column_left + i * (column_right - column_left) / (len(products) - 1)
+        for i in range(len(products))
+    ]
     H = top + len(rows) * rowh + 112
     img = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(img)

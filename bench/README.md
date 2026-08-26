@@ -43,6 +43,9 @@ current corpus checks.
   every proposed external corpus. Label semantics, provenance, access terms, and the
   claim a corpus may support are explicit; authorship labels never stand in for
   slop-quality labels.
+- `competitor-capabilities.json` — a feature-presence audit at pinned commits for
+  Zero Slop, humanizer, no-ai-slop, and JCarterJohnson's unslop-text. It records what
+  each repository documents; it does not measure which editor writes better.
 
 ## Reproducing
 

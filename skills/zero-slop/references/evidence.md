@@ -117,6 +117,46 @@ Source: <https://github.com/hgaddipati1118/slop-index> (MIT).
   the rewrite, is the roadmap; until then the judgment pass carries what the
   token check cannot see.
 
+## Reader-reported salience: the Reddit study
+
+JCarterJohnson's 2026 analysis pulled 89,239 Reddit posts from 47 subreddits
+covering 2021–2026, filtered 7,984 posts about recognizing AI-flavoured
+writing, and manually reviewed a 600-post high-engagement sample. In that
+sample, readers cited flat rhythm, reflexive praise or agreement, formulaic
+shape, and fluent-but-empty prose more often than most individual words. The
+keyword pass produced the opposite error: ordinary words such as "however",
+"thus", "hence", "nuanced", "comprehensive", and "utilize" matched often
+even though audited readers almost never named them as tells.
+
+This is useful evidence about reader salience, not a prevalence estimate or
+authorship detector. The source describes its audience as vocal, online
+people; the sample is biased toward recent, high-engagement posts, and its
+keyword analysis can confuse using a term with discussing it. Zero Slop uses
+the relative ordering to put meaning, stance, rhythm, and document shape
+before isolated vocabulary. It adds three context-only review traits:
+reflexive agreement, communicative drift, and rhetorical scale mismatch. It
+does not import the study's percentages as weights, ban em dashes, or promote
+ordinary connectors into the mechanical scorer.
+
+The accompanying `unslop-ai-text` skill and scanner were audited at commit
+`f7c4aefc2c797a66e55b49354a93917ab60d33ac`. Its severity levels, JSON/CI
+interface, sample-based register guidance, and read-aloud review are useful
+corroboration. Zero Slop already covered all 25 categories in the published
+tally through its six-family taxonomy, contextual review, scorer, voice
+profile, and final editorial passes. We adopted the useful machine-readable
+batch contract and reader-priority lesson, but no code, weights, or blanket
+single-mark rule. On Zero Slop's 13-file known-human safety set, that upstream
+scanner reported three high, two medium, and one low finding and returned a
+"strong" verdict; Zero Slop kept all 13 files below its gate. That comparison
+is a false-positive safety check, not an independent test of editorial quality.
+
+Sources:
+
+- Study and methodology: <https://www.reddit.com/r/ClaudeAI/comments/1ucpw87/i_pulled_90000_reddit_posts_about_what_makes/>
+- Skill comparison: <https://www.reddit.com/r/ClaudeAI/comments/1uel1dc/unsloptext_skill_vs_humanizer_skill_part_2/>
+- Launch discussion: <https://www.reddit.com/r/ClaudeAI/comments/1udl9hg/unsloptext_a_claude_skill_that_flags_and_removes/>
+- Data, scanner, and skill: <https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text> (MIT).
+
 ## Practitioner corroboration
 
 Paul Graham's "Write Like You Talk" and "How to Write Usefully" predate LLMs

@@ -1,6 +1,6 @@
 # The Tell Taxonomy
 
-A hundred and one tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and four tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -10,6 +10,21 @@ judgment. **Require corroboration** — one "robust" in technical prose
 is nothing; five tells in one paragraph is a verdict. Shared idioms humans
 still use ("elephant in the room") carry low weights for exactly that reason:
 alone they prove nothing, five in a page is the machine's idiom autopilot.
+
+### How to prioritize the catalogue
+
+A 2026 analysis of 89,239 Reddit posts adds a useful check on what readers
+notice first. In its reviewed sample, people cited flat rhythm, reflexive
+praise, formulaic shape, and polished-but-empty prose more often than most
+individual words. Its keyword pass also over-counted ordinary words such as
+"however", "thus", "hence", "nuanced", "comprehensive", and "utilize".
+Use that result to order the review, not as a probability or a blacklist.
+
+Start with meaning, stance, rhythm, and shape. Then inspect repeated
+constructions, assistant residue, and formatting. Treat isolated vocabulary
+as weak evidence unless it is generic in context or appears in a cluster. A
+lone dash, formal sentence, transition, or supported contrast remains a style
+choice. See `evidence.md` for the study, limitations, and adoption decision.
 
 ## 1. Lexical
 
@@ -136,6 +151,7 @@ the judgment half is the read-aloud pass's fixture list.
 | Tell | Fix |
 |---|---|
 | Assistant voice: "Great question!", "I hope this helps", "I'd be happy to" | Delete |
+| Reflexive agreement or praise: approving the premise before checking it, flattering the writer, or refusing to take a supported position | Answer the substance first; agree, qualify, or disagree according to the facts |
 | Chatbot residue: "Would you like me to…", "Let me know if you'd like…", "my training data" | Delete — it is proof of paste, not style |
 | Knowledge-cutoff residue: "as of my last update", "not widely documented" | Delete; verify the claim |
 | Passive or subjectless wording that hides an actor who matters | Name the actor and use the direct verb; keep passive voice when the actor is unknown, irrelevant, or native to the genre |
@@ -151,6 +167,8 @@ the judgment half is the read-aloud pass's fixture list.
 | Tell | Test | Action |
 |---|---|---|
 | Hollowness — no claim at all | Removal test: delete it; anything lost? | Flag, never pad |
+| Communicative drift — fluent sentences accumulate without serving a clear point or reader need | Purpose test: what job does this paragraph do here? | Cut it, rebuild it around the real point, or ask for the missing intent |
+| Rhetorical scale mismatch — a grand contrast, lesson, or reveal is applied to a trivial or unsupported claim | Proportion test: does the framing match the importance and support of the point? | State the point at its real scale; preserve a contrast when it corrects a real misconception |
 | Regression to the mean — specifics smoothed into generic + inflated importance | Compare against source facts | Restore the specific |
 | Smooth-but-empty specificity — "modern technologies that ensure reliability" | Can you name the referent? | Name it or cut |
 | Superficial analysis — unearned significance commentary | Who says it matters? | State the mechanism or cut |
@@ -164,6 +182,7 @@ isolation. Long sentences that earn their length. Technical vocabulary used
 technically. A single em-dash doing real work. First-person hedging that
 encodes real uncertainty. Unsourced-but-checkable claims. And any pattern that
 is demonstrably the writer's own voice in a sample the AI assistant can read.
+A single contrast that corrects a real, supported misconception is not a tell.
 The named `--voice` scoring profile is narrower: it exempts only existing
 watchlist words found by exact match. One match is enough, but the exceptions
 apply only when the profile is selected. The profile does not model the

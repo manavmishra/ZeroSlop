@@ -8,6 +8,20 @@
 One line per change to `learned.json` or `patterns.json`: date, what, why,
 example that motivated it.
 
+- 2026-08-25 — v2.5.7. Audited JCarterJohnson's 89,239-post reader-salience
+  study and `unslop-ai-text` at commit
+  `f7c4aefc2c797a66e55b49354a93917ab60d33ac`. Zero Slop already covered all
+  25 published categories, so no regexes, weights, or blanket em-dash rule
+  were imported. Added a meaning-first review order and three judgment-only
+  checks: reflexive agreement, communicative drift, and rhetorical scale
+  mismatch. Added manufactured informality to the overcorrection guard. The
+  upstream scanner called the 13-file known-human safety set "strong" based
+  on three high, two medium, and one low finding; Zero Slop kept all 13 below
+  its gate. Fixed `--batch --json` so CI receives JSON while preserving the
+  gate exit code, and added unslop-text to the pinned capability audit. These
+  comparisons test false-positive safety and documented features, not which
+  editor produces better prose.
+
 - 2026-08-24 — v2.5.6. Performed-writer register: a human editor flagged 35
   spans from the zero-slop.ai August blog drafts that the scorer passed clean
   (zero pattern hits) — theatrical process framing ("Then we hired an

@@ -224,6 +224,18 @@ class Detector(unittest.TestCase):
         ticked = "We leveraged a `robust` `seamless` solution to elevate the platform."
         self.assertGreater(score(ticked), score(bare) * 0.5)
 
+    def test_community_research_does_not_turn_single_style_choices_into_verdicts(self):
+        """The Reddit study ranks reader complaints; it is not a licence to
+        ban punctuation or ordinary connective words. Corroboration still wins."""
+        samples = [
+            "The deploy failed—again—because the migration held the lock.",
+            "However, the second run completed after the lock expired.",
+            "Thus the recorded total remains comprehensive enough for this audit.",
+        ]
+        for text in samples:
+            with self.subTest(text=text):
+                self.assertLess(score(text), 30)
+
     def test_model_tracking_url_artifact_survives_url_stripping(self):
         data = slopscore.load_patterns()
         text = "Source: https://example.com/paper?utm_source=chatgpt.com"
@@ -350,6 +362,71 @@ class CLI(unittest.TestCase):
                     result = run([str(SCORER), mode, td])
                     self.assertNotEqual(result.returncode, 0)
                     self.assertNotIn("Traceback", result.stderr)
+
+    def test_batch_json_is_structured_and_preserves_gate_exit_status(self):
+        """Batch CI output must stay machine-readable; accepting --json and
+        printing the human table makes the documented automation path unusable."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "clean.md").write_text(
+                "The queue drained after the worker restarted. We checked the ledger."
+            )
+            (root / "slop.md").write_text(Detector.SLOP)
+            result = run([str(SCORER), "--batch", td, "--json", "--gate", "25"])
+            self.assertEqual(result.returncode, 1, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["result_kind"], "batch_score")
+            self.assertEqual(payload["documents"], 2)
+            self.assertEqual(len(payload["items"]), 2)
+            self.assertGreater(payload["max_score"], 25)
+            self.assertTrue(payload["gate_applied"])
+            self.assertFalse(payload["passed"])
+            self.assertEqual(
+                [row["score"] for row in payload["items"]],
+                sorted((row["score"] for row in payload["items"]), reverse=True),
+            )
+
+
+class CommunityReportedSignals(unittest.TestCase):
+    """Reader-reported research changes editorial priority without pretending
+    that community frequency is a calibrated probability or a safe word list."""
+
+    def test_runtime_names_the_reader_salience_pass_and_three_judgment_traits(self):
+        skill = (ROOT / "SKILL.md").read_text().lower()
+        tells = (ROOT / "references" / "tells.md").read_text().lower()
+        readalong = (ROOT / "references" / "readalong.md").read_text().lower()
+        evidence = (ROOT / "references" / "evidence.md").read_text().lower()
+
+        self.assertIn("reader-salience pass", skill)
+        for trait in (
+            "reflexive agreement",
+            "communicative drift",
+            "rhetorical scale mismatch",
+        ):
+            with self.subTest(trait=trait):
+                self.assertIn(trait, tells)
+                self.assertIn(trait, readalong)
+        self.assertIn("89,239", evidence)
+        self.assertIn("jcarterjohnson/vibecoded-design-tells", evidence)
+        self.assertIn("vocal, online", evidence)
+
+    def test_judgment_fixture_pack_is_complete(self):
+        root = DATA / "corpus" / "community-register" / "judgment"
+        files = sorted(path.name for path in root.glob("*.txt"))
+        self.assertEqual(files, [
+            "communicative-drift.txt",
+            "reflexive-agreement.txt",
+            "rhetorical-scale-mismatch.txt",
+        ])
+
+    def test_generic_connectors_were_not_promoted_to_mechanical_tells(self):
+        data = slopscore.load_patterns()
+        lexicon = {term.lower() for term in data["lexicon"]}
+        riders = {term.lower() for term in data.get("riders", {})}
+        for term in ("however", "thus", "hence", "nuanced"):
+            with self.subTest(term=term):
+                self.assertNotIn(term, lexicon)
+                self.assertNotIn(term, riders)
 
 
 # --------------------------------------------------------------------------
@@ -1466,7 +1543,7 @@ class DocsMatchReality(unittest.TestCase):
         self.assertLessEqual(words, 1250, "README exceeded the two-page editorial brief")
         self.assertIn("RAID+", readme)
         self.assertIn("7,627", readme)
-        self.assertIn("re-verified every corpus audit unchanged; timings are v2.5.5's",
+        self.assertIn("The scoring formula and corpus results did not change; timings remain from v2.5.5",
                       re.sub(r"\s+", " ", readme))
         self.assertNotIn("Two independent LLMs", readme)
         self.assertNotIn("55/40", readme)
@@ -2346,12 +2423,20 @@ class Diagram(unittest.TestCase):
             audit["products"]["no_ai_slop"]["commit"],
             "d30eddb9e04562234f2070b5ee63ca4649d9a05e",
         )
+        self.assertEqual(
+            audit["products"]["unslop_text"]["commit"],
+            "f7c4aefc2c797a66e55b49354a93917ab60d33ac",
+        )
         self.assertGreaterEqual(len(audit["capabilities"]), 10)
         for row in audit["capabilities"]:
             with self.subTest(row=row["id"]):
                 self.assertEqual(row["zero_slop"], "native")
                 self.assertIn(row["blader"], {"guided", "not_documented"})
                 self.assertIn(row["no_ai_slop"], {"guided", "not_documented"})
+                self.assertIn(
+                    row["unslop_text"],
+                    {"native", "guided", "not_documented"},
+                )
 
         readme = (ROOT / "README.md").read_text()
         normalized_readme = " ".join(readme.lower().split())

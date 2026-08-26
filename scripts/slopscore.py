@@ -16,6 +16,7 @@ Usage (runnable from any cwd; data resolves relative to this script):
     python3 slopscore.py --explain <file>  # report + reasons + line-by-line map
     python3 slopscore.py --heatmap <file>  # line-by-line map only
     python3 slopscore.py --portfolio <dir> # repeated wording across related drafts
+    python3 slopscore.py --batch <dir> --json --gate 25  # machine-readable CI gate
     python3 slopscore.py --formal <file>   # use the rules for professional writing
 
 The phrase lists live beside this script in ../data/patterns.json and
@@ -1198,9 +1199,25 @@ def main():
             r = score_text(_read_text_file(p), data, formal=formal)
             rows.append((r["ai_likelihood"], p, band(r["ai_likelihood"])))
         rows.sort(key=lambda x: -x[0])
-        for sc, p, b in rows:
-            print(f"{sc:6.1f}  {b:12s} {p}")
         worst = max(sc for sc, _, _ in rows)
+        passed = gv is None or worst <= gv
+        if as_json:
+            print(json.dumps({
+                "result_kind": "batch_score",
+                "directory": str(root),
+                "documents": len(rows),
+                "max_score": worst,
+                "gate_applied": gv is not None,
+                "gate": gv,
+                "passed": passed,
+                "items": [
+                    {"file": str(p), "score": sc, "band": b}
+                    for sc, p, b in rows
+                ],
+            }, ensure_ascii=False, indent=1))
+        else:
+            for sc, p, b in rows:
+                print(f"{sc:6.1f}  {b:12s} {p}")
         sys.exit(1 if gv is not None and worst > gv else 0)
 
     if len(args) > 1:

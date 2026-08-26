@@ -18,8 +18,8 @@
   "license": "MIT"
  },
  "scorer": {
-  "version": "2.5.6",
-  "slopscore_sha256": "470ff181c87b71c885e7320bf9c0ed7200b37c88ab63d5cb34fb8c15488c3534",
+  "version": "2.5.7",
+  "slopscore_sha256": "2be3faef033a8d59f6c8ddae75771f1088b94664e62a4f42912acf545cbb6496",
   "patterns_sha256": "c7a9c0c2a1ce79768071257471e53d3c38609b737be79ebc591c67e85a304a3b",
   "learned_sha256": "0d2b9075f58971991b632f53d61062633fbeefa36f2c9eac7bb5859efb34ea8e",
   "generic_gate": 25.0,

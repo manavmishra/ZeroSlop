@@ -23,6 +23,15 @@ safe correction for:
   section arrives without a clear connection to what came before.
 - **Performed candor.** Remove announcements of honesty such as "honestly" or "to be
   fair" when the sentence can simply make its point.
+- **Reflexive agreement.** Remove automatic praise or agreement that appears before
+  the substance has been checked. Let the facts determine whether the draft agrees,
+  qualifies, or disagrees.
+- **Communicative drift.** Stop when fluent sentences no longer advance a clear
+  point or reader need. Cut the passage, rebuild it around its purpose, or flag the
+  missing intent rather than inventing one.
+- **Rhetorical scale mismatch.** Reduce grand reveals, lessons, or contrasts when
+  the underlying point is too small or unsupported for the framing. Preserve a
+  contrast that corrects a real, supported misconception.
 - **Performed-writer register.** Flatten theatrical framing of ordinary work ("we
   hired an adversary"), epigram closers, staccato antithesis pairs ("Not perfect.
   Honest."), extended conceits (billing, courtroom, forensics, recipe), one-word

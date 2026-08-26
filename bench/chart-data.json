@@ -276,7 +276,7 @@
   ]
  ],
  "capability_matrix": {
-  "audited_on": "2026-08-22",
+  "audited_on": "2026-08-25",
   "products": [
    [
     "zero_slop",
@@ -292,24 +292,39 @@
     "no_ai_slop",
     "petergyang/no-ai-slop",
     "d30eddb9e04562234f2070b5ee63ca4649d9a05e"
+   ],
+   [
+    "unslop_text",
+    "JCarterJohnson/unslop-text",
+    "f7c4aefc2c797a66e55b49354a93917ab60d33ac"
    ]
   ],
   "rows": [
    [
-    "Detect-only evidence report",
+    "Findings report without rewriting",
     "native",
     "not_documented",
-    "guided"
+    "guided",
+    "native"
    ],
    [
-    "Traceable numeric surface meter",
+    "Traceable numeric writing score",
     "native",
     "not_documented",
-    "not_documented"
+    "not_documented",
+    "native"
+   ],
+   [
+    "Machine-readable batch and CI gate",
+    "native",
+    "not_documented",
+    "not_documented",
+    "native"
    ],
    [
     "Statistical rhythm and format signals",
     "native",
+    "guided",
     "guided",
     "guided"
    ],
@@ -317,11 +332,13 @@
     "Scripted fact and claim check",
     "native",
     "guided",
-    "guided"
+    "guided",
+    "not_documented"
    ],
    [
-    "Best-of-N candidate reranking",
+    "Chooses among several safe rewrites",
     "native",
+    "not_documented",
     "not_documented",
     "not_documented"
    ],
@@ -329,17 +346,20 @@
     "Separate copy desk and read-aloud gates",
     "native",
     "guided",
-    "guided"
+    "guided",
+    "not_documented"
    ],
    [
     "Cross-draft portfolio probe",
     "native",
     "not_documented",
+    "not_documented",
     "not_documented"
    ],
    [
-    "Private evidence-gated learning",
+    "Private learning with safety checks",
     "native",
+    "not_documented",
     "not_documented",
     "not_documented"
    ],
@@ -347,11 +367,13 @@
     "Recurring rewrite-fix memory",
     "native",
     "not_documented",
+    "not_documented",
     "not_documented"
    ],
    [
-    "Evidence reconfirmation and decay",
+    "Old private rules fade without support",
     "native",
+    "not_documented",
     "not_documented",
     "not_documented"
    ],
@@ -359,11 +381,13 @@
     "External voice sample or profile",
     "native",
     "guided",
-    "not_documented"
+    "not_documented",
+    "guided"
    ],
    [
-    "Public outcome regression harness",
+    "Public tests of finished rewrites",
     "native",
+    "not_documented",
     "not_documented",
     "not_documented"
    ]

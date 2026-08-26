@@ -24,6 +24,9 @@ into text that didn't have them.
   "literally" sprinkled for flavor.
 - **Slang costume** — forced colloquialisms a professional author wouldn't
   use ("chef's kiss", "hits different") unless the voice sample has them.
+- **Manufactured informality** — forced lowercase, stray "lol", conspicuous
+  swearing, or broken grammar added to look human. Preserve these when they are
+  already part of the writer's voice; never inject them as camouflage.
 - **Fake errors** — never inject typos or grammar mistakes to fool
   detectors. That's adversarial evasion, not writing, and it degrades the
   text.

@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.6"
+  version: "2.5.7"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -190,6 +190,14 @@ tell density, and every hit. The score is a surface meter, not a verdict — a
 clean score with hollow content is still slop, and one flagged word in honest
 technical prose is not. Treat an isolated hit cautiously; act when independent
 signals agree.
+
+Before reviewing vocabulary, run a **reader-salience pass**. Check for flat or
+repetitive rhythm, reflexive agreement or praise, formulaic structure,
+communicative drift, rhetorical scale mismatch, and polished prose that makes
+no claim. These are contextual questions, not proof of authorship. Do not turn
+a lone em dash or ordinary words such as "however", "thus", "nuanced", or
+"comprehensive" into a verdict. The research and its limits are recorded in
+`references/evidence.md`.
 
 **Portfolio probe (three or more related drafts).** A single draft cannot show
 that a whole campaign opens with the same five words or recycles the same
@@ -754,7 +762,7 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (101 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (104 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
   release carries 279 weighted regexes because some tells need more than one.
