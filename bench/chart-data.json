@@ -268,12 +268,12 @@
   ]
  ],
  "capability_matrix": {
-  "audited_on": "2026-08-25",
+  "audited_on": "2026-08-26",
   "products": [
    [
     "zero_slop",
     "Zero Slop",
-    "6cbf29e1e2540711a83a3629d6c1912fe5b3baf2"
+    "390414f26d8b98307bded5a770124397a8f79e70"
    ],
    [
     "avoid_ai_writing",

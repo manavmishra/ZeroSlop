@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "audited_on": "2026-08-25",
+  "audited_on": "2026-08-26",
   "method": "Repository audit of the pinned commits. Native means a dedicated script, stored artifact, or named workflow gate. Guided means an instruction or self-check without a dedicated executable component. Not documented means the capability was not found in the audited repository; it does not prove the product cannot do it.",
   "products": {
     "zero_slop": {
       "label": "Zero Slop",
       "repository": "https://github.com/manavmishra/ZeroSlop",
-      "commit": "6cbf29e1e2540711a83a3629d6c1912fe5b3baf2"
+      "commit": "390414f26d8b98307bded5a770124397a8f79e70"
     },
     "blader": {
       "label": "blader/humanizer",
