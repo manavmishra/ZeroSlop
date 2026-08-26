@@ -55,8 +55,13 @@ are examples, not limits.
   `data/learned-log.md`. Private reflect-loop tells and false-positive overrides
   stay under `$ZERO_SLOP_HOME`; never copy them into the repository without the
   explicit export, review, and merge path.
-- `SKILL.md`, `README.md`, `.claude-plugin/plugin.json`, and
+- `SKILL.md`, `README.md`, `package.json`, `.claude-plugin/plugin.json`, and
   `.codex-plugin/plugin.json` versions bump together.
+- `package.json` publishes the skill to npm for registry discovery. Its `files`
+  allowlist must ship exactly what `scripts/build_plugin.py` mirrors into
+  `skills/zero-slop/` — same runtime, same exclusions. When you add or remove a
+  maintainer-only script, update `EXCLUDE` and the `!` negations together, then
+  confirm with `npm pack --dry-run`.
 - Every regex must compile under Python `re` AND stay JS-compatible where
   possible (the data files are consumed as inert JSON by other tooling).
 - Run the validation used in CI before publishing:

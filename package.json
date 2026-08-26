@@ -1,0 +1,54 @@
+{
+  "name": "zero-slop",
+  "version": "2.5.8",
+  "description": "An Agent Skill that scores AI-sounding prose 0-100 locally and rewrites it without losing a fact. Runs inside Claude Code, Codex, Cursor, Warp, Zed and other SKILL.md agents. Offline, zero dependencies, MIT.",
+  "keywords": [
+    "agent-skill",
+    "agent-skills",
+    "skills",
+    "claude-code",
+    "claude-skill",
+    "codex",
+    "cursor",
+    "ai-slop",
+    "de-slop",
+    "humanizer",
+    "humanize-ai-text",
+    "ai-detection",
+    "ai-writing",
+    "writing-tools",
+    "editing",
+    "prose"
+  ],
+  "homepage": "https://zero-slop.ai",
+  "bugs": "https://github.com/manavmishra/ZeroSlop/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manavmishra/ZeroSlop.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Manav Mishra",
+    "url": "https://zero-slop.ai/about/"
+  },
+  "files": [
+    "SKILL.md",
+    "references/",
+    "scripts/",
+    "data/",
+    "README.md",
+    "LICENSE",
+    "!scripts/build_bundle.py",
+    "!scripts/build_onepager_pdf.py",
+    "!scripts/build_plugin.py",
+    "!scripts/build_skill_zip.py",
+    "!scripts/check_svg.py",
+    "!scripts/contextual.py",
+    "!scripts/contextual-signals.md",
+    "!references/contextual-signals.md",
+    "!scripts/growth-snapshot.mjs",
+    "!data/voices/",
+    "!**/__pycache__/"
+  ],
+  "private": false
+}

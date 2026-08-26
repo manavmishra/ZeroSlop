@@ -51,7 +51,7 @@ invents one.
 
 Nothing is uploaded. The scorer runs offline, needs no account, and has zero
 runtime dependencies. On a public 18-draft benchmark it moved a mean score of
-76.3 to 15.4 with every fact check passing.
+76.3 to 16.4 with every fact check passing.
 
 Free and MIT-licensed. Install with one command.
 
@@ -77,8 +77,8 @@ rather than boundaries.
 The evidence is public and reproducible. Zero Slop scored 7,627 abstracts from
 the MIT-licensed RAID+ dataset, re-scored all 2,187 Beemo records, and published
 an 18-draft comparison against four other open-source editors: a mean of 76.3
-before, 15.4 after, with 18 of 18 fact checks passing. The scorer handles 1,000
-documents in 2.4 seconds on one Apple silicon Mac.
+before, 16.4 after, with 18 of 18 fact checks passing. The scorer handles 1,000
+documents in 2.0 seconds on one Apple silicon Mac.
 
 Privacy is structural, not a policy. The scorer uses only Python's standard
 library, runs offline, and never transmits a draft. Zero Slop can also learn
@@ -128,9 +128,9 @@ https://zero-slop.ai/about/
 - 7,627 RAID+ abstracts scored; overall mean 19.6.
 - 2,187 Beemo records: 30.2 raw model output, 25.3 expert edit, 20.0
   independent human answer.
-- 18-draft workflow comparison: 76.3 original, 15.4 after Zero Slop, 18/18
+- 18-draft workflow comparison: 76.3 original, 16.4 after Zero Slop, 18/18
   passing all checks.
-- 1,000 documents in 2.4152 seconds on one Apple silicon Mac.
+- 1,000 documents in 2.0147 seconds (496.4 per second) on one Apple silicon Mac.
 - Zero runtime dependencies; Python standard library only.
 - MIT licence; every benchmark reproducible from the commands in the README.
 
