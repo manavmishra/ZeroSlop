@@ -175,7 +175,7 @@ def compute():
     if (ablation.get("schema") != 1 or research.get("field_accuracy") is not False):
         raise ValueError("feature ablation has an invalid contract")
     contextual_ablation = [
-        ("v2.4.3 surface meter", round(
+        (f"v{ablation['candidate']['version']} local score", round(
             research["surface_accuracy_on_same_items"] * 100, 2)),
         ("contextual research review", round(
             research["held_out_test_accuracy"] * 100, 2)),

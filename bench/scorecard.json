@@ -1,5 +1,5 @@
 {
- "orig_ai_mean": 77.1,
+ "orig_ai_mean": 76.0,
  "n_examples": 50,
  "n_judged_items": 50,
  "methods": {
@@ -19,7 +19,7 @@
    "fabrication_flags": 1
   },
   "petergyang": {
-   "obj_ai_mean": 21.7,
+   "obj_ai_mean": 21.2,
    "obj_ai_median": 14.5,
    "pct_clean_le25": 74,
    "burstiness_mean": 0.594,
@@ -34,7 +34,7 @@
    "fabrication_flags": 0
   },
   "blader": {
-   "obj_ai_mean": 22.2,
+   "obj_ai_mean": 20.7,
    "obj_ai_median": 12.7,
    "pct_clean_le25": 72,
    "burstiness_mean": 0.58,
@@ -49,7 +49,7 @@
    "fabrication_flags": 0
   },
   "deslop": {
-   "obj_ai_mean": 28.2,
+   "obj_ai_mean": 26.9,
    "obj_ai_median": 19.2,
    "pct_clean_le25": 68,
    "burstiness_mean": 0.635,

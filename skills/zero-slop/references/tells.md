@@ -1,6 +1,6 @@
 # The Tell Taxonomy
 
-A hundred and four tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and five tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -32,6 +32,7 @@ choice. See `evidence.md` for the study, limitations, and adoption decision.
 |---|---|
 | AI vocabulary: delve, tapestry, testament, realm, intricate, interplay, landscape, meticulous, pivotal, garner, bolster, underscore, showcase, foster, boasts | Plain word or the specific thing. "delve into" → "look at"; "the AI landscape" → name the actual companies/tools |
 | Marketing register: seamless, frictionless, cutting-edge, game-changer, state-of-the-art, supercharge, paradigm shift, empower | Delete or state the concrete capability |
+| Generic benefit stack: a platform, product, or service is paired with two or more interchangeable outcomes such as "more value", "greater efficiency", or "strong capabilities" | Replace the stack with one named capability, measured result, or specific use case; ask for the missing fact rather than inventing it |
 | Rider buzzwords (leverage, robust, unlock, harness, streamline) | Fine in plain technical prose; slop when clustered with marketing words |
 | Puffery: nestled, breathtaking, rich heritage, renowned, vibrant, groundbreaking | State the fact; let the reader judge importance |
 | Legacy phrases: "a testament to", "pivotal moment", "enduring legacy", "evolving landscape", "setting the stage" | Say what happened |

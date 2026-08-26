@@ -82,10 +82,11 @@ with a metadata-only version query. That query never sends the draft.
 ## What we tested
 
 Version 2.5.5 reran the complete test suite, scores, external corpus audits, speed
-record, and charts; v2.5.6 added the performed-writer tell family. Version 2.5.7 puts
-context before isolated vocabulary, adds three contextual review checks, and fixes
-machine-readable batch output. The scorer itself did not change. The main check covers
-all 8,000 rows in the MIT-licensed RAID+
+record, and charts; v2.5.6 added the performed-writer tell family. Version 2.5.7 put
+context before isolated vocabulary and fixed machine-readable batch output. Version
+2.5.8 adds one conservative generic-benefit cluster. Its faster scanning engine matched
+v2.5.7 on all 280 tracked documents; only the new rule changes a score. The main check
+covers all 8,000 rows in the MIT-licensed RAID+
 dataset. After excluding 373 failed or empty outputs, 7,627 abstracts remained. Mean
 writing scores ranged from 14.5 for DeepSeek V3 to 25.5 for Llama 3.3 70B. RAID+ labels
 model origin, not editorial quality, so this is a current-model distribution check,
@@ -94,14 +95,17 @@ not an accuracy claim.
 A fresh pass over all 2,187 Beemo records found mean scores of 30.2 for raw model
 responses, 25.3 for expert edits, and 20.0 for independent human answers. Expert
 editing lowered the score in 52.2 percent of pairs. Beemo also lacks writing-quality
-labels. The 18-draft workflow table was re-scored with v2.5.5, but its fixed rewrites
-were not regenerated; Zero Slop's outputs there came from version 2.4.3. The current
-1,000-document speed run took 2.4152 seconds on one Apple silicon Mac. These are
-reproducible checks with stated limits, not universal claims about writing quality.
+labels. On a frozen 38-passage consensus panel, the writing gate's accuracy rose from
+71.1 percent to 84.2 percent, correcting five false negatives without changing a clean
+consensus item. Two LLM editorial raters supplied those labels, so this is an internal
+regression result, not human field accuracy. The current 1,000-document speed run took
+2.0147 seconds on one Apple silicon Mac; an alternating comparison measured 29.4 percent
+higher median throughput than v2.5.7. These are reproducible checks with stated limits,
+not universal claims about writing quality.
 
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.7 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.8 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, and unslop-text, with thanks
 to Kagi's SlopStop and the research listed in the repo.

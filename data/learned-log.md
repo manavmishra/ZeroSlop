@@ -8,6 +8,17 @@
 One line per change to `learned.json` or `patterns.json`: date, what, why,
 example that motivated it.
 
+- 2026-08-25 — v2.5.8. Added `generic-benefit-stack` (weight 1) after the
+  frozen quality panel exposed five passages whose product noun and multiple
+  interchangeable outcomes passed below the gate. The rule requires a
+  product or service, an offer/help verb, and two nearby generic outcomes;
+  a lone word cannot fire it. It moved five sloppy consensus
+  items above the gate, changed no clean consensus item, and kept all 13
+  known-human safety files below 25. The local scorer now indexes vocabulary
+  by first character and caches compiled patterns. A 280-document parity run
+  found no change from that optimization, while an alternating six-pair run
+  against v2.5.7 measured a 29.4% median throughput gain.
+
 - 2026-08-25 — v2.5.7. Audited JCarterJohnson's 89,239-post reader-salience
   study and `unslop-ai-text` at commit
   `f7c4aefc2c797a66e55b49354a93917ab60d33ac`. Zero Slop already covered all

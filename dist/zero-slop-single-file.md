@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.7"
+  version: "2.5.8"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -191,7 +191,7 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (279 weighted tells plus
+Every channel runs on every draft: the pattern meter (280 weighted tells plus
 a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
@@ -788,10 +788,10 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (104 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (105 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 279 weighted regexes because some tells need more than one.
+  release carries 280 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,
@@ -835,7 +835,7 @@ the author, which is the point: when specifics are missing, ask for a real one
 
 # The Tell Taxonomy
 
-A hundred and four tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and five tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -867,6 +867,7 @@ choice. See `evidence.md` for the study, limitations, and adoption decision.
 |---|---|
 | AI vocabulary: delve, tapestry, testament, realm, intricate, interplay, landscape, meticulous, pivotal, garner, bolster, underscore, showcase, foster, boasts | Plain word or the specific thing. "delve into" → "look at"; "the AI landscape" → name the actual companies/tools |
 | Marketing register: seamless, frictionless, cutting-edge, game-changer, state-of-the-art, supercharge, paradigm shift, empower | Delete or state the concrete capability |
+| Generic benefit stack: a platform, product, or service is paired with two or more interchangeable outcomes such as "more value", "greater efficiency", or "strong capabilities" | Replace the stack with one named capability, measured result, or specific use case; ask for the missing fact rather than inventing it |
 | Rider buzzwords (leverage, robust, unlock, harness, streamline) | Fine in plain technical prose; slop when clustered with marketing words |
 | Puffery: nestled, breathtaking, rich heritage, renowned, vibrant, groundbreaking | State the fact; let the reader judge importance |
 | Legacy phrases: "a testament to", "pivotal moment", "enduring legacy", "evolving landscape", "setting the stage" | Say what happened |

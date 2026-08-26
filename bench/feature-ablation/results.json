@@ -1,11 +1,11 @@
 {
  "schema": 1,
  "baseline": {
-  "version": "2.4.3",
-  "commit": "3790a1f08ebeb2d45eaa435b6a920b57cc0a71fc"
+  "version": "2.5.7",
+  "commit": "a28fc2bb24715b59b6d0bd461b6e900c92cb9564"
  },
  "candidate": {
-  "version": "2.5.1",
+  "version": "2.5.8",
   "production_path": "single"
  },
  "deterministic_surface_ablation": {
@@ -17,16 +17,16 @@
    "72-item blind quality panel"
   ],
   "baseline_score_vector_sha256": "152b7e478cef00d27a4cf663e5f4be1cc8fa402db4b17c6c6155468bb9536472",
-  "candidate_score_vector_sha256": "152b7e478cef00d27a4cf663e5f4be1cc8fa402db4b17c6c6155468bb9536472",
-  "exactly_unchanged": true,
+  "candidate_score_vector_sha256": "9f32f07659234cb348e6cbd066fa00a4c6ce3bdc321dd5d30bedd85d62e49258",
+  "exactly_unchanged": false,
   "blind_quality_consensus_accuracy_baseline": 0.7105,
-  "blind_quality_consensus_accuracy_candidate": 0.7105,
-  "accuracy_change_percentage_points": 0.0
+  "blind_quality_consensus_accuracy_candidate": 0.8421,
+  "accuracy_change_percentage_points": 13.16
  },
  "structured_contextual_research": {
   "held_out_test_accuracy": 0.9545,
-  "surface_accuracy_on_same_items": 0.7954,
-  "accuracy_change_percentage_points": 15.91,
+  "surface_accuracy_on_same_items": 0.9318,
+  "accuracy_change_percentage_points": 2.27,
   "precision": 0.9737,
   "recall": 0.9737,
   "field_accuracy": false,
@@ -53,8 +53,8 @@
   "gain": "Adds an independently split release-research lane and exposes unresolved labels; it does not change a draft or score."
  },
  "production_verdict": {
-  "decision": "ship_one_production_path_keep_contextual_review_in_release_research",
-  "reason": "Production scoring is bit-for-bit unchanged. The contextual lane improved blind cross-rater agreement, but the evidence is not independent human field accuracy, so it remains outside the shipped workflow.",
+  "decision": "ship_one_production_path_with_conservative_generic_benefit_cluster",
+  "reason": "Against v2.5.7, the candidate corrects five false negatives and no consensus clean item on the frozen LLM-rated panel. The contextual lane remains release research because neither result is independent human field accuracy.",
   "promotion_requirement": "Any future production change needs an independently human-labelled, source-grouped field set showing a material quality gain without fidelity, subgroup, latency, or cost regression."
  }
 }

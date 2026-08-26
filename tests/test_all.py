@@ -236,6 +236,70 @@ class Detector(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertLess(score(text), 30)
 
+    def test_generic_benefit_stacks_need_a_specific_claim(self):
+        """A product noun plus two generic outcomes is a corroborated cluster,
+        not a banned word. Concrete capabilities and measured results stay
+        clean; interchangeable sales copy crosses the writing gate."""
+        vague = [
+            ("Our platform can help your team work together and create more "
+             "value. Would you be open to discussing how we might work together?"),
+            ("We are launching a solution designed to change how your organization "
+             "works. It offers an easier experience, strong capabilities, and "
+             "greater efficiency."),
+        ]
+        grounded = [
+            ("The service helps the billing team reconcile invoices and cut the "
+             "month-end run from four hours to 35 minutes."),
+            "The platform offers CSV export, SAML SSO, and 99.95% uptime.",
+        ]
+        for text in vague:
+            with self.subTest(kind="vague", text=text):
+                self.assertGreaterEqual(score(text), 25)
+        for text in grounded:
+            with self.subTest(kind="grounded", text=text):
+                self.assertLess(score(text), 25)
+
+    def test_optimized_lexicon_scan_matches_the_reference_algorithm(self):
+        """The fast scanner must preserve every old match, including awkward
+        overlapping stems and private multiword terms. Performance is never a
+        licence to move a score or relabel a hit."""
+        lexicon = {
+            "game-chang": 5,
+            "game-changing": 7,
+            "foo": 1,
+            "foo-bar": 2,
+            "fight against": 3,
+            "İdea": 2,
+            "ßeta": 2,
+            "unused": 0,
+        }
+        texts = [
+            "A game-changing idea is not a game-changer.",
+            "foo foo-bar foobar; we fight against waste.",
+            "FOO-BAR and Game-Changing, then unused.",
+            "prefixfoo must stay silent; foo2 must count.",
+            "idea and ßeta exercise Unicode case-folding boundaries.",
+        ]
+
+        def reference(text):
+            found = []
+            for order, (term, weight) in enumerate(lexicon.items()):
+                if not weight:
+                    continue
+                for match in re.finditer(r"\b" + re.escape(term) + r"\w*", text, re.I):
+                    found.append((match.start(), match.end(), order, term, weight,
+                                  match.group(0).lower()))
+            found.sort(key=lambda row: (row[0], -row[1], row[2]))
+            return [(start, end, term, weight, quote)
+                    for start, end, _, term, weight, quote in found]
+
+        for text in texts:
+            with self.subTest(text=text):
+                self.assertEqual(
+                    slopscore._term_candidates(text, lexicon),
+                    reference(text),
+                )
+
     def test_model_tracking_url_artifact_survives_url_stripping(self):
         data = slopscore.load_patterns()
         text = "Source: https://example.com/paper?utm_source=chatgpt.com"
@@ -1543,8 +1607,10 @@ class DocsMatchReality(unittest.TestCase):
         self.assertLessEqual(words, 1250, "README exceeded the two-page editorial brief")
         self.assertIn("RAID+", readme)
         self.assertIn("7,627", readme)
-        self.assertIn("The scoring formula and corpus results did not change; timings remain from v2.5.5",
-                      re.sub(r"\s+", " ", readme))
+        compact = re.sub(r"\s+", " ", readme)
+        self.assertIn("accuracy rose from 71.1% to 84.2%", compact)
+        self.assertIn("not human field accuracy", compact)
+        self.assertIn("29.4% higher median throughput than v2.5.7", compact)
         self.assertNotIn("Two independent LLMs", readme)
         self.assertNotIn("55/40", readme)
         self.assertNotIn("blind judges", readme.lower())
@@ -1782,6 +1848,50 @@ class SearchCorpus(unittest.TestCase):
             readme,
         )
 
+    def test_version_comparison_record_is_current_and_arithmetically_sound(self):
+        import hashlib
+        import statistics
+        record = json.loads((ROOT / "bench" / "version-comparison.json").read_text())
+        self.assertEqual(record["result_kind"], "interleaved_local_version_comparison")
+        version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
+        self.assertEqual(record["candidate"]["version"], version)
+        self.assertEqual(
+            record["candidate"]["slopscore_sha256"],
+            hashlib.sha256(SCORER.read_bytes()).hexdigest(),
+        )
+        search = {row["id"]: row["text"] for row in json.loads(
+            (ROOT / "bench" / "search-corpus" / "corpus.json").read_text()
+        )}
+        expected_text = {
+            "technical-postmortem": (CORPUS / "technical-postmortem.txt").read_text(),
+            "linkedin-lessons-01": search["linkedin-lessons-01"],
+            "personal-essay": (CORPUS / "personal-essay.txt").read_text(),
+        }
+        for name, text in expected_text.items():
+            self.assertEqual(
+                record["workload"]["inputs"][name]["sha256"],
+                hashlib.sha256(text.encode()).hexdigest(),
+            )
+        timing = record["timing_seconds"]
+        old = statistics.median(timing["v2.5.7"])
+        new = statistics.median(timing["v2.5.8"])
+        self.assertAlmostEqual(timing["median_v2.5.7"], old, places=4)
+        self.assertAlmostEqual(timing["median_v2.5.8"], new, places=4)
+        self.assertAlmostEqual(timing["median_speedup_pct"],
+                               round((old / new - 1) * 100, 2), places=2)
+        self.assertGreater(timing["median_speedup_pct"], 0)
+        documents = record["workload"]["documents_per_run"]
+        self.assertAlmostEqual(timing["documents_per_second_v2.5.7"],
+                               round(documents / old, 1), places=1)
+        self.assertAlmostEqual(timing["documents_per_second_v2.5.8"],
+                               round(documents / new, 1), places=1)
+        self.assertTrue(timing["candidate_faster_each_run"])
+        self.assertTrue(all(candidate < baseline for baseline, candidate in zip(
+            timing["v2.5.7"], timing["v2.5.8"]
+        )))
+        self.assertEqual(record["output_parity_without_new_rule"]
+                         ["complete_result_mismatches"], 0)
+
     def test_historical_judge_record_is_well_formed_and_linked(self):
         record = json.loads((ROOT / "bench" / "replication.json").read_text())
         totals = {method: record["run1"][method] + record["run2"][method]
@@ -1930,6 +2040,24 @@ class RaidPlusCorpusAudit(unittest.TestCase):
         self.assertIn("RAID+ audit: rate limited", error.getvalue())
         self.assertNotIn("Traceback", error.getvalue())
 
+    def test_fetch_retries_transient_server_errors(self):
+        import urllib.error
+        spec = importlib.util.spec_from_file_location(
+            "raid_plus_retry_test", self.ROOT / "audit.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        transient = urllib.error.HTTPError(
+            "https://example.invalid/rows", 502, "Bad Gateway", {}, None
+        )
+        response = io.StringIO('{"ok": true}')
+        with (mock.patch.object(module.urllib.request, "urlopen",
+                                side_effect=[transient, response]),
+              mock.patch.object(module.time, "sleep") as sleep):
+            self.assertEqual(module.fetch_json("https://example.invalid/rows", attempts=2),
+                             {"ok": True})
+        sleep.assert_called_once()
+
 
 class QualityCorpus(unittest.TestCase):
     """Blind slop-quality labels stay method-hidden, split-safe, and auditable."""
@@ -2062,7 +2190,11 @@ class FeatureAblation(unittest.TestCase):
         result = run([str(FEATURE_ABLATION)])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads((ROOT / "bench" / "feature-ablation" / "results.json").read_text())
-        self.assertTrue(report["deterministic_surface_ablation"]["exactly_unchanged"])
+        surface = report["deterministic_surface_ablation"]
+        self.assertFalse(surface["exactly_unchanged"])
+        self.assertGreater(surface["blind_quality_consensus_accuracy_candidate"],
+                           surface["blind_quality_consensus_accuracy_baseline"])
+        self.assertGreater(surface["accuracy_change_percentage_points"], 0)
         self.assertFalse(report["structured_contextual_research"]["field_accuracy"])
         self.assertIsNone(report["reason_labelled_retrieval"]["accuracy_result"])
         self.assertEqual(report["candidate"]["production_path"], "single")

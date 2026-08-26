@@ -25,6 +25,7 @@ ROWS = "https://datasets-server.huggingface.co/rows"
 GATE = 25.0
 PAGE_SIZE = 100
 PAGE_DELAY_SECONDS = 1.05
+VERSION = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
 
 
 def fetch_json(url, attempts=8):
@@ -32,7 +33,7 @@ def fetch_json(url, attempts=8):
         url,
         headers={
             "User-Agent": (
-                "ZeroSlop-RAID-Plus-audit/2.5.7 "
+                f"ZeroSlop-RAID-Plus-audit/{VERSION} "
                 "(+https://github.com/manavmishra/ZeroSlop)"
             )
         },
@@ -44,7 +45,7 @@ def fetch_json(url, attempts=8):
                 return json.load(response)
         except urllib.error.HTTPError as exc:
             error = exc
-            if exc.code != 429 or attempt + 1 == attempts:
+            if exc.code not in {429, 500, 502, 503, 504} or attempt + 1 == attempts:
                 break
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
@@ -186,7 +187,7 @@ def compute(pin, metadata, rows):
             "license": pin["license"],
         },
         "scorer": {
-            "version": "2.5.7",
+            "version": VERSION,
             "slopscore_sha256": hashlib.sha256(
                 (ROOT / "scripts" / "slopscore.py").read_bytes()
             ).hexdigest(),
@@ -243,7 +244,7 @@ def validate(result, pin):
     current_scorer_hash = hashlib.sha256(
         (ROOT / "scripts" / "slopscore.py").read_bytes()
     ).hexdigest()
-    if scorer.get("version") != "2.5.7" \
+    if scorer.get("version") != VERSION \
             or scorer.get("slopscore_sha256") != current_scorer_hash:
         raise ValueError("results.json does not match the current scorer")
 

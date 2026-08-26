@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.7"
+  version: "2.5.8"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -165,7 +165,7 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (279 weighted tells plus
+Every channel runs on every draft: the pattern meter (280 weighted tells plus
 a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
@@ -762,10 +762,10 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (104 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (105 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 279 weighted regexes because some tells need more than one.
+  release carries 280 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

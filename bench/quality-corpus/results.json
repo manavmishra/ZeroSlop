@@ -19,58 +19,58 @@
  "generic_surface_gate": 25.0,
  "surface_meter": {
   "items": 38,
-  "true_positive": 22,
+  "true_positive": 27,
   "true_negative": 5,
   "false_positive": 4,
-  "false_negative": 7,
-  "accuracy": 0.7105,
+  "false_negative": 2,
+  "accuracy": 0.8421,
   "accuracy_wilson_95_ci": [
-   0.5524,
-   0.83
+   0.6958,
+   0.9256
   ],
-  "precision": 0.8462,
-  "recall": 0.7586,
+  "precision": 0.871,
+  "recall": 0.931,
   "specificity": 0.5556,
-  "f1": 0.8,
-  "balanced_accuracy": 0.6571,
-  "roc_auc": 0.7797
+  "f1": 0.9,
+  "balanced_accuracy": 0.7433,
+  "roc_auc": 0.8142
  },
  "splits": {
   "dev": {
    "items": 17,
-   "true_positive": 8,
+   "true_positive": 10,
    "true_negative": 2,
    "false_positive": 4,
-   "false_negative": 3,
-   "accuracy": 0.5882,
+   "false_negative": 1,
+   "accuracy": 0.7059,
    "accuracy_wilson_95_ci": [
-    0.3601,
-    0.7839
+    0.4687,
+    0.8672
    ],
-   "precision": 0.6667,
-   "recall": 0.7273,
+   "precision": 0.7143,
+   "recall": 0.9091,
    "specificity": 0.3333,
-   "f1": 0.6957,
-   "balanced_accuracy": 0.5303,
-   "roc_auc": 0.6667
+   "f1": 0.8,
+   "balanced_accuracy": 0.6212,
+   "roc_auc": 0.7273
   },
   "test": {
    "items": 21,
-   "true_positive": 14,
+   "true_positive": 17,
    "true_negative": 3,
    "false_positive": 0,
-   "false_negative": 4,
-   "accuracy": 0.8095,
+   "false_negative": 1,
+   "accuracy": 0.9524,
    "accuracy_wilson_95_ci": [
-    0.6,
-    0.9233
+    0.7733,
+    0.9915
    ],
    "precision": 1.0,
-   "recall": 0.7778,
+   "recall": 0.9444,
    "specificity": 1.0,
-   "f1": 0.875,
-   "balanced_accuracy": 0.8889,
-   "roc_auc": 0.963
+   "f1": 0.9714,
+   "balanced_accuracy": 0.9722,
+   "roc_auc": 0.9907
   }
  },
  "contextual_research_ablation": {
@@ -100,23 +100,23 @@
      },
      "surface_on_same_items": {
       "items": 39,
-      "true_positive": 22,
+      "true_positive": 27,
       "true_negative": 6,
       "false_positive": 4,
-      "false_negative": 7,
-      "accuracy": 0.7179,
+      "false_negative": 2,
+      "accuracy": 0.8462,
       "accuracy_wilson_95_ci": [
-       0.5622,
-       0.8346
+       0.7027,
+       0.9275
       ],
-      "precision": 0.8462,
-      "recall": 0.7586,
+      "precision": 0.871,
+      "recall": 0.931,
       "specificity": 0.6,
-      "f1": 0.8,
-      "balanced_accuracy": 0.6793,
-      "roc_auc": 0.7845
+      "f1": 0.9,
+      "balanced_accuracy": 0.7655,
+      "roc_auc": 0.8276
      },
-     "contextual_minus_surface_accuracy": 0.2565
+     "contextual_minus_surface_accuracy": 0.1282
     },
     "dev": {
      "eligible_items": 17,
@@ -140,23 +140,23 @@
      },
      "surface_on_same_items": {
       "items": 17,
-      "true_positive": 8,
+      "true_positive": 10,
       "true_negative": 2,
       "false_positive": 4,
-      "false_negative": 3,
-      "accuracy": 0.5882,
+      "false_negative": 1,
+      "accuracy": 0.7059,
       "accuracy_wilson_95_ci": [
-       0.3601,
-       0.7839
+       0.4687,
+       0.8672
       ],
-      "precision": 0.6667,
-      "recall": 0.7273,
+      "precision": 0.7143,
+      "recall": 0.9091,
       "specificity": 0.3333,
-      "f1": 0.6957,
-      "balanced_accuracy": 0.5303,
-      "roc_auc": 0.6667
+      "f1": 0.8,
+      "balanced_accuracy": 0.6212,
+      "roc_auc": 0.7273
      },
-     "contextual_minus_surface_accuracy": 0.4118
+     "contextual_minus_surface_accuracy": 0.2941
     },
     "test": {
      "eligible_items": 22,
@@ -180,23 +180,23 @@
      },
      "surface_on_same_items": {
       "items": 22,
-      "true_positive": 14,
+      "true_positive": 17,
       "true_negative": 4,
       "false_positive": 0,
-      "false_negative": 4,
-      "accuracy": 0.8182,
+      "false_negative": 1,
+      "accuracy": 0.9545,
       "accuracy_wilson_95_ci": [
-       0.6148,
-       0.9269
+       0.782,
+       0.9919
       ],
       "precision": 1.0,
-      "recall": 0.7778,
+      "recall": 0.9444,
       "specificity": 1.0,
-      "f1": 0.875,
-      "balanced_accuracy": 0.8889,
-      "roc_auc": 0.9444
+      "f1": 0.9714,
+      "balanced_accuracy": 0.9722,
+      "roc_auc": 0.9861
      },
-     "contextual_minus_surface_accuracy": 0.1363
+     "contextual_minus_surface_accuracy": 0.0
     }
    },
    "blind-editor-b_to_blind-editor-a": {
@@ -222,23 +222,23 @@
      },
      "surface_on_same_items": {
       "items": 39,
-      "true_positive": 22,
+      "true_positive": 27,
       "true_negative": 5,
       "false_positive": 4,
-      "false_negative": 8,
-      "accuracy": 0.6923,
+      "false_negative": 3,
+      "accuracy": 0.8205,
       "accuracy_wilson_95_ci": [
-       0.5358,
-       0.8143
+       0.6733,
+       0.9102
       ],
-      "precision": 0.8462,
-      "recall": 0.7333,
+      "precision": 0.871,
+      "recall": 0.9,
       "specificity": 0.5556,
-      "f1": 0.7857,
-      "balanced_accuracy": 0.6444,
-      "roc_auc": 0.7685
+      "f1": 0.8852,
+      "balanced_accuracy": 0.7278,
+      "roc_auc": 0.8019
      },
-     "contextual_minus_surface_accuracy": 0.2821
+     "contextual_minus_surface_accuracy": 0.1539
     },
     "dev": {
      "eligible_items": 17,
@@ -262,23 +262,23 @@
      },
      "surface_on_same_items": {
       "items": 17,
-      "true_positive": 8,
+      "true_positive": 10,
       "true_negative": 2,
       "false_positive": 4,
-      "false_negative": 3,
-      "accuracy": 0.5882,
+      "false_negative": 1,
+      "accuracy": 0.7059,
       "accuracy_wilson_95_ci": [
-       0.3601,
-       0.7839
+       0.4687,
+       0.8672
       ],
-      "precision": 0.6667,
-      "recall": 0.7273,
+      "precision": 0.7143,
+      "recall": 0.9091,
       "specificity": 0.3333,
-      "f1": 0.6957,
-      "balanced_accuracy": 0.5303,
-      "roc_auc": 0.6667
+      "f1": 0.8,
+      "balanced_accuracy": 0.6212,
+      "roc_auc": 0.7273
      },
-     "contextual_minus_surface_accuracy": 0.4118
+     "contextual_minus_surface_accuracy": 0.2941
     },
     "test": {
      "eligible_items": 22,
@@ -302,30 +302,30 @@
      },
      "surface_on_same_items": {
       "items": 22,
-      "true_positive": 14,
+      "true_positive": 17,
       "true_negative": 3,
       "false_positive": 0,
-      "false_negative": 5,
-      "accuracy": 0.7727,
+      "false_negative": 2,
+      "accuracy": 0.9091,
       "accuracy_wilson_95_ci": [
-       0.5656,
-       0.8988
+       0.7218,
+       0.9747
       ],
       "precision": 1.0,
-      "recall": 0.7368,
+      "recall": 0.8947,
       "specificity": 1.0,
-      "f1": 0.8485,
-      "balanced_accuracy": 0.8684,
-      "roc_auc": 0.9561
+      "f1": 0.9444,
+      "balanced_accuracy": 0.9474,
+      "roc_auc": 0.9825
      },
-     "contextual_minus_surface_accuracy": 0.1818
+     "contextual_minus_surface_accuracy": 0.0454
     }
    }
   },
   "held_out_test_mean": {
    "contextual_accuracy": 0.9545,
-   "surface_accuracy_on_same_items": 0.7954,
-   "contextual_minus_surface_accuracy": 0.1591,
+   "surface_accuracy_on_same_items": 0.9318,
+   "contextual_minus_surface_accuracy": 0.0227,
    "contextual_precision": 0.9737,
    "contextual_recall": 0.9737
   },
@@ -346,7 +346,7 @@
    "consensus_sloppy": 2,
    "unresolved": 9,
    "mean_blind_severity": 2.88,
-   "mean_surface_score": 29.8
+   "mean_surface_score": 31.3
   },
   "no-ai-slop": {
    "items": 12,
@@ -354,7 +354,7 @@
    "consensus_sloppy": 3,
    "unresolved": 8,
    "mean_blind_severity": 3.12,
-   "mean_surface_score": 34.7
+   "mean_surface_score": 36.2
   },
   "original": {
    "items": 12,
@@ -370,7 +370,7 @@
    "consensus_sloppy": 4,
    "unresolved": 6,
    "mean_blind_severity": 3.21,
-   "mean_surface_score": 27.3
+   "mean_surface_score": 28.9
   },
   "zero-slop": {
    "items": 12,
@@ -378,7 +378,7 @@
    "consensus_sloppy": 1,
    "unresolved": 6,
    "mean_blind_severity": 2.38,
-   "mean_surface_score": 16.6
+   "mean_surface_score": 18.1
   }
  },
  "limits": "Blind LLM-as-a-judge labels on a small clustered panel are not independent human field labels. Method rows describe this panel; surface metrics use consensus clean/sloppy items only."

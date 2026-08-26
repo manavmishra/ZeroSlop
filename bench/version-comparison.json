@@ -1,0 +1,54 @@
+{
+ "result_kind": "interleaved_local_version_comparison",
+ "measured_at": "2026-08-26T05:46:18Z",
+ "environment": {
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "python": "3.9.6"
+ },
+ "baseline": {
+  "version": "2.5.7",
+  "commit": "a28fc2bb24715b59b6d0bd461b6e900c92cb9564",
+  "slopscore_sha256": "2be3faef033a8d59f6c8ddae75771f1088b94664e62a4f42912acf545cbb6496"
+ },
+ "candidate": {
+  "version": "2.5.8",
+  "slopscore_sha256": "b03d65df834e30cdc6cd524a1e7cc977b5ad62a370f5de56c30a95ae36ee851d"
+ },
+ "workload": {
+  "documents_per_run": 600,
+  "runs_per_version": 6,
+  "warm_cache": true,
+  "alternating_order": true,
+  "inputs": {
+   "technical-postmortem": {
+    "source": "data/corpus/must-not-flag/technical-postmortem.txt",
+    "sha256": "a2ade170a6eabcd185f3bac21cf58f9fde3d1f3e0ff87aadd279b35b7e9efd7b"
+   },
+   "linkedin-lessons-01": {
+    "source": "bench/search-corpus/corpus.json#linkedin-lessons-01",
+    "sha256": "ef0eb34b29c0cff39504f0469143f2d0d75252878e52311e4fb0df116506d35e"
+   },
+   "personal-essay": {
+    "source": "data/corpus/must-not-flag/personal-essay.txt",
+    "sha256": "d29ebbe5d04377e5d6423e5461b91f770058d88a6a71198b06c62caf294ea3ae"
+   }
+  }
+ },
+ "timing_seconds": {
+  "v2.5.7": [1.2478, 1.3932, 1.2406, 1.255, 1.2479, 1.2817],
+  "v2.5.8": [0.9787, 1.1023, 0.9648, 0.969, 0.9636, 0.9641],
+  "median_v2.5.7": 1.2514,
+  "median_v2.5.8": 0.9669,
+  "documents_per_second_v2.5.7": 479.4,
+  "documents_per_second_v2.5.8": 620.5,
+  "median_speedup_pct": 29.43,
+  "candidate_faster_each_run": true
+ },
+ "output_parity_without_new_rule": {
+  "documents": 280,
+  "complete_result_mismatches": 0,
+  "meaning": "The scanning optimization returned the complete v2.5.7 result on every tracked fixture when the new generic-benefit rule was removed."
+ },
+ "limits": "Local wall-clock comparison on one machine. It measures the local Python scorer, excludes AI-assistant time, and is not a service-level guarantee."
+}

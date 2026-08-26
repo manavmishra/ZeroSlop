@@ -15,7 +15,7 @@
   },
   "email": {
    "n": 3,
-   "mean_surface_score": 79.6,
+   "mean_surface_score": 79.7,
    "range": [
     39.0,
     100.0
@@ -117,8 +117,8 @@
   {
    "id": "email-outreach-01",
    "genre": "email",
-   "surface_score": 99.9,
-   "tell_hits": 6,
+   "surface_score": 100.0,
+   "tell_hits": 7,
    "burstiness": 0.591,
    "broetry": null,
    "caught": true
@@ -127,7 +127,7 @@
    "id": "email-launch-02",
    "genre": "email",
    "surface_score": 100.0,
-   "tell_hits": 6,
+   "tell_hits": 7,
    "burstiness": 0.472,
    "broetry": null,
    "caught": true

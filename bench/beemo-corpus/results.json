@@ -24,7 +24,7 @@
    "documents": 2187,
    "mean_surface_score": 25.3,
    "median_surface_score": 20.2,
-   "at_or_above_generic_gate": 599,
+   "at_or_above_generic_gate": 600,
    "at_or_above_generic_gate_pct": 27.4
   },
   "human_output": {
@@ -40,10 +40,10 @@
   "pairs": 2187,
   "mean_score_reduction": 4.9,
   "median_score_reduction": 0.6,
-  "lower_after_edit": 1142,
+  "lower_after_edit": 1141,
   "lower_after_edit_pct": 52.2,
   "unchanged": 349,
-  "higher_after_edit": 696
+  "higher_after_edit": 697
  },
  "categories": {
   "Closed QA": 205,

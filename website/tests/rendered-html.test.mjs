@@ -46,9 +46,9 @@ test("renders the Zero Slop landing page and its primary journey", async () => {
   assert.match(html, /Loop 1: Editorial delivery/i);
   assert.match(html, /Loop 2: learning from your edits/i);
   assert.match(html, /Fresh scores\. Public inputs\./i);
-  assert.match(html, /new RAID\+ corpus/i);
+  assert.match(html, /pinned RAID\+ corpus/i);
   assert.match(html, /All usable RAID\+ rows/i);
-  assert.match(html, /Re-scored with v2\.5\.5/i);
+  assert.match(html, /Re-scored with v2\.5\.8/i);
   assert.doesNotMatch(html, /historical study/i);
   assert.doesNotMatch(html, /saved decisions/i);
   assert.doesNotMatch(html, /55 total/i);

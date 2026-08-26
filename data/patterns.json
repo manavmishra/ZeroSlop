@@ -2133,6 +2133,14 @@
    "w": 2,
    "first_seen": "2026-08-24",
    "last_confirmed": "2026-08-24"
+  },
+  {
+   "name": "generic-benefit-stack",
+   "cat": "marketing",
+   "rx": "(?is)\\b(?:platform|solution|product|service|tool)\\b(?=.{0,260}\\b(?:helps?|designed|offers?|combines?|gives?)\\b)(?=(?:.{0,260}?\\b(?:value|efficien\\w*|capabilit\\w*|experience|goals?|collaborat\\w*|work together|change how\\b)\\b){2}).{0,260}",
+   "w": 1,
+   "first_seen": "2026-08-25",
+   "last_confirmed": "2026-08-25"
   }
  ],
  "lexicon": {

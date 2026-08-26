@@ -54,7 +54,7 @@
   ],
   [
    "email",
-   79.6
+   79.7
   ],
   [
    "linkedin",
@@ -80,15 +80,15 @@
   ],
   [
    "Zero Slop",
-   15.4
+   16.4
   ],
   [
    "no-ai-slop",
-   28.1
+   29.1
   ],
   [
    "humanizer",
-   24.3
+   25.3
   ],
   [
    "de-slop",
@@ -96,7 +96,7 @@
   ],
   [
    "stop-slop",
-   24.7
+   25.7
   ]
  ],
  "search_rewrite_passes": [
@@ -267,8 +267,8 @@
  ],
  "contextual_ablation": [
   [
-   "v2.4.3 surface meter",
-   79.54
+   "v2.5.8 local score",
+   93.18
   ],
   [
    "contextual research review",

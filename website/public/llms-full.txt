@@ -41,4 +41,4 @@ The same workflow can be used for LinkedIn posts, blog articles, strategy docume
 
 ## Current validation
 
-Version 2.5.5 rescored all 8,000 rows in the pinned RAID+ corpus, with 7,627 non-empty generations from four recent model families. RAID+ records model origin, not editorial quality, so those results describe score distributions rather than accuracy. The repository includes the aggregate results, source pin, current speed record, regression data, and limitations.
+Version 2.5.8 rescored all 8,000 rows in the pinned RAID+ corpus, with 7,627 non-empty generations from four recent model families. RAID+ records model origin, not editorial quality, so those results describe score distributions rather than accuracy. The repository includes the aggregate results, source pin, current speed record, regression data, and limitations.

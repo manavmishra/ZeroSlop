@@ -35,10 +35,12 @@ current corpus checks.
   not a Zero Slop result.
 - `performance.py`, `performance-results.json` — local scorer and learning-loop
   timings with the machine record, raw runs, medians, and CI ceilings.
+- `version-comparison.json` — the interleaved v2.5.7/v2.5.8 timing vectors,
+  exact input hashes, and optimization-parity result behind the release claim.
 - `quality-corpus/` — a method-hidden, source-grouped 72-item editorial-quality
   panel with two independent label files, unresolved disagreements, and split metrics.
-- `feature-ablation/` — the reproducible v2.4.3-versus-v2.5.1 comparison, including
-  exact production score-vector hashes and bounded local timing observations.
+- `feature-ablation/` — the reproducible v2.5.7-versus-v2.5.8 comparison, including
+  exact score-vector hashes and the frozen quality-panel result.
 - `corpus-registry.json`, `validate_corpus_registry.py` — the admission decision for
   every proposed external corpus. Label semantics, provenance, access terms, and the
   claim a corpus may support are explicit; authorship labels never stand in for

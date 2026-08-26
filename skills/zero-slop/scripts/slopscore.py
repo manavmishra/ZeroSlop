@@ -23,6 +23,7 @@ The phrase lists live beside this script in ../data/patterns.json and
 ../data/learned.json. Editing those files requires no code change.
 """
 import bisect
+import functools
 import json
 import math
 import re
@@ -155,6 +156,72 @@ SENT_SPLIT = re.compile(r"(?<=[.!?])[\")”’]?\s+(?=[A-Z“\"(0-9])")
 WORD = re.compile(r"[A-Za-z’']+")
 
 
+@functools.lru_cache(maxsize=1024)
+def _pattern_regex(rx, multiline):
+    """Compile a weighted pattern once without changing its match semantics."""
+    return re.compile(rx, re.I | (re.M if multiline else 0))
+
+
+@functools.lru_cache(maxsize=16)
+def _term_scan_plan(entries):
+    """Build a bounded, reusable first-character index for term scanning.
+
+    The previous implementation ran one full document scan per term. This plan
+    scans word starts once, then tests only terms that can begin there. Odd
+    private terms that do not start with a word character keep the old path.
+    """
+    buckets = {}
+    fallback = []
+    for order, (term, weight) in enumerate(entries):
+        if not weight:
+            continue
+        # Python's IGNORECASE has a few non-ASCII equivalences that ``casefold``
+        # does not map back to one character (İ/i is the common example). Keep
+        # those uncommon private terms on the reference path so indexing cannot
+        # silently miss a match.
+        if (term and term[0].isascii()
+                and (term[0].isalnum() or term[0] == "_")):
+            key = term[0].casefold()
+            buckets.setdefault(key, []).append(
+                (order, term, weight, re.compile(re.escape(term) + r"\w*", re.I))
+            )
+        else:
+            fallback.append(
+                (order, term, weight,
+                 re.compile(r"\b" + re.escape(term) + r"\w*", re.I))
+            )
+    groups = []
+    by_group = {}
+    for index, (key, rows) in enumerate(buckets.items()):
+        group = f"c{index}"
+        groups.append(f"(?P<{group}>{re.escape(key)})")
+        by_group[group] = rows
+    starter = re.compile(r"\b(?:" + "|".join(groups) + r")", re.I) if groups else None
+    return starter, by_group, tuple(fallback)
+
+
+def _term_candidates(text, terms):
+    """Return the old term-match vector with one document-wide starter scan."""
+    entries = tuple(terms.items())
+    starter, by_group, fallback = _term_scan_plan(entries)
+    found = []
+    if starter is not None:
+        for start_match in starter.finditer(text):
+            start = start_match.start()
+            for order, term, weight, pattern in by_group[start_match.lastgroup]:
+                match = pattern.match(text, start)
+                if match is not None:
+                    found.append((start, match.end(), order, term, weight,
+                                  match.group(0).lower()))
+    for order, term, weight, pattern in fallback:
+        for match in pattern.finditer(text):
+            found.append((match.start(), match.end(), order, term, weight,
+                          match.group(0).lower()))
+    found.sort(key=lambda row: (row[0], -row[1], row[2]))
+    return [(start, end, term, weight, quote)
+            for start, end, _, term, weight, quote in found]
+
+
 def strip_noise(text):
     text = re.sub(r"```.*?```", " ", text, flags=re.S)
     # Markdown table rules are layout syntax, not repeated dashes in prose.
@@ -258,7 +325,7 @@ def score_text(text, data, formal=False):
     for p in data["patterns"]:
         if not p.get("w"):
             continue
-        for m in re.finditer(p["rx"], text, re.I | (re.M if p.get("m") else 0)):
+        for m in _pattern_regex(p["rx"], bool(p.get("m"))).finditer(text):
             hits.append({
                 "cat": p["cat"], "name": p["name"], "w": p["w"],
                 "quote": m.group(0)[:90].strip(),
@@ -290,15 +357,8 @@ def score_text(text, data, formal=False):
                    and (term in rx.lower() or re.search(rx, matched, re.I))
                    for ps, pe, rx in pattern_spans)
 
-    candidates = []
-    for term, w in data["lexicon"].items():
-        if not w:
-            continue
-        for m in re.finditer(r"\b" + re.escape(term) + r"\w*", text, re.I):
-            if _pattern_owns(m.span(), term, m.group(0)):
-                continue
-            candidates.append((m.start(), m.end(), term, w, m.group(0).lower()))
-    candidates.sort(key=lambda c: (c[0], -c[1]))
+    candidates = [candidate for candidate in _term_candidates(text, data["lexicon"])
+                  if not _pattern_owns(candidate[:2], candidate[2], candidate[4])]
     last_end = 0
     for s, e, term, w, quote in candidates:
         if s < last_end:

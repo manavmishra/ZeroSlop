@@ -420,7 +420,7 @@ export default function Home() {
           <div className="proof-copy">
             <h2 id="proof-title">Fresh scores. Public inputs.</h2>
             <p>
-              Version 2.5.5 scored every usable row in the new RAID+ corpus and
+              Version 2.5.8 scored every usable row in the pinned RAID+ corpus and
               reran its current checks on the fixed 18-draft workflow comparison.
               The pinned inputs, aggregate results, and limits are in the repository.
               RAID+ records model origin, not editorial quality.
@@ -439,7 +439,7 @@ export default function Home() {
             <figure>
               <img
                 src="/bench-raid-plus.png"
-                alt="Mean Zero Slop writing scores for 7,627 non-empty RAID+ abstracts: DeepSeek V3 15.2, Gemini 3.1 Pro 18.9, Gemma 3 27B 24.2, and Llama 3.3 70B 26.9"
+                alt="Mean Zero Slop writing scores for 7,627 non-empty RAID+ abstracts: DeepSeek V3 14.5, Gemini 3.1 Pro 17.0, Gemma 3 27B 21.6, and Llama 3.3 70B 25.5"
                 width="1240"
                 height="374"
                 loading="lazy"
@@ -450,13 +450,13 @@ export default function Home() {
             <figure className="proof-secondary">
               <img
                 src="/bench-search-rewrites.png"
-                alt="Current writing scores on fixed rewrites of 18 drafts: Zero Slop 15.4, humanizer 24.3, stop-slop 24.7, no-ai-slop 28.5, and de-slop 54.3"
+                alt="Current writing scores on fixed rewrites of 18 drafts: Zero Slop 16.4, humanizer 25.3, stop-slop 25.7, no-ai-slop 29.1, and de-slop 52.3"
                 width="1240"
                 height="478"
                 loading="lazy"
                 decoding="async"
               />
-              <figcaption>Re-scored with v2.5.5; the preserved rewrites were not regenerated.</figcaption>
+              <figcaption>Re-scored with v2.5.8; the preserved rewrites were not regenerated.</figcaption>
             </figure>
           </div>
         </section>

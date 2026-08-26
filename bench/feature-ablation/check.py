@@ -44,13 +44,19 @@ def validate():
         raise ValueError("invalid feature-ablation root contract")
     count, digest = surface_hash()
     surface = data["deterministic_surface_ablation"]
+    quality = json.loads((ROOT / "bench" / "quality-corpus" / "results.json").read_text())
+    current_accuracy = quality["surface_meter"]["accuracy"]
+    baseline_accuracy = surface.get("blind_quality_consensus_accuracy_baseline")
     if (surface.get("documents") != count
             or surface.get("candidate_score_vector_sha256") != digest
-            or surface.get("baseline_score_vector_sha256") != digest
-            or surface.get("exactly_unchanged") is not True
-            or surface.get("accuracy_change_percentage_points") != 0.0):
+            or surface.get("exactly_unchanged") is not False
+            or surface.get("blind_quality_consensus_accuracy_candidate")
+            != current_accuracy
+            or not isinstance(baseline_accuracy, (int, float))
+            or current_accuracy <= baseline_accuracy
+            or surface.get("accuracy_change_percentage_points")
+            != round((current_accuracy - baseline_accuracy) * 100, 2)):
         raise ValueError("production-path surface ablation is stale")
-    quality = json.loads((ROOT / "bench" / "quality-corpus" / "results.json").read_text())
     observed = quality["contextual_research_ablation"]["held_out_test_mean"]
     research = data["structured_contextual_research"]
     if (research.get("held_out_test_accuracy") != observed["contextual_accuracy"]
@@ -62,6 +68,9 @@ def validate():
         raise ValueError("contextual research ablation is stale")
     if data.get("candidate", {}).get("production_path") != "single":
         raise ValueError("candidate must declare one production path")
+    version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
+    if data.get("candidate", {}).get("version") != version:
+        raise ValueError("candidate version is stale")
     retrieval = data["reason_labelled_retrieval"]
     if (retrieval.get("maximum_preferences") != 50000
             or retrieval.get("calibrated_probability") is not False
@@ -76,9 +85,11 @@ def main():
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, ValueError) as exc:
         print(f"feature ablation: {exc}", file=sys.stderr)
         return 2
-    print("feature ablation: production surface unchanged on 152 documents; "
+    surface = data["deterministic_surface_ablation"]
+    print(f"feature ablation: {surface['documents']} production-path documents; "
+          f"consensus-panel accuracy +{surface['accuracy_change_percentage_points']:.2f} pp; "
           f"contextual research +{data['structured_contextual_research']['accuracy_change_percentage_points']:.2f} pp "
-          "on the blind LLM panel (not field accuracy)")
+          "(LLM-rated panels, not field accuracy)")
     return 0
 
 
