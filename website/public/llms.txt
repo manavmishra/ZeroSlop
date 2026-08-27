@@ -8,7 +8,7 @@ Zero Slop is an open-source AI writing humanizer and anti-slop checker. It score
 - Full product reference: https://zero-slop.ai/llms-full.txt
 - Source and documentation: https://github.com/manavmishra/ZeroSlop
 - Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
-- Current version: 2.5.10
+- Current version: 2.6.1
 - License: MIT
 - Price: Free
 - Runtime: Standard-library Python scorer; no third-party packages required

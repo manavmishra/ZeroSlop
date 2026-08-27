@@ -5,6 +5,13 @@ import { gzipSync } from "node:zlib";
 
 const projectRoot = new URL("../", import.meta.url);
 
+// The page version used to be pinned as a literal here, which meant a release
+// could ship while this test still asserted the previous number. Read it from
+// the manifest the release actually bumps.
+const skillVersion = JSON.parse(
+  await readFile(new URL("../.codex-plugin/plugin.json", projectRoot), "utf8"),
+).version;
+
 async function render(pathname = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
@@ -50,7 +57,7 @@ test("renders the Zero Slop landing page and its primary journey", async () => {
   assert.match(html, /Fresh scores\. Public inputs\./i);
   assert.match(html, /pinned RAID\+ sample/i);
   assert.match(html, /All usable RAID\+ rows/i);
-  assert.match(html, /2\.5\.10/i);
+  assert.match(html, new RegExp(skillVersion.replace(/\./g, "\\.")), "the page does not show the shipped skill version");
   assert.match(html, /Fresh GPT-5\.4 rewrites/i);
   assert.doesNotMatch(html, /historical study/i);
   assert.doesNotMatch(html, /saved decisions/i);
