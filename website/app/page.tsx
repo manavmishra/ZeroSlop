@@ -352,6 +352,17 @@ export default function Home() {
               />
               <figcaption>Method names hidden and A/B order reshuffled between passes; a small LLM-reviewed comparison, not human field accuracy.</figcaption>
             </figure>
+            <figure className="proof-secondary">
+              <img
+                src="/competitor-capabilities.png"
+                alt="Documented capabilities across five open-source anti-slop projects at pinned commits, covering detection reporting, a numeric meter, fact checking, separate editorial gates, private learning, and obfuscation-resistant matching"
+                width="1240"
+                height="720"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Repository audit at pinned commits. It records documented features, not which tool writes better.</figcaption>
+            </figure>
           </div>
         </section>
 
