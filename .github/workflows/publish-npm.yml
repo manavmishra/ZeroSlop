@@ -1,0 +1,159 @@
+name: publish to npm
+
+# The registry version drifted three releases behind main because publishing was
+# a manual step someone had to remember. This makes the version in package.json
+# the trigger: bump it, merge, and the release goes out.
+#
+# Idempotent by construction. It asks the registry what exists before doing
+# anything, so re-running on an unchanged version is a no-op rather than an
+# error, and a failed run can simply be retried.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "SKILL.md"
+      - "references/**"
+      - "scripts/**"
+      - "data/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Required for npm provenance: the publish is signed with a short-lived
+  # OIDC token, so the registry can attest which workflow and commit built it.
+  id-token: write
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+
+      # A published version is close to permanent: npm restricts unpublishing
+      # after 72 hours. Everything below runs before the publish, never after.
+      - name: Versions must agree across every manifest
+        run: |
+          set -euo pipefail
+          pkg=$(node -p "require('./package.json').version")
+          skill=$(sed -n 's/^[[:space:]]*version:[[:space:]]*"\{0,1\}\([0-9.]*\)"\{0,1\}.*/\1/p' SKILL.md | head -1)
+          claude=$(node -p "require('./.claude-plugin/plugin.json').version")
+          codex=$(node -p "require('./.codex-plugin/plugin.json').version")
+          echo "package.json=$pkg SKILL.md=$skill claude=$claude codex=$codex"
+          for other in "$skill" "$claude" "$codex"; do
+            if [ "$other" != "$pkg" ]; then
+              echo "::error::version drift: package.json is $pkg but a manifest says $other"
+              exit 1
+            fi
+          done
+
+      - name: Tests must pass
+        run: |
+          python3 tests/test_all.py
+          python3 scripts/calibrate.py --selftest
+
+      # The npm tarball and the Claude Code plugin must ship the same runtime.
+      # If build_plugin.py's mirror has drifted from the files allowlist, the
+      # two install paths would deliver different skills.
+      - name: Plugin mirror must match the npm payload
+        run: |
+          set -euo pipefail
+          python3 scripts/build_plugin.py --check
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e '
+            const pack = require("/tmp/pack.json")[0];
+            const shipped = pack.files
+              .map((f) => f.path)
+              .filter((p) => /^(references|scripts|data)\//.test(p))
+              .sort();
+            const { execSync } = require("node:child_process");
+            const mirrored = execSync(
+              "cd skills/zero-slop && find references scripts data -type f",
+              { encoding: "utf8" },
+            ).trim().split("\n").sort();
+            const only = (a, b) => a.filter((x) => !b.includes(x));
+            const extra = only(shipped, mirrored);
+            const missing = only(mirrored, shipped);
+            if (extra.length || missing.length) {
+              console.error("npm payload differs from the plugin mirror");
+              if (extra.length) console.error("  only on npm:", extra);
+              if (missing.length) console.error("  only in mirror:", missing);
+              process.exit(1);
+            }
+            console.log(`payload matches the plugin mirror (${shipped.length} files)`);
+          '
+
+      # Maintainer-only release tooling must never reach installers. AGENTS.md
+      # makes this a contract; this is the enforcement.
+      - name: Maintainer tooling must not be in the tarball
+        run: |
+          set -euo pipefail
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e '
+            const banned = [
+              "scripts/contextual.py", "scripts/contextual-signals.md",
+              "references/contextual-signals.md", "scripts/build_plugin.py",
+              "scripts/build_bundle.py", "scripts/build_skill_zip.py",
+              "scripts/build_onepager_pdf.py", "scripts/check_svg.py",
+            ];
+            const files = require("/tmp/pack.json")[0].files.map((f) => f.path);
+            const leaked = banned.filter((b) => files.includes(b));
+            const voices = files.filter((f) => f.includes("voices/"));
+            if (leaked.length || voices.length) {
+              console.error("tarball contains files that must not ship:", [...leaked, ...voices]);
+              process.exit(1);
+            }
+            console.log("tarball is clean");
+          '
+
+      - name: Is this version already on the registry?
+        id: check
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          name=$(node -p "require('./package.json').name")
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "$name@$version is already published; nothing to do."
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "$name@$version is new and will be published."
+          fi
+
+      - name: Publish
+        if: steps.check.outputs.already == 'false'
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Confirm the registry serves it
+        if: steps.check.outputs.already == 'false'
+        run: |
+          set -euo pipefail
+          version="${{ steps.check.outputs.version }}"
+          for attempt in 1 2 3 4 5; do
+            if [ "$(npm view zero-slop version 2>/dev/null)" = "$version" ]; then
+              echo "registry now serves zero-slop@$version"
+              exit 0
+            fi
+            echo "attempt $attempt: registry has not caught up yet"
+            sleep 10
+          done
+          echo "::error::published but the registry still does not serve $version"
+          exit 1
