@@ -35,16 +35,17 @@ founder writing a launch post, a marketer shipping five things a week, a researc
 needs their paper to stay formal, an engineering team that wants slop to fail a check
 the way a bug does.
 
-## Seven roles, one workflow
+## Eight roles, one workflow
 
 The local scorer finds exact phrases and problems with rhythm, readability, and
 formatting. The AI assistant acts as interpreter, then rewriter. The local fact gate
 rejects versions that change names, numbers, quotations, links, code, tables, or
-document structure. Fresh AI passes
-act as the copy desk, then the read-aloud editor. Finally, local tools and the assistant
-share the verifier role, comparing the exact finished text with the source. These are seven
-roles, not seven models. Separating them stops the rewriter from certifying its own work
-and keeps late edits from bypassing the final checks.
+document structure. Fresh AI passes act as the copy desk, then the read-aloud editor.
+Local tools and the assistant share the verifier role, comparing the text with the source.
+A separate fresh-eyes finalizer reads that verified copy as a first-time reader. These are
+eight roles, not eight models. If the finalizer changes anything, the last four roles run
+again. Separating them stops the rewriter from certifying its own work and keeps late edits
+from bypassing the final checks.
 
 ## What makes it different
 
@@ -83,23 +84,13 @@ with a metadata-only version query. That query never sends the draft.
 
 ## What we tested
 
-Version 2.5.10 closes a structural blind spot: the balanced two-part contrast used as
-a formula. The meter read wording, rhythm, and formatting, so a draft could land the
-same rhetorical snap in every paragraph and still come back clear. Four new checks
-catch the forms that carry no "not this, but that" marker — a repeated give-you frame
-across a sentence break, "This is what X looks like", "No X had to decide; Y decided",
-and a wider set of "Here's the …" openers. On the draft that prompted the change the
-score moved from 13.0 to 59.0. All 18 known-human controls stayed clear, the Gettysburg
-Address and the Federalist among them, and one span the project had recorded as
-unreachable by any safe rule is now caught by one.
-
-Version 2.5.9 adds hidden-character and mixed-script normalization, broader AI-tool
-tracking residue, chat role-play actions, a cautious long-document check, and
-protection for structured material. Compared with v2.5.8, it changed none of 114
-frozen scores, kept all 18 known-human controls clean, and matched the 84.2 percent
-result on the 38-item LLM editorial panel. It caught all five new edge cases and
-blocked four tested classes of structured-document damage. A 12-run interleaved check
-measured 0.41 percent higher median throughput.
+Version 2.6.0 adds four narrow checks for reasoning artifacts, unsupported novelty,
+emotional flatness, and repetitive acknowledgments, plus the separate fresh-eyes
+finalizer. The local meter changed none of 114 frozen document scores, kept all 18
+known-human controls clear, matched the 84.2 percent result on the 38-item LLM
+editorial panel, and moved the four new edge cases from 9.5 to 30.7–65.1. Median
+throughput was 0.94 percent lower in the 12-run local comparison, within the project's
+five percent regression limit.
 
 We also regenerated four sets of rewrites on the same 18 drafts with GPT-5.4 and the
 same reasoning level and batch size. Zero Slop passed all of its checks on 18 of 18;
@@ -107,17 +98,23 @@ avoid-ai-writing passed 15, no-ai-slop 12, and humanizer 9. Because those checks
 to Zero Slop, this is a regression comparison, not independent human field accuracy.
 The incumbent's own meter preferred its own outputs.
 
+A separate two-pass review hid the method names and reshuffled A/B positions. The
+GPT-5.4 reviewer favored Zero Slop on 13 drafts and avoid-ai-writing on 3; 2 were
+unresolved. Both passes chose the same winner on 16 of 18 drafts. Zero Slop's source
+check passed all 18 of its rewrites and 16 of the incumbent's. This small LLM review
+does not establish human field accuracy or a universal ranking.
+
 The external distribution checks remain current. RAID+ contributed 7,627 usable
 generations from four model families; their mean writing scores ranged from 14.5 to
 25.5. In Beemo, raw model responses averaged 30.2, expert edits 25.3, and independent
 human answers 20.0. Neither dataset labels editorial quality. On one Apple silicon
-Mac, the local checker processed 1,000 documents in 2.0566 seconds, or 486.2 per
+Mac, the local checker processed 1,000 documents in 1.9741 seconds, or 506.6 per
 second. These are reproducible checks with stated limits, not universal claims.
 
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.10 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.6.0 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

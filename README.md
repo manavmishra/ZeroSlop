@@ -5,19 +5,18 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.10-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.6.0-72528F">
 </p>
 
 **Less slop, more pop.**
 
 Zero Slop is an Agent Skill, not an AI model. Claude, GPT, or another compatible
-model inside your AI assistant edits the draft. Zero Slop supplies the workflow
-and local checks that protect the source.
+model edits the draft; Zero Slop supplies the workflow and local source checks.
 
 Its 0-to-100 writing score points to flagged phrases, flat rhythm, dense passages,
-and distracting formatting. It does not estimate authorship. In the references,
-human writing scored from 9 to 21; unedited AI drafts averaged 77. These are
-comparisons, not universal cutoffs.
+and distracting formatting, not authorship. In the references,
+human writing scored from 9 to 21; unedited AI drafts averaged 77. These are not
+universal cutoffs.
 
 ![A scored sentence before and after editing](assets/demo.png)
 
@@ -52,14 +51,14 @@ npx skills add manavmishra/ZeroSlop --global
 ```
 
 ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md);
-Claude.ai users can download the ZIP.
+Claude.ai users can use the ZIP.
 
 ## How it works
 
-![Seven editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
+![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
-Seven roles form one workflow. They are jobs, not separate models. Your AI assistant
-handles the editorial judgment; local Python tools make the repeatable checks.
+Eight roles form one workflow. They are jobs, not separate models. Your AI assistant
+handles editorial judgment; local Python tools run repeatable checks.
 
 | Role | Who does it | What happens |
 |---|---|---|
@@ -69,14 +68,16 @@ handles the editorial judgment; local Python tools make the repeatable checks.
 | 4. Fact gate | Local tools | Rejects a version that changes names, numbers, quotations, links, code, tables, paths, or document structure. |
 | 5. Copy desk | Fresh AI pass | Corrects grammar, spelling, usage, and consistency in the actual deliverable. |
 | 6. Read-aloud editor | Fresh AI pass | Fixes stumbles, repetition, weak transitions, and awkward flow. |
-| 7. Verifier | Local tools and your AI assistant | Compares the finished text with the source for facts, meaning, qualifiers, voice, format, and structure. Any repair repeats both editorial passes and every final check. |
+| 7. Verifier | Local tools and your AI assistant | Compares the text with the source for facts, meaning, qualifiers, voice, format, and structure. |
+| 8. Fresh-eyes finalizer | New AI pass | Reads the verified text as a first-time reader and applies only safe last-mile polish. Any final polish restarts the final checks; the same text must return unchanged before release. |
 
-Research supports the checks, not the number seven. Studies find
+Research supports the checks, not the number eight. Studies find
 [predictable wording](https://arxiv.org/abs/2301.11305) and
 [overused vocabulary](https://arxiv.org/abs/2406.07016) in machine text, while
 authorship detectors can [misclassify non-native English](https://arxiv.org/abs/2304.02819).
-Zero Slop combines language checks with contextual editing and keeps the rewriter
-from certifying its own work. Local tools use only Python's standard library.
+Zero Slop combines language checks with contextual editing. Any finalizer change
+repeats the copy desk, read-aloud pass, verification, and fresh-eyes review. Local
+tools use only Python's standard library.
 
 ## Private learning from your edits
 
@@ -84,26 +85,25 @@ Learning starts only when you provide both the assistant's version and the versi
 you kept. Zero Slop never watches files, browsers, or publishing systems.
 
 A phrase needs removal from three unrelated pieces before it becomes a private rule;
-a single word needs five. Each rule must be new and safe on known-human text.
-Repeated fixes guide later edits; kept phrases can quiet a rule. The private file lives under
+a single word needs five. Each must be new and safe on known-human text. Repeated
+fixes guide later edits; kept phrases can quiet a rule. Private data lives under
 `$ZERO_SLOP_HOME`. This is human-in-the-loop online learning, not neural training or
 RLHF, and it never retrains Claude, GPT, or another model.
 
 A profile can exempt existing watchlist words when selected by name. It does not
 learn cadence, tone, or a complete writing style.
 
-## What v2.5.10 proved
+## What v2.6.0 changes
 
-The meter read wording, rhythm, and formatting — never the relation between two
-clauses. So a draft could land the same two-part contrast in every paragraph and still
-score clear: that family was anchored on a "not this, but that" marker, which these
-lack. Four new checks close it. The draft that prompted the change moved
-from 13.0 to 59.0 and all 18 known-human controls stayed clear: the rule turns
-on verb identity, which anaphora never satisfies. Fast-path hints leave them
-running at 0.46% higher median throughput. What no safe rule reaches, a mandatory
-register pass in `SKILL.md` owns.
+Four narrow checks now catch reasoning artifacts, unsupported novelty, emotional
+flatness, and repetitive acknowledgments that scored clear in v2.5.10. All 114 frozen
+document scores stayed unchanged, all 18 human controls stayed clear, and the four
+new cases moved from 9.5 to 30.7–65.1. Median throughput was 0.03% lower in the
+12-run comparison, a small local timing difference rather than a speed claim.
 
-v2.5.9 matched the 84.2% result on the 38-item editorial panel.
+The fresh-eyes role changes editing, not the local meter. It reads the verified copy
+as a first-time reader; any correction restarts every final check. v2.6.0 also
+matched the prior 84.2% result on the 38-item editorial panel.
 
 ### Fresh same-model editing replay
 
@@ -123,17 +123,17 @@ instruction file.
 
 ![Fresh same-model editing replay on 18 drafts](assets/bench-search-rewrites.png)
 
-Zero Slop leads this replay on its own checks. The incumbent's meter scored its own
-outputs best at 0.0, followed by humanizer at 0.6 and Zero Slop and no-ai-slop at
-1.6. It is not independent
-human field accuracy or a universal ranking.
+Those are Zero Slop's checks, so we also ran a two-pass, method-hidden comparison
+against the pinned incumbent. The GPT-5.4 reviewer favored Zero Slop on 13 drafts
+and avoid-ai-writing on 3; 2 were unresolved. The passes agreed on 16 of 18 winners.
+Zero Slop's source check passed 18/18 of its rewrites and 16/18 incumbent rewrites.
+Its mean writing score was 17.8 versus 17.0, so it did not win every measure.
 
-On the separate 38-item method-hidden LLM editorial panel, Zero Slop's fixed gate
-matched 84.2% of the consensus labels. The incumbent's published gate matched 31.6%;
-a threshold selected on the development split matched 33.3% on the held-out split.
-The panel is small, clustered, and labelled by two LLM editorial raters, not people
-in the field. The full audit keeps disagreements and limitations visible in
-[`bench/README.md`](bench/README.md).
+![Method-hidden editorial preference on 18 drafts](assets/bench-incumbent-hidden.png)
+
+This is a small LLM-reviewed regression study, not independent human field accuracy
+or a universal ranking. The packets, mappings, judgments, hashes, and limits are in
+[`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/).
 
 ### Current-model and speed checks
 
@@ -151,9 +151,9 @@ RAID+ records model origin, not editorial quality. In Beemo, raw model responses
 averaged 30.2, expert edits 25.3, and human answers 20.0; neither dataset has quality
 labels.
 
-On one Apple silicon Mac, the local checker processed 1,000 documents in 2.0566
-seconds, or 486.2 per second. A 15,201-word document took 0.3134 seconds; the slowest
-stress case took 2.4852 seconds. An 8,000-word learning pass took 0.1622 seconds.
+On one Apple silicon Mac, the local checker processed 1,000 documents in 1.9741
+seconds, or 506.6 per second. A 15,201-word document took 0.3151 seconds; the slowest
+stress case took 2.4636 seconds. An 8,000-word learning pass took 0.1635 seconds.
 These measurements exclude the AI assistant's editing time and are not service-level
 guarantees.
 
