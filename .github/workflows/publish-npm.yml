@@ -136,11 +136,16 @@ jobs:
             echo "$name@$version is new and will be published."
           fi
 
+      # Authenticated by npm Trusted Publishing, not a stored token. The OIDC
+      # token minted by id-token: write above is exchanged with the registry,
+      # which checks it against the trusted publisher configured on the package
+      # (repository manavmishra/ZeroSlop, workflow publish-npm.yml, no
+      # environment). Setting NODE_AUTH_TOKEN here would defeat that: setup-node
+      # writes an .npmrc referencing it, and an absent secret expands to an empty
+      # string, so npm fails with ENEEDAUTH before the exchange is attempted.
       - name: Publish
         if: steps.check.outputs.already == 'false'
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Confirm the registry serves it
         if: steps.check.outputs.already == 'false'
