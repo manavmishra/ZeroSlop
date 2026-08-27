@@ -3116,9 +3116,10 @@ class Diagram(unittest.TestCase):
     def test_engine_svg_names_both_operational_loops(self):
         src = (ROOT / "assets" / "engine.svg").read_text().lower()
         for phrase in (
-                "seven roles", "one editing workflow", "editing workflow · seven roles",
+                "eight roles", "one editing workflow", "editing workflow · eight roles",
                 "1 · scorer", "2 · interpreter", "3 · rewriter", "4 · fact gate",
                 "5 · copy desk", "6 · read aloud", "7 · verifier",
+                "8 · fresh eyes",
                 "learn from the writer", "compare", "protect",
                 "review", "4 · save", "reuse", "private writing rules",
                 "helpful past fixes", "no neural training", "separate release review",
