@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.6.0-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.6.1-72528F">
 </p>
 
 **Less slop, more pop.**
@@ -93,7 +93,7 @@ RLHF, and it never retrains Claude, GPT, or another model.
 A profile can exempt existing watchlist words when selected by name. It does not
 learn cadence, tone, or a complete writing style.
 
-## What v2.6.0 changes
+## What v2.6.1 changes
 
 Four narrow checks now catch reasoning artifacts, unsupported novelty, emotional
 flatness, and repetitive acknowledgments that scored clear in v2.5.10. All 114 frozen
@@ -102,7 +102,7 @@ new cases moved from 9.5 to 30.7–65.1. Median throughput was 0.03% lower in th
 12-run comparison, a small local timing difference rather than a speed claim.
 
 The fresh-eyes role changes editing, not the local meter. It reads the verified copy
-as a first-time reader; any correction restarts every final check. v2.6.0 also
+as a first-time reader; any correction restarts every final check. v2.6.1 also
 matched the prior 84.2% result on the 38-item editorial panel.
 
 ### Fresh same-model editing replay
@@ -151,9 +151,9 @@ RAID+ records model origin, not editorial quality. In Beemo, raw model responses
 averaged 30.2, expert edits 25.3, and human answers 20.0; neither dataset has quality
 labels.
 
-On one Apple silicon Mac, the local checker processed 1,000 documents in 1.9741
-seconds, or 506.6 per second. A 15,201-word document took 0.3151 seconds; the slowest
-stress case took 2.4636 seconds. An 8,000-word learning pass took 0.1635 seconds.
+On one Apple silicon Mac, the local checker processed 1,000 documents in 1.9958
+seconds, or 501.1 per second. A 15,201-word document took 0.3223 seconds; the slowest
+stress case took 2.4438 seconds. An 8,000-word learning pass took 0.1627 seconds.
 These measurements exclude the AI assistant's editing time and are not service-level
 guarantees.
 

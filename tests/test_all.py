@@ -458,6 +458,39 @@ class CLI(unittest.TestCase):
         self.assertFalse(any(hit["name"] == "normalization-bypass"
                              for hit in cyrillic["hits"]))
 
+    def test_width_and_space_obfuscation_cannot_hide_a_known_term(self):
+        """Full-width Latin and non-breaking spaces read as ordinary prose but
+        defeat a phrase rule, so both fold to ASCII before matching."""
+        data = slopscore.load_patterns()
+        plain = "We should delve into the intricate tapestry before launch."
+        fullwidth = "".join(
+            chr(ord(ch) + 0xFEE0) if 0x21 <= ord(ch) <= 0x7E else ch for ch in plain
+        )
+        for label, text in (
+            ("full-width", fullwidth),
+            ("no-break space", plain.replace(" ", "\u00a0")),
+            ("thin space", plain.replace(" ", "\u2009")),
+            ("ideographic space", plain.replace(" ", "\u3000")),
+        ):
+            with self.subTest(label):
+                names = {hit["name"] for hit in slopscore.score_text(text, data)["hits"]}
+                self.assertIn("delve", names)
+
+    def test_legitimate_unicode_spacing_and_width_stay_clean(self):
+        """Typographic spaces are ordinary in real prose and full-width Latin is
+        ordinary inside CJK, so neither may register as tampering."""
+        data = slopscore.load_patterns()
+        for label, text in (
+            ("measurement", "The rover travelled 10\u00a0km in 3\u00a0h across the crater."),
+            ("french", "Il a dit\u00a0: \u00ab nous partons demain\u00a0\u00bb, puis il est sorti."),
+            ("japanese", "\uff37\uff45\uff42\u30b5\u30a4\u30c8\u306e\uff35\uff32\uff2c\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002"),
+        ):
+            with self.subTest(label):
+                result = slopscore.score_text(text, data)
+                self.assertEqual(result["normalization"]["homoglyphs"], 0)
+                self.assertFalse(any(hit["name"] == "normalization-bypass"
+                                     for hit in result["hits"]))
+
     def test_normalization_artifact_requires_a_cluster(self):
         data = slopscore.load_patterns()
         one = slopscore.score_text(

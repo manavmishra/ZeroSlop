@@ -84,12 +84,14 @@ with a metadata-only version query. That query never sends the draft.
 
 ## What we tested
 
-Version 2.6.0 adds four narrow checks for reasoning artifacts, unsupported novelty,
+Version 2.6.1 adds four narrow checks for reasoning artifacts, unsupported novelty,
 emotional flatness, and repetitive acknowledgments, plus the separate fresh-eyes
-finalizer. The local meter changed none of 114 frozen document scores, kept all 18
+finalizer and a wider character-normalization pre-pass: full-width Latin and
+non-breaking spaces now fold to plain text before matching, so a phrase rule cannot
+be defeated by characters a reader cannot see. The local meter changed none of 114 frozen document scores, kept all 18
 known-human controls clear, matched the 84.2 percent result on the 38-item LLM
 editorial panel, and moved the four new edge cases from 9.5 to 30.7–65.1. Median
-throughput was 0.94 percent lower in the 12-run local comparison, within the project's
+throughput was 0.03 percent lower in the 12-run local comparison, within the project's
 five percent regression limit.
 
 We also regenerated four sets of rewrites on the same 18 drafts with GPT-5.4 and the
@@ -108,13 +110,13 @@ The external distribution checks remain current. RAID+ contributed 7,627 usable
 generations from four model families; their mean writing scores ranged from 14.5 to
 25.5. In Beemo, raw model responses averaged 30.2, expert edits 25.3, and independent
 human answers 20.0. Neither dataset labels editorial quality. On one Apple silicon
-Mac, the local checker processed 1,000 documents in 1.9741 seconds, or 506.6 per
+Mac, the local checker processed 1,000 documents in 1.9958 seconds, or 501.1 per
 second. These are reproducible checks with stated limits, not universal claims.
 
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.6.0 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.6.1 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

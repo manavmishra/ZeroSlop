@@ -167,8 +167,16 @@ WORD = re.compile(r"[A-Za-z’']+")
 # avoid-ai-writing, reviewed at commit 40328bd292bc682d46010a6f9ac2cdbf4fb4ceca.
 ZERO_WIDTH_RX = re.compile(r"[\u200b-\u200d\ufeff\u2060]")
 SUSPICIOUS_UNICODE_RX = re.compile(
-    r"[\u200b-\u200d\ufeff\u2060\u0370-\u03ff\u0400-\u04ff]"
+    r"[\u200b-\u200d\ufeff\u2060\u0370-\u03ff\u0400-\u04ff"
+    r"\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000\uff01-\uff5e]"
 )
+# A run of non-breaking or typographic spaces defeats a phrase rule as surely as
+# a zero-width joiner, and full-width Latin defeats it while still reading as
+# ordinary prose. Both are folded to ASCII for matching only; the draft the
+# writer gets back keeps its original characters.
+UNICODE_SPACE_RX = re.compile(r"[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]")
+FULLWIDTH_RX = re.compile(r"[\uff01-\uff5e]")
+CJK_RX = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]")
 MIXED_SCRIPT_WORD_RX = re.compile(r"[A-Za-z\u0370-\u03ff\u0400-\u04ff]+")
 LOOKALIKES = {
     "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "х": "x",
@@ -187,8 +195,20 @@ def normalize_for_detection(text):
     if text.isascii() or not SUSPICIOUS_UNICODE_RX.search(text):
         return text, {"zero_width": 0, "homoglyphs": 0}
     text, zero_width = ZERO_WIDTH_RX.subn("", text)
+    # Typographic spaces are ordinary in real prose, so they are folded for
+    # matching but never counted as evidence of tampering.
+    text = UNICODE_SPACE_RX.sub(" ", text)
+    fullwidth = 0
+    if FULLWIDTH_RX.search(text):
+        counts_as_evasion = not CJK_RX.search(text)
+        text, replaced = FULLWIDTH_RX.subn(
+            lambda m: chr(ord(m.group(0)) - 0xFEE0), text
+        )
+        # Full-width Latin inside CJK text is normal typography, not evasion.
+        if counts_as_evasion:
+            fullwidth = replaced
     if not re.search(r"[\u0370-\u03ff\u0400-\u04ff]", text):
-        return text, {"zero_width": zero_width, "homoglyphs": 0}
+        return text, {"zero_width": zero_width, "homoglyphs": fullwidth}
     homoglyphs = 0
 
     def mixed_word(match):
@@ -208,7 +228,7 @@ def normalize_for_detection(text):
 
     return MIXED_SCRIPT_WORD_RX.sub(mixed_word, text), {
         "zero_width": zero_width,
-        "homoglyphs": homoglyphs,
+        "homoglyphs": homoglyphs + fullwidth,
     }
 
 

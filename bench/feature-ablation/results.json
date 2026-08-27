@@ -5,7 +5,7 @@
   "commit": "a28fc2bb24715b59b6d0bd461b6e900c92cb9564"
  },
  "candidate": {
-  "version": "2.6.0",
+  "version": "2.6.1",
   "production_path": "single"
  },
  "deterministic_surface_ablation": {
