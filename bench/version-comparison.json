@@ -1,19 +1,19 @@
 {
  "result_kind": "interleaved_local_version_comparison",
- "measured_at": "2026-08-26T18:11:54+00:00",
+ "measured_at": "2026-08-27T00:02:59+00:00",
  "environment": {
   "platform": "Darwin",
   "architecture": "arm64",
   "python": "3.9.6"
  },
  "baseline": {
-  "version": "2.5.8",
-  "commit": "130f45c09f1f9ea110aa6eff8df57cef29f6eafb",
-  "slopscore_sha256": "b03d65df834e30cdc6cd524a1e7cc977b5ad62a370f5de56c30a95ae36ee851d"
+  "version": "2.5.9",
+  "commit": "01ff13c0803d7ecc7fa841cbbc65acd4c753e7fb",
+  "slopscore_sha256": "b8a7f5e5283a07a86ef191474b71d7727f5e29b1e8f7b53ef09d0f45e0a00793"
  },
  "candidate": {
-  "version": "2.5.9",
-  "slopscore_sha256": "b8a7f5e5283a07a86ef191474b71d7727f5e29b1e8f7b53ef09d0f45e0a00793"
+  "version": "2.5.10",
+  "slopscore_sha256": "1ba34f869f36d80f8cab34c9efc578346ea44acc912a2d64302e5a3033a9bc82"
  },
  "workload": {
   "documents_per_run": 600,
@@ -24,38 +24,38 @@
  },
  "timing_seconds": {
   "baseline": [
-   0.973,
-   0.9722,
-   0.977,
-   0.9804,
-   0.9778,
-   0.9657,
-   0.9574,
-   0.9647,
-   0.9689,
-   0.9736,
-   0.9728,
-   1.0484
+   1.141,
+   1.05,
+   1.1078,
+   1.0212,
+   1.0437,
+   1.0382,
+   1.0397,
+   1.1082,
+   0.9957,
+   0.9846,
+   0.9928,
+   0.9813
   ],
   "candidate": [
-   0.9661,
-   0.9656,
-   0.9716,
-   0.9733,
-   0.9737,
-   0.9824,
-   0.9578,
-   0.9796,
-   0.9663,
-   0.9697,
-   0.9682,
-   0.9673
+   1.1268,
+   1.0331,
+   1.1093,
+   1.1717,
+   1.0505,
+   1.0244,
+   1.0525,
+   1.0009,
+   1.0013,
+   0.9955,
+   1.0072,
+   1.0352
   ],
-  "median_baseline": 0.9729,
-  "median_candidate": 0.9689,
-  "documents_per_second_baseline": 616.7,
-  "documents_per_second_candidate": 619.2,
-  "median_speed_change_pct": 0.41
+  "median_baseline": 1.039,
+  "median_candidate": 1.0341,
+  "documents_per_second_baseline": 577.5,
+  "documents_per_second_candidate": 580.2,
+  "median_speed_change_pct": 0.46
  },
  "frozen_regression": {
   "score_changes": 0,
@@ -85,41 +85,41 @@
  },
  "new_adversarial_detection": {
   "zero_width_known_phrase": {
-   "baseline": 88.7,
+   "baseline": 99.3,
    "candidate": 99.3
   },
   "mixed_script_known_phrase": {
-   "baseline": 88.7,
+   "baseline": 99.9,
    "candidate": 99.9
   },
   "chat_roleplay_action": {
-   "baseline": 20.2,
+   "baseline": 93.6,
    "candidate": 93.6
   },
   "expanded_tool_tracker": {
-   "baseline": 9.5,
+   "baseline": 92.7,
    "candidate": 92.7
   },
   "long_low_word_variety": {
-   "baseline": 20.2,
+   "baseline": 22.9,
    "candidate": 22.9
   }
  },
  "new_structured_fidelity": {
   "fenced_code": {
-   "baseline_blocks": false,
+   "baseline_blocks": true,
    "candidate_blocks": true
   },
   "frontmatter": {
-   "baseline_blocks": false,
+   "baseline_blocks": true,
    "candidate_blocks": true
   },
   "inline_and_path": {
-   "baseline_blocks": false,
+   "baseline_blocks": true,
    "candidate_blocks": true
   },
   "heading_level": {
-   "baseline_blocks": false,
+   "baseline_blocks": true,
    "candidate_blocks": true
   }
  },

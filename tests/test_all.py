@@ -137,6 +137,53 @@ class Detector(unittest.TestCase):
                         if h["cat"] not in ("lexicon", "rider")]
                 self.assertTrue(hits, f"no pattern hit on: {s!r}")
 
+    UNMARKED_ANTITHESIS = [
+        # isocolon: one verb frame, both arguments swapped, no negation marker
+        ("Open weights let you adapt a model. An open stack lets you adapt "
+         "the machinery that created it.", "isocolon-ditransitive"),
+        ("Most AI-writing tools hand you a verdict. The slop score hands you "
+         "arithmetic.", "isocolon-ditransitive"),
+        ("The old plan gives you a number. The new one gives you a reason.",
+         "isocolon-ditransitive"),
+        # the stock closer
+        ("Ai2 argues for full openness as a principle. This is what that "
+         "principle looks like when it works.", "this-is-what-looks-like"),
+        # unmarked reversal — 'No X had to …; Y did'
+        ("No frontier lab had to decide the language was worth prioritizing. "
+         "Local researchers made that decision themselves.", "no-x-had-to"),
+        # significance scaffolding, one word outside the old closed noun set
+        ("Here's the detail that matters: the pipeline was open too.",
+         "performed-candor"),
+    ]
+
+    def test_unmarked_antithesis_is_caught(self):
+        """v2.5.10. Every 'contrast' pattern used to require a literal negation
+        token, so the same figure with no marker scored clean — four of them in
+        209 words returned 13.0/100. Each shape here must draw its own pattern."""
+        data = slopscore.load_patterns()
+        for text, expected in self.UNMARKED_ANTITHESIS:
+            with self.subTest(expected):
+                names = {h["name"] for h in slopscore.score_text(text, data)["hits"]}
+                self.assertIn(expected, names,
+                              f"{expected} did not fire on: {text!r}")
+
+    def test_isocolon_rule_turns_on_verb_identity(self):
+        """The safety property, pinned. `isocolon-ditransitive` fires only when
+        the SAME verb repeats across the sentence break. Rhetorical anaphora
+        repeats its frame with a different verb every time, which is exactly why
+        the rule cannot reach Gettysburg. Relaxing the backreference from the
+        verb to the frame was measured firing on gettysburg.txt, federalist.txt
+        and esl-engineer-email.txt. If this test fails, the rule was loosened."""
+        data = slopscore.load_patterns()
+        # different verb in the same frame -> must stay silent
+        for safe in ("This one gives you a number. That one hands you a reason.",
+                     "The first shows you the score. The second tells you why."):
+            with self.subTest(safe[:40]):
+                names = {h["name"] for h in slopscore.score_text(safe, data)["hits"]}
+                self.assertNotIn("isocolon-ditransitive", names,
+                                 "isocolon rule fired on a different-verb pair; "
+                                 "the backreference was relaxed off the verb")
+
     def test_performed_register_corpus_is_caught(self):
         """The 2026-08-24 expansion: performed-writer prose, an AI imitating a
         punchy human writer. Every span in the mechanical half of the corpus

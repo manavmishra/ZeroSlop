@@ -800,7 +800,10 @@ CAT_MEANING = {
     "lexicon":       ("overused AI-style word", "use the plain word"),
     "rider":         ("buzzword used as promotion", "use the plain word, or drop the hype around it"),
     "performed":     ("performed writer's voice", "say the thing plainly instead of performing it"),
-    "contrast":      ("repeated 'not this, but that' formula", "state the point directly"),
+    # Covers both the negation-marked family ("it's not X, it's Y") and the
+    # bare balanced pairs added in v2.5.10 (isocolon, "This is what X looks
+    # like", "No X had to…; Y did"), which carry no negation marker at all.
+    "contrast":      ("two-part contrast used as a formula", "state the claim once, plainly; at most one per piece"),
     "puffery":       ("unearned significance", "state the fact, let the reader judge"),
     "drama":         ("manufactured drama", "the fact should carry the weight"),
     "triads":        ("rule of three", "two items, or one, or a real list"),
@@ -1591,7 +1594,8 @@ def main():
               else "not checked for this kind of writing")))
     print("  What Zero Slop checked: word choice, formatting, sentence rhythm, "
           "readability, and tone" + (", plus page layout" if sh["measured"] else ""))
-    print("  What your AI assistant reviews: strength of the ideas, voice, and factual accuracy"
+    print("  What your AI assistant reviews: strength of the ideas, voice, factual accuracy, "
+          "and whether the writing is performing rather than saying"
           + ("" if sh["measured"] else "; page layout was not checked"))
     if explain:
         if unique_hits:
@@ -1600,7 +1604,12 @@ def main():
                 name, fix = CAT_MEANING.get(h["cat"], ("generic wording", "rewrite plainly"))
                 print(f"    {h['quote']!r} — {name}; {fix}")
         else:
+            # A clean pattern channel is the case where the register pass matters
+            # most, so this line must not read as "nothing left to do".
             print("\n  Flagged phrases: none. The remaining score comes from sentence rhythm and formatting.")
+            print("  This channel cannot see performed register — balanced two-part contrasts,")
+            print("  epigram cadence, announced significance. Run the register pass before")
+            print("  calling the draft clean.")
     if "--heatmap" in sys.argv or explain:
         for line in render_heatmap(text, data, formal=formal):
             print(line)

@@ -1,0 +1,1 @@
+Here's the detail that matters: the pipeline was open, not just the weights.

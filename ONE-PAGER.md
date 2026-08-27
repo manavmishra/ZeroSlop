@@ -83,6 +83,16 @@ with a metadata-only version query. That query never sends the draft.
 
 ## What we tested
 
+Version 2.5.10 closes a structural blind spot: the balanced two-part contrast used as
+a formula. The meter read wording, rhythm, and formatting, so a draft could land the
+same rhetorical snap in every paragraph and still come back clear. Four new checks
+catch the forms that carry no "not this, but that" marker — a repeated give-you frame
+across a sentence break, "This is what X looks like", "No X had to decide; Y decided",
+and a wider set of "Here's the …" openers. On the draft that prompted the change the
+score moved from 13.0 to 59.0. All 18 known-human controls stayed clear, the Gettysburg
+Address and the Federalist among them, and one span the project had recorded as
+unreachable by any safe rule is now caught by one.
+
 Version 2.5.9 adds hidden-character and mixed-script normalization, broader AI-tool
 tracking residue, chat role-play actions, a cautious long-document check, and
 protection for structured material. Compared with v2.5.8, it changed none of 114
@@ -107,7 +117,7 @@ second. These are reproducible checks with stated limits, not universal claims.
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.9 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.5.10 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

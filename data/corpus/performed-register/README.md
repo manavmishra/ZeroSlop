@@ -19,13 +19,23 @@ that motivated v2.5.6.
   silent again, so a pattern cannot be weakened or deleted without noticing.
 - `judgment/` — spans whose literal forms are legitimate in news, history,
   crime, or science writing, so no regex gates them safely: staccato
-  antithesis pairs ("Not perfect. Honest."), extended conceits (forensics,
+  antithesis pairs ("Not perfect. Honest."), bare subject swap ("Llama is
+  open-weights. Dolma releases the data."), extended conceits (forensics,
   courtroom, billing, recipe), chiasmus, one-word drama beats ("Fine."),
   jargon compression ("threshold cliff"), and campaign taglines ("the fight
   against slop" — rider-gated, silent without a marketing trigger). The
-  judgment pass in SKILL.md's diagnose and read-aloud briefs owns these; a
-  regex that would catch them fires on the must-not-flag corpus, which wins
-  every conflict.
+  performed-register pass in SKILL.md's diagnose and read-aloud briefs owns
+  these; a regex that would catch them fires on the must-not-flag corpus,
+  which wins every conflict.
+
+**Files move in both directions.** `judgment/` is a record of what no *current*
+safe rule reaches, not a permanent verdict. In v2.5.10 `verdict-arithmetic.txt`
+("Most AI-writing tools hand you a verdict. The slop score hands you
+arithmetic.") graduated to `mechanical/` when `isocolon-ditransitive` reached it
+without touching a single must-not-flag file. When that happens, move the file,
+add the dated line to `data/learned-log.md`, and say in the log what safety
+property made the rule admissible — for that one, a backreference pinned to the
+verb, which rhetorical anaphora never repeats.
 
 ## Rules
 

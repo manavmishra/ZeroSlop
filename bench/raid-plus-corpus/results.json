@@ -18,9 +18,9 @@
   "license": "MIT"
  },
  "scorer": {
-  "version": "2.5.9",
-  "slopscore_sha256": "b8a7f5e5283a07a86ef191474b71d7727f5e29b1e8f7b53ef09d0f45e0a00793",
-  "patterns_sha256": "b20393ce8e84abcfd4a4c4fa7f5209bb8c4f22db52e30da25a6e18448aca6853",
+  "version": "2.5.10",
+  "slopscore_sha256": "1ba34f869f36d80f8cab34c9efc578346ea44acc912a2d64302e5a3033a9bc82",
+  "patterns_sha256": "465f14bce035247f084b563380ba558c96c23abb057a6420b155f080cbba2682",
   "learned_sha256": "b423b1e3104788a6e206aec2212446c10ad474e6b946e2e2df44de7f00a9adc0",
   "generic_gate": 25.0,
   "formal_domains": [

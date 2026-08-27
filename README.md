@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.5.9-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.5.10-72528F">
 </p>
 
 **Less slop, more pop.**
@@ -92,17 +92,18 @@ RLHF, and it never retrains Claude, GPT, or another model.
 A profile can exempt existing watchlist words when selected by name. It does not
 learn cadence, tone, or a complete writing style.
 
-## What v2.5.9 proved
+## What v2.5.10 proved
 
-The release adds hidden-character and mixed-script normalization, broader AI-tool
-tracking residue, chat role-play actions, a cautious long-document check, and
-protection for code, front matter, tables, headings, and file paths. Against v2.5.8,
-it changed none of the 114 frozen document
-scores, kept all 18 known-human controls below the release gate, and matched the
-84.2% result on the 38-item editorial panel. It caught every new edge case in the
-version test and blocked all four tested classes of structured-document damage.
-The 12-run interleaved speed check measured 0.41% higher median throughput. This is
-why v2.5.9, rather than v2.5.8, is the recommended release.
+The meter read wording, rhythm, and formatting — never the relation between two
+clauses. So a draft could land the same two-part contrast in every paragraph and still
+score clear: that family was anchored on a "not this, but that" marker, which these
+lack. Four new checks close it. The draft that prompted the change moved
+from 13.0 to 59.0 and all 18 known-human controls stayed clear: the rule turns
+on verb identity, which anaphora never satisfies. Fast-path hints leave them
+running at 0.46% higher median throughput. What no safe rule reaches, a mandatory
+register pass in `SKILL.md` owns.
+
+v2.5.9 matched the 84.2% result on the 38-item editorial panel.
 
 ### Fresh same-model editing replay
 
@@ -124,8 +125,8 @@ instruction file.
 
 Zero Slop leads this replay on its own checks. The incumbent's meter scored its own
 outputs best at 0.0, followed by humanizer at 0.6 and Zero Slop and no-ai-slop at
-1.6. That cross-check is useful precisely because it exposes meter ownership. It is
-not independent human field accuracy or a universal ranking.
+1.6. It is not independent
+human field accuracy or a universal ranking.
 
 On the separate 38-item method-hidden LLM editorial panel, Zero Slop's fixed gate
 matched 84.2% of the consensus labels. The incumbent's published gate matched 31.6%;

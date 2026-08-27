@@ -3,7 +3,7 @@
 Canonical website: https://zero-slop.ai/
 Source and documentation: https://github.com/manavmishra/ZeroSlop
 Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
-Current version: 2.5.9
+Current version: 2.5.10
 
 ## Direct answer
 
@@ -41,5 +41,7 @@ The same workflow can be used for LinkedIn posts, blog articles, strategy docume
 - Account required by the scorer: No
 
 ## Current validation
+
+Version 2.5.10 closes a structural blind spot: the balanced two-part contrast used as a formula. Every pattern in the contrast family was anchored on a literal negation token, so the same figure with no marker scored clear — a 209-word draft carrying four of them returned 13.0 out of 100. Four new checks reach the unmarked forms: a give-you frame whose verb repeats across a sentence break, the closer "This is what X looks like", the unmarked reversal "No X had to decide; Y decided", and a wider set of "Here's the ..." openers. That draft now scores 59.0. The safety property is that the repeated verb must be identical, which rhetorical anaphora never does, so the Gettysburg Address and the Federalist stay silent. All 114 frozen document scores were unchanged, all 18 known-human controls stayed clear, blind-panel accuracy held at 84.21 percent, and median throughput rose 0.46 percent. What no safe rule reaches, a mandatory performed-register pass in the skill file now owns.
 
 Version 2.5.9 matched v2.5.8 on 114 frozen document scores and the 38-item editorial panel, kept all 18 known-human controls clean, added five tested edge-case checks and four classes of structured-document protection, and measured 0.41 percent higher median throughput in a 12-run interleaved comparison. In a fresh same-model replay on 18 drafts, Zero Slop passed 18 of 18 of its checks, avoid-ai-writing 15, no-ai-slop 12, and humanizer 9. Those checks belong to Zero Slop, so this is a regression comparison rather than independent human field accuracy. The repository includes hashes, aggregate results, source pins, and limitations.

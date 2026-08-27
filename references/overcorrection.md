@@ -56,6 +56,11 @@ experience — these alone are NOT evidence of AI:
 Require corroboration. A paragraph needs multiple independent tells, or a failed
 removal test, before it's slop.
 
+This governs lexical flags only. It does not apply to the performed-register
+family: register is a property of the piece, not of a paragraph. Four unmarked
+antithesis pairs across four paragraphs *is* the corroboration — each one is
+locally defensible, and the repetition is the whole finding.
+
 ## Signs of human writing — preserve on sight
 
 When a draft shows these, protect them through the rewrite; deleting them is

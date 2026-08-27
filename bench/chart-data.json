@@ -20,7 +20,7 @@
  "detector_panel": [
   [
    "original drafts",
-   76.0
+   76.5
   ],
   [
    "isatimur/de-slop",
@@ -44,7 +44,7 @@
   ],
   [
    "Zero Slop",
-   10.6
+   10.8
   ]
  ],
  "search_corpus": [
@@ -259,7 +259,7 @@
  ],
  "contextual_ablation": [
   [
-   "v2.5.9 local score",
+   "v2.5.10 local score",
    93.18
   ],
   [

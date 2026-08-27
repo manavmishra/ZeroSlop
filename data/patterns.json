@@ -157,7 +157,7 @@
   {
    "name": "performed-candor",
    "cat": "performed",
-   "rx": "\\b(?:let(?:(?:'|\u2019)s| us) be (?:honest|real|clear)|here(?:(?:'|\u2019)s| is) the (?:thing|truth|kicker|deal|catch)|i(?:'|\u2019)ll be honest|the (?:uncomfortable|hard) truth is|truth be told|no fluff|real talk|not gonna lie|if i(?:'|\u2019)m being honest|let me be (?:crystal |perfectly )?clear)\\b",
+   "rx": "\\b(?:let(?:(?:'|\u2019)s| us) be (?:honest|real|clear)|here(?:(?:'|\u2019)s| is) the (?:thing|truth|kicker|deal|catch|detail|part|wrinkle|nuance|upshot|punchline|rub)|i(?:'|\u2019)ll be honest|the (?:uncomfortable|hard) truth is|truth be told|no fluff|real talk|not gonna lie|if i(?:'|\u2019)m being honest|let me be (?:crystal |perfectly )?clear)\\b",
    "w": 4,
    "first_seen": "2026-08-03",
    "last_confirmed": "2026-08-15"
@@ -522,6 +522,33 @@
    "w": 3.5,
    "first_seen": "2026-08-14",
    "last_confirmed": "2026-08-14"
+  },
+  {
+   "name": "isocolon-ditransitive",
+   "cat": "contrast",
+   "rx": "\\b(let|give|hand|show|tell|offer|teach|buy|cost|earn|save|bring|send|win)s? you\\b[^.!?]{0,70}[.!?]\\s+[^.!?]{0,70}\\b\\1s? you\\b",
+   "hints": ["you"],
+   "w": 4.5,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26"
+  },
+  {
+   "name": "this-is-what-looks-like",
+   "cat": "contrast",
+   "rx": "(?:^|[.!?]\\s+|\\n)(?:this|that) is what [\\w '\u2019-]{2,40} looks like\\b",
+   "hints": ["looks like"],
+   "w": 4,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26"
+  },
+  {
+   "name": "no-x-had-to",
+   "cat": "contrast",
+   "rx": "(?:^|[.!?]\\s+|\\n)No [\\w '\u2019-]{2,40} (?:had to|needed to|has to|ever) [\\w '\u2019-]{2,60}\\.\\s+[\\w '\u2019-]{2,40} (?:did|made|chose|decided|built|released|shipped|published)\\b",
+   "hints": ["had to", "needed to", "has to", "ever"],
+   "w": 4,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26"
   },
   {
    "name": "not-the-but-the",

@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.5.9"
+  version: "2.5.10"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -65,8 +65,10 @@ citations, and the ladder below orders the signals by measured strength.
 3. **No over-correction.** Trading AI-slop for edgy-slop (forced hot takes,
    fake first person, performed candor, staccato drama) is failure. Read
    `references/overcorrection.md` before heavy rewrites.
-4. **Idempotence.** Text that already reads human returns unchanged. The best
-   edit is often small.
+4. **Idempotence.** Text that already reads human returns unchanged. "Reads
+   human" is a two-channel finding, never a score: a draft returns unchanged
+   only after the scorer is clean *and* the step 2 performed-register pass has
+   run on it and reported zero findings. The best edit is often small.
 5. **Honest use.** This skill improves writing quality and voice. Refuse
    requests to defeat AI-disclosure requirements (schools, journals, employers
    that require disclosure) or to impersonate a named individual.
@@ -84,6 +86,13 @@ citations, and the ladder below orders the signals by measured strength.
    or the accurate product name when known; otherwise say "your AI assistant."
    Never guess. Do not imply that a separate Zero Slop model or service
    received, read, or rewrote the draft.
+8. **A clean score is not a completed review.** The scorer sees only the
+   lexically anchored subset of the tells. Every draft gets the
+   performed-register pass in step 2 regardless of what the meter says, and
+   that pass reports its counts — including zero — in the step 8 summary. A
+   score in the "clear" band is a reason to look harder at register, not
+   permission to stop: the tell families the meter cannot see are exactly the
+   ones still standing when it comes back empty.
 
 ## Seven roles, one pipeline
 
@@ -191,7 +200,7 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (283 weighted tells plus
+Every channel runs on every draft: the pattern meter (286 weighted tells plus
 a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 long-form word variety, followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
@@ -315,24 +324,44 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   "the version we chose," or "the text you receive." Keep genuine technical terms
   when the audience needs them; the problem is leaked process jargon, not jargon
   itself.
-- **Performed-writer register:** flag prose performing "punchy human writer" —
-  theatrical framing of an ordinary process ("we hired an adversary"), epigram
-  or aphorism cadence where a plain statement belongs, staccato antithesis
-  pairs ("Not perfect. Honest.", "Slop isn't a vibe. It's measurable."), a
-  metaphor flourish or extended conceit standing in for the plain statement
-  ("the other half lands on the sender's name", courtroom, forensics, billing,
-  and recipe conceits), one-word drama beats ("Fine." between claims),
-  hyperbole universals ("nothing on earth", "in history"), slang-cute idioms
-  ("has receipts", "vibe check"), jargon compression (invented compound terms
-  like "threshold cliff" where the fix is unpacking, not a synonym), and cute
-  meta-taglines or campaign framing ("the fight against X", "a meter you can
-  argue with"). The scorer catches only the mechanical subset; judge the
-  register itself, sentence by sentence —
-  `data/corpus/performed-register/judgment/` holds the human-flagged spans no
-  regex gates safely. These are the meter-side twins of the edgy-slop
-  catalogue in `references/overcorrection.md`, and the same caution applies in
-  reverse: "the fight against" and plain superlatives are legitimate in news,
-  history, and civic prose — flag the performance, not the phrase.
+- **Performed-register pass — run it on every draft, including one that scored
+  clean.** Prose performing "punchy human writer" is the family the meter sees
+  worst. Walk the draft sentence by sentence and *count*. Report the counts in
+  step 8 even when they are zero.
+
+  1. **Antithesis pairs.** Two balanced sentences, the second landing the
+     twist. **Do not look for a negation marker — most of this family carries
+     none.** Count all four shapes:
+     - marked — "Not perfect. Honest."
+     - bare subject swap — "Llama is open-weights. Dolma releases the data."
+     - isocolon, one verb frame with both arguments swapped — "Open weights let
+       you adapt a model. An open stack lets you adapt the machinery that
+       created it."
+     - unmarked reversal — "No frontier lab had to decide. Thai researchers
+       made that call themselves."
+
+     **Budget: one per piece.** Two is a finding. Three or more under 500 words
+     is not a device, it is the register, and the draft fails this check
+     whatever it scored.
+  2. **Significance scaffolding.** A sentence announcing that a point matters
+     instead of delivering it — "Here's the detail that matters:", "This is
+     what that principle looks like when it works." Budget: zero.
+  3. **The rest of the catalogue**, one item per line: theatrical framing of an
+     ordinary process ("we hired an adversary"); epigram cadence where a plain
+     statement belongs; extended conceit standing in for the plain statement
+     ("the other half lands on the sender's name" — courtroom, forensics,
+     billing, recipe); one-word drama beats ("Fine." between claims); hyperbole
+     universals ("nothing on earth"); slang-cute idioms ("has receipts", "vibe
+     check"); jargon compression ("threshold cliff", where the fix is
+     unpacking, not a synonym); cute meta-taglines ("the fight against X").
+
+  Read `data/corpus/performed-register/judgment/` once per session before this
+  pass. Those spans are its fixture list, not a footnote: most carry no marker,
+  and every one scored clean. The mechanical half is what the meter already
+  catches; this pass owns the rest. These are the meter-side twins of the
+  edgy-slop catalogue in `references/overcorrection.md`, and the same caution
+  applies in reverse: "the fight against" and plain superlatives are legitimate
+  in news, history, and civic prose — flag the performance, not the phrase.
 - **Statistics cohesion:** a validation or results passage that piles several
   datasets or tests into one paragraph reads as a wall of numbers. Give each
   test its own paragraph that opens with what the test checks in plain words
@@ -361,7 +390,12 @@ Start with a preservation decision. Mark each passage **keep**, **repair**,
 **cut**, or **rebuild**. A strong human sentence stays verbatim; a small defect
 gets a small repair. The ladder below is a ceiling on available intervention,
 not a quota to rewrite every line. If measurement and diagnosis find no material
-problem, return the draft unchanged and skip candidate generation.
+problem, skip candidate generation — but not the rest of the pipeline. An
+unchanged draft still goes through the read-aloud pass (step 6) and the verifier
+(step 7); "no rewrite" is a conclusion those passes reach, never a reason to skip
+them. Name which channel was clean. A clean scorer alone never satisfies this
+condition — the performed-register pass in step 2 must also have run and come
+back empty.
 
 Run the ladder as two separate passes with different mindsets — benchmarking
 showed a strip-then-build sequence beats one do-everything rewrite, because
@@ -469,6 +503,11 @@ Re-run the local tools. A version clears the fact gate only when ALL hold:
   noun-phrase lists, long-word pileups, and sentences of 38 words or more are
   measurable warning signs. The verifier still decides whether the prose is
   actually easy to follow in context.
+- register: the performed-register pass has run on this exact text and its
+  counts are within budget — at most one antithesis pair, zero
+  significance-scaffolding sentences, at most one extended metaphor. This
+  criterion has no script. It fails on the reviewer's count, and a writing
+  score under 25 does not satisfy it.
 
 ### 5. Copy desk — mechanics and line editing
 
@@ -503,7 +542,8 @@ flag any ambiguity that cannot be fixed without guessing. Read and follow
 The read-aloud editor handles what the scorer and copy desk cannot: a sentence
 that makes the reader stumble, a cold transition, performed candor stacked three
 deep, a paragraph performing punchy-writer register (theatrical framing, epigram
-cadence, hyperbole, cute meta-taglines — the named check from the diagnose step),
+cadence, antithesis pairs, announced significance, hyperbole, cute meta-taglines —
+the performed-register pass from the diagnose step, re-run here),
 one word drummed twice in a breath, or a list overloaded into one sentence.
 Use a dedicated fresh-eyes editor when the harness supports subagents; otherwise
 perform a separate, role-isolated pass. Return the corrected text, not a list of
@@ -531,6 +571,11 @@ format, and non-prose structure. Apply these contextual checks too:
   and no hedging into mush.
 - **Ease of reading.** A smart first-time reader should follow each sentence on
   the first pass. A mechanically clean score does not excuse exhausting prose.
+- **Performed register.** Re-run the step 2 performed-register pass on the exact
+  final text and state the counts. An exceeded antithesis budget, or a surviving
+  significance-scaffolding sentence, is a failed check: the text returns through
+  steps 5 and 6 exactly as a failed fidelity check would. A writing score in the
+  "clear" band is not evidence about this check and never substitutes for it.
 - **Form and consistency.** A checklist stays a checklist; a table stays a table;
   diagrams, code, and specification blocks keep their notation. Running text must
   read as prose. The whole document uses one coherent register, and every
@@ -623,12 +668,18 @@ same fields as plain lines where tables don't render):
 | Sentence variety                     | natural         | natural     |
 | Readability                          | needs work      | clear       |
 | How easy the wording was to guess    | 67/100          | 33/100      |
+| Two-part contrasts / announcements   | 4 / 2           | 1 / 0       |
 | Word count                           | 254             | 217         |
 Result: Passed Zero Slop's checks. All 12 tracked facts remain; nothing new was added.
 Zero Slop checked word choice, formatting, sentence rhythm, readability, tone, layout,
 and how predictable the wording was. Your AI assistant also reviewed the ideas, voice,
-facts, meaning, and structure.
+facts, meaning, structure, and whether the writing is performing rather than saying.
 ```
+
+The "two-part contrasts / announcements" row is the performed-register count from
+step 2. **Print it even when both numbers are zero**, and print it on a draft that
+scored clean. It is the only evidence that the pass ran; a report without it is a
+report that skipped it.
 
 **Never print "Passed" without explaining what passed.** The number covers the
 writing patterns the local check can count. It does not decide whether the ideas
@@ -795,10 +846,10 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (105 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (107 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 283 weighted regexes because some tells need more than one.
+  release carries 286 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,
@@ -842,7 +893,7 @@ the author, which is the point: when specifics are missing, ask for a real one
 
 # The Tell Taxonomy
 
-A hundred and five tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and seven tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -955,6 +1006,8 @@ choice. See `evidence.md` for the study, limitations, and adoption decision.
 | Hyperbole universals: "nothing on earth", "on the planet", "in history", "known to man" | State the actual scope; the honest comparison is smaller and stronger |
 | Cute meta-taglines and campaign framing: "a meter you can argue with", "the fight against X" as a slogan | Describe the thing; "posts about writing quality" beats a campaign poster. "The fight against" is real usage in history and civic prose — flag the marketing register, not the phrase |
 | Staccato antithesis: two short balanced sentences, the second landing the twist — "Not perfect. Honest.", "Slop isn't a vibe. It's measurable.", "The draft was cheap. The signal it sent was not." | One plain sentence with the claim; at most one antithesis per piece |
+| Unmarked antithesis: the same figure with no negation marker at all, so the whole "not X, it's Y" family walks past it. Four shapes — bare subject swap ("Llama is open-weights. Dolma releases the data."); isocolon, one verb frame with both arguments swapped ("Open weights let you adapt a model. An open stack lets you adapt the machinery that created it."); the stock closer ("Ai2 argues for a principle. This is what that principle looks like."); unmarked reversal ("No frontier lab had to decide. Thai researchers made that call themselves.") | State the claim once, plainly. The meter now catches the last three (`isocolon-ditransitive`, `this-is-what-looks-like`, `no-x-had-to`); bare subject swap stays a judgment call. **Count them** — one is a device, three in a short piece is the register |
+| Significance scaffolding: a sentence announcing that a point matters instead of delivering it — "Here's the detail that matters:", "This is what that principle looks like when it works." | Delete the announcement and keep the point. Budget: zero |
 | Extended conceit: a process or abstraction dressed as physical drama — billing ("the bill lands on reputation", "gets billed to a reader"), courtroom ("never allowed to convict"), forensics ("rhythm leaves prints"), machinery ("opens the hood"), recipe ("has four ingredients") | At most one metaphor per piece, then plain language; name the actual mechanism |
 | Vibe-slang: "just a vibe", "vibe check", "argue with vibes", "has receipts" | The plain word: impression, judgment, evidence |
 | One-word drama beat: "Fine." dropped between claims as a rhythm device | Cut it or fold it into the sentence it interrupts |
@@ -967,13 +1020,28 @@ same costume seen at detection time instead of rewrite time. The scorer
 catches the mechanical subset (`hired-adversary`, `turns-out-payoff`,
 `has-receipts`, `hyperbole-universal`, `argue-with-artifact`,
 `vibe-register`, `where-x-lives`, `billed-conceit`, `on-the-tin`,
-`minding-own-business`, `economics-brutal`, `opens-the-hood`, and the
-rider-gated "fight against"); epigram cadence, staccato antithesis, most
-conceits, jargon compression, and tagline register need the judgment pass,
-because their literal forms are legitimate in news, history, crime, and
-civic writing. The human-flagged spans that motivated the family live in
+`minding-own-business`, `economics-brutal`, `opens-the-hood`, the
+rider-gated "fight against", and — since v2.5.10 — three of the four unmarked
+antithesis shapes: `isocolon-ditransitive`, `this-is-what-looks-like`, and
+`no-x-had-to`. Epigram cadence, marked staccato antithesis, bare subject swap,
+most conceits, jargon compression, and tagline register still need the
+performed-register pass, because their literal forms are legitimate in news,
+history, crime, and civic writing.
+
+`isocolon-ditransitive` is worth reading closely, because it marks the boundary
+between what a rule can safely reach and what it cannot. It fires only when the
+**same verb** is repeated in a give-you frame across a sentence break. That
+identity requirement is the whole safety property: rhetorical anaphora repeats
+its frame with a *different* verb every time — "we can not dedicate, we can not
+consecrate, we can not hallow" — so the rule cannot touch it. Relaxing the
+backreference from the verb to the frame was tested and fires on the Gettysburg
+Address, the Federalist, and an ESL engineer's email. Do not relax it.
+
+The human-flagged spans that motivated the family live in
 `data/corpus/performed-register/` — the mechanical half is regression-tested,
-the judgment half is the read-aloud pass's fixture list.
+the judgment half is the performed-register pass's fixture list. Files move
+between the two halves in both directions: `verdict-arithmetic.txt` graduated
+from judgment to mechanical in v2.5.10 when a safe rule finally reached it.
 
 ## 4. Punctuation & formatting
 
@@ -1384,6 +1452,11 @@ experience — these alone are NOT evidence of AI:
 
 Require corroboration. A paragraph needs multiple independent tells, or a failed
 removal test, before it's slop.
+
+This governs lexical flags only. It does not apply to the performed-register
+family: register is a property of the piece, not of a paragraph. Four unmarked
+antithesis pairs across four paragraphs *is* the corroboration — each one is
+locally defensible, and the repetition is the whole finding.
 
 ## Signs of human writing — preserve on sight
 

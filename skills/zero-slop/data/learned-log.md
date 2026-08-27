@@ -353,3 +353,29 @@ example that motivated it.
   did not fire on the 38-item editorial panel; they remain unshipped. Frozen
   editorial metrics were unchanged, 12/12 known-human files stayed below the
   gate, and the adversarial fixtures moved from missed to caught.
+- 2026-08-26 — v2.5.10 unmarked-antithesis gap. A 209-word draft with four
+  antithesis pairs, one per paragraph, scored 13.0/100 "clear" with zero flagged
+  phrases. Root cause: all 17 `contrast` patterns were anchored on a literal
+  negation token (`not`, `n't`, `never`, `won't`), so the same figure with no
+  marker was unreachable, and the pairs' short-then-long cadence *raised*
+  burstiness from 0.332 to 0.527 — the tell paid off the channel built to catch
+  machine cadence, the failure mode already documented for broetry. Added three
+  patterns and widened one: `isocolon-ditransitive` (a give-you frame whose verb
+  repeats across a sentence break), `this-is-what-looks-like`,
+  `no-x-had-to`, and eight nouns on `performed-candor` so "Here's the detail
+  that matters" is caught. The draft moved 13.0 → 59.0.
+  `isocolon-ditransitive` is the first pattern to reach a figure rather than a
+  phrase; its safety property is that the backreference sits on the **verb**,
+  which anaphora never repeats ("dedicate / consecrate / hallow"). Three
+  frame-level loosenings were measured firing on `gettysburg.txt`,
+  `federalist.txt`, and `esl-engineer-email.txt` and were rejected;
+  `Detector.test_isocolon_rule_turns_on_verb_identity` pins that. All 114 frozen
+  document scores were unchanged, 18/18 known-human controls stayed below the
+  gate, and blind-panel accuracy held at 0.8421. These are the file's first
+  patterns to carry `hints`, which left throughput higher than the baseline.
+  `judgment/verdict-arithmetic.txt` graduated to `mechanical/` — the first span
+  to move from "no regex gates this safely" to caught. Bare subject swap
+  ("Llama is open-weights. Dolma releases the data.") stays unreachable and was
+  added as `judgment/bare-subject-swap.txt`; SKILL.md now makes the
+  performed-register pass mandatory and gives it a reported count, because a
+  clean scorer had been licensing the assistant to skip it entirely.

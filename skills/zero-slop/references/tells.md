@@ -1,6 +1,6 @@
 # The Tell Taxonomy
 
-A hundred and five tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and seven tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -113,6 +113,8 @@ choice. See `evidence.md` for the study, limitations, and adoption decision.
 | Hyperbole universals: "nothing on earth", "on the planet", "in history", "known to man" | State the actual scope; the honest comparison is smaller and stronger |
 | Cute meta-taglines and campaign framing: "a meter you can argue with", "the fight against X" as a slogan | Describe the thing; "posts about writing quality" beats a campaign poster. "The fight against" is real usage in history and civic prose — flag the marketing register, not the phrase |
 | Staccato antithesis: two short balanced sentences, the second landing the twist — "Not perfect. Honest.", "Slop isn't a vibe. It's measurable.", "The draft was cheap. The signal it sent was not." | One plain sentence with the claim; at most one antithesis per piece |
+| Unmarked antithesis: the same figure with no negation marker at all, so the whole "not X, it's Y" family walks past it. Four shapes — bare subject swap ("Llama is open-weights. Dolma releases the data."); isocolon, one verb frame with both arguments swapped ("Open weights let you adapt a model. An open stack lets you adapt the machinery that created it."); the stock closer ("Ai2 argues for a principle. This is what that principle looks like."); unmarked reversal ("No frontier lab had to decide. Thai researchers made that call themselves.") | State the claim once, plainly. The meter now catches the last three (`isocolon-ditransitive`, `this-is-what-looks-like`, `no-x-had-to`); bare subject swap stays a judgment call. **Count them** — one is a device, three in a short piece is the register |
+| Significance scaffolding: a sentence announcing that a point matters instead of delivering it — "Here's the detail that matters:", "This is what that principle looks like when it works." | Delete the announcement and keep the point. Budget: zero |
 | Extended conceit: a process or abstraction dressed as physical drama — billing ("the bill lands on reputation", "gets billed to a reader"), courtroom ("never allowed to convict"), forensics ("rhythm leaves prints"), machinery ("opens the hood"), recipe ("has four ingredients") | At most one metaphor per piece, then plain language; name the actual mechanism |
 | Vibe-slang: "just a vibe", "vibe check", "argue with vibes", "has receipts" | The plain word: impression, judgment, evidence |
 | One-word drama beat: "Fine." dropped between claims as a rhythm device | Cut it or fold it into the sentence it interrupts |
@@ -125,13 +127,28 @@ same costume seen at detection time instead of rewrite time. The scorer
 catches the mechanical subset (`hired-adversary`, `turns-out-payoff`,
 `has-receipts`, `hyperbole-universal`, `argue-with-artifact`,
 `vibe-register`, `where-x-lives`, `billed-conceit`, `on-the-tin`,
-`minding-own-business`, `economics-brutal`, `opens-the-hood`, and the
-rider-gated "fight against"); epigram cadence, staccato antithesis, most
-conceits, jargon compression, and tagline register need the judgment pass,
-because their literal forms are legitimate in news, history, crime, and
-civic writing. The human-flagged spans that motivated the family live in
+`minding-own-business`, `economics-brutal`, `opens-the-hood`, the
+rider-gated "fight against", and — since v2.5.10 — three of the four unmarked
+antithesis shapes: `isocolon-ditransitive`, `this-is-what-looks-like`, and
+`no-x-had-to`. Epigram cadence, marked staccato antithesis, bare subject swap,
+most conceits, jargon compression, and tagline register still need the
+performed-register pass, because their literal forms are legitimate in news,
+history, crime, and civic writing.
+
+`isocolon-ditransitive` is worth reading closely, because it marks the boundary
+between what a rule can safely reach and what it cannot. It fires only when the
+**same verb** is repeated in a give-you frame across a sentence break. That
+identity requirement is the whole safety property: rhetorical anaphora repeats
+its frame with a *different* verb every time — "we can not dedicate, we can not
+consecrate, we can not hallow" — so the rule cannot touch it. Relaxing the
+backreference from the verb to the frame was tested and fires on the Gettysburg
+Address, the Federalist, and an ESL engineer's email. Do not relax it.
+
+The human-flagged spans that motivated the family live in
 `data/corpus/performed-register/` — the mechanical half is regression-tested,
-the judgment half is the read-aloud pass's fixture list.
+the judgment half is the performed-register pass's fixture list. Files move
+between the two halves in both directions: `verdict-arithmetic.txt` graduated
+from judgment to mechanical in v2.5.10 when a safe rule finally reached it.
 
 ## 4. Punctuation & formatting
 
