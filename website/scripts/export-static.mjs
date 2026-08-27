@@ -42,6 +42,7 @@ await rm(staticDirectory, { recursive: true, force: true });
 await mkdir(staticDirectory, { recursive: true });
 await cp(clientDirectory, staticDirectory, { recursive: true });
 await rm(new URL("_next/static/chunks/", staticDirectory), { recursive: true, force: true });
+await rm(new URL("wrangler.json", staticDirectory), { force: true });
 await writeFile(new URL("index.html", staticDirectory), html, "utf8");
 
 const exportedHtml = await readFile(new URL("index.html", staticDirectory), "utf8");
