@@ -152,13 +152,18 @@ jobs:
         run: |
           set -euo pipefail
           version="${{ steps.check.outputs.version }}"
-          for attempt in 1 2 3 4 5; do
+          # npm accepts the upload and processes it asynchronously: the publish
+          # itself prints "your package is being processed and may take a few
+          # minutes to become available". The original 50-second window was
+          # shorter than that, so a completely successful 2.6.1 release reported
+          # itself as a failed run. Wait ten minutes before calling it wrong.
+          for attempt in $(seq 1 20); do
             if [ "$(npm view zero-slop version 2>/dev/null)" = "$version" ]; then
               echo "registry now serves zero-slop@$version"
               exit 0
             fi
-            echo "attempt $attempt: registry has not caught up yet"
-            sleep 10
+            echo "attempt $attempt/20: registry has not caught up yet"
+            sleep 30
           done
           echo "::error::published but the registry still does not serve $version"
           exit 1
