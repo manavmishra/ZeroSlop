@@ -28,6 +28,9 @@ current corpus checks.
 - `incumbent-audit/` — the avoid-ai-writing detector at its pinned commit applied
   to Zero Slop's frozen 38-item consensus panel. It preserves the published gate,
   a development-selected gate, and the held-out result.
+- `incumbent-blind-replay/` — a fresh method-hidden two-way replay of Zero Slop
+  and the pinned incumbent. It keeps editing and review settings equal, reshuffles
+  A/B positions between two review passes, and binds every artifact by hash.
 - `aistoryhub-corpus/` — a version-and-hash-pinned coverage audit against the
   public AIStoryHub taxonomy. It reports coverage, never accuracy, and does not
   redistribute the source JSON.
@@ -43,7 +46,7 @@ current corpus checks.
 - `performance.py`, `performance-results.json` — local scorer and learning-loop
   timings with the machine record, raw runs, medians, and CI ceilings.
 - `version_compare.py`, `version-comparison.json` — the 12-run interleaved
-  v2.5.8/v2.5.9 timing vectors, exact scorer hashes, frozen score parity, new
+  v2.5.10/v2.6.0 timing vectors, exact scorer hashes, frozen score parity, new
   adversarial cases, and structured-document protections.
 - `quality-corpus/` — a method-hidden, source-grouped 72-item editorial-quality
   panel with two independent label files, unresolved disagreements, and split metrics.
@@ -67,6 +70,7 @@ python3 bench/search-corpus/evaluate.py --check
 python3 bench/search-corpus/compare.py --check
 python3 bench/fresh-replay/evaluate.py --avoid-root /path/to/pinned/avoid-ai-writing
 python3 bench/incumbent-audit/evaluate.py --avoid-root /path/to/pinned/avoid-ai-writing
+python3 bench/incumbent-blind-replay/evaluate.py --avoid-root /path/to/pinned/avoid-ai-writing
 python3 bench/aistoryhub-corpus/audit.py --fetch --check
 python3 bench/beemo-corpus/audit.py --fetch --check
 python3 bench/raid-plus-corpus/audit.py --fetch --check
@@ -80,6 +84,17 @@ python3 bench/make_charts.py --check
 Refresh the local performance observation separately with
 `python3 bench/performance.py --write`; wall-clock results are intentionally not
 treated as bit-for-bit reproducible across machines.
+
+## Current incumbent comparison
+
+The v2.6.0 two-way replay used GPT-5.4, high reasoning, batches of three, and the
+same 18 drafts for both skills. Method names were removed before two editorial
+review passes, and A/B positions were reshuffled. The reviewer favored Zero Slop
+on 13 drafts and avoid-ai-writing on 3; 2 were unresolved. The passes agreed on
+16 of 18 winners. Zero Slop's source check passed 18 of its rewrites and 16 of the
+incumbent's. This is a small LLM-reviewed regression study, not human field
+accuracy or a universal ranking. The raw artifacts live in
+[`incumbent-blind-replay/`](incumbent-blind-replay/).
 
 ## How the judging worked
 

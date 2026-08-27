@@ -379,3 +379,14 @@ example that motivated it.
   added as `judgment/bare-subject-swap.txt`; SKILL.md now makes the
   performed-register pass mandatory and gives it a reported count, because a
   clean scorer had been licensing the assistant to skip it entirely.
+
+- 2026-08-26 — incumbent completeness follow-up. Added four narrowly bounded
+  phrase families found in `conorbronsdon/avoid-ai-writing@40328bd`: leaked
+  reasoning narration, unsupported novelty formulas, generic emotional
+  reactions, and answer-restatement loops. Each rule names the full formula;
+  ordinary step-by-step instructions, literal staffing statements, explained
+  surprise, and direct answers remain silent. The accompanying AI review now
+  checks six context-dependent problems that are unsafe to infer from a phrase
+  alone: paragraph-order dependence, unsupported novelty, self-labelled
+  significance, moral-adjective category errors, recap-flattery, and
+  wall-of-text replies.

@@ -259,7 +259,7 @@
  ],
  "contextual_ablation": [
   [
-   "v2.5.10 local score",
+   "v2.6.0 local score",
    93.18
   ],
   [
@@ -267,8 +267,26 @@
    95.45
   ]
  ],
+ "incumbent_hidden_preferences": [
+  [
+   "Zero Slop v2.6.0",
+   13
+  ],
+  [
+   "avoid-ai-writing",
+   3
+  ],
+  [
+   "Tie",
+   0
+  ],
+  [
+   "Unresolved",
+   2
+  ]
+ ],
  "capability_matrix": {
-  "audited_on": "2026-08-26",
+  "audited_on": "2026-08-27",
   "products": [
    [
     "zero_slop",
@@ -351,6 +369,14 @@
     "guided",
     "guided",
     "guided",
+    "not_documented"
+   ],
+   [
+    "Separate post-verification fresh-eyes gate",
+    "native",
+    "not_documented",
+    "not_documented",
+    "not_documented",
     "not_documented"
    ],
    [

@@ -1,0 +1,639 @@
+{
+ "schema": 1,
+ "result_kind": "fresh_method_hidden_incumbent_rewrite_comparison",
+ "calibrated_field_accuracy": false,
+ "corpus": {
+  "drafts": 18,
+  "genres": 6,
+  "sha256": "78626533120d341dcf1193ce98a4274170bff6901af2057b66a256a7f12fa342",
+  "selection": "Deliberately obvious, search-informed regression drafts; not a representative field sample."
+ },
+ "generation": {
+  "model": "gpt-5.4",
+  "reasoning_effort": "high",
+  "batch_size": 3,
+  "codex_cli": "codex-cli 0.148.0-alpha.15"
+ },
+ "methods": {
+  "zero-slop": {
+   "label": "Zero Slop v2.6.0",
+   "revision": "2.6.0"
+  },
+  "avoid-ai-writing": {
+   "label": "avoid-ai-writing",
+   "revision": "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca"
+  }
+ },
+ "editorial_review": {
+  "method_hidden": true,
+  "passes": [
+   {
+    "pass": 1,
+    "positions_seed": 20260827,
+    "preferences": {
+     "zero-slop": 14,
+     "avoid-ai-writing": 4,
+     "tie": 0
+    }
+   },
+   {
+    "pass": 2,
+    "positions_seed": 20260828,
+    "preferences": {
+     "zero-slop": 14,
+     "avoid-ai-writing": 4,
+     "tie": 0
+    }
+   }
+  ],
+  "exact_winner_agreement": {
+   "items": 16,
+   "rate": 0.8889
+  },
+  "consensus": {
+   "zero-slop": 13,
+   "avoid-ai-writing": 3,
+   "tie": 0,
+   "unresolved": 2
+  },
+  "mean_dimension_scores": {
+   "zero-slop": {
+    "source_preservation": 4.06,
+    "naturalness": 4,
+    "clarity": 4.39,
+    "mechanics": 5
+   },
+   "avoid-ai-writing": {
+    "source_preservation": 3.11,
+    "naturalness": 4.11,
+    "clarity": 4.19,
+    "mechanics": 5
+   }
+  },
+  "items": [
+   {
+    "id": "linkedin-lessons-01",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B keeps all three source claims intact, including \"changed everything,\" \"ultimate growth hack,\" and \"always beat strategies.\" A softens or changes each of those points."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A keeps the full setup and all three claims essentially intact. B drops “that changed everything” and rewrites each lesson, softening or changing the source meaning."
+    }
+   },
+   {
+    "id": "linkedin-contrarian-02",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B preserves the source's explicit rebuttal and the certainty-versus-clarity contrast. A drops both and recasts the opening more loosely."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A stays closer to the source’s argument and wording, though it drops “Let that sink in.” B makes broader rewrites, omits the explicit “They are wrong,” and changes the certainty contrast."
+    }
+   },
+   {
+    "id": "linkedin-executive-03",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "A retains the surprise framing, the writing-versus-judgment contrast, the audience examples, and the closing idea about the future of communication. B drops the writing point and weakens the ending."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "B preserves the key contrast about writing vs. judgment, keeps “surprised me,” and retains the final “future of communication” point. A drops or reframes those ideas more materially."
+    }
+   },
+   {
+    "id": "x-agents-01",
+    "consensus": "avoid-ai-writing",
+    "pass_1": {
+     "winner": "avoid-ai-writing",
+     "reason": "A stays closer to the source’s capability-vs-control contrast; B softens both the failure claim and the closing thesis."
+    },
+    "pass_2": {
+     "winner": "avoid-ai-writing",
+     "reason": "B keeps the core comparison that control matters more than capability and stays closer to the source's point; A drops that contrast and reframes it as \"Control is the hard part.\""
+    }
+   },
+   {
+    "id": "x-habit-02",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "A preserves more of the original setup, especially the 'anyone can use' framing around the seven steps; B is smoother but drops that qualification."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "Both simplify the ending, but A preserves the \"anyone can use\" qualification and stays closer to the source's structure; B drops that qualifier and trims more of the original claim."
+    }
+   },
+   {
+    "id": "x-future-03",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B keeps the core 'AI vs. a person using AI' point and the full winners clause; A changes the claim more aggressively and replaces the closing CTA."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "B preserves the source meaning almost intact, including the direct contrast between AI and a person using AI and the full winners sentence. A rewrites the claim, changes the closing, and adds a one-year timeframe."
+    }
+   },
+   {
+    "id": "email-outreach-01",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "A preserves more of the source's structure and intent, including the opening goodwill line and the explicit interest in working together; B is slightly more natural but drops the opener and shifts the close toward a looser 'fit' conversation."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "B preserves the opening goodwill line and the idea of exploring work together more closely; A is slightly cleaner but drops more source content."
+    }
+   },
+   {
+    "id": "email-launch-02",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "A keeps all the source's main claims, including the announcement, the three product attributes, and the workflow-improvement point. B is cleaner, but it trims too much by folding away the final 'elevate your workflow' idea and softening the original claim set more heavily."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A keeps the source structure and key claims more intact, including the distinct efficiency claim and the closing workflow point; B compresses and changes more."
+    }
+   },
+   {
+    "id": "email-followup-03",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B stays closer to the source by preserving 'still on your radar,' while A changes that to 'still a priority for you,' which is a meaning shift. Otherwise the edits are essentially the same."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A stays closer to 'still on your radar,' while B changes that to the stronger 'still a priority for you,' which shifts the meaning."
+    }
+   },
+   {
+    "id": "blog-landscape-01",
+    "consensus": "unresolved",
+    "pass_1": {
+     "winner": "avoid-ai-writing",
+     "reason": "A keeps the digital-change framing and article setup closer to the source. B turns the opening into the broader, punchier \"Work is changing fast,\" which drops the original digital-landscape angle."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A stays closer to the source’s point about the future of work and preserves the qualifier in \"forward-thinking leaders.\" B shifts \"future of work\" to \"how people work\" and drops that qualification."
+    }
+   },
+   {
+    "id": "blog-guide-02",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B stays closer to the source's audience and promise. A adds \"in practical terms\" and swaps in \"get more done,\" which shifts the original claim slightly more."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A better preserves the original audience, goals, and competitive framing. B is natural, but it rewrites the benefits more loosely and drops the direct link to achieving goals and thriving in a competitive world."
+    }
+   },
+   {
+    "id": "blog-transformation-03",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B preserves the source more faithfully, especially the business-focused claim and the \"harnessing its potential\" structure. A adds \"to the stack\" and rephrases more aggressively."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "B is closer to the source in both meaning and phrasing, especially with \"By harnessing its potential\" and \"streamline complex processes.\" A adds \"to the stack\" and shifts the framing more noticeably."
+    }
+   },
+   {
+    "id": "newsletter-productivity-01",
+    "consensus": "avoid-ai-writing",
+    "pass_1": {
+     "winner": "avoid-ai-writing",
+     "reason": "A keeps the greeting, the weekly check-in, the focus on three ideas, and the promise to unpack them today. B drops the greeting and replaces the setup with \"today's issue,\" which moves further from the source."
+    },
+    "pass_2": {
+     "winner": "avoid-ai-writing",
+     "reason": "A keeps the direct greeting, the three-idea setup, and the promise to unpack them today. B adds the meta framing of \"today's issue\" and drops more of the source's structure and address."
+    }
+   },
+   {
+    "id": "newsletter-edition-02",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "B preserves the fast-moving AI framing, the excitement about what lies ahead, and the closing invitation to begin. A flattens the source's forward-looking point into \"a lot to pay attention to\" and loses the start cue."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "B preserves the source's forward-looking excitement and closing invitation to begin. A flattens that point into \"a lot to pay attention to,\" which shifts the meaning and tone."
+    }
+   },
+   {
+    "id": "newsletter-trends-03",
+    "consensus": "avoid-ai-writing",
+    "pass_1": {
+     "winner": "avoid-ai-writing",
+     "reason": "A trims more, but it keeps the core point that the three trends each offer ways to innovate, adapt, and thrive. B materially changes the meaning by splitting those opportunities across the three trends: \"one to innovate, one to adapt, and one to thrive.\""
+    },
+    "pass_2": {
+     "winner": "avoid-ai-writing",
+     "reason": "A trims some hype but stays closer to the intended meaning that each trend offers room to innovate, adapt, and thrive. B's \"one to innovate, one to adapt, and one to thrive\" recasts the three trends into separate roles not stated in the source."
+    }
+   },
+   {
+    "id": "research-framework-01",
+    "consensus": "unresolved",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "A better preserves the source's integrated, cross-dimensional oversight point; B weakens that to a framework that merely \"covers\" areas and adds the vaguer \"solid.\""
+    },
+    "pass_2": {
+     "winner": "avoid-ai-writing",
+     "reason": "B stays closer to the source by keeping the technical, organizational, and ethical categories intact; A shifts \"organizational considerations\" to \"organizational practice.\""
+    }
+   },
+   {
+    "id": "research-approach-02",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "Both soften the last sentence, but B stays closer to the source's claim about transformative potential; A narrows it further to reshaping current practice."
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "A is closer to \"necessitates a multifaceted approach\" with \"requires more than one approach,\" while B's \"work from several angles\" is looser and more colloquial."
+    }
+   },
+   {
+    "id": "research-future-03",
+    "consensus": "zero-slop",
+    "pass_1": {
+     "winner": "zero-slop",
+     "reason": "A keeps the source's meaning almost intact, including continued exploration and meaningful impact; B adds \"clear\" directions and shifts \"meaningful impact\" to the less faithful \"future impact.\""
+    },
+    "pass_2": {
+     "winner": "zero-slop",
+     "reason": "B preserves the source more faithfully, especially \"meaningful impact\" and the open-ended future directions; A adds \"clear\" directions and changes the ending to \"future impact.\""
+    }
+   }
+  ]
+ },
+ "deterministic_checks": {
+  "zero-slop": {
+   "mean_writing_score": 17.8,
+   "zero_slop_release_passes": 15,
+   "zero_slop_fidelity_passes": 18,
+   "mean_incumbent_score": 0.3,
+   "incumbent_preservation_passes": 18,
+   "incumbent_unscored": 0,
+   "rows": [
+    {
+     "id": "linkedin-lessons-01",
+     "writing_score": 36.1,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "linkedin-contrarian-02",
+     "writing_score": 53.6,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "linkedin-executive-03",
+     "writing_score": 10.1,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "x-agents-01",
+     "writing_score": 13.9,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "x-habit-02",
+     "writing_score": 36.1,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "x-future-03",
+     "writing_score": 17.7,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 5,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "email-outreach-01",
+     "writing_score": 14.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "email-launch-02",
+     "writing_score": 14.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "email-followup-03",
+     "writing_score": 11.2,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "blog-landscape-01",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "blog-guide-02",
+     "writing_score": 20.2,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "blog-transformation-03",
+     "writing_score": 20.2,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "newsletter-productivity-01",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "newsletter-edition-02",
+     "writing_score": 11.7,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "newsletter-trends-03",
+     "writing_score": 12.2,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "research-framework-01",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "research-approach-02",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "research-future-03",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    }
+   ]
+  },
+  "avoid-ai-writing": {
+   "mean_writing_score": 17.0,
+   "zero_slop_release_passes": 14,
+   "zero_slop_fidelity_passes": 16,
+   "mean_incumbent_score": 0.3,
+   "incumbent_preservation_passes": 18,
+   "incumbent_unscored": 0,
+   "rows": [
+    {
+     "id": "linkedin-lessons-01",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "linkedin-contrarian-02",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "linkedin-executive-03",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "x-agents-01",
+     "writing_score": 12.2,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "x-habit-02",
+     "writing_score": 39.5,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "x-future-03",
+     "writing_score": 19.0,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "email-outreach-01",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": false,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "email-launch-02",
+     "writing_score": 30.0,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "email-followup-03",
+     "writing_score": 10.2,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "blog-landscape-01",
+     "writing_score": 12.1,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "blog-guide-02",
+     "writing_score": 16.1,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "blog-transformation-03",
+     "writing_score": 16.5,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": false,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "newsletter-productivity-01",
+     "writing_score": 13.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "newsletter-edition-02",
+     "writing_score": 12.9,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "newsletter-trends-03",
+     "writing_score": 9.5,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "research-framework-01",
+     "writing_score": 17.8,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "research-approach-02",
+     "writing_score": 41.7,
+     "zero_slop_release_pass": false,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 5,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    },
+    {
+     "id": "research-future-03",
+     "writing_score": 17.8,
+     "zero_slop_release_pass": true,
+     "zero_slop_fidelity_pass": true,
+     "incumbent_score": 0,
+     "incumbent_preservation_pass": true,
+     "incumbent_unscored": false
+    }
+   ]
+  }
+ },
+ "limits": "Both methods used the same model, settings, corpus, and batch size. Method names were absent from review packets and A/B positions were reshuffled independently. The reviewer was an LLM, hosted seeds are unavailable, and the corpus is small and deliberately obvious; this is not independent human field accuracy or a universal ranking."
+}
