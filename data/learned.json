@@ -150,6 +150,46 @@
    "first_seen": "2026-08-26",
    "last_confirmed": "2026-08-26",
    "source": "conorbronsdon/avoid-ai-writing@40328bd"
+  },
+  {
+   "name": "reasoning-artifact",
+   "cat": "artifact",
+   "rx": "\\b(?:let me think (?:this through|step by step)|here(?:'|’)s my thought process|working through this logically|to approach this systematically)\\b",
+   "hints": ["let me think", "thought process", "working through", "approach this systematically"],
+   "w": 6,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
+  },
+  {
+   "name": "novelty-inflation",
+   "cat": "rhetorical",
+   "rx": "\\b(?:the (?:failure mode|problem|insight) nobody(?:'|’)?s? (?:is )?(?:naming|talking about)|what nobody tells you|the insight everyone(?:'|’)?s? missing)\\b",
+   "hints": ["nobody", "everyone"],
+   "w": 4,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
+  },
+  {
+   "name": "emotional-flatline",
+   "cat": "performed",
+   "rx": "\\b(?:what surprised me most|i was fascinated to (?:discover|learn)|what struck me was|i was excited to learn|the most interesting part)\\b",
+   "hints": ["surprised", "fascinated", "struck me", "excited", "interesting"],
+   "w": 3,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
+  },
+  {
+   "name": "acknowledgment-loop",
+   "cat": "artifact",
+   "rx": "\\b(?:to answer your question|you(?:'|’)re asking (?:about|whether)|the question of whether)\\b",
+   "hints": ["answer your question", "asking", "question of whether"],
+   "w": 3,
+   "first_seen": "2026-08-26",
+   "last_confirmed": "2026-08-26",
+   "source": "conorbronsdon/avoid-ai-writing@40328bd"
   }
  ],
  "lexicon": {

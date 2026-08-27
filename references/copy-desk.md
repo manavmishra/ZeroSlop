@@ -69,7 +69,7 @@ known voice signals, and immutable facts when available. Then use this brief:
 > terse note only for unresolved ambiguities or unusual forms deliberately kept.
 
 Apply the corrected version to the deliverable, then send that exact artifact
-through the final read-aloud pass in `references/readalong.md`. Verify the
+through the read-aloud pass in `references/readalong.md`. Verify the
 artifact returned by the read-aloud editor:
 
 1. Rerun the heuristic surface scorer and scripted fidelity check.
@@ -77,11 +77,13 @@ artifact returned by the read-aloud editor:
    claims, qualifiers, intended voice, regional spelling, format, and non-prose
    structure. The script cannot detect every semantic or stylistic change.
 3. If any check or comparison requires a repair, apply it, send the repaired
-   text through the copy desk and final read-aloud pass again, and repeat all
+   text through the copy desk and read-aloud pass again, and repeat all
    final checks.
 
-Stop only when the same artifact clears the copy desk, final read-aloud pass,
-semantic and format review, scorer, and fidelity check. Limit this repair loop to
+After verification, send that exact text through the finalizer in
+`references/fresh-eyes.md`. Stop only when the same artifact clears the copy desk,
+read-aloud pass, semantic and format review, scorer, fidelity check, and receives a
+no-change fresh-eyes approval. Limit this repair loop to
 three rounds. If an issue still cannot be resolved without guessing, return the best
 source-preserving version that completed both editorial passes, flag the unresolved
 span and failed check plainly, and do not describe the fallback as fully verified.

@@ -6,8 +6,8 @@ listener hears it: from the first line to the last, with each sentence setting u
 next. A stumble, cold transition, unclear antecedent, or change of voice can still
 survive a clean score and correct grammar.
 
-Run this pass on every deliverable after the copy desk. It is the last editorial pass
-before final verification and the Report step. Use a dedicated editor with fresh eyes
+Run this pass on every deliverable after the copy desk. It is the spoken-flow pass
+before verification and the separate fresh-eyes finalizer. Use a dedicated editor with fresh ears
 when the harness supports subagents; otherwise perform a separate, role-isolated pass.
 The editor must fix the actual deliverable and return the corrected artifact in the
 same format. An audit or list of suggestions is not a completed pass.
@@ -21,17 +21,33 @@ safe correction for:
   endings that make a reader stop or back up.
 - **Cold transitions.** Add or repair the hinge when a sentence, paragraph, or
   section arrives without a clear connection to what came before.
+- **Paragraph-order dependence.** If adjacent prose paragraphs can trade places
+  without changing the argument, rebuild the progression. Do not impose a story
+  arc on FAQs, reference entries, independent findings, or genuine lists.
 - **Performed candor.** Remove announcements of honesty such as "honestly" or "to be
   fair" when the sentence can simply make its point.
 - **Reflexive agreement.** Remove automatic praise or agreement that appears before
   the substance has been checked. Let the facts determine whether the draft agrees,
   qualifies, or disagrees.
+- **Recap-flattery.** In a reply, cut praise and a needless restatement of the
+  question before the answer. Keep setup that materially changes the answer.
+- **Wall-of-text reply.** Break an answer where the reader must change task,
+  decision, time, or subject. Do not split a coherent narrative paragraph merely
+  to make it look lighter.
 - **Communicative drift.** Stop when fluent sentences no longer advance a clear
   point or reader need. Cut the passage, rebuild it around its purpose, or flag the
   missing intent rather than inventing one.
 - **Rhetorical scale mismatch.** Reduce grand reveals, lessons, or contrasts when
   the underlying point is too small or unsupported for the framing. Preserve a
   contrast that corrects a real, supported misconception.
+- **Unsupported novelty.** Remove claims that nobody has noticed or named an idea
+  unless the source supplies a defensible comparison.
+- **Self-labeling significance.** Replace an unsupported declaration that a point
+  is important with the consequence that makes it important.
+- **Moral-adjective category error.** Do not call a system design, metric, or
+  technical choice brave, honest, ethical, or courageous when the sentence means
+  accurate, transparent, conservative, or reliable. Preserve a sourced moral
+  judgment about an actual agent or decision.
 - **Performed-writer register.** Flatten theatrical framing of ordinary work ("we
   hired an adversary"), epigram closers, staccato antithesis pairs ("Not perfect.
   Honest."), extended conceits (billing, courtroom, forensics, recipe), one-word
@@ -57,6 +73,8 @@ safe correction for:
 
 Do not merely flag these problems. Correct them directly wherever the intended
 meaning is certain.
+
+For consistent reporting, use these names: paragraph-order dependence, unsupported novelty, self-labeling significance, moral-adjective category error, recap-flattery, and wall-of-text reply.
 
 ## Boundaries
 
@@ -103,7 +121,8 @@ Verify the exact artifact returned by the read-aloud editor:
    this read-aloud pass again, and repeat every final check.
 
 Stop only when the same artifact has cleared the copy desk, final read-aloud pass,
-semantic and format review, scorer, and fidelity check. Limit this repair loop to
+semantic and format review, scorer, fidelity check, and the separate fresh-eyes
+finalizer in `fresh-eyes.md`. Limit this repair loop to
 three rounds. If an issue still cannot be resolved without guessing, return the best
 source-preserving version that completed both editorial passes, state the unresolved
 span and failed check plainly, and do not describe the fallback as fully verified.

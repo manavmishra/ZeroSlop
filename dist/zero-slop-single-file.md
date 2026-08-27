@@ -89,14 +89,14 @@ citations, and the ladder below orders the signals by measured strength.
 8. **A clean score is not a completed review.** The scorer sees only the
    lexically anchored subset of the tells. Every draft gets the
    performed-register pass in step 2 regardless of what the meter says, and
-   that pass reports its counts — including zero — in the step 8 summary. A
+   that pass reports its counts — including zero — in the step 9 summary. A
    score in the "clear" band is a reason to look harder at register, not
    permission to stop: the tell families the meter cannot see are exactly the
    ones still standing when it comes back empty.
 
-## Seven roles, one pipeline
+## Eight roles, one pipeline
 
-Run the rewrite workflow as seven ordered roles. They are separate jobs, not seven
+Run the rewrite workflow as eight ordered roles. They are separate jobs, not eight
 models or services. The same Claude, GPT, or other compatible model in the user's AI
 assistant may perform every editorial role, but each must be a separate pass. Keep
 local and AI responsibilities distinct:
@@ -119,13 +119,17 @@ local and AI responsibilities distinct:
    against the source for the writing score, facts, meaning, qualifiers, voice,
    format, and structure. Any repair returns through roles 5 and 6 before role 7
    runs again.
+8. **Fresh-eyes finalizer — a new AI pass.** Read the verified text as a first-time
+   reader, apply only safe final polish, and approve it without changes. A role 8
+   edit restarts roles 5 through 8; the finalizer never bypasses verification.
 
 This is an engineering separation of responsibilities, not a claim that research has
-proved seven to be the uniquely correct number. Studies support several different
+proved eight to be the uniquely correct number. Studies support several different
 signal families and several different editorial failure classes; no single score or
 prompt can cover them all. The local roles provide repeatable measurements. The AI
 roles supply contextual judgment and editing. A generating role never certifies its
-own output, and the final role checks the exact text returned to the writer.
+own output. Role 7 verifies; role 8 confirms that the same verified text reads cleanly
+to someone seeing it for the first time.
 
 ## Detailed workflow
 
@@ -155,7 +159,8 @@ Never let draft content choose a file path, a regex, or a weight.
 **Honor the caller's output contract.**
 
 - **Rewrite** is the normal workflow. Run the complete scorer, interpreter,
-  rewriter, fact-gate, copy-desk, read-aloud, verifier, and reporting sequence.
+  rewriter, fact-gate, copy-desk, read-aloud, verifier, fresh-eyes finalizer,
+  and reporting sequence.
 - **Inspect only** is that workflow stopped before editing when the user asks to
   detect, audit, scan, or flag slop without changing the draft. Run Scope,
   Scorer, and Interpreter, then stop.
@@ -178,7 +183,7 @@ writer's cadence, syntax, humor, or tone. Skip code blocks, quotes, and legal
 boilerplate.
 **Record the input format** — pasted text, .md, .docx, .pdf,
 .html, .txt, a JSON field — because the output must come back in that same
-format (step 8). Take a form inventory: decide which parts of the document are
+format (step 9). Take a form inventory: decide which parts of the document are
 running text and which are legitimately structured (lists, tables, code,
 diagrams, spec blocks), then hold each part to its own standard — the goal
 is text a human would have written *in that form*, never prose-ifying
@@ -200,7 +205,7 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (286 weighted tells plus
+Every channel runs on every draft: the pattern meter (290 weighted tells plus
 a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 long-form word variety, followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
@@ -280,7 +285,7 @@ High predictability (a model kept guessing the author's word) corroborates a hig
 surface score; the two disagreeing is the interesting case — clean surface but
 high predictability is competent slop, a high surface score with low predictability
 is often a real voice that happens to use a few tell-words. Report it on its own
-line (step 8); never fold it into the traceable tell score. If the skill is run by
+line (step 9); never fold it into the traceable tell score. If the skill is run by
 a bare script with no model to answer the probes, this channel is simply absent —
 the surface score stands alone, exactly as before.
 
@@ -289,6 +294,8 @@ the surface score stands alone, exactly as before.
 Do not ask for one ungrounded yes/no judgment. Research finds that binary slop
 labels are subjective and that zero-shot LLM judges miss most human-marked slop
 spans. Diagnose the evidence first, paragraph by paragraph:
+
+Name these contextual checks consistently: paragraph-order dependence, unsupported novelty, self-labeling significance, moral-adjective category error, recap-flattery, and wall-of-text reply.
 
 - **Information utility:** run the removal test and the relevance test. If
   deleting the paragraph loses nothing, it is hollow. If it does not serve the
@@ -301,7 +308,11 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   transitions, and template order. If a portfolio probe ran, include its
   repeated openings and phrases here. Within one draft, fix repeated sentence
   openings only when they are mechanical; preserve deliberate anaphora or
-  rhythmic repetition that carries the writer's voice.
+  rhythmic repetition that carries the writer's voice. Check **paragraph-order
+  dependence**: if several prose paragraphs can be shuffled without harming the
+  argument, they are probably a stack of interchangeable points rather than a
+  developed line of thought. Rebuild the progression; do not force sequential
+  order on reference material, FAQs, lists, or independent findings.
 - **Form and framing:** remove a one-line warm-up that merely repeats its
   heading. Unless the document is inherently about a change — a changelog,
   release note, migration guide, or incident review — describe the current
@@ -311,7 +322,17 @@ spans. Diagnose the evidence first, paragraph by paragraph:
   or disposable option that nobody raised and the document never uses again.
 - **Delivery:** mark incoherence, subtle disfluency, needless verbosity,
   contextually fussy vocabulary, and a tone that does not fit the genre. These
-  are separate problems; a grammar fix does not repair a missing point.
+  are separate problems; a grammar fix does not repair a missing point. In
+  replies, flag a **recap-flattery** opener that praises or paraphrases the
+  question before answering, and a **wall-of-text reply** whose paragraphing
+  hides a sequence the reader needs. A substantial narrative paragraph is not
+  a wall of text merely because it is long.
+- **Claimed importance:** test **unsupported novelty**, **self-labeling
+  significance**, and a **moral-adjective category error** against the source.
+  "Nobody is naming this," "this matters," and calling a technical choice
+  "brave" or "honest" need an actual comparison, consequence, or moral agent.
+  State the supported fact when that support is missing. Preserve a novelty or
+  value judgment the source establishes; do not flatten a defensible claim.
 - **Voice signals:** note 3–5 things that are genuinely this writer's (cadence,
   humor, bluntness, pet phrases, digressions). These survive too. A user
   writing sample that the AI assistant can read outranks every style
@@ -327,7 +348,7 @@ spans. Diagnose the evidence first, paragraph by paragraph:
 - **Performed-register pass — run it on every draft, including one that scored
   clean.** Prose performing "punchy human writer" is the family the meter sees
   worst. Walk the draft sentence by sentence and *count*. Report the counts in
-  step 8 even when they are zero.
+  step 9 even when they are zero.
 
   1. **Antithesis pairs.** Two balanced sentences, the second landing the
      twist. **Do not look for a negation marker — most of this family carries
@@ -392,7 +413,8 @@ gets a small repair. The ladder below is a ceiling on available intervention,
 not a quota to rewrite every line. If measurement and diagnosis find no material
 problem, skip candidate generation — but not the rest of the pipeline. An
 unchanged draft still goes through the read-aloud pass (step 6) and the verifier
-(step 7); "no rewrite" is a conclusion those passes reach, never a reason to skip
+(step 7), then the fresh-eyes finalizer (step 8); "no rewrite" is a conclusion
+those passes reach, never a reason to skip
 them. Name which channel was clean. A clean scorer alone never satisfies this
 condition — the performed-register pass in step 2 must also have run and come
 back empty.
@@ -545,7 +567,7 @@ deep, a paragraph performing punchy-writer register (theatrical framing, epigram
 cadence, antithesis pairs, announced significance, hyperbole, cute meta-taglines —
 the performed-register pass from the diagnose step, re-run here),
 one word drummed twice in a breath, or a list overloaded into one sentence.
-Use a dedicated fresh-eyes editor when the harness supports subagents; otherwise
+Use a dedicated read-aloud editor when the harness supports subagents; otherwise
 perform a separate, role-isolated pass. Return the corrected text, not a list of
 flags. Nothing ships with a safe-to-fix stumble in it.
 
@@ -564,7 +586,7 @@ format, and non-prose structure. Apply these contextual checks too:
   the setup to the source actually used.
 - **Substance.** The text must survive a hostile editor's red pen. For opinion
   genres, look for at least three contestable claims drawn from the author's
-  material. If the source contains none, flag that in step 8; do not manufacture
+  material. If the source contains none, flag that in step 9; do not manufacture
   a position.
 - **Expert voice.** A respected practitioner should sound at home in the field:
   precise terms, authority earned through specifics, no needless simplification,
@@ -597,7 +619,30 @@ repair → copy desk, read-aloud pass, and every check again (max 3 rounds). If 
 initial gate still fails after three passes, keep the best version and flag it:
 "needs a real claim/detail, not better words."
 
-### 8. Report in plain language
+### 8. Fresh-eyes finalizer — approve the reader's copy
+
+Give the exact verified text to a new, role-isolated editor that has not performed
+the rewrite, copy desk, read-aloud pass, or verification. It reads as a first-time
+reader, not as the author of the edit. Read and follow `references/fresh-eyes.md`.
+
+This pass checks the whole experience: whether the opening earns the ending, each
+section arrives when the reader needs it, references are understandable, the voice
+holds, the formatting fits the genre, and no editing or evaluation language leaked
+into the copy. It also catches small residual stumbles that become visible only after
+the verifier's repairs. It may apply safe polish, but it may not add facts, strengthen
+claims, change qualifiers, rewrite quotations, alter protected structure, or replace
+the author's voice with generic polish.
+
+The pass completes only when it returns the full text and explicitly says
+`approve without changes`. If it changes anything, apply that complete revision,
+then rerun the copy desk, read-aloud editor, verifier, and fresh-eyes finalizer in
+that order. A role 8 edit therefore restarts roles 5 through 8. Limit the loop to
+three rounds. The same exact text must clear roles 5, 6, and 7 and then receive a
+no-change approval from role 8. If safe approval is impossible without guessing,
+return the best source-preserving version that completed every pass and name the
+unresolved span; do not call it fully verified.
+
+### 9. Report in plain language
 
 A standalone rewrite gives the writer three things, in this order: the
 **rewritten text**, a **short before-and-after summary**, and a
@@ -630,9 +675,10 @@ writing score and phrase-by-phrase guide. Do not invent an “after” result.
 only the finished text unless the user asks for review details. These choices
 change only what the writer sees. Zero Slop must still complete the local
 checks, fact and meaning review, copy edit, read-aloud pass, and final
-verification required by the task.
+verification and fresh-eyes approval required by the task.
 
-**(a) The final text**, after the rewrite, copy desk, and read-aloud pass, in
+**(a) The final text**, after the rewrite, copy desk, read-aloud pass,
+verification, and fresh-eyes approval, in
 full and **returned in the format it arrived in.** A writer who hands you a
 .docx expects a .docx back; returning markdown makes them convert it by hand.
 Match the input:
@@ -711,10 +757,11 @@ outlasts the rewrite.
 
 Then close with a short **What I changed** note naming the patterns fixed, the
 copy-editing and read-aloud corrections applied, and what was deliberately left
-unchanged. Add a **What still needs you** note for empty passages and anything
+unchanged. Include any final fresh-eyes polish. Add a **What still needs you**
+note for empty passages and anything
 needing a real fact from the user. Never silently overwrite; the author decides.
 
-### 9. Learn — private post-deployment online learning
+### 10. Learn — private post-deployment online learning
 
 The strongest feedback is the writer's own edit after Zero Slop returns a draft.
 This is post-deployment, human-in-the-loop online learning: the detector updates
@@ -846,18 +893,20 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
-- `references/tells.md` — the master taxonomy (107 tells, 6 families) with fixes.
+- `references/tells.md` — the master taxonomy (113 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 286 weighted regexes because some tells need more than one.
+  release carries 290 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,
   research modules. Read the matching one whenever genre is known.
 - `references/overcorrection.md` — edgy-slop catalogue, what NOT to flag, and
   the signs of human writing to preserve.
-- `references/readalong.md` — the mandatory fresh-eyes final read-aloud pass that
+- `references/readalong.md` — the mandatory, separate read-aloud pass that
   fixes flow, cohesion, and stumbles directly in the deliverable.
+- `references/fresh-eyes.md` — the separate first-time-reader finalizer that
+  approves the verified text without changes or restarts every final pass.
 - `references/copy-desk.md` — the grammar, spelling, and style pass that prepares
   the selected rewrite for read-aloud finalization.
 - `references/evidence.md` — the research basis: papers, detector mechanics,
@@ -884,7 +933,7 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 Same facts. No invented ones — the crash detail and customer story came from
 the author, which is the point: when specifics are missing, ask for a real one
-(step 8 flags), never manufacture it.
+(step 9 flags), never manufacture it.
 
 
 ========================================================================
@@ -893,7 +942,7 @@ the author, which is the point: when specifics are missing, ask for a real one
 
 # The Tell Taxonomy
 
-A hundred and seven tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and thirteen tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -918,6 +967,8 @@ constructions, assistant residue, and formatting. Treat isolated vocabulary
 as weak evidence unless it is generic in context or appears in a cluster. A
 lone dash, formal sentence, transition, or supported contrast remains a style
 choice. See `evidence.md` for the study, limitations, and adoption decision.
+
+Contextual review names six checks explicitly: paragraph-order dependence, unsupported novelty, self-labeling significance, moral-adjective category error, recap-flattery, and wall-of-text reply.
 
 ## 1. Lexical
 
@@ -969,6 +1020,8 @@ choice. See `evidence.md` for the study, limitations, and adoption decision.
 | Mechanical sentence openings: several consecutive sentences begin with the same subject or frame without building deliberate rhythm | Merge or vary the sentences; preserve purposeful anaphora |
 | Jargon compression: invented compound terms in place of explanation — "threshold cliff", "length-blind floor", "pinned high forever" | Unpack into the plain explanation once, then a short name only if the document truly reuses it; the fix is unpacking, not a synonym |
 | Stat pile-up: several datasets or tests crammed into one paragraph with no connective explanation | One test per paragraph, opening with what the test checks in plain words ("The first test checks that the score falls as humans get more involved"), numbers after the plain-language setup |
+| Paragraph-order dependence: prose paragraphs can be shuffled without changing the argument | Rebuild a progression in which each paragraph earns the next; exempt FAQs, reference entries, independent findings, and genuine lists |
+| Wall-of-text reply: an answer hides distinct steps or decisions in one unbroken block | Add only the paragraph breaks or list structure the reader needs; length alone is not the signal |
 
 ## 3. Rhetorical
 
@@ -979,6 +1032,9 @@ choice. See `evidence.md` for the study, limitations, and adoption decision.
 | Manufactured stakes: "in today's fast-paced world", "now more than ever" | Start where the reader needs to start |
 | Performed candor: "let's be honest", "here's the thing", "truth be told" | State the point |
 | Rhetorical-question openers: "Ever wondered…?", "What if I told you…?" | The answer, as a statement |
+| Unsupported novelty: "the problem nobody is naming" without a comparison or source | Make the narrower supported claim, or ask for the missing basis |
+| Self-labeling significance: "this matters", "this is important", or "the key insight" substitutes a label for a consequence | State the concrete consequence and let it carry the weight |
+| Moral-adjective category error: a technical choice or metric is called brave, honest, ethical, or courageous without a moral agent or decision | Name the engineering property or trade-off; preserve a real moral judgment when the source supports one |
 | Throat-clearing: "The uncomfortable truth is", "Let me be clear" | Cut; the claim stands alone |
 | Emphasis crutches: "Make no mistake", "Let that sink in", "Read that again" | Show the weight with the fact itself |
 | Meta-commentary: "In this post we'll explore", "Let me walk you through" | Just do it |
@@ -1063,6 +1119,7 @@ from judgment to mechanical in v2.5.10 when a safe rule finally reached it.
 |---|---|
 | Assistant voice: "Great question!", "I hope this helps", "I'd be happy to" | Delete |
 | Reflexive agreement or praise: approving the premise before checking it, flattering the writer, or refusing to take a supported position | Answer the substance first; agree, qualify, or disagree according to the facts |
+| Recap-flattery: a reply opens by praising and paraphrasing the question before answering it | Start with the answer; keep only context the reader actually needs |
 | Chatbot residue: "Would you like me to…", "Let me know if you'd like…", "my training data" | Delete — it is proof of paste, not style |
 | Knowledge-cutoff residue: "as of my last update", "not widely documented" | Delete; verify the claim |
 | Passive or subjectless wording that hides an actor who matters | Name the actor and use the direct verb; keep passive voice when the actor is unknown, irrelevant, or native to the genre |
@@ -1491,8 +1548,8 @@ listener hears it: from the first line to the last, with each sentence setting u
 next. A stumble, cold transition, unclear antecedent, or change of voice can still
 survive a clean score and correct grammar.
 
-Run this pass on every deliverable after the copy desk. It is the last editorial pass
-before final verification and the Report step. Use a dedicated editor with fresh eyes
+Run this pass on every deliverable after the copy desk. It is the spoken-flow pass
+before verification and the separate fresh-eyes finalizer. Use a dedicated editor with fresh ears
 when the harness supports subagents; otherwise perform a separate, role-isolated pass.
 The editor must fix the actual deliverable and return the corrected artifact in the
 same format. An audit or list of suggestions is not a completed pass.
@@ -1506,17 +1563,33 @@ safe correction for:
   endings that make a reader stop or back up.
 - **Cold transitions.** Add or repair the hinge when a sentence, paragraph, or
   section arrives without a clear connection to what came before.
+- **Paragraph-order dependence.** If adjacent prose paragraphs can trade places
+  without changing the argument, rebuild the progression. Do not impose a story
+  arc on FAQs, reference entries, independent findings, or genuine lists.
 - **Performed candor.** Remove announcements of honesty such as "honestly" or "to be
   fair" when the sentence can simply make its point.
 - **Reflexive agreement.** Remove automatic praise or agreement that appears before
   the substance has been checked. Let the facts determine whether the draft agrees,
   qualifies, or disagrees.
+- **Recap-flattery.** In a reply, cut praise and a needless restatement of the
+  question before the answer. Keep setup that materially changes the answer.
+- **Wall-of-text reply.** Break an answer where the reader must change task,
+  decision, time, or subject. Do not split a coherent narrative paragraph merely
+  to make it look lighter.
 - **Communicative drift.** Stop when fluent sentences no longer advance a clear
   point or reader need. Cut the passage, rebuild it around its purpose, or flag the
   missing intent rather than inventing one.
 - **Rhetorical scale mismatch.** Reduce grand reveals, lessons, or contrasts when
   the underlying point is too small or unsupported for the framing. Preserve a
   contrast that corrects a real, supported misconception.
+- **Unsupported novelty.** Remove claims that nobody has noticed or named an idea
+  unless the source supplies a defensible comparison.
+- **Self-labeling significance.** Replace an unsupported declaration that a point
+  is important with the consequence that makes it important.
+- **Moral-adjective category error.** Do not call a system design, metric, or
+  technical choice brave, honest, ethical, or courageous when the sentence means
+  accurate, transparent, conservative, or reliable. Preserve a sourced moral
+  judgment about an actual agent or decision.
 - **Performed-writer register.** Flatten theatrical framing of ordinary work ("we
   hired an adversary"), epigram closers, staccato antithesis pairs ("Not perfect.
   Honest."), extended conceits (billing, courtroom, forensics, recipe), one-word
@@ -1542,6 +1615,8 @@ safe correction for:
 
 Do not merely flag these problems. Correct them directly wherever the intended
 meaning is certain.
+
+For consistent reporting, use these names: paragraph-order dependence, unsupported novelty, self-labeling significance, moral-adjective category error, recap-flattery, and wall-of-text reply.
 
 ## Boundaries
 
@@ -1588,7 +1663,8 @@ Verify the exact artifact returned by the read-aloud editor:
    this read-aloud pass again, and repeat every final check.
 
 Stop only when the same artifact has cleared the copy desk, final read-aloud pass,
-semantic and format review, scorer, and fidelity check. Limit this repair loop to
+semantic and format review, scorer, fidelity check, and the separate fresh-eyes
+finalizer in `fresh-eyes.md`. Limit this repair loop to
 three rounds. If an issue still cannot be resolved without guessing, return the best
 source-preserving version that completed both editorial passes, state the unresolved
 span and failed check plainly, and do not describe the fallback as fully verified.
@@ -1678,7 +1754,7 @@ known voice signals, and immutable facts when available. Then use this brief:
 > terse note only for unresolved ambiguities or unusual forms deliberately kept.
 
 Apply the corrected version to the deliverable, then send that exact artifact
-through the final read-aloud pass in `references/readalong.md`. Verify the
+through the read-aloud pass in `references/readalong.md`. Verify the
 artifact returned by the read-aloud editor:
 
 1. Rerun the heuristic surface scorer and scripted fidelity check.
@@ -1686,11 +1762,13 @@ artifact returned by the read-aloud editor:
    claims, qualifiers, intended voice, regional spelling, format, and non-prose
    structure. The script cannot detect every semantic or stylistic change.
 3. If any check or comparison requires a repair, apply it, send the repaired
-   text through the copy desk and final read-aloud pass again, and repeat all
+   text through the copy desk and read-aloud pass again, and repeat all
    final checks.
 
-Stop only when the same artifact clears the copy desk, final read-aloud pass,
-semantic and format review, scorer, and fidelity check. Limit this repair loop to
+After verification, send that exact text through the finalizer in
+`references/fresh-eyes.md`. Stop only when the same artifact clears the copy desk,
+read-aloud pass, semantic and format review, scorer, fidelity check, and receives a
+no-change fresh-eyes approval. Limit this repair loop to
 three rounds. If an issue still cannot be resolved without guessing, return the best
 source-preserving version that completed both editorial passes, flag the unresolved
 span and failed check plainly, and do not describe the fallback as fully verified.

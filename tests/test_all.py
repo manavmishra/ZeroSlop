@@ -665,6 +665,49 @@ class CommunityReportedSignals(unittest.TestCase):
                 hits = slopscore.score_text(text, data)["hits"]
                 self.assertTrue(any(hit["name"] == "chatgpt-artifact" for hit in hits))
 
+    def test_incumbent_phrase_signals_are_narrow_and_context_safe(self):
+        """Adopt the incumbent's defensible phrase families without turning
+        ordinary novelty, emotion, or direct answers into automatic verdicts."""
+        data = slopscore.load_patterns()
+        positives = {
+            "reasoning-artifact": "Let me think step by step before I answer.",
+            "novelty-inflation": "This is the failure mode nobody is naming.",
+            "emotional-flatline": "What surprised me most was the final result.",
+            "acknowledgment-loop": "To answer your question, the cache expires hourly.",
+        }
+        for expected, text in positives.items():
+            with self.subTest(kind="positive", expected=expected):
+                names = {hit["name"] for hit in slopscore.score_text(text, data)["hits"]}
+                self.assertIn(expected, names)
+
+        controls = {
+            "reasoning-artifact": "The runbook lists each recovery step in order.",
+            "novelty-inflation": "Nobody is assigned to the weekend shift.",
+            "emotional-flatline": "The result surprised me because it reversed the trial.",
+            "acknowledgment-loop": "The cache expires hourly, which answers the question.",
+        }
+        for forbidden, text in controls.items():
+            with self.subTest(kind="control", forbidden=forbidden):
+                names = {hit["name"] for hit in slopscore.score_text(text, data)["hits"]}
+                self.assertNotIn(forbidden, names)
+
+    def test_incumbent_contextual_checks_are_explicit(self):
+        skill = (ROOT / "SKILL.md").read_text().lower()
+        tells = (ROOT / "references" / "tells.md").read_text().lower()
+        readalong = (ROOT / "references" / "readalong.md").read_text().lower()
+        for phrase in (
+            "paragraph-order dependence",
+            "unsupported novelty",
+            "self-labeling significance",
+            "moral-adjective category error",
+            "recap-flattery",
+            "wall-of-text reply",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, skill)
+                self.assertIn(phrase, tells)
+                self.assertIn(phrase, readalong)
+
 
 # --------------------------------------------------------------------------
 class ContextualSignals(unittest.TestCase):
@@ -1825,20 +1868,37 @@ class DocsMatchReality(unittest.TestCase):
         positions = [readme.index(role) for role in roles]
         self.assertEqual(positions, sorted(positions), "README role order drifted")
 
-    def test_skill_enforces_the_same_seven_role_pipeline(self):
+    def test_skill_enforces_the_same_eight_role_pipeline(self):
         skill = " ".join(self.docs["SKILL.md"].lower().split())
-        contract = skill[skill.index("## seven roles, one pipeline"):
+        contract = skill[skill.index("## eight roles, one pipeline"):
                          skill.index("## detailed workflow")]
         roles = (
             "1. **scorer", "2. **interpreter", "3. **rewriter",
             "4. **fact gate", "5. **copy desk", "6. **read-aloud editor",
-            "7. **verifier",
+            "7. **verifier", "8. **fresh-eyes finalizer",
         )
         positions = [contract.index(role) for role in roles]
         self.assertEqual(positions, sorted(positions), "skill role order drifted")
-        self.assertIn("separate jobs, not seven models or services", contract)
+        self.assertIn("separate jobs, not eight models or services", contract)
         self.assertIn("local tools plus the ai assistant", contract)
         self.assertIn("any repair returns through roles 5 and 6", contract)
+        self.assertIn("a role 8 edit restarts roles 5 through 8", contract)
+
+    def test_fresh_eyes_finalizer_is_separate_and_closed_loop(self):
+        skill = self.docs["SKILL.md"].lower()
+        brief = (ROOT / "references" / "fresh-eyes.md").read_text().lower()
+        self.assertIn("### 8. fresh-eyes finalizer", skill)
+        readaloud = skill[skill.index("### 6. read-aloud editor"):
+                          skill.index("### 7. verifier")]
+        self.assertIn("dedicated read-aloud editor", readaloud)
+        self.assertNotIn("dedicated fresh-eyes editor", readaloud)
+        for phrase in (
+            "first-time reader", "approve without changes", "copy desk",
+            "read-aloud", "verifier", "three rounds", "same exact text",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, brief)
+        self.assertIn("references/fresh-eyes.md", skill)
 
     def test_skill_report_template_speaks_to_the_writer(self):
         skill = self.docs["SKILL.md"]
@@ -1860,7 +1920,7 @@ class DocsMatchReality(unittest.TestCase):
                 "candidate", "overlay"):
             with self.subTest(term=term):
                 self.assertNotIn(term, template)
-        report = skill[skill.index("### 8. Report in plain language"):]
+        report = skill[skill.index("### 9. Report in plain language"):]
         self.assertIn("Who did what", report)
         self.assertIn("Your AI assistant", report)
         self.assertIn("never guess", report)
