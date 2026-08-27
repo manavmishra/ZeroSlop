@@ -1,98 +1,110 @@
 #!/usr/bin/env node
-// Render the sharing card in GitHub (1280x640) or Open Graph (1200x630) form.
-// GitHub exposes no API for repo social previews, so uploading that card remains
-// a manual step in Settings -> General -> Social preview.
+// Renders the GitHub repo social preview card (1280x640).
 //
-// Usage: node growth/make-social-preview.mjs [outfile] [width] [height]
+// GitHub exposes no API for repo social previews, so this only produces the
+// file; uploading it is a manual step in Settings -> General -> Social preview.
+//
+// Usage: node scripts/make-social-preview.mjs [outfile]
 
-import { chromium } from "../website/node_modules/playwright-core/index.mjs";
+import { chromium } from "playwright-core";
 import { writeFile } from "node:fs/promises";
 
 const out = process.argv[2] ?? "assets/social-preview.png";
-const width = Number(process.argv[3] ?? 1280);
-const height = Number(process.argv[4] ?? 640);
 const chromePath =
   process.env.CHROME_PATH ??
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
-if (!Number.isFinite(width) || !Number.isFinite(height) || width < 800 || height < 400) {
-  throw new Error("width and height must be reasonable positive numbers");
-}
+// Site palette, dark variant: background #17150e, paper #faf5e0, green #227B5B,
+// violet #72528F. Kept in sync with ZSWebpage/app/globals.css by hand.
+// Terracotta rust on paper white. The score is drawn as a measurement scale
+// rather than a pair of coloured chips: the product measures writing, so the
+// card should look like a measurement, not a promotion.
+const RUST = "#b0442a";
+const DRAFT = 77;
+const EDITED = 14;
+
+// Positions on a 0-100 axis, inset so the end dots never clip the track.
+const pos = (n) => `${4 + (n / 100) * 92}%`;
 
 const html = `<!doctype html>
-<html><head><meta charset="utf-8"><style>
-  * { box-sizing:border-box; }
-  body { margin:0; width:${width}px; height:${height}px; padding:52px 58px 44px;
-    overflow:hidden; background:#f6f5ef; color:#151a17;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-  header, footer { display:flex; align-items:center; justify-content:space-between; }
-  .brand { display:flex; align-items:center; gap:12px; color:#17694f; font-size:18px;
-    font-weight:750; letter-spacing:.14em; text-transform:uppercase; }
-  .brand i { width:12px; height:12px; border-radius:3px; background:#17694f; }
-  .mono { color:#6b756f; font:500 14px ui-monospace,SFMono-Regular,Menlo,monospace; }
-  main { height:430px; display:grid; grid-template-columns:.82fr 1.18fr; gap:54px;
-    align-items:center; }
-  .kicker { margin-bottom:17px; color:#9a5c19; font:700 13px ui-monospace,
-    SFMono-Regular,Menlo,monospace; letter-spacing:.13em; text-transform:uppercase; }
-  h1 { margin:0; font-size:70px; line-height:.98; letter-spacing:-.055em; }
-  h1 span { color:#17694f; }
-  .lede { max-width:440px; margin:24px 0 0; color:#58635d; font-size:19px;
-    line-height:1.48; }
-  .panel { padding:24px; border:1px solid #cdd5cf; border-radius:22px;
-    background:#fff; box-shadow:0 22px 55px rgba(26,44,34,.09); }
-  .panel-head { display:flex; justify-content:space-between; margin:0 2px 18px;
-    color:#5b6861; font:650 12px ui-monospace,SFMono-Regular,Menlo,monospace;
-    letter-spacing:.08em; text-transform:uppercase; }
-  .roles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .role { min-height:105px; padding:17px 18px; border:1px solid #d9dfda;
-    border-radius:14px; background:#f8faf8; }
-  .role.read { background:#f8f3e9; border-color:#d6b98e; }
-  .role.fresh { background:#f2eef6; border-color:#a991bc; }
-  .role b { display:block; margin-bottom:8px; font-size:18px; }
-  .role span { color:#68736d; font-size:13px; line-height:1.35; }
-  .loop { margin-top:13px; padding:11px 14px; border-radius:11px; color:#81501b;
-    background:#fbf4e9; font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;
-    text-align:center; }
-  footer { padding-top:19px; border-top:1px solid #d9ded9; }
-  footer strong { color:#1f2c25; font-weight:700; }
-</style></head><body>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    width:1280px; height:640px; display:flex; flex-direction:column;
+    justify-content:space-between; padding:60px 80px 56px;
+    background:#ffffff; color:#1a1714;
+    font-family:'Manrope',system-ui,sans-serif;
+  }
+  header { display:flex; justify-content:space-between; align-items:center; }
+  .mark { display:flex; align-items:center; gap:12px; font-size:19px; font-weight:800;
+          letter-spacing:.13em; text-transform:uppercase; color:${RUST}; }
+  .mark i { width:11px; height:11px; background:${RUST}; border-radius:2px; display:block; }
+  .site { font-family:'IBM Plex Mono',monospace; font-size:16px; color:#8a8178; }
+
+  h1 { font-size:66px; font-weight:800; letter-spacing:-.033em; line-height:1.08; }
+  h1 span { color:#a9a099; }
+
+  .scale { margin-top:76px; }
+  .track { position:relative; height:3px; background:#e9e4de; border-radius:2px; }
+  .fill  { position:absolute; top:0; bottom:0; background:${RUST}; opacity:.16; border-radius:2px; }
+  .node  { position:absolute; top:50%; transform:translate(-50%,-50%); }
+  .node b { display:block; width:15px; height:15px; border-radius:50%; }
+  .node.draft  b { background:#ffffff; border:3px solid #c8c1b9; }
+  .node.edited b { background:${RUST}; box-shadow:0 0 0 6px rgba(176,68,42,.13); }
+  .node u {
+    position:absolute; left:50%; transform:translateX(-50%); top:30px;
+    text-decoration:none; white-space:nowrap; text-align:center;
+  }
+  .node u em { display:block; font-family:'IBM Plex Mono',monospace; font-size:12px;
+               letter-spacing:.15em; text-transform:uppercase; color:#8a8178;
+               font-style:normal; margin-bottom:3px; }
+  .node u strong { font-size:38px; font-weight:600; letter-spacing:-.02em; line-height:1; }
+  .node.draft u strong  { color:#a9a099; }
+  .node.edited u strong { color:${RUST}; }
+  .axis { display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace;
+          font-size:12px; color:#c6bfb7; margin-top:96px; }
+
+  footer { display:flex; justify-content:space-between; align-items:baseline;
+           border-top:1px solid #ece7e1; padding-top:20px; }
+  .meta { font-family:'IBM Plex Mono',monospace; font-size:15px; color:#8a8178; }
+  .meta b { color:#1a1714; font-weight:500; }
+</style></head>
+<body>
   <header>
-    <div class="brand"><i></i>Zero Slop</div>
-    <div class="mono">zero-slop.ai · v2.6.0</div>
+    <div class="mark"><i></i>Zero Slop</div>
+    <div class="site">zero-slop.ai</div>
   </header>
-  <main>
-    <section>
-      <div class="kicker">AI writing editor</div>
-      <h1>Less slop.<br><span>More pop.</span></h1>
-      <p class="lede">Eight focused roles take an AI-assisted draft from rewrite to polished, source-checked copy.</p>
-    </section>
-    <section class="panel">
-      <div class="panel-head"><span>One editorial pipeline</span><span>Selected roles</span></div>
-      <div class="roles">
-        <div class="role"><b>3 · Rewriter</b><span>Rebuilds order, rhythm, and tone.</span></div>
-        <div class="role"><b>5 · Copy desk</b><span>Corrects grammar, usage, and consistency.</span></div>
-        <div class="role read"><b>6 · Read aloud</b><span>Fixes stumbles, transitions, and repetition.</span></div>
-        <div class="role fresh"><b>8 · Fresh eyes</b><span>Reads as a first-time reader and approves unchanged.</span></div>
+
+  <div>
+    <h1>Less slop, more pop.<br><span>No rewrites.</span></h1>
+    <div class="scale">
+      <div class="track">
+        <div class="fill" style="left:${pos(EDITED)};right:${100 - parseFloat(pos(DRAFT))}%"></div>
+        <div class="node draft"  style="left:${pos(DRAFT)}"><b></b><u><em>draft</em><strong>${DRAFT}</strong></u></div>
+        <div class="node edited" style="left:${pos(EDITED)}"><b></b><u><em>edited</em><strong>${EDITED}</strong></u></div>
       </div>
-      <div class="loop">ANY FINAL POLISH → COPY EDIT → READ ALOUD → VERIFY → FRESH EYES</div>
-    </section>
-  </main>
+      <div class="axis"><span>0</span><span>writing score</span><span>100</span></div>
+    </div>
+  </div>
+
   <footer>
-    <div class="mono"><strong>Agent Skill</strong> · MIT · local checks · private learning</div>
-    <div class="mono">npx skills add manavmishra/ZeroSlop</div>
+    <div class="meta"><b>Agent Skill</b> &middot; MIT &middot; zero dependencies &middot; runs locally</div>
+    <div class="meta">npx skills add manavmishra/ZeroSlop</div>
   </footer>
 </body></html>`;
 
 const browser = await chromium.launch({ executablePath: chromePath, headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
-  await page.setContent(html, { waitUntil: "load" });
-  const jpeg = /\.jpe?g$/i.test(out);
-  const buffer = await page.screenshot(jpeg
-    ? { type: "jpeg", quality: 90 }
-    : { type: "png" });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
+  await page.setContent(html, { waitUntil: "networkidle" });
+  await page.evaluate(() => document.fonts.ready);
+  const buffer = await page.screenshot({ type: "png" });
   await writeFile(out, buffer);
-  console.log(`wrote ${out} (${(buffer.length / 1024).toFixed(0)} KB, ${width}x${height})`);
+  console.log(`wrote ${out} (${(buffer.length / 1024).toFixed(0)} KB, 1280x640)`);
 } finally {
   await browser.close();
 }

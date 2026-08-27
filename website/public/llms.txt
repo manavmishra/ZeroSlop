@@ -8,7 +8,7 @@ Zero Slop is an open-source AI writing humanizer and anti-slop checker. It score
 - Full product reference: https://zero-slop.ai/llms-full.txt
 - Source and documentation: https://github.com/manavmishra/ZeroSlop
 - Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
-- Current version: 2.6.0
+- Current version: 2.5.10
 - License: MIT
 - Price: Free
 - Runtime: Standard-library Python scorer; no third-party packages required
@@ -23,7 +23,7 @@ Zero Slop is an open-source AI writing humanizer and anti-slop checker. It score
 
 Zero Slop is not an authorship detector. It is an editorial tool that finds stock phrases, mechanical sentence rhythm, hard-to-read passages, and distracting formatting. Your AI assistant interprets and edits the draft; local tools check facts and protected document structure against the original.
 
-Eight roles move one draft through scoring, interpretation, rewriting, source protection, copy-editing, a read-aloud pass, verification, and a separate fresh-eyes finalizer. Any final polish restarts the last four roles, so the exact text returned to the reader is rechecked. A separate private loop learns only from assistant and final versions supplied by the writer. Shared changes go through a separate release review.
+Seven roles move one draft through scoring, interpretation, rewriting, source protection, copy-editing, a read-aloud pass, and final verification. A separate private loop learns only from assistant and final versions supplied by the writer. Shared changes go through a separate release review.
 
 ## Examples on the website
 

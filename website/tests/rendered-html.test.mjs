@@ -42,23 +42,16 @@ test("renders the Zero Slop landing page and its primary journey", async () => {
   assert.match(html, /id="examples"/i);
   assert.match(html, /id="proof"/i);
   assert.match(html, /id="install"/i);
-  assert.match(html, /Works with the/i);
-  assert.match(html, /agent<\/em> you already use\./i);
-  assert.match(html, /src="\/agent-compatibility-scene\.jpg"/i);
-  assert.match(html, /One skill file\./i);
-  assert.match(html, /Eight roles, source checks, and private learning\./i);
-  assert.match(html, /Eight roles\. Two loops\. One clean handoff\./i);
+  assert.match(html, /One skill\. Your compatible agent\./i);
+  assert.match(html, /Seven roles\. Two loops\. One clean handoff\./i);
   assert.match(html, /src="\/engine\.svg"/i);
   assert.match(html, /Loop 1 finishes the current draft/i);
   assert.match(html, /Loop 2 learns only from edits/i);
   assert.match(html, /Fresh scores\. Public inputs\./i);
   assert.match(html, /pinned RAID\+ sample/i);
-  assert.match(html, /favored Zero Slop on 13 drafts/i);
-  assert.match(html, /src="\/bench-incumbent-hidden\.png"/i);
-  assert.match(html, /2 were unresolved/i);
   assert.match(html, /All usable RAID\+ rows/i);
-  assert.match(html, /2\.6\.0/i);
-  assert.match(html, /Four fresh GPT-5\.4 workflows/i);
+  assert.match(html, /2\.5\.10/i);
+  assert.match(html, /Fresh GPT-5\.4 rewrites/i);
   assert.doesNotMatch(html, /historical study/i);
   assert.doesNotMatch(html, /saved decisions/i);
   assert.doesNotMatch(html, /55 total/i);
@@ -118,12 +111,11 @@ test("ships complete search, answer-engine, and social metadata", async () => {
 
 test("keeps the launch payload within a fast mobile budget", async () => {
   const cssDirectory = new URL("dist/static/_next/static/css/", projectRoot);
-  const [html, cssNames, heroImage, socialImage, compatibilityImage] = await Promise.all([
+  const [html, cssNames, heroImage, socialImage] = await Promise.all([
     readFile(new URL("dist/static/index.html", projectRoot), "utf8"),
     readdir(cssDirectory),
     stat(new URL("public/demo-384.avif", projectRoot)),
     stat(new URL("public/og.jpg", projectRoot)),
-    stat(new URL("public/agent-compatibility-scene.jpg", projectRoot)),
   ]);
 
   const cssBuffers = await Promise.all(
@@ -138,12 +130,6 @@ test("keeps the launch payload within a fast mobile budget", async () => {
   assert.ok(compressedCssBytes <= 8_000, `compressed CSS budget exceeded: ${compressedCssBytes} bytes`);
   assert.ok(heroImage.size <= 16_000, `mobile hero image is too large: ${heroImage.size} bytes`);
   assert.ok(socialImage.size <= 500_000, `social preview is too large: ${socialImage.size} bytes`);
-  assert.ok(compatibilityImage.size <= 250_000, `compatibility scene is too large: ${compatibilityImage.size} bytes`);
-  await assert.rejects(
-    readFile(new URL("dist/static/wrangler.json", projectRoot)),
-    { code: "ENOENT" },
-    "the Pages upload must not inherit Vinext's worker-style assets configuration",
-  );
 });
 
 test("keeps the final UI accessible, responsive, and free of template residue", async () => {
@@ -169,7 +155,6 @@ test("keeps the final UI accessible, responsive, and free of template residue", 
   assert.doesNotMatch(page, /_sites-preview|SkeletonPreview/);
   assert.doesNotMatch(layout, /Starter Project|codex-preview/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-  assert.match(packageJson, /pages deploy website\/dist\/static --cwd \.\./);
 });
 
 test("publishes crawl controls and an AI-readable product summary", async () => {

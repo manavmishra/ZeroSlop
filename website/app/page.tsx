@@ -4,7 +4,7 @@ import { ExampleGallery } from "./ExampleGallery";
 
 const githubUrl = "https://github.com/manavmishra/ZeroSlop";
 const releaseUrl = `${githubUrl}/releases/latest`;
-const skillVersion = "2.6.0";
+const skillVersion = "2.5.10";
 const compatibleAgents = [
   "Codex",
   "Claude Code",
@@ -269,28 +269,26 @@ export default function Home() {
           aria-labelledby="method-title"
         >
           <div className="section-heading">
-            <h2 id="method-title">Eight roles. Two loops. One clean handoff.</h2>
+            <h2 id="method-title">Seven roles. Two loops. One clean handoff.</h2>
             <p>
               Local tools handle repeatable checks. The AI already running in
               your assistant handles context and editing. Each role has one job,
-              and any final polish goes back through copy editing, read-aloud
-              review, verification, and fresh-eyes review.
+              and any repair goes back through the final editorial passes.
             </p>
           </div>
 
           <figure className="engine-diagram">
             <img
               src="/engine.svg"
-              alt="Zero Slop moves a draft through eight editorial roles, ending with a separate fresh-eyes review that sends any change back through the final checks; it learns privately only from before-and-after versions supplied by the writer and evaluates shared changes in a separate release review"
+              alt="Zero Slop moves a draft through seven editorial roles, learns privately only from before-and-after versions supplied by the writer, and evaluates shared changes in a separate release review"
               width="1600"
-              height="1040"
+              height="900"
               loading="lazy"
               decoding="async"
             />
             <figcaption>
-              Loop 1 finishes the current draft with read-aloud and fresh-eyes
-              passes. Loop 2 learns only from edits you provide. Release review
-              stays separate from both.
+              Loop 1 finishes the current draft. Loop 2 learns only from edits
+              you provide. Release review stays separate from both.
             </figcaption>
           </figure>
         </section>
@@ -303,14 +301,14 @@ export default function Home() {
           <div className="proof-copy">
             <h2 id="proof-title">Fresh scores. Public inputs.</h2>
             <p>
-              Version {skillVersion} rescored the pinned RAID+ sample and ran fresh
-              same-settings editing replays. In the method-hidden two-way review,
-              GPT-5.4 favored Zero Slop on 13 drafts and avoid-ai-writing on 3; 2
-              were unresolved. The inputs, hashes, results, and limits are public.
+              Version {skillVersion} rescored the pinned RAID+ sample and regenerated
+              four editing workflows on the same 18 drafts with GPT-5.4. The inputs,
+              hashes, results, and limits are public. RAID+ records model origin, not
+              editorial quality.
             </p>
             <a
               className="text-link"
-              href={`${githubUrl}/tree/main/bench/incumbent-blind-replay`}
+              href={`${githubUrl}#what-the-current-release-measured`}
               target="_blank"
               rel="noreferrer"
             >
@@ -321,17 +319,6 @@ export default function Home() {
           <div className="proof-gallery">
             <figure>
               <img
-                src="/bench-incumbent-hidden.png"
-                alt="Two method-hidden GPT-5.4 review passes favored Zero Slop on 13 of 18 drafts and avoid-ai-writing on 3; 2 drafts were unresolved"
-                width="1240"
-                height="374"
-                loading="lazy"
-                decoding="async"
-              />
-              <figcaption>Two review passes with method names hidden; small LLM-reviewed study, not human field accuracy.</figcaption>
-            </figure>
-            <figure className="proof-secondary">
-              <img
                 src="/bench-raid-plus.png"
                 alt="Mean Zero Slop writing scores for 7,627 non-empty RAID+ abstracts: DeepSeek V3 14.5, Gemini 3.1 Pro 17.0, Gemma 3 27B 21.6, and Llama 3.3 70B 25.5"
                 width="1240"
@@ -341,7 +328,7 @@ export default function Home() {
               />
               <figcaption>All usable RAID+ rows at the pinned revision; not an accuracy claim.</figcaption>
             </figure>
-            <figure>
+            <figure className="proof-secondary">
               <img
                 src="/bench-search-rewrites.png"
                 alt="Fresh same-model editing replay on 18 drafts: Zero Slop 12.8, avoid-ai-writing 23.3, no-ai-slop 28.4, and humanizer 35.4"
@@ -350,7 +337,7 @@ export default function Home() {
                 loading="lazy"
                 decoding="async"
               />
-              <figcaption>Four fresh GPT-5.4 workflows; Zero Slop&apos;s checks, not independent human accuracy.</figcaption>
+              <figcaption>Fresh GPT-5.4 rewrites with the same model settings; Zero Slop&apos;s meter, not independent human accuracy.</figcaption>
             </figure>
           </div>
         </section>
@@ -385,59 +372,46 @@ export default function Home() {
           id="install"
           aria-labelledby="install-title"
         >
-          <img
-            className="install-scene"
-            src="/agent-compatibility-scene.jpg"
-            alt=""
-            width="1600"
-            height="900"
-            loading="lazy"
-            decoding="async"
-            aria-hidden="true"
-          />
-          <div className="install-veil" aria-hidden="true" />
-
           <div className="install-copy">
             <p className="section-kicker">Works where you write.</p>
-            <h2 id="install-title">
-              Works with the <em>agent</em> you already use.
-            </h2>
+            <h2 id="install-title">One skill. Your compatible agent.</h2>
             <p>
-              Install Zero Slop in any compatible assistant. Your AI assistant
-              edits the draft. Zero Slop gives it eight clear jobs and checks
-              the result against your source.
+              Install Zero Slop in Codex, Claude Code, Cursor, Gemini CLI,
+              OpenCode, Warp, or Zed. It also works in any agent that reads
+              SKILL.md files.
             </p>
-            <div className="install-command" id="install-command">
-              <CopyCommand />
-            </div>
             <div className="install-actions">
-              <a className="button button-primary" href={`${githubUrl}#install`} target="_blank" rel="noreferrer">
-                Setup guide
+              <a className="button button-primary" href={githubUrl} target="_blank" rel="noreferrer">
+                Read the setup guide
               </a>
-              <a className="button button-secondary" href={githubUrl} target="_blank" rel="noreferrer">
-                GitHub
+              <a className="button button-secondary" href={releaseUrl} target="_blank" rel="noreferrer">
+                Latest release
               </a>
             </div>
           </div>
 
-          <aside className="compatibility-card" aria-label="Zero Slop compatibility">
-            <div className="compatibility-card-heading">
-              <p>Compatible assistants</p>
-              <span>SKILL.md</span>
+          <div className="install-workspace">
+            <div className="install-workspace-bar" aria-hidden="true">
+              <span>Terminal</span>
+              <span>one skill, seven roles</span>
             </div>
-            <ul aria-label="Compatible agents">
-              {compatibleAgents.map((agent) => (
-                <li key={agent}>{agent}</li>
-              ))}
-            </ul>
-            <div className="compatibility-card-note">
-              <span className="skill-file-mark" aria-hidden="true">ZS</span>
-              <p>
-                <strong>One skill file.</strong>
-                <span>Eight roles, source checks, and private learning.</span>
-              </p>
+            <CopyCommand />
+            <div className="compatibility-map">
+              <div className="skill-file">
+                <span className="skill-file-mark" aria-hidden="true">ZS</span>
+                <strong>SKILL.md</strong>
+                <p>Zero Slop&apos;s scoring, rewrite, and copy-desk instructions</p>
+              </div>
+              <div className="agent-board">
+                <p>Compatible agents</p>
+                <ul aria-label="Compatible agents">
+                  {compatibleAgents.map((agent) => (
+                    <li key={agent}>{agent}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </aside>
+          </div>
         </section>
 
         <section className="faq section-shell section-block" aria-labelledby="faq-title">

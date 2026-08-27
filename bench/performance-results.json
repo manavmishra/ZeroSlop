@@ -1,6 +1,6 @@
 {
  "result_kind": "local_performance_observation",
- "measured_at": "2026-08-27T02:44:49+00:00",
+ "measured_at": "2026-08-26T18:06:52+00:00",
  "environment": {
   "platform": "Darwin",
   "architecture": "arm64",
@@ -11,53 +11,53 @@
   "batch_documents": 1000,
   "batch_repeats": 3,
   "batch_seconds": [
-   1.9791,
-   1.9487,
-   1.9952
+   2.0881,
+   1.9561,
+   2.0566
   ],
-  "median_batch_seconds": 1.9791,
-  "median_documents_per_second": 505.3,
-  "median_milliseconds_per_document": 1.98,
+  "median_batch_seconds": 2.0566,
+  "median_documents_per_second": 486.2,
+  "median_milliseconds_per_document": 2.06,
   "large_document_words": 15201,
   "large_document_repeats": 3,
   "large_document_seconds": [
-   0.3158,
-   0.3153,
-   0.316
+   0.3212,
+   0.3075,
+   0.3134
   ],
-  "median_large_document_seconds": 0.3158,
+  "median_large_document_seconds": 0.3134,
   "pathological_input_seconds": {
-   "single_character": 0.1107,
-   "repeated_word": 0.2036,
-   "repeated_dash": 0.0307,
-   "newlines": 2.4422
+   "single_character": 0.1147,
+   "repeated_word": 0.2098,
+   "repeated_dash": 0.0316,
+   "newlines": 2.4852
   }
  },
  "learning": {
   "reflect_diff_words": 8000,
-  "reflect_seconds": 0.1625,
+  "reflect_seconds": 0.1622,
   "retrieval_preferences": 5000,
   "retrieval_seconds": [
-   0.1459,
-   0.1906,
-   0.1849
+   0.1631,
+   0.1624,
+   0.1601
   ],
-  "median_retrieval_seconds": 0.1849
+  "median_retrieval_seconds": 0.1624
  },
  "contextual_research": {
   "paragraphs": 2000,
   "prepare_seconds": [
-   0.0026,
-   0.0026,
-   0.0026
+   0.0029,
+   0.0031,
+   0.003
   ],
-  "median_prepare_seconds": 0.0026,
+  "median_prepare_seconds": 0.003,
   "validate_seconds": [
-   0.0042,
-   0.0041,
-   0.0042
+   0.0051,
+   0.005,
+   0.0048
   ],
-  "median_validate_seconds": 0.0042,
+  "median_validate_seconds": 0.005,
   "host_model_seconds": null
  },
  "ci_thresholds": {

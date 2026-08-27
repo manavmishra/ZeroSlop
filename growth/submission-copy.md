@@ -62,14 +62,13 @@ Readers notice. That machine sound has a name: slop.
 
 Zero Slop is an Agent Skill rather than an AI model. Claude, GPT, or another
 compatible model in your assistant does the editing; Zero Slop supplies the
-method and the local checks. Eight roles make up one workflow. A local scorer
+method and the local checks. Seven roles make up one workflow. A local scorer
 finds exact phrases, mechanical rhythm, and distracting formatting, then
 explains the 0-100 writing score it produced. Your assistant interprets the
 draft and rewrites it. A local fact gate rejects any version that adds or drops
 a name, number, quotation, or link. Fresh passes handle copy editing and a
 read-aloud check. Local tools and your assistant then compare the finished text
-against the source. A separate fresh-eyes finalizer reads the verified copy as a
-first-time reader. If it changes anything, all four finishing roles run again.
+against the source.
 
 The score describes the writing, not the author. In the test sets, human samples
 scored 9 to 21 and unedited AI drafts averaged 77, which are reference points

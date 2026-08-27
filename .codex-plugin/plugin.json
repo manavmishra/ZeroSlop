@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.6.0",
+  "version": "2.5.10",
   "description": "Zero Slop is a skill, not an AI model. GPT or another compatible model performs the editorial roles; local tools score the writing and protect facts, then the assistant and tools verify the final text.",
   "author": {
     "name": "Manav Mishra",
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Zero Slop",
     "shortDescription": "Remove AI-sounding prose. Keep every fact. Verify the result.",
-    "longDescription": "Zero Slop is a skill, not an AI model. GPT or another compatible model performs distinct interpreting, rewriting, copy-editing, read-aloud, verification, and fresh-eyes roles. Local tools score the draft and protect facts. Any finalizer edit restarts every finishing check. Zero Slop can learn privately from later writer edits without retraining the model. Draft checks stay local and need no additional packages; the optional version check sends only a version query.",
+    "longDescription": "Zero Slop is a skill, not an AI model. GPT or another compatible model performs distinct interpreting, rewriting, copy-editing, and read-aloud roles. Local tools score the draft and protect facts; the assistant and tools share the final verification. Zero Slop can learn privately from later writer edits without retraining the model. Draft checks stay local and need no additional packages; the optional version check sends only a version query.",
     "developerName": "Manav Mishra",
     "category": "Productivity",
     "capabilities": [

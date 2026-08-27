@@ -45,8 +45,6 @@ def main():
     parser.add_argument("--reasoning", default="high")
     parser.add_argument("--batch-size", type=int, default=3)
     parser.add_argument("--codex", type=Path, default=DEFAULT_CODEX)
-    parser.add_argument("--suite-dir", type=Path, default=HERE,
-                        help="directory for outputs/ and runs/ (default: this suite)")
     args = parser.parse_args()
 
     instruction = (args.root / args.instruction).resolve()
@@ -57,10 +55,9 @@ def main():
     if not 1 <= args.batch_size <= len(corpus):
         parser.error("--batch-size must be between 1 and the corpus size")
 
-    suite_dir = args.suite_dir.resolve()
-    suite_dir.mkdir(parents=True, exist_ok=True)
-    output_path = suite_dir / "outputs" / f"{args.method}.json"
-    run_path = suite_dir / "runs" / f"{args.method}.json"
+    HERE.mkdir(parents=True, exist_ok=True)
+    output_path = HERE / "outputs" / f"{args.method}.json"
+    run_path = HERE / "runs" / f"{args.method}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     run_path.parent.mkdir(parents=True, exist_ok=True)
     rewrites, batches = {}, []

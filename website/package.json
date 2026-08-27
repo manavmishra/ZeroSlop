@@ -10,7 +10,7 @@
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "build:static": "npm run build && node scripts/export-static.mjs",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "deploy:cloudflare": "npm run build:static && wrangler pages deploy website/dist/static --cwd .. --project-name=zero-slop --branch=main",
+    "deploy:cloudflare": "npm run build:static && wrangler pages deploy dist/static --project-name=zero-slop",
     "test": "npm run build:static && node --test tests/rendered-html.test.mjs",
     "test:e2e": "node tests/browser-qa.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"

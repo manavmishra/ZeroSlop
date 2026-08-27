@@ -56,30 +56,13 @@ try {
   );
 
   await page.getByRole("link", { name: "Install", exact: true }).first().click();
-  const installSection = page.locator("#install");
-  await page.waitForFunction(() => {
-    const image = document.querySelector(".install-scene");
-    return image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0;
-  });
   assert.equal(await page.getByRole("list", { name: "Compatible agents" }).getByRole("listitem").count(), 7);
-  const installLayout = await installSection.evaluate((section) => {
-    const image = section.querySelector(".install-scene");
-    const card = section.querySelector(".compatibility-card");
-    return {
-      sectionWidth: section.getBoundingClientRect().width,
-      cardWidth: card?.getBoundingClientRect().width ?? 0,
-      imageLoaded: image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
-    };
-  });
-  assert.equal(installLayout.imageLoaded, true);
-  assert.ok(installLayout.cardWidth <= installLayout.sectionWidth, `install card overflows: ${JSON.stringify(installLayout)}`);
   await page.getByRole("button", { name: "Copy the Zero Slop install command" }).click();
   await page.getByRole("button", { name: "Copy the Zero Slop install command" }).getByText("Copied").waitFor();
   assert.equal(
     await page.evaluate(() => navigator.clipboard.readText()),
     "npx skills add manavmishra/ZeroSlop --global",
   );
-  await installSection.screenshot({ path: ".quality/install-mobile.png" });
 
   const faq = page.getByText("Does the scorer send my writing anywhere?");
   await faq.click();
@@ -106,7 +89,6 @@ try {
     [...document.images].every((image) => image.complete),
   );
   await desktopPage.locator("#proof").screenshot({ path: ".quality/proof-final.png" });
-  await desktopPage.locator("#install").screenshot({ path: ".quality/install-desktop.png" });
   await desktopPage.screenshot({ path: ".quality/desktop-final.png", fullPage: true });
   await desktop.close();
 

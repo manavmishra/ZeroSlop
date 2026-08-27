@@ -1,6 +1,6 @@
 # The Tell Taxonomy
 
-A hundred and thirteen tells in six families, merged from WP:AICATCH (Wikipedia's editor
+A hundred and seven tells in six families, merged from WP:AICATCH (Wikipedia's editor
 catalog, built from thousands of caught instances), the de-slop/stop-slop
 detector line, petergyang/no-ai-slop, blader/humanizer, the academic
 lexicon studies (Kobak, Liang, Juzek & Ward), and community taxonomies of
@@ -25,8 +25,6 @@ constructions, assistant residue, and formatting. Treat isolated vocabulary
 as weak evidence unless it is generic in context or appears in a cluster. A
 lone dash, formal sentence, transition, or supported contrast remains a style
 choice. See `evidence.md` for the study, limitations, and adoption decision.
-
-Contextual review names six checks explicitly: paragraph-order dependence, unsupported novelty, self-labeling significance, moral-adjective category error, recap-flattery, and wall-of-text reply.
 
 ## 1. Lexical
 
@@ -78,8 +76,6 @@ Contextual review names six checks explicitly: paragraph-order dependence, unsup
 | Mechanical sentence openings: several consecutive sentences begin with the same subject or frame without building deliberate rhythm | Merge or vary the sentences; preserve purposeful anaphora |
 | Jargon compression: invented compound terms in place of explanation — "threshold cliff", "length-blind floor", "pinned high forever" | Unpack into the plain explanation once, then a short name only if the document truly reuses it; the fix is unpacking, not a synonym |
 | Stat pile-up: several datasets or tests crammed into one paragraph with no connective explanation | One test per paragraph, opening with what the test checks in plain words ("The first test checks that the score falls as humans get more involved"), numbers after the plain-language setup |
-| Paragraph-order dependence: prose paragraphs can be shuffled without changing the argument | Rebuild a progression in which each paragraph earns the next; exempt FAQs, reference entries, independent findings, and genuine lists |
-| Wall-of-text reply: an answer hides distinct steps or decisions in one unbroken block | Add only the paragraph breaks or list structure the reader needs; length alone is not the signal |
 
 ## 3. Rhetorical
 
@@ -90,9 +86,6 @@ Contextual review names six checks explicitly: paragraph-order dependence, unsup
 | Manufactured stakes: "in today's fast-paced world", "now more than ever" | Start where the reader needs to start |
 | Performed candor: "let's be honest", "here's the thing", "truth be told" | State the point |
 | Rhetorical-question openers: "Ever wondered…?", "What if I told you…?" | The answer, as a statement |
-| Unsupported novelty: "the problem nobody is naming" without a comparison or source | Make the narrower supported claim, or ask for the missing basis |
-| Self-labeling significance: "this matters", "this is important", or "the key insight" substitutes a label for a consequence | State the concrete consequence and let it carry the weight |
-| Moral-adjective category error: a technical choice or metric is called brave, honest, ethical, or courageous without a moral agent or decision | Name the engineering property or trade-off; preserve a real moral judgment when the source supports one |
 | Throat-clearing: "The uncomfortable truth is", "Let me be clear" | Cut; the claim stands alone |
 | Emphasis crutches: "Make no mistake", "Let that sink in", "Read that again" | Show the weight with the fact itself |
 | Meta-commentary: "In this post we'll explore", "Let me walk you through" | Just do it |
@@ -177,7 +170,6 @@ from judgment to mechanical in v2.5.10 when a safe rule finally reached it.
 |---|---|
 | Assistant voice: "Great question!", "I hope this helps", "I'd be happy to" | Delete |
 | Reflexive agreement or praise: approving the premise before checking it, flattering the writer, or refusing to take a supported position | Answer the substance first; agree, qualify, or disagree according to the facts |
-| Recap-flattery: a reply opens by praising and paraphrasing the question before answering it | Start with the answer; keep only context the reader actually needs |
 | Chatbot residue: "Would you like me to…", "Let me know if you'd like…", "my training data" | Delete — it is proof of paste, not style |
 | Knowledge-cutoff residue: "as of my last update", "not widely documented" | Delete; verify the claim |
 | Passive or subjectless wording that hides an actor who matters | Name the actor and use the direct verb; keep passive voice when the actor is unknown, irrelevant, or native to the genre |

@@ -128,10 +128,6 @@ def main():
         "chat_roleplay_action": "I understand. *nods thoughtfully* Here is the answer.",
         "expanded_tool_tracker": "Read https://example.com/?utm_source=claude.ai for details.",
         "long_low_word_variety": "The system runs the task and checks the task. " * 30,
-        "reasoning_artifact": "Let me think step by step before I answer.",
-        "novelty_inflation": "This is the failure mode nobody is naming.",
-        "emotional_flatline": "What surprised me most was the final result.",
-        "acknowledgment_loop": "To answer your question, the cache expires hourly.",
     }
     adversarial_scores = {
         key: {
