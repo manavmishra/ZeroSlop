@@ -32,6 +32,7 @@ SEARCH_RESULTS = BENCH / "search-corpus" / "results.json"
 CAPABILITY_AUDIT = BENCH / "competitor-capabilities.json"
 SEARCH_COMPARISON = BENCH / "search-corpus" / "comparison-results.json"
 FRESH_REPLAY = BENCH / "fresh-replay" / "results.json"
+INCUMBENT_BLIND_REPLAY = BENCH / "incumbent-blind-replay" / "results.json"
 EXTERNAL_MODELS = BENCH / "external-models" / "results.json"
 BEEMO_RESULTS = BENCH / "beemo-corpus" / "results.json"
 RAID_PLUS_RESULTS = BENCH / "raid-plus-corpus" / "results.json"
@@ -121,6 +122,22 @@ def compute():
                / fresh_replay["corpus"]["drafts"], 1))
         for method in replay_order
     )
+    incumbent_replay = json.loads(INCUMBENT_BLIND_REPLAY.read_text())
+    review = incumbent_replay.get("editorial_review", {})
+    if (incumbent_replay.get("result_kind")
+            != "fresh_method_hidden_incumbent_rewrite_comparison"
+            or incumbent_replay.get("calibrated_field_accuracy") is not False
+            or incumbent_replay.get("corpus", {}).get("drafts") != 18
+            or review.get("method_hidden") is not True):
+        raise ValueError("method-hidden incumbent replay has an invalid contract")
+    consensus = review["consensus"]
+    incumbent_hidden_preferences = [
+        (incumbent_replay["methods"]["zero-slop"]["label"], consensus["zero-slop"]),
+        (incumbent_replay["methods"]["avoid-ai-writing"]["label"],
+         consensus["avoid-ai-writing"]),
+        ("Tie", consensus["tie"]),
+        ("Unresolved", consensus["unresolved"]),
+    ]
     comparison_order = ["zero-slop", "no-ai-slop", "humanizer",
                         "de-slop", "stop-slop"]
     external_order = ["original", *comparison_order]
@@ -200,6 +217,7 @@ def compute():
             "beemo_surface": beemo_surface,
             "blind_quality": blind_quality,
             "contextual_ablation": contextual_ablation,
+            "incumbent_hidden_preferences": incumbent_hidden_preferences,
             "capability_matrix": capability_matrix}
 
 
@@ -382,6 +400,14 @@ def render(datasets):
         "LLM editorial reproducibility, not independent human field accuracy.",
         datasets["contextual_ablation"], "contextual research review",
         axis_ticks=[0, 25, 50, 75, 100]))
+    out.append(_hbar(
+        ASSETS / "bench-incumbent-hidden.png",
+        "Method-hidden editorial preference",
+        "Consensus across two GPT-5.4 review passes on 18 drafts. Unresolved "
+        "means the passes disagreed; not human field accuracy.",
+        datasets["incumbent_hidden_preferences"],
+        datasets["incumbent_hidden_preferences"][0][0],
+        axis_ticks=[0, 3, 6, 9, 12, 15, 18]))
     out.append(_capability_matrix(
         ASSETS / "competitor-capabilities.png",
         datasets["capability_matrix"]))

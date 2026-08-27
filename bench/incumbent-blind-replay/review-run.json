@@ -1,0 +1,139 @@
+{
+ "schema": 1,
+ "result_kind": "method_hidden_editorial_review_run",
+ "model": "gpt-5.4",
+ "reasoning_effort": "high",
+ "batch_size": 3,
+ "codex_cli": "codex-cli 0.148.0-alpha.15",
+ "generated_at": "2026-08-27T03:30:35+00:00",
+ "corpus_sha256": "78626533120d341dcf1193ce98a4274170bff6901af2057b66a256a7f12fa342",
+ "passes": [
+  {
+   "pass": 1,
+   "seed": 20260827,
+   "packet_sha256": "0b4a9356d173dd8d58f972f814e95b26e0e67afb4f1491525cfc488d021a1935",
+   "mapping_sha256": "c6c5e242f8eb02431c713f54feb56fc0910f0d44a8b05b37aa950799b1aec40a",
+   "judgment_sha256": "f56a41553915a1d96133fa3828d84d7d486e8dbe006def77b778d2c10e6e613b",
+   "batches": [
+    {
+     "ids": [
+      "linkedin-lessons-01",
+      "linkedin-contrarian-02",
+      "linkedin-executive-03"
+     ],
+     "prompt_sha256": "a9165cb9ae2a32ec266bd4a171441cb75f6d18e63c5c5cf9a9b60bb9afc48cab",
+     "response_sha256": "0ce307808a39c9a6934143cb7e7b376ff24a97b06fb1b53e053a55d4ed99abf5"
+    },
+    {
+     "ids": [
+      "x-agents-01",
+      "x-habit-02",
+      "x-future-03"
+     ],
+     "prompt_sha256": "5d428af31167e1328800e00539f6957e6d678b6d8c3347a5094b45608652d387",
+     "response_sha256": "9d0cc194663ba448ff25aec1c8c4102d784b205970b1861264713e49d1aaa04d"
+    },
+    {
+     "ids": [
+      "email-outreach-01",
+      "email-launch-02",
+      "email-followup-03"
+     ],
+     "prompt_sha256": "2d29728e90a540ce90e9f191546314e18f1908d85b7c73a6bf2f228e27313311",
+     "response_sha256": "e62aa65074f42163acafac4b279eabf8b61ef866312638c82e76a72869e0870c"
+    },
+    {
+     "ids": [
+      "blog-landscape-01",
+      "blog-guide-02",
+      "blog-transformation-03"
+     ],
+     "prompt_sha256": "0ab81f39d7ed3948663920dbbc26d72e5108f2700a35eeebacdc0fe4d264ee90",
+     "response_sha256": "e44203e1603dd95189d0385f46394319af3576d14b1ee00bf111466be6c8959a"
+    },
+    {
+     "ids": [
+      "newsletter-productivity-01",
+      "newsletter-edition-02",
+      "newsletter-trends-03"
+     ],
+     "prompt_sha256": "3eb0d771c91f0cb46c64e30f564e5f965e7f417ac4b38cc95bf796de05ec4c39",
+     "response_sha256": "09c988e3044f283dedc9ab5bb64ff1a1acabc336465eb7bb693bf085c71d6d95"
+    },
+    {
+     "ids": [
+      "research-framework-01",
+      "research-approach-02",
+      "research-future-03"
+     ],
+     "prompt_sha256": "990117f24fb05af4a202d13ae36f6c390e79f60c6ac7586a67c1dea27ed95bc1",
+     "response_sha256": "3a2fccde8771ad7adf2d9672a58ad312380c0f87aa448dba125c919fd229c058"
+    }
+   ]
+  },
+  {
+   "pass": 2,
+   "seed": 20260828,
+   "packet_sha256": "871f692ce343f3d3d626b8c9a6a891070db229043c33d07ef6822e32089b867c",
+   "mapping_sha256": "48ad87563de9f1c8fea1dbd2e2eb714b3a5b0e3130b6ac6b49e02da2bb9fb93b",
+   "judgment_sha256": "4f6a76793f67aab2e41b9755a894ad005333baee23f9096370cc07e42ee46cd1",
+   "batches": [
+    {
+     "ids": [
+      "linkedin-lessons-01",
+      "linkedin-contrarian-02",
+      "linkedin-executive-03"
+     ],
+     "prompt_sha256": "96a082b4cce22894f799aaebe0c6d751498c67b8e8edcdf3104535d3cc4532c1",
+     "response_sha256": "3616a3e774e96a504a5ff2dfb9137eb020306223fbd59e7a1714e636eb168ffe"
+    },
+    {
+     "ids": [
+      "x-agents-01",
+      "x-habit-02",
+      "x-future-03"
+     ],
+     "prompt_sha256": "1bdddbc1c7bddd335c0b37b0b741990f5de0a7d8081941aa6746706c960f7c90",
+     "response_sha256": "5d6a2d1ac2174256d0fab7ef4e31e70b2c7c2ab8ab6765567d4ea226687c3986"
+    },
+    {
+     "ids": [
+      "email-outreach-01",
+      "email-launch-02",
+      "email-followup-03"
+     ],
+     "prompt_sha256": "3a12e5c8da834fe2a7b77bb984573685b1f5aebde4f5545e8985d30beb9d6c58",
+     "response_sha256": "cc416ec5a41d83faf162214bb7552a75aae4215a708a712f84775ea0c97471a4"
+    },
+    {
+     "ids": [
+      "blog-landscape-01",
+      "blog-guide-02",
+      "blog-transformation-03"
+     ],
+     "prompt_sha256": "a52a5715dc2fdda591caa784b77e01c7f9e3152f660fe65e4366435ee19106fa",
+     "response_sha256": "8e9368f86e9536d1247854a7e16e464a431ec4283775fe25ddb9bc6339352410"
+    },
+    {
+     "ids": [
+      "newsletter-productivity-01",
+      "newsletter-edition-02",
+      "newsletter-trends-03"
+     ],
+     "prompt_sha256": "3eb0d771c91f0cb46c64e30f564e5f965e7f417ac4b38cc95bf796de05ec4c39",
+     "response_sha256": "1658bfe943ebbc3a22f7bca330a1660ad645d0921f0c3f7c9e3a3bfee612a39f"
+    },
+    {
+     "ids": [
+      "research-framework-01",
+      "research-approach-02",
+      "research-future-03"
+     ],
+     "prompt_sha256": "134aa435dc5828fe6a8734d5f824ed7952f358e3fdfd1cc8c230db9587ced523",
+     "response_sha256": "ec52dd6503538bd69257fc8706aa2bef4e428e8f37c66b435d4a4e6778963397"
+    }
+   ]
+  }
+ ],
+ "limits": "The method labels are withheld and positions reshuffled per pass; hosted inference seeds are not exposed."
+}

@@ -2101,6 +2101,60 @@ class SearchCorpus(unittest.TestCase):
         self.assertEqual(ours["zero_slop_release_passes"], 18)
         self.assertEqual(ours["zero_slop_fidelity_passes"], 18)
 
+    def test_incumbent_replay_is_method_hidden_and_reproducible(self):
+        import hashlib
+
+        root = ROOT / "bench" / "incumbent-blind-replay"
+        result = json.loads((root / "results.json").read_text())
+        self.assertEqual(
+            result["result_kind"],
+            "fresh_method_hidden_incumbent_rewrite_comparison",
+        )
+        self.assertFalse(result["calibrated_field_accuracy"])
+        self.assertTrue(result["editorial_review"]["method_hidden"])
+        self.assertEqual(result["corpus"]["drafts"], 18)
+        self.assertEqual(result["corpus"]["genres"], 6)
+        self.assertEqual(set(result["methods"]), {"zero-slop", "avoid-ai-writing"})
+        self.assertEqual(result["methods"]["avoid-ai-writing"]["revision"],
+                         "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca")
+        self.assertEqual(result["editorial_review"]["consensus"], {
+            "zero-slop": 13, "avoid-ai-writing": 3, "tie": 0, "unresolved": 2,
+        })
+        self.assertEqual(
+            result["editorial_review"]["exact_winner_agreement"]["items"], 16
+        )
+        self.assertEqual(
+            result["deterministic_checks"]["zero-slop"]["zero_slop_fidelity_passes"],
+            18,
+        )
+        self.assertEqual(
+            result["deterministic_checks"]["avoid-ai-writing"]
+                  ["zero_slop_fidelity_passes"],
+            16,
+        )
+
+        runs = []
+        for method in ("zero-slop", "avoid-ai-writing"):
+            run = json.loads((root / "runs" / f"{method}.json").read_text())
+            output = root / "outputs" / f"{method}.json"
+            self.assertEqual(run["output_sha256"],
+                             hashlib.sha256(output.read_bytes()).hexdigest())
+            runs.append(run)
+        for field in ("model", "reasoning_effort", "batch_size", "codex_cli",
+                      "corpus_sha256"):
+            self.assertEqual(len({run[field] for run in runs}), 1, field)
+
+        self.assertEqual(len(result["editorial_review"]["passes"]), 2)
+        for number in (1, 2):
+            packet = root / "packets" / f"pass-{number}.json"
+            packet_text = packet.read_text().lower()
+            self.assertNotIn("zero-slop", packet_text)
+            self.assertNotIn("avoid-ai-writing", packet_text)
+        judge_source = (root / "judge.py").read_text()
+        self.assertIn('"-C", str(temporary)', judge_source)
+        self.assertIn('"--skip-git-repo-check"', judge_source)
+        self.assertIn("not independent human field accuracy", result["limits"])
+
     def test_incumbent_transfer_audit_is_pinned_and_caveated(self):
         result = json.loads(
             (ROOT / "bench" / "incumbent-audit" / "results.json").read_text()
@@ -2916,6 +2970,35 @@ class Diagram(unittest.TestCase):
         self.assertIn("not which tool writes better", normalized_readme)
         self.assertIn("[`bench/README.md`](bench/README.md)", readme)
         self.assertTrue((ROOT / "assets" / "competitor-capabilities.png").exists())
+
+    def test_incumbent_catalog_has_a_complete_zero_slop_coverage_map(self):
+        """Every editorial section in the pinned incumbent is either covered by
+        a named Zero Slop stage or rejected with a tested safety rationale."""
+        path = ROOT / "bench" / "incumbent-audit" / "category-map.json"
+        self.assertTrue(path.exists(), "incumbent category map is missing")
+        audit = json.loads(path.read_text())
+        self.assertEqual(
+            audit["incumbent"]["commit"],
+            "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
+        )
+        self.assertEqual(audit["incumbent"]["catalog_sections"], 65)
+        self.assertEqual(len(audit["coverage"]), 65)
+        self.assertEqual(len({row["section"] for row in audit["coverage"]}), 65)
+        for row in audit["coverage"]:
+            with self.subTest(section=row["section"]):
+                self.assertIn(row["stage"], {
+                    "scorer", "interpreter", "rewriter", "fact_gate",
+                    "copy_desk", "read_aloud", "scope",
+                })
+                self.assertTrue(row["zero_slop_anchor"])
+                self.assertNotEqual(row.get("status"), "gap")
+        rejected = {row["feature"] for row in audit["deliberate_non_adoptions"]}
+        self.assertEqual(rejected, {
+            "automatic_genre_guessing",
+            "authorship_probabilities",
+            "ten_thousand_word_cutoff",
+            "canned_voice_personas",
+        })
 
     def test_benchmark_charts_are_current(self):
         """The README charts are computed from the benchmark data; a re-run or a

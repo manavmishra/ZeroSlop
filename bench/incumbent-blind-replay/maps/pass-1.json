@@ -1,0 +1,74 @@
+{
+ "linkedin-lessons-01": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "linkedin-contrarian-02": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "linkedin-executive-03": {
+  "A": "zero-slop",
+  "B": "avoid-ai-writing"
+ },
+ "x-agents-01": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "x-habit-02": {
+  "A": "zero-slop",
+  "B": "avoid-ai-writing"
+ },
+ "x-future-03": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "email-outreach-01": {
+  "A": "zero-slop",
+  "B": "avoid-ai-writing"
+ },
+ "email-launch-02": {
+  "A": "zero-slop",
+  "B": "avoid-ai-writing"
+ },
+ "email-followup-03": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "blog-landscape-01": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "blog-guide-02": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "blog-transformation-03": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "newsletter-productivity-01": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "newsletter-edition-02": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "newsletter-trends-03": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "research-framework-01": {
+  "A": "zero-slop",
+  "B": "avoid-ai-writing"
+ },
+ "research-approach-02": {
+  "A": "avoid-ai-writing",
+  "B": "zero-slop"
+ },
+ "research-future-03": {
+  "A": "zero-slop",
+  "B": "avoid-ai-writing"
+ }
+}
