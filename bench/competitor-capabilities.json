@@ -6,7 +6,7 @@
     "zero_slop": {
       "label": "Zero Slop",
       "repository": "https://github.com/manavmishra/ZeroSlop",
-      "commit": "390414f26d8b98307bded5a770124397a8f79e70"
+      "commit": "c6a54e9903f672f6b6b9305996a92c96b7618b26"
     },
     "blader": {
       "label": "blader/humanizer",

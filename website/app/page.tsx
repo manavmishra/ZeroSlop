@@ -385,46 +385,59 @@ export default function Home() {
           id="install"
           aria-labelledby="install-title"
         >
+          <img
+            className="install-scene"
+            src="/agent-compatibility-scene.jpg"
+            alt=""
+            width="1600"
+            height="900"
+            loading="lazy"
+            decoding="async"
+            aria-hidden="true"
+          />
+          <div className="install-veil" aria-hidden="true" />
+
           <div className="install-copy">
             <p className="section-kicker">Works where you write.</p>
-            <h2 id="install-title">One skill. Your compatible agent.</h2>
+            <h2 id="install-title">
+              Works with the <em>agent</em> you already use.
+            </h2>
             <p>
-              Install Zero Slop in Codex, Claude Code, Cursor, Gemini CLI,
-              OpenCode, Warp, or Zed. It also works in any agent that reads
-              SKILL.md files.
+              Install Zero Slop in any compatible assistant. Your AI assistant
+              edits the draft. Zero Slop gives it eight clear jobs and checks
+              the result against your source.
             </p>
+            <div className="install-command" id="install-command">
+              <CopyCommand />
+            </div>
             <div className="install-actions">
-              <a className="button button-primary" href={githubUrl} target="_blank" rel="noreferrer">
-                Read the setup guide
+              <a className="button button-primary" href={`${githubUrl}#install`} target="_blank" rel="noreferrer">
+                Setup guide
               </a>
-              <a className="button button-secondary" href={releaseUrl} target="_blank" rel="noreferrer">
-                Latest release
+              <a className="button button-secondary" href={githubUrl} target="_blank" rel="noreferrer">
+                GitHub
               </a>
             </div>
           </div>
 
-          <div className="install-workspace">
-            <div className="install-workspace-bar" aria-hidden="true">
-              <span>Terminal</span>
-              <span>one skill, eight roles</span>
+          <aside className="compatibility-card" aria-label="Zero Slop compatibility">
+            <div className="compatibility-card-heading">
+              <p>Compatible assistants</p>
+              <span>SKILL.md</span>
             </div>
-            <CopyCommand />
-            <div className="compatibility-map">
-              <div className="skill-file">
-                <span className="skill-file-mark" aria-hidden="true">ZS</span>
-                <strong>SKILL.md</strong>
-                <p>Zero Slop&apos;s scoring, rewrite, and copy-desk instructions</p>
-              </div>
-              <div className="agent-board">
-                <p>Compatible agents</p>
-                <ul aria-label="Compatible agents">
-                  {compatibleAgents.map((agent) => (
-                    <li key={agent}>{agent}</li>
-                  ))}
-                </ul>
-              </div>
+            <ul aria-label="Compatible agents">
+              {compatibleAgents.map((agent) => (
+                <li key={agent}>{agent}</li>
+              ))}
+            </ul>
+            <div className="compatibility-card-note">
+              <span className="skill-file-mark" aria-hidden="true">ZS</span>
+              <p>
+                <strong>One skill file.</strong>
+                <span>Eight roles, source checks, and private learning.</span>
+              </p>
             </div>
-          </div>
+          </aside>
         </section>
 
         <section className="faq section-shell section-block" aria-labelledby="faq-title">
