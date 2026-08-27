@@ -139,6 +139,11 @@ test("keeps the launch payload within a fast mobile budget", async () => {
   assert.ok(heroImage.size <= 16_000, `mobile hero image is too large: ${heroImage.size} bytes`);
   assert.ok(socialImage.size <= 500_000, `social preview is too large: ${socialImage.size} bytes`);
   assert.ok(compatibilityImage.size <= 250_000, `compatibility scene is too large: ${compatibilityImage.size} bytes`);
+  await assert.rejects(
+    readFile(new URL("dist/static/wrangler.json", projectRoot)),
+    { code: "ENOENT" },
+    "the Pages upload must not inherit Vinext's worker-style assets configuration",
+  );
 });
 
 test("keeps the final UI accessible, responsive, and free of template residue", async () => {
@@ -164,6 +169,7 @@ test("keeps the final UI accessible, responsive, and free of template residue", 
   assert.doesNotMatch(page, /_sites-preview|SkeletonPreview/);
   assert.doesNotMatch(layout, /Starter Project|codex-preview/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(packageJson, /pages deploy website\/dist\/static --cwd \.\./);
 });
 
 test("publishes crawl controls and an AI-readable product summary", async () => {
