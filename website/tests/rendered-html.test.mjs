@@ -43,7 +43,7 @@ test("renders the Zero Slop landing page and its primary journey", async () => {
   assert.match(html, /id="proof"/i);
   assert.match(html, /id="install"/i);
   assert.match(html, /One skill\. Your compatible agent\./i);
-  assert.match(html, /Seven roles\. Two loops\. One clean handoff\./i);
+  assert.match(html, /Eight roles\. Two loops\. One clean handoff\./i);
   assert.match(html, /src="\/engine\.svg"/i);
   assert.match(html, /Loop 1 finishes the current draft/i);
   assert.match(html, /Loop 2 learns only from edits/i);
