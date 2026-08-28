@@ -12,6 +12,11 @@ readability, formatting density. Everything in section A is a property of the wh
 document rather than of any span, so no pattern can reach it. A clear score is a
 reason to work through section A carefully, never permission to skip it.
 
+The ratchet: every miss an audit, a competitor, or a reader catches becomes a
+deterministic detector or a `data/corpus/must-flag/` fixture in the same change.
+A note is not a fix; `register.py --recall` proves each recorded miss still
+gets caught, and the release suite runs it.
+
 Families here are drawn from the Zero Slop tell catalogue, from Wikipedia's
 [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing)
 maintained by WikiProject AI Cleanup, and from the checks in petergyang/no-ai-slop
@@ -76,45 +81,52 @@ the report even when they are zero.
     reader what to notice or how much weight to give it.
 17. **Weasel attribution.** "Studies show." "Experts agree." Name the source, or flag
     it for the writer. Never invent one.
-18. **Empty adverbs and filler frames.** Adverbs: "just", "simply", "actually",
+18. **Adjective inflation and hollow intensifiers.** "a real improvement", "actual
+   results", "a genuine breakthrough", "true value". Delete the adjective; the noun
+   carries the claim or it does not. Distinct from empty adverbs (next): adverbs pad
+   the verb, these inflate a noun, and a span that is neither belongs to importance
+   puffery. Measured by the meter; the reading pass owns only the shapes the noun
+   list misses.
+19. **Empty adverbs and filler frames.** Adverbs: "just", "simply", "actually",
     "literally", "honestly", "fundamentally", "inherently", "inevitably". Frames:
     "the reality is", "the truth is", "in terms of", "with regard to", "going
     forward", "in this article". Cut each one that adds nothing; keep the ones
     carrying real emphasis, uncertainty, contrast, or the writer's spoken rhythm.
+    Distinct from adjective inflation (previous): these modify verbs and clauses.
     The meter does not flag these globally because they are ordinary in honest
     writing, so this is a judgment per instance. "just", "simply", "actually", "literally",
     "honestly", "fundamentally", "inherently", "inevitably". Cut each one that adds
     nothing; keep the ones carrying real emphasis, uncertainty, contrast, or the
     writer's spoken rhythm. This is a judgment per instance, which is why the meter
     does not flag these words globally: they are ordinary in honest writing.
-19. **Nominalization and weak verb phrases.** "Made a decision" for "decided",
+20. **Nominalization and weak verb phrases.** "Made a decision" for "decided",
     "needs removal from" for "you cut from". De-nominalize, and prefer a direct verb
     with an actor.
-20. **Fake-strong verbs.** Prefer "is" and "has" where they are clearer.
+21. **Fake-strong verbs.** Prefer "is" and "has" where they are clearer.
     "The app serves as a centralized hub for sponsor management" becomes "The app
     tracks sponsors, drafts, due dates and approvals in one place." Monument verbs
     count too: "stands on", "sits atop", "marks a".
-21. **Reasoning-chain artifacts.** Working-out left in the answer: "Let me think
+22. **Reasoning-chain artifacts.** Working-out left in the answer: "Let me think
    through this", "First I'll consider", a restated plan before the plan. The reader
    wants the conclusion, not the deliberation.
-22. **Emotional flatline.** Uniform affect across a piece that should vary. Nothing
+23. **Emotional flatline.** Uniform affect across a piece that should vary. Nothing
    irritates the writer, nothing surprises them, nothing costs anything. Real writing
    has range.
-23. **False concession.** "While X has merit, Y" where X was never a live position
+24. **False concession.** "While X has merit, Y" where X was never a live position
    and nothing follows from conceding it. Keep a real counterargument; cut a straw one.
-24. **Confidence-calibration phrases.** "I'm fairly confident", "with high certainty",
+25. **Confidence-calibration phrases.** "I'm fairly confident", "with high certainty",
    "to be clear, this is my read". Calibrated hedges are fine when they carry real
    uncertainty; these announce a posture instead.
-25. **Parenthetical hedging.** Qualifiers tucked in brackets so the sentence can claim
+26. **Parenthetical hedging.** Qualifiers tucked in brackets so the sentence can claim
    more than it supports: "The fix works (in most cases) for every driver."
-26. **Engagement hooks and endorsement closers.** "You won't believe", "Sound
+27. **Engagement hooks and endorsement closers.** "You won't believe", "Sound
    familiar?", "Give it a try and let me know", "Trusted by teams everywhere".
    Infomercial register, wherever it appears.
-27. **Lingering-attention claims.** "This will stay with you", "you'll be thinking
+28. **Lingering-attention claims.** "This will stay with you", "you'll be thinking
    about this for weeks". The writer cannot know the reader's future.
-28. **Generic positive endings.** A closing paragraph that resolves into optimism
+29. **Generic positive endings.** A closing paragraph that resolves into optimism
    without a concrete next step: "The future looks bright for teams willing to adapt."
-29. **Synonym cycling.** If the clear word is right, repeat it. Do not rotate terms
+30. **Synonym cycling.** If the clear word is right, repeat it. Do not rotate terms
     for style. "The agent reviews the draft. The assistant scores the piece. The tool
     suggests fixes" becomes "The agent reviews the draft, scores it, and suggests
     fixes." Check every referent, not the first one you notice: a role table is where
@@ -122,117 +134,117 @@ the report even when they are zero.
 
 ## B. Substance
 
-30. **Removal test.** Does every paragraph lose something real when deleted?
-31. **Relevance test.** Does every paragraph serve the brief, audience, and argument?
-32. **Front-loading, applied selectively.** Conclusions arrive early where that helps
+31. **Removal test.** Does every paragraph lose something real when deleted?
+32. **Relevance test.** Does every paragraph serve the brief, audience, and argument?
+33. **Front-loading, applied selectively.** Conclusions arrive early where that helps
     the reader, without forcing every section into the same point-then-detail shape.
-33. **Paragraph-order dependence.** Could several prose paragraphs be shuffled without
+34. **Paragraph-order dependence.** Could several prose paragraphs be shuffled without
     harming the argument? Reference material, FAQs, and independent findings are
     exempt.
-34. **Unsupported novelty.** "Nobody is naming this" needs an actual comparison.
-35. **Self-labeling significance.** "This matters" needs a consequence.
-36. **Moral-adjective category error.** Calling a technical choice brave or honest
+35. **Unsupported novelty.** "Nobody is naming this" needs an actual comparison.
+36. **Self-labeling significance.** "This matters" needs a consequence.
+37. **Moral-adjective category error.** Calling a technical choice brave or honest
     needs a moral agent.
-37. **Portability test.** Could any sentence move unchanged to another company,
+38. **Portability test.** Could any sentence move unchanged to another company,
     product, or person? Cut it or make it specific.
-38. **Statistics cohesion.** Does each test or dataset get its own paragraph opening
+39. **Statistics cohesion.** Does each test or dataset get its own paragraph opening
     with what it checks in plain words, before the numbers?
-39. **Cross-references resolve.** Every named artefact, panel, dataset, or prior
+40. **Cross-references resolve.** Every named artefact, panel, dataset, or prior
     result is defined on first use or linked to where it lives. "The prior 84.2%
     result on the 38-item editorial panel" tells a reader nothing if neither the
     panel nor the packet is named anywhere.
-40. **Internal pointers name their target.** "In the references", "see the docs",
+41. **Internal pointers name their target.** "In the references", "see the docs",
     "as documented elsewhere" point at nothing. Name the file and the section, and
     link it, the way an external citation would be named.
-41. **Numeric precision matches the measurement.** Five significant figures on a
+42. **Numeric precision matches the measurement.** Five significant figures on a
     single run of a single machine claims a stability the method cannot support.
     Round to what the measurement earns, or state the spread.
-42. **Hollow spans flagged, not filled.** Prose that makes no claim was flagged for
+43. **Hollow spans flagged, not filled.** Prose that makes no claim was flagged for
     the writer rather than reworded into something that sounds like one.
-43. **Sycophantic tone.** Generic validation of the reader that carries no content:
+44. **Sycophantic tone.** Generic validation of the reader that carries no content:
     "Great question", "Excellent point", "You're absolutely right". It echoes nothing
     back, it only rewards. Cut it and start with the answer.
-44. **Recap-flattery.** An opener that echoes the reader's *own work* back at them
+45. **Recap-flattery.** An opener that echoes the reader's *own work* back at them
     dressed as gratitude, ahead of the point: "Thanks for all the legwork here, the
     migration script and the rollback plan you worked through are what made this
     possible." They already know what they did. A real thank-you is one clause and
     moves on: "Thanks for the legwork, this looks right, one comment below."
-45. **Acknowledgment loops.** Restating the question or the prior section before
+46. **Acknowledgment loops.** Restating the question or the prior section before
     answering it. This echoes the *context*, where recap-flattery echoes their *work*
     and sycophancy echoes *nothing*. Ask what is being echoed; that is what separates
     these three.
-46. **Wall-of-text reply.** Paragraphing that hides a sequence the reader needs. A
+47. **Wall-of-text reply.** Paragraphing that hides a sequence the reader needs. A
     long narrative paragraph is not a wall of text merely because it is long; the tell
     is a buried list of steps or options.
 
 ## C. Fidelity
 
-47. **Scripted check run, not eyeballed.** `slopscore.py --fidelity` exits zero.
-48. **No invented specifics.** No number, name, anecdote, date, or source appeared
+48. **Scripted check run, not eyeballed.** `slopscore.py --fidelity` exits zero.
+49. **No invented specifics.** No number, name, anecdote, date, or source appeared
     that the author did not supply.
-49. **No invented interior claims.** No stated feeling, motive, or experience the
+50. **No invented interior claims.** No stated feeling, motive, or experience the
     author never wrote.
-50. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
+51. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
     as the source.
-51. **Claims not reframed.** Same names and numbers can still carry a changed
+52. **Claims not reframed.** Same names and numbers can still carry a changed
     emphasis or implication. Compare meaning, not tokens.
-52. **Non-prose untouched.** Code, front matter, tables, blockquotes, identifiers,
+53. **Non-prose untouched.** Code, front matter, tables, blockquotes, identifiers,
     paths, and heading hierarchy intact.
 
 ## D. Voice and readability
 
-53. **Expert voice.** A respected practitioner sounds at home: precise terms used
+54. **Expert voice.** A respected practitioner sounds at home: precise terms used
     correctly, authority earned through specifics, no hedging into mush.
-54. **Followability.** A smart first-time reader follows each sentence on the first
+55. **Followability.** A smart first-time reader follows each sentence on the first
     pass. One idea per sentence; every abstraction anchored in the same breath; never
     three or more abstract noun phrases stacked.
-55. **Voice preserved.** Would the writer recognize this as theirs? Distinctive
+56. **Voice preserved.** Would the writer recognize this as theirs? Distinctive
     vocabulary, cadence, bluntness, humor, uncertainty, and digressions survived.
-56. **Strong sentences left alone.** Nothing was rewritten merely for consistency.
-57. **Active voice with human subjects.** People do the verbs. Passive stays only
+57. **Strong sentences left alone.** Nothing was rewritten merely for consistency.
+58. **Active voice with human subjects.** People do the verbs. Passive stays only
     where the actor is unknown, irrelevant, deliberately withheld, or native to the
     genre.
-58. **Proportional cutting.** No compression that stripped character. Density is
+59. **Proportional cutting.** No compression that stripped character. Density is
     information per word, not fewer words.
-59. **Read aloud.** Would this sound natural read to a sharp colleague?
-60. **No over-correction.** AI slop was not traded for edgy slop: forced hot takes,
+60. **Read aloud.** Would this sound natural read to a sharp colleague?
+61. **No over-correction.** AI slop was not traded for edgy slop: forced hot takes,
     fake first person, performed candor, staccato drama.
 
 ## E. Form
 
-61. **Returned in the format it arrived in.** A .docx comes back a .docx.
-62. **Reader language.** No evaluator or harness vocabulary leaked into the copy:
+62. **Returned in the format it arrived in.** A .docx comes back a .docx.
+63. **Reader language.** No evaluator or harness vocabulary leaked into the copy:
     candidate, artifact, overlay, gate, scorecard, burstiness.
-63. **Formatting slop.** No emoji headings, decorative bold, or bullets that should be
+64. **Formatting slop.** No emoji headings, decorative bold, or bullets that should be
     prose. Count the headings over one or two sentences: four consecutive H3s each
     wrapping a code block and one line is a section that wants to be one section.
-64. **Em dashes.** None in short copy. One or two in a long draft only where they
+65. **Em dashes.** None in short copy. One or two in a long draft only where they
     clearly beat a comma, period, or parenthesis.
-65. **Hyphenated modifier stacking.** "AI-powered cloud-native data-driven platform".
+66. **Hyphenated modifier stacking.** "AI-powered cloud-native data-driven platform".
    Two stacked compound modifiers in one noun phrase is a tell; keep the hyphens
    grammar requires and cut the rest.
-66. **List-label periods and bare-noun bullets.** Bullets that are fragments ending in
+67. **List-label periods and bare-noun bullets.** Bullets that are fragments ending in
    full stops, or a list of bare noun phrases with no predicate. Either make them
    sentences or make them a real list.
-67. **Numbered-list inflation.** A numbered list where order carries no meaning, or a
+68. **Numbered-list inflation.** A numbered list where order carries no meaning, or a
    list padded to a round number. Use a bulleted list, or prose.
-68. **Chatbot artifacts.** Citation markup leaks, "Regenerate response", tool URL
+69. **Chatbot artifacts.** Citation markup leaks, "Regenerate response", tool URL
    parameters such as utm_source, and any assistant scaffolding left in the copy.
-69. **Attribution accurate.** The report names who did what without guessing which
+70. **Attribution accurate.** The report names who did what without guessing which
     model is running, and never implies a Zero Slop service read the draft.
 
 ## F. Process integrity
 
 Role 8 answers this section. It is the check no single-agent eval can make.
 
-70. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
+71. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
     fresh-eyes review each ran as a distinct pass.
-71. **No self-certification.** No role graded text it generated.
-72. **Counts reported.** Every count in section A appears in the summary, including
+72. **No self-certification.** No role graded text it generated.
+73. **Counts reported.** Every count in section A appears in the summary, including
     the zeros.
-73. **The exact final text cleared every check.** Not an earlier draft, not a version
+74. **The exact final text cleared every check.** Not an earlier draft, not a version
     that was repaired afterward.
-74. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
+75. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
     ran again on the revision.
-75. **Fallbacks named honestly.** If the three-round limit was reached, the report
+76. **Fallbacks named honestly.** If the three-round limit was reached, the report
     says which check failed and does not describe the result as fully verified.

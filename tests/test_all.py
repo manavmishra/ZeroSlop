@@ -3499,6 +3499,32 @@ class RegisterGate(unittest.TestCase):
         r = run([str(self.SCRIPT), "--gate", str(ROOT / "README.md")])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_recorded_misses_still_get_caught(self):
+        """The ratchet's enforcement arm: data/corpus/must-flag holds a fixture
+        for every miss an audit or a competitor ever caught, and --recall proves
+        each one still fires. must-not-flag guards against crying wolf; this
+        guards against going quiet."""
+        r = run([str(self.SCRIPT), "--recall"])
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("verified by measurement", r.stdout)
+
+    def test_verdict_rejects_answers_without_paragraph_coverage(self):
+        """Sixty-six answered checks proved nothing about whether every span was
+        read. The verdict now requires each paragraph dispositioned; answers
+        without a coverage map fail, however complete they look."""
+        module = self._register()
+        text = ("## One\n\n" + "The team shipped the fix and wrote it down. " * 30)
+        checks = [c for c in module.load_checks() if not c["auto"] and not c["skip"]]
+        answers = {c["id"]: {"answer": "pass", "count": 0, "evidence": [], "note": "x"}
+                   for c in checks}
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("no _coverage map", report)
+        para_ids = [p["id"] for p in module.read_packet(text, "t")["paragraphs"]]
+        answers["_coverage"] = {i: "clean" for i in para_ids}
+        code2, report2 = module.verdict(text, answers)
+        self.assertEqual(code2, 0, report2)
+
     def test_failure_without_evidence_is_rejected(self):
         spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
         module = importlib.util.module_from_spec(spec)

@@ -614,9 +614,13 @@ format, and non-prose structure. Apply these contextual checks too:
   python3 <skill-root>/scripts/register.py <final> --verdict answers.json
   ```
 
-  It measures the rates a pattern cannot see (binary contrast density, comma-series
-  density, inanimate agents), asks you the rest, and rejects a failure that carries
-  no quote or a quote that is not in the source. A non-zero exit is a failed check.
+  It measures the rates a pattern cannot see, asks you the rest, and rejects a
+  failure that carries no quote or a quote that is not in the source. Answer it
+  section by section, one pass per section, never the whole list at once: sixty
+  questions held together get a sixty-th of your attention each. Fill the
+  `_coverage` map by dispositioning every paragraph; the verdict fails on any
+  paragraph nobody dispositioned, exactly as it fails on an unanswered check.
+  A non-zero exit is a failed check.
 - **Performed register.** Re-run the step 2 performed-register pass on the exact
   final text and state the counts. An exceeded antithesis budget, or a surviving
   significance-scaffolding sentence, is a failed check: the text returns through
@@ -835,7 +839,12 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
   Learning that corrupts the meter is worse than not learning.
 
 - **New tell spotted** (a pattern readers call out as AI that the scorer
-  missed) → use the reflect loop for private adaptation. A maintainer may merge
+  missed) → use the reflect loop for private adaptation. When the catch comes
+  from an audit, a competing skill, or a reviewer rather than the meter, the
+  ratchet applies: it becomes a deterministic detector or a
+  `data/corpus/must-flag/` fixture in the same change, and
+  `register.py --recall` keeps proving it still gets caught. A note is not a
+  fix. A maintainer may merge
   reviewed contributions into `data/learned.json`, with a dated entry in
   `data/learned-log.md`, only after export review, local regex regeneration,
   the safety corpus, and the full test suite pass.

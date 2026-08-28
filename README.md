@@ -68,7 +68,7 @@ and drops into CI.
 A reading pass covers what no pattern reaches, where the defect is the document rather
 than any span: one shape repeated seven times, statistics piled into a paragraph,
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
-75 checks.
+76 checks.
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
@@ -117,7 +117,7 @@ style.
 ## What's inside
 
 [`SKILL.md`](SKILL.md) has the workflow and [`references/eval.md`](references/eval.md) the
-75 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
+76 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
 with [`scripts/register.py`](scripts/register.py) running the reading pass.
 [`bench/README.md`](bench/README.md) documents every benchmark with its limits.
 
