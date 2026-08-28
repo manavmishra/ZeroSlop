@@ -3499,6 +3499,25 @@ class RegisterGate(unittest.TestCase):
         r = run([str(self.SCRIPT), "--gate", str(ROOT / "README.md")])
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_delta_reports_insertions_and_cut_emphasis(self):
+        """A blind judge panel caught a rewrite turning purpose into outcome and
+        cutting the author's emphasis; the fact gate passed it because names and
+        numbers matched. --delta makes both visible: it is a generic word diff,
+        content-blind, and the eval demands a contextual judgment per item."""
+        module = self._register()
+        original = ("The service changed tactics to achieve its objective before "
+                    "being contained. Adoption changed overnight across the fleet.")
+        rewrite = ("The service kept changing tactics until it reached its "
+                   "objective before being contained. Adoption changed across "
+                   "the fleet.")
+        d = module.delta(original, rewrite)
+        self.assertTrue(any("until it reached" in r for r in d["inserted_runs"]), d)
+        self.assertTrue(any("overnight" in r for r in d["cut_emphasis"]), d)
+        clean = module.delta(original, original)
+        self.assertEqual(clean["inserted_runs"], [])
+        self.assertEqual(clean["cut_emphasis"], [])
+        self.assertEqual(clean["net"], 0)
+
     def test_recorded_misses_still_get_caught(self):
         """The ratchet's enforcement arm: data/corpus/must-flag holds a fixture
         for every miss an audit or a competitor ever caught, and --recall proves

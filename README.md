@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.0-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.1-72528F">
 </p>
 
 Score your writing 0 to 100 for AI slop, then edit it out without changing a single fact.

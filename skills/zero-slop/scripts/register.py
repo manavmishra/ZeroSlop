@@ -611,6 +611,68 @@ def verdict(text: str, answers: dict) -> tuple[int, str]:
     return 0, "\n".join(out)
 
 
+# Emphasis words: cutting one is sometimes right (puffery) and sometimes voice
+# flattening ("changed overnight" is a falsifiable claim the author owns). The
+# tool cannot tell which, so it reports every cut and the eval demands a defect
+# name for each. "Too strong" is not a defect.
+EMPHASIS = {
+    "overnight", "never", "always", "every", "entire", "all", "nothing",
+    "worst", "best", "first", "only", "immediately", "instantly", "forever",
+    "massive", "enormous", "catastrophically", "obsessively", "extraordinary",
+    "unprecedented", "remarkable", "completely", "exactly",
+}
+
+
+def delta(original: str, rewrite: str) -> dict:
+    """Word-level diff: what the rewrite added that the author never wrote, and
+    what emphasis it took away. Insertions are never free; each run must carry
+    meaning already in the source. A rewrite 27 words longer than the original
+    once lost a blind head-to-head on exactly this."""
+    import difflib
+    a = original.split()
+    b = rewrite.split()
+    sm = difflib.SequenceMatcher(a=[w.lower().strip(".,;:!?\"'()") for w in a],
+                                 b=[w.lower().strip(".,;:!?\"'()") for w in b])
+    inserted, deleted, cut_emphasis = [], [], []
+    for op, i1, i2, j1, j2 in sm.get_opcodes():
+        if op in ("insert", "replace") and j2 - j1 >= 3:
+            inserted.append(" ".join(b[j1:j2])[:90])
+        if op in ("delete", "replace"):
+            for w in a[i1:i2]:
+                if w.lower().strip(".,;:!?\"'()") in EMPHASIS:
+                    ctx = " ".join(a[max(0, i1 - 4):min(len(a), i2 + 4)])
+                    cut_emphasis.append(f"{w}  ({ctx[:70]})")
+            if op == "delete" and i2 - i1 >= 3:
+                deleted.append(" ".join(a[i1:i2])[:90])
+    return {
+        "original_words": len(a), "rewrite_words": len(b),
+        "net": len(b) - len(a),
+        "inserted_runs": inserted[:12], "deleted_runs": deleted[:12],
+        "cut_emphasis": cut_emphasis[:12],
+    }
+
+
+def render_delta(d: dict) -> str:
+    out = [f"Length: {d['original_words']} -> {d['rewrite_words']} words "
+           f"({'+' if d['net'] >= 0 else ''}{d['net']})"]
+    if d["net"] > 0:
+        out.append("  The rewrite is LONGER than the original. Every inserted run below")
+        out.append("  must carry meaning already in the source, or it goes.")
+    out.append("")
+    out.append(f"  Inserted runs the author never wrote ({len(d['inserted_runs'])}):")
+    for r in d["inserted_runs"] or ["(none)"]:
+        out.append(f"    + {r}")
+    out.append(f"  Cut emphasis, each needs a defect name, not 'too strong' ({len(d['cut_emphasis'])}):")
+    for r in d["cut_emphasis"] or ["(none)"]:
+        out.append(f"    - {r}")
+    if d["deleted_runs"]:
+        out.append(f"  Deleted runs ({len(d['deleted_runs'])}):")
+        for r in d["deleted_runs"]:
+            out.append(f"    - {r}")
+    return "\n".join(out)
+
+
+
 MUST_FLAG = EVAL_PATH.resolve().parent.parent / "data" / "corpus" / "must-flag"
 
 
@@ -736,6 +798,8 @@ def main() -> int:
     ap.add_argument("--gate", action="store_true", help="exit 1 when any rate is over budget")
     ap.add_argument("--calibrate", metavar="DIR", help="recompute budgets from a human corpus")
     ap.add_argument("--selftest", action="store_true", help="check the gate against the checklist")
+    ap.add_argument("--delta", nargs=2, metavar=("ORIGINAL", "REWRITE"),
+                    help="what the rewrite inserted, and what emphasis it cut")
     ap.add_argument("--recall", action="store_true", help="verify every recorded miss in data/corpus/must-flag still gets caught")
     ap.add_argument("--read", action="store_true", help="emit the reading brief for the host model")
     ap.add_argument("--verdict", metavar="ANSWERS_JSON", help="gate on the measured rates plus the model's answers")
@@ -745,6 +809,11 @@ def main() -> int:
         return _selftest()
     if args.recall:
         return recall()
+    if args.delta:
+        a = pathlib.Path(args.delta[0]).read_text(encoding="utf-8", errors="ignore")
+        b = pathlib.Path(args.delta[1]).read_text(encoding="utf-8", errors="ignore")
+        print(render_delta(delta(a, b)))
+        return 0
     if args.calibrate:
         calibrate(args.calibrate)
         return 0

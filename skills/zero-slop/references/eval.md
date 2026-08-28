@@ -187,7 +187,13 @@ the report even when they are zero.
 51. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
     as the source.
 52. **Claims not reframed.** Same names and numbers can still carry a changed
-    emphasis or implication. Compare meaning, not tokens.
+    emphasis or implication. Compare meaning, not tokens, and run three direction
+    tests on every span `register.py --delta` reports as inserted or rewritten:
+    purpose has not become outcome ("changed tactics to achieve its objective" is
+    not "changed tactics until it reached its objective"); agency has not moved
+    ("helps teams generate fixes" is not "generates fixes"); a warned future has
+    not become an asserted present. These are contextual comparisons against this
+    source, never a word list.
 53. **Non-prose untouched.** Code, front matter, tables, blockquotes, identifiers,
     paths, and heading hierarchy intact.
 
@@ -207,44 +213,55 @@ the report even when they are zero.
 59. **Proportional cutting.** No compression that stripped character. Density is
     information per word, not fewer words.
 60. **Read aloud.** Would this sound natural read to a sharp colleague?
-61. **No over-correction.** AI slop was not traded for edgy slop: forced hot takes,
+61. **Emphasis survives.** `register.py --delta` lists every intensifier or
+    absolute the rewrite cut from this source. Each cut needs a defect named from
+    this file, judged in its own context: puffery, hyperbole universal, filler.
+    "Too strong" is not a defect, and a falsifiable claim the author owns keeps
+    its full strength whatever word carries it. Cutting "changed overnight" from
+    a claim the author would defend cost a blind head-to-head once.
+62. **Earned length.** `--delta` lists every run of three or more words the rewrite
+    added. Each must restate meaning already in this source for this audience; a
+    bridge or an unpacked definition can qualify, scaffolding the author never
+    wrote cannot. A rewrite longer than its original defends every insertion or
+    loses them.
+63. **No over-correction.** AI slop was not traded for edgy slop: forced hot takes,
     fake first person, performed candor, staccato drama.
 
 ## E. Form
 
-62. **Returned in the format it arrived in.** A .docx comes back a .docx.
-63. **Reader language.** No evaluator or harness vocabulary leaked into the copy:
+64. **Returned in the format it arrived in.** A .docx comes back a .docx.
+65. **Reader language.** No evaluator or harness vocabulary leaked into the copy:
     candidate, artifact, overlay, gate, scorecard, burstiness.
-64. **Formatting slop.** No emoji headings, decorative bold, or bullets that should be
+66. **Formatting slop.** No emoji headings, decorative bold, or bullets that should be
     prose. Count the headings over one or two sentences: four consecutive H3s each
     wrapping a code block and one line is a section that wants to be one section.
-65. **Em dashes.** None in short copy. One or two in a long draft only where they
+67. **Em dashes.** None in short copy. One or two in a long draft only where they
     clearly beat a comma, period, or parenthesis.
-66. **Hyphenated modifier stacking.** "AI-powered cloud-native data-driven platform".
+68. **Hyphenated modifier stacking.** "AI-powered cloud-native data-driven platform".
    Two stacked compound modifiers in one noun phrase is a tell; keep the hyphens
    grammar requires and cut the rest.
-67. **List-label periods and bare-noun bullets.** Bullets that are fragments ending in
+69. **List-label periods and bare-noun bullets.** Bullets that are fragments ending in
    full stops, or a list of bare noun phrases with no predicate. Either make them
    sentences or make them a real list.
-68. **Numbered-list inflation.** A numbered list where order carries no meaning, or a
+70. **Numbered-list inflation.** A numbered list where order carries no meaning, or a
    list padded to a round number. Use a bulleted list, or prose.
-69. **Chatbot artifacts.** Citation markup leaks, "Regenerate response", tool URL
+71. **Chatbot artifacts.** Citation markup leaks, "Regenerate response", tool URL
    parameters such as utm_source, and any assistant scaffolding left in the copy.
-70. **Attribution accurate.** The report names who did what without guessing which
+72. **Attribution accurate.** The report names who did what without guessing which
     model is running, and never implies a Zero Slop service read the draft.
 
 ## F. Process integrity
 
 Role 8 answers this section. It is the check no single-agent eval can make.
 
-71. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
+73. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
     fresh-eyes review each ran as a distinct pass.
-72. **No self-certification.** No role graded text it generated.
-73. **Counts reported.** Every count in section A appears in the summary, including
+74. **No self-certification.** No role graded text it generated.
+75. **Counts reported.** Every count in section A appears in the summary, including
     the zeros.
-74. **The exact final text cleared every check.** Not an earlier draft, not a version
+76. **The exact final text cleared every check.** Not an earlier draft, not a version
     that was repaired afterward.
-75. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
+77. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
     ran again on the revision.
-76. **Fallbacks named honestly.** If the three-round limit was reached, the report
+78. **Fallbacks named honestly.** If the three-round limit was reached, the report
     says which check failed and does not describe the result as fully verified.

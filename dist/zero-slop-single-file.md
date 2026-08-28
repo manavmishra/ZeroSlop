@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.7.0"
+  version: "2.7.1"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -475,6 +475,8 @@ the most reader value. `references/rewrite-moves.md` expands each rung.
   "decided". Kill participial openers ("Leveraging X, …"). Translate internal
   workflow labels into plain language; never let evaluator or harness language
   leak into reader-facing prose.
+  Strong claims the author owns are content, not register: cut an intensifier
+  only for a defect you can name in context, never for strength alone.
   Prefer an explicit actor and an active verb when responsibility matters. Keep
   passive voice when the actor is unknown, irrelevant, deliberately withheld, or
   native to the genre; passive voice alone is not evidence of AI writing.
@@ -621,6 +623,13 @@ format, and non-prose structure. Apply these contextual checks too:
   `_coverage` map by dispositioning every paragraph; the verdict fails on any
   paragraph nobody dispositioned, exactly as it fails on an unanswered check.
   A non-zero exit is a failed check.
+- **The delta.** Run
+  `python3 <skill-root>/scripts/register.py --delta <original> <final>` and
+  answer for what it prints: every inserted run must restate source meaning,
+  every cut emphasis word needs a named defect, and every rewritten span passes
+  the three direction tests — purpose has not become outcome, agency has not
+  moved, a warned future has not become an asserted present. The fact gate
+  cannot see any of these; this is where a reframed claim gets caught.
 - **Performed register.** Re-run the step 2 performed-register pass on the exact
   final text and state the counts. An exceeded antithesis budget, or a surviving
   significance-scaffolding sentence, is a failed check: the text returns through
