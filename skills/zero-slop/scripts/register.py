@@ -129,7 +129,10 @@ def thin_sections(text: str) -> list[str]:
     """A heading over one or two sentences. eval.md names this; the reader missed it."""
     out = []
     parts = re.split(r"\n(?=#{2,4}\s)", text)
-    for part in parts[1:]:
+    # parts[0] is preamble only when the document does not open with a heading;
+    # skipping it unconditionally made a doc's first section invisible.
+    sections = parts if parts and parts[0].lstrip().startswith("#") else parts[1:]
+    for part in sections:
         head, _, body = part.partition("\n")
         body = re.sub(r"```.*?```", "", body, flags=re.S)
         body = "\n".join(l for l in body.split("\n")

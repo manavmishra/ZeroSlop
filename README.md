@@ -70,8 +70,9 @@ than any span: one shape repeated seven times, statistics piled into a paragraph
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
 75 checks.
 
-Human writing in the reference set scored 9 to 21; unedited AI drafts averaged 77. Those
-are observed ranges, and neither number claims to identify who wrote the text.
+Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
+unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
+Neither number claims to identify who wrote the text.
 
 ## How it works
 
@@ -150,7 +151,7 @@ rewrites and 16/18 of the incumbent's. On mean score across this second set we l
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
 universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
-editorial panel, v2.6.1 matched the prior 84.2% result. Its four new checks left all 114
+editorial panel ([`bench/README.md`](bench/README.md)), v2.6.1 matched the prior 84.2% result. Its four new checks left all 114
 frozen document scores unchanged and 18 human controls clear, while the four target cases
 moved from 9.5 to between 30.7 and 65.1. Median throughput was 0.03% lower across 12
 runs, which is local timing noise and no kind of speed claim.

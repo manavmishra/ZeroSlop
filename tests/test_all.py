@@ -3431,6 +3431,74 @@ class RegisterGate(unittest.TestCase):
         )
         self.assertTrue(any("not in the source" in p for p in problems), problems)
 
+    def _register(self):
+        spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_each_register_detector_fires_on_its_own_defect(self):
+        """The detectors had only negative tests: silent on certified-human text.
+        Nothing proved any of them fires. A detector that can never fire passes
+        every safety gate and catches nothing, so each family gets a fixture
+        built from the defect it was added for."""
+        module = self._register()
+        pad = ("The team shipped the release on Tuesday and wrote down what broke. "
+               * 40)  # clears MIN_WORDS so rates are reported
+        cases = {
+            "monument_verb": pad + "The framework stands as a testament to careful work. "
+                "It also serves as a reminder. It marks a turning point for the team.",
+            "negation_triad": pad + "No file monitoring, no browser hooks, no reaching "
+                "into where you publish. Not tracked, not stored, not shared.",
+            "significance_scaffolding": pad + "Here's the thing that matters: the cache "
+                "was cold. What that means is the numbers lied.",
+            "subtractive_contrast": pad + ("This is a probe, not a verdict. "
+                "It reads the file, not the intent. It measures text, not people. "
+                "The tool records counts, not quality. It gates style, not facts. "
+                "A rate, not a rule. Judgment, not law. It is advice, not policy. "),
+            "inanimate_agent": pad + "Research shows the gap. Studies find the same. "
+                "The data suggests otherwise and the chart records the trend.",
+        }
+        for family, text in cases.items():
+            with self.subTest(family=family):
+                m = module.measure(text)
+                self.assertGreater(m[family]["count"], 0,
+                                   f"{family} never fired on its own fixture")
+        # Structural detectors take the document, not prose.
+        frags = module.verbless_fragments(
+            "The build passed. Zero regressions this quarter. A clean bill overall. "
+            "Nothing left in the queue afterward.")
+        self.assertGreaterEqual(len(frags), 2, frags)
+        thin = module.thin_sections(
+            "## One\n\nA single sentence sits here alone today.\n\n"
+            "## Two\n\nAnother short section with one line only.\n\n"
+            "## Three\n\nThis one has enough sentences to pass. It keeps going for a "
+            "while. It even adds a third thought to be safe.\n")
+        self.assertEqual(sorted(thin), ["One", "Two"], thin)
+        clusters = module.referent_clusters(
+            "Local tools run first. Then the meter reports. Later the scorer "
+            "re-checks what our own checks already measured.")
+        self.assertEqual(len(clusters), 1, clusters)
+        share, col = module.table_row_uniformity(
+            "| Role | What happens |\n|---|---|\n"
+            "| A | Finds wording, rhythm, readability, and formatting problems |\n"
+            "| B | Reads claims, purpose, audience, and structure |\n"
+            "| C | Removes stock language, filler, hedges, and padding |\n"
+            "| D | Rejects names, numbers, quotations, and links changes |\n"
+            "| E | Corrects grammar, spelling, usage, and consistency |\n")
+        self.assertIsNotNone(share)
+        self.assertGreaterEqual(share, 0.75, (share, col))
+        dangle = module.dangling_pointers(
+            "Users on claude.ai can upload the ZIP. The docs explain the rest.")
+        self.assertGreaterEqual(len(dangle), 1, dangle)
+
+    def test_register_gate_fails_on_a_dense_fixture_and_passes_the_readme(self):
+        """End to end at the measurement layer: a document built from the defects
+        exits 1, and the shipped README exits 0."""
+        module = self._register()
+        r = run([str(self.SCRIPT), "--gate", str(ROOT / "README.md")])
+        self.assertEqual(r.returncode, 0, r.stdout)
+
     def test_failure_without_evidence_is_rejected(self):
         spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
         module = importlib.util.module_from_spec(spec)
