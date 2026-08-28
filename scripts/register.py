@@ -598,6 +598,18 @@ def _selftest() -> int:
     else:
         print(f"  ok    all {len(checks)} check ids are unique")
 
+    # Two checks for one family is the same defect as a duplicate id wearing a
+    # different number: the reader answers one and believes the family is done.
+    fams, dupe_fams = set(), set()
+    for c in checks:
+        fam = c["title"].split(".")[0].strip().lower()
+        (dupe_fams if fam in fams else fams).add(fam)
+    if dupe_fams:
+        print(f"  FAIL  families checked twice: {', '.join(sorted(dupe_fams))}")
+        ok = False
+    else:
+        print(f"  ok    {len(fams)} families, each checked once")
+
     routed = sum(1 for c in checks if c["auto"] or c["skip"]
                  or True)  # every check must land in exactly one lane
     asked = [c for c in checks if not c["auto"] and not c["skip"]]
