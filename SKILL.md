@@ -883,6 +883,9 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
   approves the verified text without changes or restarts every final pass.
 - `references/copy-desk.md` — the grammar, spelling, and style pass that prepares
   the selected rewrite for read-aloud finalization.
+- `references/eval.md` — the pass/fail checklist for roles 7 and 8. It carries the
+  contextual and register families the meter cannot express as patterns, and it
+  requires the section A counts to be written down rather than judged silently.
 - `references/evidence.md` — the research basis: papers, detector mechanics,
   and why each ladder rung is ordered where it is.
 

@@ -3082,8 +3082,8 @@ class Diagram(unittest.TestCase):
     def test_plugin_runtime_contains_only_runtime_modules(self):
         shipped = {p.name for p in (ROOT / "skills" / "zero-slop" / "scripts").glob("*.py")}
         self.assertEqual(shipped, {
-            "calibrate.py", "learn.py", "predictability.py", "rerank.py",
-            "safeio.py", "slopscore.py", "version_check.py",
+            "calibrate.py", "learn.py", "predictability.py", "register.py",
+            "rerank.py", "safeio.py", "slopscore.py", "version_check.py",
         })
         self.assertFalse((ROOT / "skills" / "zero-slop" / "references" /
                           "contextual-signals.md").exists())
@@ -3329,6 +3329,59 @@ class VersionCheck(unittest.TestCase):
                 result = run([str(script), *args])
                 self.assertEqual(result.returncode, 2)
                 self.assertNotIn("Traceback", result.stderr)
+
+
+class RegisterGate(unittest.TestCase):
+    """The register pass carries the families the pattern meter cannot reach.
+    Its own selftest asserts that every check in references/eval.md reaches the
+    gate, that ids are unique, and that the deterministic half stays silent on
+    certified-human writing. A check once vanished from the gate because its
+    title wrapped across two lines, so this runs on every release."""
+
+    SCRIPT = ROOT / "scripts" / "register.py"
+
+    def test_selftest_passes(self):
+        result = run([str(self.SCRIPT), "--selftest"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("reach the gate", result.stdout)
+        self.assertIn("unique", result.stdout)
+        self.assertIn("silent on every certified-human sample", result.stdout)
+
+    def test_every_checklist_item_reaches_the_gate(self):
+        import re as _re
+        spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        declared = len(_re.findall(r"^\d+[a-z]?\.\s+\*\*",
+                                   module.EVAL_PATH.read_text(), _re.M))
+        checks = module.load_checks()
+        self.assertEqual(declared, len(checks))
+        self.assertEqual(len(checks), len({c["id"] for c in checks}))
+
+    def test_fabricated_evidence_is_rejected(self):
+        spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        checks = [c for c in module.load_checks() if not c["auto"] and not c["skip"]]
+        first = checks[0]["id"]
+        source = "The quick brown fox jumped over the lazy dog and kept running."
+        problems = module.check_evidence(
+            source,
+            {first: {"answer": "fail", "count": 2,
+                     "evidence": ["a sentence that is nowhere in that source text"]}},
+            checks,
+        )
+        self.assertTrue(any("not in the source" in p for p in problems), problems)
+
+    def test_failure_without_evidence_is_rejected(self):
+        spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        checks = [c for c in module.load_checks() if not c["auto"] and not c["skip"]]
+        problems = module.check_evidence(
+            "any source", {checks[0]["id"]: {"answer": "fail", "count": 1, "evidence": []}}, checks
+        )
+        self.assertTrue(any("no quoted evidence" in p for p in problems), problems)
 
 
 if __name__ == "__main__":
