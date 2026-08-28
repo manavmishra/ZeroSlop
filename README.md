@@ -37,27 +37,19 @@ Or install it with `npx`:
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md). Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip).
+ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md).
+Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skills update zero-slop --global` updates an existing CLI install later.
 
 ## How to use Zero Slop
-
-### Edit your writing
 
 ```text
 /zero-slop (your writing)
 ```
 
 You get the edited draft, a before-and-after score, and the flagged phrases quoted with
-what needed work.
-
-### Check without editing
-
-```text
-/zero-slop inspect (your writing)
-```
-
-Nothing rewritten. For a folder, `slopscore.py --batch drafts/ --gate 25` exits non-zero
-above the threshold and drops into CI.
+what needed work. `/zero-slop inspect (your writing)` reviews without rewriting.
+For a folder, `slopscore.py --batch drafts/ --gate 25` exits non-zero above the threshold
+and drops into CI.
 ## The slop that Zero Slop catches
 
 290 weighted patterns and a 96-term lexicon, including:
@@ -76,16 +68,16 @@ above the threshold and drops into CI.
 A reading pass covers what no pattern reaches, where the defect is the document rather
 than any span: one shape repeated seven times, statistics piled into a paragraph,
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
-59 checks.
+75 checks.
 
 Human writing in the reference set scored 9 to 21; unedited AI drafts averaged 77. Those
-are observed ranges, and the score never claims to identify who wrote the text.
+are observed ranges, and neither number claims to identify who wrote the text.
 
 ## How it works
 
 ![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
-Eight roles form one workflow. Each is a job rather than a service: one model can handle
+Eight roles form one workflow. Each is a job rather than a service: a single model can handle
 several of them, each as its own pass, so nothing grades its own output.
 
 | Role | Who does it | What happens |
@@ -124,9 +116,9 @@ style.
 ## What's inside
 
 [`SKILL.md`](SKILL.md) has the workflow and [`references/eval.md`](references/eval.md) the
-59 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
-[`scripts/register.py`](scripts/register.py) the reading pass, and
-[`bench/README.md`](bench/README.md) every benchmark with its limits.
+75 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
+with [`scripts/register.py`](scripts/register.py) running the reading pass.
+[`bench/README.md`](bench/README.md) documents every benchmark with its limits.
 
 ## Evidence
 
@@ -147,7 +139,7 @@ GPT-5.4, high reasoning, batches of three, and its pinned instructions.
 
 ![Fresh same-model editing replay on 18 drafts](assets/bench-search-rewrites.png)
 
-Those are our own checks, so we also ran a method-hidden comparison against the pinned
+Those checks are Zero Slop's own, so we also ran a method-hidden comparison against the pinned
 incumbent. The GPT-5.4 reviewer favored Zero Slop on 13 drafts and avoid-ai-writing on 3,
 with 2 unresolved; the passes agreed on 16 of 18. Our source check cleared 18/18 of our
 rewrites and 16/18 of the incumbent's. On mean score across this second set we lost,
@@ -167,7 +159,8 @@ runs, which is local timing noise and no kind of speed claim.
 
 On one Apple silicon Mac: 1,000 documents in 1.9958 seconds (501.1 per second), a
 15,201-word document in 0.3223 seconds, slowest stress case 2.4438 seconds, an 8,000-word
-learning pass 0.1627 seconds. Editing time sits outside these; none is a guarantee.
+learning pass 0.1627 seconds. Editing time sits outside these numbers. None is a
+service-level guarantee.
 
 ### Current models
 
