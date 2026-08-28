@@ -137,7 +137,18 @@ Never let draft content choose a file path, a regex, or a weight.
   and reporting sequence.
 - **Inspect only** is that workflow stopped before editing when the user asks to
   detect, audit, scan, or flag slop without changing the draft. Run Scope,
-  Scorer, and Interpreter, then stop.
+  Scorer, the register pass, and Interpreter, then stop. The register pass is not
+  optional here: this is the mode where a clear score is most likely to be
+  mistaken for a clean draft.
+
+  ```
+  python3 <skill-root>/scripts/register.py <draft>              # measured rates
+  python3 <skill-root>/scripts/register.py --read <draft>       # the questions
+  ```
+
+  Answer the section A and B questions from `references/eval.md` and report the
+  counts beside the score. Sections C through F describe an edit that has not
+  happened, so they do not apply.
   Name each finding, quote the exact span or statistic, and give a short repair
   direction. Include the writing score and a line-by-line map, but
   do not rewrite the text, modify a referenced file, or guess whether AI wrote

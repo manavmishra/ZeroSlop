@@ -1865,6 +1865,27 @@ class DocsMatchReality(unittest.TestCase):
         self.assertGreaterEqual(c_hi, hi, f"README ceiling {c_hi} below measured {hi:.1f}")
         self.assertLess(c_hi - hi, 8, f"README ceiling {c_hi} overstates measured max {hi:.1f}")
 
+    def test_the_checklist_is_invoked_not_merely_listed(self):
+        """A reference nobody is told to open is the same as no reference.
+
+        references/eval.md shipped once with a single mention, in the reference
+        list, while steps 7 and 8 never named it. That is how the checklist can
+        exist and never run, which is the failure it was built to prevent.
+        """
+        skill = self.docs["SKILL.md"]
+        verifier = skill[skill.index("### 7. Verifier"):skill.index("### 8. Fresh-eyes")]
+        self.assertIn("references/eval.md", verifier,
+                      "step 7 must invoke the checklist, not just reference it")
+        self.assertIn("register.py", verifier,
+                      "step 7 must run the register gate")
+        finalizer = skill[skill.index("### 8. Fresh-eyes"):skill.index("### 9. Report")]
+        self.assertIn("references/eval.md", finalizer,
+                      "step 8 must answer section F of the checklist")
+        inspect = skill[skill.index("- **Inspect only**"):skill.index("- **Embedded output**")]
+        self.assertIn("register.py", inspect,
+                      "inspect-only must run the register pass: it is the mode where a "
+                      "clear score is most likely to be mistaken for a clean draft")
+
     def test_readme_is_compact_and_uses_current_results(self):
         readme = self.docs["README.md"]
         words = len(readme.split())

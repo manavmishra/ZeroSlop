@@ -40,6 +40,14 @@ BUDGETS = {
     "significance_scaffolding": (0.0, 1),
     "inanimate_agent": (4.0, 2),
     "repeated_openings": (3.0, 2),
+    # Added after a three-way audit found eight families the reading pass missed
+    # even though every one is in references/eval.md. A script does not get tired.
+    "monument_verb": (2.0, 1),
+    "negation_triad": (1.5, 1),
+    "dangling_pointer": (1.5, 1),
+    "verbless_fragment": (3.0, 2),
+    "thin_section": (4.0, 2),
+    "referent_cluster": (1.5, 1),
 }
 
 # "X, not Y." and "A rather than B." The corrective appositive. Each instance is
@@ -71,6 +79,128 @@ RX_INANIMATE = re.compile(
     r"|record|records|tell|tells|reveal|reveals|demonstrate|demonstrates)\b",
     re.I,
 )
+
+
+# --- Families an adversarial three-way audit caught and the reading pass did not.
+# All eight were already in references/eval.md. The reader missed them anyway, so
+# they move here: a script does not get tired on check 47 of 59.
+
+MONUMENT_VERBS = re.compile(
+    r"\b(?:stands? on|stands? as|sits? atop|is built upon|rests? upon|draws? upon"
+    r"|serves? as a|marks? a|represents? a)\b", re.I)
+
+# "no X, no Y, no Z" and "not A, not B" as a stacked definition-by-negation.
+NEGATION_TRIAD = re.compile(
+    r"\bno\s+[\w-]+(?:\s+[\w-]+){0,3},\s*no\s+[\w-]+(?:\s+[\w-]+){0,3},\s*"
+    r"(?:and\s+)?no\s+[\w-]+"
+    r"|\bnot\s+[\w-]+(?:\s+[\w-]+){0,3},\s*not\s+[\w-]+(?:\s+[\w-]+){0,3},\s*"
+    r"(?:and\s+)?not\s+[\w-]+", re.I)
+
+# A definite reference to a downloadable or named artifact, with no link beside it.
+DANGLING = re.compile(
+    r"\b(?:the|a)\s+(ZIP|zip file|bundle|archive|installer|plugin|package|panel|corpus"
+    r"|reference set|docs|documentation|spec|manifest)\b", re.I)
+
+FINITE_VERB = re.compile(
+    r"\b(?:is|are|was|were|be|been|being|has|have|had|do|does|did|can|could|will"
+    r"|would|shall|should|may|might|must|gets?|goes|comes?|makes?|takes?|gives?"
+    r"|gate[sd]?|gives?|runs?|gets?|gave|gone)\b"
+    r"|\b\w+(?:s|ed|es)\b", re.I)
+
+
+def _sentences(prose: str) -> list[str]:
+    return [x.strip() for x in re.split(r"(?<=[.!?])\s+", prose) if x.strip()]
+
+
+def verbless_fragments(prose: str) -> list[str]:
+    out = []
+    for sent in _sentences(prose):
+        words = re.findall(r"[A-Za-z][\w'-]*", sent)
+        if not (3 <= len(words) <= 12):
+            continue
+        if sent.rstrip().endswith(":") or sent.lstrip().startswith(("-", "*", "#", "|")):
+            continue
+        if not FINITE_VERB.search(sent):
+            out.append(sent)
+    return out
+
+
+def thin_sections(text: str) -> list[str]:
+    """A heading over one or two sentences. eval.md names this; the reader missed it."""
+    out = []
+    parts = re.split(r"\n(?=#{2,4}\s)", text)
+    for part in parts[1:]:
+        head, _, body = part.partition("\n")
+        body = re.sub(r"```.*?```", "", body, flags=re.S)
+        body = "\n".join(l for l in body.split("\n")
+                         if not l.strip().startswith(("|", "![", "#")))
+        if re.search(r"\n#{2,4}\s", body):
+            body = body[:re.search(r"\n#{2,4}\s", body).start()]
+        sentences = [x for x in _sentences(body) if len(x.split()) > 3]
+        if 0 < len(sentences) <= 2:
+            out.append(head.strip("# ").strip())
+    return out
+
+
+def table_row_uniformity(text: str) -> tuple[float | None, str]:
+    """Most cells of one column sharing a shape is the table's own robotic rhythm."""
+    rows = [l for l in text.split("\n") if l.strip().startswith("|") and "---" not in l]
+    if len(rows) < 5:
+        return None, ""
+    cols = [[c.strip() for c in r.strip().strip("|").split("|")] for r in rows]
+    width = min(len(c) for c in cols)
+    if width < 2:
+        return None, ""
+    worst, where = 0.0, ""
+    for i in range(width):
+        cells = [c[i] for c in cols[1:] if c[i]]
+        if len(cells) < 4:
+            continue
+        # Shape = first word plus whether the cell is a comma list of 3 or more.
+        shapes = [
+            (cell.split()[0].lower().rstrip(","), cell.count(",") >= 2)
+            for cell in cells if cell.split()
+        ]
+        listish = sum(1 for _f, is_list in shapes if is_list) / len(shapes)
+        if listish > worst:
+            worst, where = listish, cols[0][i] if i < len(cols[0]) else f"column {i+1}"
+    return round(worst, 2), where
+
+
+def dangling_pointers(text: str) -> list[str]:
+    out = []
+    for line in text.split("\n"):
+        if line.strip().startswith(("|", "#", "```")):
+            continue
+        for m in DANGLING.finditer(line):
+            window = line[max(0, m.start() - 90): m.end() + 90]
+            if "](" in window or "http" in window or "`" in window:
+                continue
+            out.append(" ".join(line.strip().split())[:96])
+            break
+    return out
+
+
+def referent_clusters(text: str) -> list[str]:
+    """One thing under several names.
+
+    Scans the whole document, not just prose: a role table is exactly where the
+    same referent picks up a second and third name.
+    """
+    groups = {
+        "the local tooling": ["local tools", "the meter", "the local checker",
+                              "the scorer", "our own checks", "the score"],
+        "the editing model": ["your ai assistant", "another compatible model",
+                              "the ai assistant", "one model", "a fresh ai pass",
+                              "a new ai pass"],
+    }
+    out = []
+    low = text.lower()
+    for name, terms in groups.items():
+        present = [t for t in terms if t in low]
+        if len(present) >= 3:
+            out.append(f"{name}: " + ", ".join(f'"{t}"' for t in present))
+    return out
 
 
 def prose_of(text: str) -> str:
@@ -127,8 +257,23 @@ def measure(text: str) -> dict:
         else None
     )
 
+    monument = [" ".join(m.group(0).split()) for m in MONUMENT_VERBS.finditer(prose)]
+    triads = [" ".join(m.group(0).split()) for m in NEGATION_TRIAD.finditer(prose)]
+    dangling = dangling_pointers(text)
+    fragments = verbless_fragments(prose)
+    thin = thin_sections(text)
+    clusters = referent_clusters(text)
+    uniformity, column = table_row_uniformity(text)
+
     return {
         "words": words,
+        "monument_verb": {"count": len(monument), "per_1k": per_k(len(monument)), "hits": monument[:6]},
+        "negation_triad": {"count": len(triads), "per_1k": per_k(len(triads)), "hits": triads[:4]},
+        "dangling_pointer": {"count": len(dangling), "per_1k": per_k(len(dangling)), "hits": dangling[:5]},
+        "verbless_fragment": {"count": len(fragments), "per_1k": per_k(len(fragments)), "hits": fragments[:5]},
+        "thin_section": {"count": len(thin), "per_1k": per_k(len(thin)), "hits": thin[:6]},
+        "referent_cluster": {"count": len(clusters), "per_1k": per_k(len(clusters)), "hits": clusters[:3]},
+        "table_uniformity": {"share": uniformity, "column": column},
         "subtractive_contrast": {"count": len(subtractive), "per_1k": per_k(len(subtractive)), "hits": subtractive[:12]},
         "comma_series": {"count": len(series), "per_1k": per_k(len(series))},
         "significance_scaffolding": {"count": len(significance), "per_1k": per_k(len(significance)), "hits": significance[:6]},
@@ -151,6 +296,12 @@ def verdicts(m: dict) -> list[tuple[str, float, float, bool]]:
 
 
 LABEL = {
+    "monument_verb": "Monument verbs",
+    "negation_triad": "Stacked negations",
+    "dangling_pointer": "Pointers with no target",
+    "verbless_fragment": "Verbless fragments",
+    "thin_section": "Headings over a sentence or two",
+    "referent_cluster": "One thing under several names",
     "subtractive_contrast": "Binary contrasts",
     "comma_series": "Comma-series density",
     "significance_scaffolding": "Announced significance",
@@ -175,6 +326,10 @@ def render(m: dict, name: str) -> str:
         mark = "ok  " if ok else "OVER"
         count = m[key]["count"]
         out.append(f"  {mark}  {LABEL[key]:<32} {value:>6.1f} per 1,000  ({count} found)   budget {budget:>5.1f}")
+    tu = m.get("table_uniformity") or {}
+    if tu.get("share") is not None and tu["share"] >= 0.75:
+        out.append(f"        {'Table column of comma lists':<32} {tu['share']:>6.0%}"
+                   f"          {tu['column'][:22]}")
     unif = m["paragraph_uniformity"]
     if unif is not None:
         note = "varied" if unif >= 0.35 else "uniform, consider varying"
