@@ -66,102 +66,113 @@ the report even when they are zero.
     reader what to notice or how much weight to give it.
 17. **Weasel attribution.** "Studies show." "Experts agree." Name the source, or flag
     it for the writer. Never invent one.
-18. **Nominalization and weak verb phrases.** "Made a decision" for "decided",
+18. **Empty adverbs and filler frames.** Adverbs: "just", "simply", "actually",
+    "literally", "honestly", "fundamentally", "inherently", "inevitably". Frames:
+    "the reality is", "the truth is", "in terms of", "with regard to", "going
+    forward", "in this article". Cut each one that adds nothing; keep the ones
+    carrying real emphasis, uncertainty, contrast, or the writer's spoken rhythm.
+    The meter does not flag these globally because they are ordinary in honest
+    writing, so this is a judgment per instance. "just", "simply", "actually", "literally",
+    "honestly", "fundamentally", "inherently", "inevitably". Cut each one that adds
+    nothing; keep the ones carrying real emphasis, uncertainty, contrast, or the
+    writer's spoken rhythm. This is a judgment per instance, which is why the meter
+    does not flag these words globally: they are ordinary in honest writing.
+19. **Nominalization and weak verb phrases.** "Made a decision" for "decided",
     "needs removal from" for "you cut from". De-nominalize, and prefer a direct verb
     with an actor.
-19. **Fake-strong verbs and synonym cycling.** Prefer "is" and "has" where they are
+20. **Fake-strong verbs and synonym cycling.** Prefer "is" and "has" where they are
     clearer. If the right word is right twice, use it twice.
 
 ## B. Substance
 
-20. **Removal test.** Does every paragraph lose something real when deleted?
-21. **Relevance test.** Does every paragraph serve the brief, audience, and argument?
-22. **Front-loading, applied selectively.** Conclusions arrive early where that helps
+21. **Removal test.** Does every paragraph lose something real when deleted?
+22. **Relevance test.** Does every paragraph serve the brief, audience, and argument?
+23. **Front-loading, applied selectively.** Conclusions arrive early where that helps
     the reader, without forcing every section into the same point-then-detail shape.
-23. **Paragraph-order dependence.** Could several prose paragraphs be shuffled without
+24. **Paragraph-order dependence.** Could several prose paragraphs be shuffled without
     harming the argument? Reference material, FAQs, and independent findings are
     exempt.
-24. **Unsupported novelty.** "Nobody is naming this" needs an actual comparison.
-25. **Self-labeling significance.** "This matters" needs a consequence.
-26. **Moral-adjective category error.** Calling a technical choice brave or honest
+25. **Unsupported novelty.** "Nobody is naming this" needs an actual comparison.
+26. **Self-labeling significance.** "This matters" needs a consequence.
+27. **Moral-adjective category error.** Calling a technical choice brave or honest
     needs a moral agent.
-27. **Portability test.** Could any sentence move unchanged to another company,
+28. **Portability test.** Could any sentence move unchanged to another company,
     product, or person? Cut it or make it specific.
-28. **Statistics cohesion.** Does each test or dataset get its own paragraph opening
+29. **Statistics cohesion.** Does each test or dataset get its own paragraph opening
     with what it checks in plain words, before the numbers?
-29. **Cross-references resolve.** Every named artefact, panel, dataset, or prior
+30. **Cross-references resolve.** Every named artefact, panel, dataset, or prior
     result is defined on first use or linked to where it lives. "The prior 84.2%
     result on the 38-item editorial panel" tells a reader nothing if neither the
     panel nor the packet is named anywhere.
-30. **Internal pointers name their target.** "In the references", "see the docs",
+31. **Internal pointers name their target.** "In the references", "see the docs",
     "as documented elsewhere" point at nothing. Name the file and the section, and
     link it, the way an external citation would be named.
-31. **Numeric precision matches the measurement.** Five significant figures on a
+32. **Numeric precision matches the measurement.** Five significant figures on a
     single run of a single machine claims a stability the method cannot support.
     Round to what the measurement earns, or state the spread.
-32. **Hollow spans flagged, not filled.** Prose that makes no claim was flagged for
+33. **Hollow spans flagged, not filled.** Prose that makes no claim was flagged for
     the writer rather than reworded into something that sounds like one.
-33. **Recap-flattery and wall-of-text.** In replies: no opener that praises or
+34. **Recap-flattery and wall-of-text.** In replies: no opener that praises or
     paraphrases the question, and no paragraphing that hides a sequence the reader
     needs.
 
 ## C. Fidelity
 
-34. **Scripted check run, not eyeballed.** `slopscore.py --fidelity` exits zero.
-35. **No invented specifics.** No number, name, anecdote, date, or source appeared
+35. **Scripted check run, not eyeballed.** `slopscore.py --fidelity` exits zero.
+36. **No invented specifics.** No number, name, anecdote, date, or source appeared
     that the author did not supply.
-36. **No invented interior claims.** No stated feeling, motive, or experience the
+37. **No invented interior claims.** No stated feeling, motive, or experience the
     author never wrote.
-37. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
+38. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
     as the source.
-38. **Claims not reframed.** Same names and numbers can still carry a changed
+39. **Claims not reframed.** Same names and numbers can still carry a changed
     emphasis or implication. Compare meaning, not tokens.
-39. **Non-prose untouched.** Code, front matter, tables, blockquotes, identifiers,
+40. **Non-prose untouched.** Code, front matter, tables, blockquotes, identifiers,
     paths, and heading hierarchy intact.
 
 ## D. Voice and readability
 
-40. **Expert voice.** A respected practitioner sounds at home: precise terms used
+41. **Expert voice.** A respected practitioner sounds at home: precise terms used
     correctly, authority earned through specifics, no hedging into mush.
-41. **Followability.** A smart first-time reader follows each sentence on the first
+42. **Followability.** A smart first-time reader follows each sentence on the first
     pass. One idea per sentence; every abstraction anchored in the same breath; never
     three or more abstract noun phrases stacked.
-42. **Voice preserved.** Would the writer recognize this as theirs? Distinctive
+43. **Voice preserved.** Would the writer recognize this as theirs? Distinctive
     vocabulary, cadence, bluntness, humor, uncertainty, and digressions survived.
-43. **Strong sentences left alone.** Nothing was rewritten merely for consistency.
-44. **Active voice with human subjects.** People do the verbs. Passive stays only
+44. **Strong sentences left alone.** Nothing was rewritten merely for consistency.
+45. **Active voice with human subjects.** People do the verbs. Passive stays only
     where the actor is unknown, irrelevant, deliberately withheld, or native to the
     genre.
-45. **Proportional cutting.** No compression that stripped character. Density is
+46. **Proportional cutting.** No compression that stripped character. Density is
     information per word, not fewer words.
-46. **Read aloud.** Would this sound natural read to a sharp colleague?
-47. **No over-correction.** AI slop was not traded for edgy slop: forced hot takes,
+47. **Read aloud.** Would this sound natural read to a sharp colleague?
+48. **No over-correction.** AI slop was not traded for edgy slop: forced hot takes,
     fake first person, performed candor, staccato drama.
 
 ## E. Form
 
-48. **Returned in the format it arrived in.** A .docx comes back a .docx.
-49. **Reader language.** No evaluator or harness vocabulary leaked into the copy:
+49. **Returned in the format it arrived in.** A .docx comes back a .docx.
+50. **Reader language.** No evaluator or harness vocabulary leaked into the copy:
     candidate, artifact, overlay, gate, scorecard, burstiness.
-50. **Formatting slop.** No emoji headings, decorative bold, bullets that should be
+51. **Formatting slop.** No emoji headings, decorative bold, bullets that should be
     prose, or headers over two-sentence sections.
-51. **Em dashes.** None in short copy. One or two in a long draft only where they
+52. **Em dashes.** None in short copy. One or two in a long draft only where they
     clearly beat a comma, period, or parenthesis.
-52. **Attribution accurate.** The report names who did what without guessing which
+53. **Attribution accurate.** The report names who did what without guessing which
     model is running, and never implies a Zero Slop service read the draft.
 
 ## F. Process integrity
 
 Role 8 answers this section. It is the check no single-agent eval can make.
 
-53. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
+54. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
     fresh-eyes review each ran as a distinct pass.
-54. **No self-certification.** No role graded text it generated.
-55. **Counts reported.** Every count in section A appears in the summary, including
+55. **No self-certification.** No role graded text it generated.
+56. **Counts reported.** Every count in section A appears in the summary, including
     the zeros.
-56. **The exact final text cleared every check.** Not an earlier draft, not a version
+57. **The exact final text cleared every check.** Not an earlier draft, not a version
     that was repaired afterward.
-57. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
+58. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
     ran again on the revision.
-58. **Fallbacks named honestly.** If the three-round limit was reached, the report
+59. **Fallbacks named honestly.** If the three-round limit was reached, the report
     says which check failed and does not describe the result as fully verified.

@@ -567,6 +567,19 @@ format, and non-prose structure. Apply these contextual checks too:
   and no hedging into mush.
 - **Ease of reading.** A smart first-time reader should follow each sentence on
   the first pass. A mechanically clean score does not excuse exhausting prose.
+- **Run the checklist.** Work `references/eval.md` top to bottom on the exact final
+  text and answer every item. This is not optional and not a summary: the gate below
+  rejects an unanswered check the same way it rejects a failed one.
+
+  ```
+  python3 <skill-root>/scripts/register.py --read <final> > questions.json
+  # answer every question into answers.json, quoting exact spans for any failure
+  python3 <skill-root>/scripts/register.py <final> --verdict answers.json
+  ```
+
+  It measures the rates a pattern cannot see (binary contrast density, comma-series
+  density, inanimate agents), asks you the rest, and rejects a failure that carries
+  no quote or a quote that is not in the source. A non-zero exit is a failed check.
 - **Performed register.** Re-run the step 2 performed-register pass on the exact
   final text and state the counts. An exceeded antithesis budget, or a surviving
   significance-scaffolding sentence, is a failed check: the text returns through
@@ -606,6 +619,11 @@ into the copy. It also catches small residual stumbles that become visible only 
 the verifier's repairs. It may apply safe polish, but it may not add facts, strengthen
 claims, change qualifiers, rewrite quotations, alter protected structure, or replace
 the author's voice with generic polish.
+
+Answer section F of `references/eval.md` as part of this pass. It asks whether the
+roles actually stayed separate, whether any role certified its own output, and
+whether the counts were reported. A generating role cannot answer those about
+itself, which is why they sit with the finalizer.
 
 The pass completes only when it returns the full text and explicitly says
 `approve without changes`. If it changes anything, apply that complete revision,
@@ -697,7 +715,9 @@ facts, meaning, structure, and whether the writing is performing rather than say
 ```
 
 The "two-part contrasts / announcements" row is the performed-register count from
-step 2. **Print it even when both numbers are zero**, and print it on a draft that
+step 2. Add a line for the register gate beside it: `Register gate: 58 checks, 0
+failed` or the count that did fail. A report without it is a report that skipped the
+checklist. **Print it even when both numbers are zero**, and print it on a draft that
 scored clean. It is the only evidence that the pass ran; a report without it is a
 report that skipped it.
 

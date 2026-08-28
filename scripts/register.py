@@ -74,8 +74,13 @@ RX_INANIMATE = re.compile(
 
 
 def prose_of(text: str) -> str:
-    """Drop code, tables, images, and badge blocks. Prose only."""
+    """Drop code, tables, images, and badge blocks. Prose only.
+
+    Quoted spans go too. A document that catalogues tells quotes them as
+    examples, and counting a quoted example as an instance is the same false
+    positive the pattern meter makes on references/tells.md."""
     text = re.sub(r"```.*?```", "", text, flags=re.S)
+    text = re.sub(r"[\"\u201c][^\"\u201c\u201d\n]{4,120}[\"\u201d]", " ", text)
     text = re.sub(r"<p align.*?</p>", "", text, flags=re.S)
     text = re.sub(r"<details>.*?</details>", "", text, flags=re.S)
     return "\n".join(
