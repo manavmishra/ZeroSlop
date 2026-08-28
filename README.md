@@ -19,7 +19,7 @@ AI writing has an accent: "It's not X. It's Y." "Here's the thing nobody tells y
 cadence that made the writing yours, and rewrites your numbers on the way.
 
 
-Zero Slop is an Agent Skill, not an AI model. Claude, GPT, or another compatible model
+Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible model
 does the editing; Zero Slop supplies the workflow, the meter, and the checks that refuse
 any change to a name, number, quotation or link.
 
@@ -37,7 +37,7 @@ Or install it with `npx`:
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md). Claude.ai users can upload the ZIP.
+ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md). Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip).
 
 ## How to use Zero Slop
 
@@ -85,8 +85,8 @@ are observed ranges, and the score never claims to identify who wrote the text.
 
 ![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
-Eight roles form one workflow. They are jobs, not separate models: one model can handle
-several, each as its own pass, so nothing grades its own output.
+Eight roles form one workflow. Each is a job rather than a service: one model can handle
+several of them, each as its own pass, so nothing grades its own output.
 
 | Role | Who does it | What happens |
 |---|---|---|
@@ -99,7 +99,7 @@ several, each as its own pass, so nothing grades its own output.
 | 7. Verifier | Local tools and your AI assistant | Compares text with source for facts, meaning, qualifiers, voice, format, structure. |
 | 8. Fresh-eyes finalizer | Fresh AI pass | Reads the verified text as a first-time reader, applying only safe polish. Any final polish restarts the final checks; the same text must return unchanged before release. |
 
-Research supports the checks, not the number eight: studies find
+Eight is an engineering choice; research supports the individual checks. Studies find
 [predictable wording](https://arxiv.org/abs/2301.11305) and
 [overused vocabulary](https://arxiv.org/abs/2406.07016) in machine text, and authorship
 detectors can [misclassify non-native English](https://arxiv.org/abs/2304.02819). Local
@@ -150,11 +150,12 @@ GPT-5.4, high reasoning, batches of three, and its pinned instructions.
 Those are our own checks, so we also ran a method-hidden comparison against the pinned
 incumbent. The GPT-5.4 reviewer favored Zero Slop on 13 drafts and avoid-ai-writing on 3,
 with 2 unresolved; the passes agreed on 16 of 18. Our source check cleared 18/18 of our
-rewrites and 16/18 of the incumbent's. On mean score we lost, 17.8 to 17.0.
+rewrites and 16/18 of the incumbent's. On mean score across this second set we lost,
+17.8 to 17.0.
 
 ![Method-hidden editorial preference on 18 drafts](assets/bench-incumbent-hidden.png)
 
-This is a small LLM-reviewed regression study, not independent human field accuracy or a
+This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
 universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
 editorial panel, v2.6.1 matched the prior 84.2% result. Its four new checks left all 114
@@ -193,8 +194,8 @@ private learning, portfolio analysis and release tests.
 
 ![Documented capabilities at pinned repository versions](assets/competitor-capabilities.png)
 
-The chart records documented features, not which tool writes better. Reproduce the
-shipped checks:
+The chart records which features each project documents, and says nothing about writing
+quality. Reproduce the shipped checks:
 
 ```sh
 python3 tests/test_all.py
