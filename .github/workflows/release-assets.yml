@@ -1,0 +1,35 @@
+name: attach release assets
+
+# v2.7.0 and v2.7.1 went out with no assets because attaching them was a manual
+# step someone had to remember, and the site's install button points at
+# releases/latest/download/. This makes publishing a release the trigger:
+# the assets are rebuilt from the tagged tree and attached, every time.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: build artifacts from the tagged tree
+        run: |
+          python3 scripts/build_bundle.py
+          python3 scripts/build_skill_zip.py
+      - name: attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            dist/zero-slop.zip dist/zero-slop-single-file.md \
+            assets/Zero-Slop-One-Pager.pdf --clobber

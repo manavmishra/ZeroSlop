@@ -3130,6 +3130,18 @@ class Diagram(unittest.TestCase):
         names = zipfile.ZipFile(io.BytesIO(bsz.build_bytes())).namelist()
         skills = [n for n in names if n.endswith("SKILL.md")]
         self.assertEqual(len(skills), 1, f"zip must hold exactly one skill: {skills}")
+        # The committed zip sat three releases stale (2.5.7 under a 2.7.1 tag)
+        # and the claude.ai install button served it, because nothing compared
+        # the zip's contents to the tree it claims to package.
+        zipped_skill = zipfile.ZipFile(io.BytesIO(bsz.build_bytes())).read(skills[0]).decode()
+        committed = zipfile.ZipFile(ROOT / "dist" / "zero-slop.zip")
+        committed_skill = committed.read(
+            [n for n in committed.namelist() if n.endswith("SKILL.md")][0]).decode()
+        current = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
+        self.assertIn(f'version: "{current}"', committed_skill,
+                      "dist/zero-slop.zip is stale — run: python3 scripts/build_skill_zip.py")
+        self.assertTrue(any("register.py" in n for n in committed.namelist()),
+                        "committed zip is missing runtime scripts")
         nested = [n for n in names if n.endswith((".zip", ".tar", ".gz"))]
         self.assertEqual(nested, [], f"zip must not contain a nested archive: {nested}")
 
