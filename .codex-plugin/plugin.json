@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.7.2",
+  "version": "2.7.3",
   "description": "Zero Slop is a skill, not an AI model. GPT or another compatible model performs the editorial roles; local tools score the writing and protect facts, then the assistant and tools verify the final text.",
   "author": {
     "name": "Manav Mishra",

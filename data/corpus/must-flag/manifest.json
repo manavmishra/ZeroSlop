@@ -82,6 +82,28 @@
           "span": "Neither figure includes bot traffic"
         }
       ]
+    },
+    {
+      "file": "label-period-list.md",
+      "expect": [
+        {
+          "check": "List-label periods and bare-noun bullets",
+          "span": "**Latency.**"
+        }
+      ]
+    },
+    {
+      "file": "unnamed-validator.md",
+      "expect": [
+        {
+          "check": "Weasel attribution",
+          "span": "An external audit"
+        },
+        {
+          "check": "Weasel attribution",
+          "span": "A\nthird-party checker"
+        }
+      ]
     }
   ]
 }

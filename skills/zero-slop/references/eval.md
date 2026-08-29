@@ -30,6 +30,11 @@ Scoring this file is meaningless: it quotes tells as examples, so the meter flag
 own catalogue. That is the documented exception for material quoted as an example, and
 it is a good candidate for `data/corpus/must-not-flag/`.
 
+The exception covers only the quoted words. The authored frame around a quotation —
+the label that introduces it, emphasis on that label, the list geometry it sits in —
+is the writer's own prose and every check here applies to it. A line is never exempt
+merely because part of it is quoted.
+
 ## A. Register, which the meter cannot reach
 
 Run every item on every draft, including one that scored clear. Record the counts in
@@ -80,7 +85,9 @@ the report even when they are zero.
 16. **Interpretive metadiscourse.** Lines that step outside the subject to tell the
     reader what to notice or how much weight to give it.
 17. **Weasel attribution.** "Studies show." "Experts agree." Name the source, or flag
-    it for the writer. Never invent one.
+    it for the writer. Never invent one. An unnamed validator is the same defect —
+    "an external checker", "a third-party audit", "an independent review" — name the
+    tool or the auditor, or flag it.
 18. **Adjective inflation and hollow intensifiers.** "a real improvement", "actual
    results", "a genuine breakthrough", "true value". Delete the adjective; the noun
    carries the claim or it does not. Distinct from empty adverbs (next): adverbs pad

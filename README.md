@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.2-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.3-72528F">
 </p>
 
 Score your writing 0 to 100 for AI slop, then edit it out without changing a single fact.
@@ -16,7 +16,6 @@ Score your writing 0 to 100 for AI slop, then edit it out without changing a sin
 
 AI writing has an accent: "It's not X. It's Y." "Here's the thing nobody tells you." Ask an AI to fix it and it sands off the vocabulary and
 cadence that made the writing yours, and rewrites your numbers on the way.
-
 
 Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible model
 does the editing; Zero Slop supplies the workflow, the meter, and the checks that refuse
@@ -52,16 +51,16 @@ For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the
 
 290 weighted patterns and a 96-term lexicon, including:
 
-1. **Binary contrasts.** "It's not X. It's Y."
-2. **Throat-clearing openers.** "Here's the thing," "Let me be clear"
-3. **Faux-insight setups.** "What nobody tells you," "The part everyone misses"
-4. **Colon reveals.** "The best part: it learns."
-5. **Dramatic fragments.** "That's it. That's the whole thing."
-6. **Superficial analysis.** "highlighting the team's commitment to innovation"
-7. **Importance puffery.** "marks a pivotal moment," "a testament to"
-8. **Weasel attribution.** "experts agree," "studies show"
-9. **Synonym cycling.** The agent, the assistant, the tool, all one thing.
-10. **Marketing riders.** "robust" and "leverage" score only beside a marketing trigger, so a runbook stays quiet.
+1. Binary contrasts: "It's not X. It's Y."
+2. Throat-clearing openers: "Here's the thing," "Let me be clear"
+3. Faux-insight setups: "What nobody tells you," "The part everyone misses"
+4. Colon reveals: "The best part: it learns."
+5. Dramatic fragments: "That's it. That's the whole thing."
+6. Superficial analysis: "highlighting the team's commitment to innovation"
+7. Importance puffery: "marks a pivotal moment," "a testament to"
+8. Weasel attribution: "experts agree," "studies show"
+9. Synonym cycling: the agent, the assistant, the tool, all one thing.
+10. Marketing riders: "robust" and "leverage" score only beside a marketing trigger, so a runbook stays quiet.
 
 A reading pass covers defects of the whole document, which no span pattern reaches: one shape repeated seven times, statistics piled into a paragraph,
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
@@ -69,7 +68,7 @@ paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md)
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
-Authorship is a question these numbers never answer.
+Neither number says who wrote the text.
 
 ## How it works
 
@@ -108,7 +107,6 @@ model, and involves no neural training or RLHF. A profile can exempt existing wa
 words when selected by name; it does not learn cadence, tone, or a complete writing
 style.
 
-
 ## What's inside
 
 [`SKILL.md`](SKILL.md) has the workflow and [`references/eval.md`](references/eval.md) the
@@ -143,8 +141,8 @@ rewrites and 16/18 of the incumbent's. On mean score across this second set we l
 
 ![Method-hidden editorial preference on 18 drafts](assets/bench-incumbent-hidden.png)
 
-Cross-checks the tools didn't build: an external checker's clean rates, and a
-method-hidden quality ranking.
+Cross-checks the tools didn't build: the AIStoryHub checker's clean
+rates, and a method-hidden quality ranking.
 
 ![External checker clean rates per method](assets/bench-external-checker.png)
 
@@ -176,10 +174,9 @@ The pinned [RAID+](https://huggingface.co/datasets/markstanl/RAID-Plus) sample y
 | Gemma 3 27B | 1,634 | 21.6 | 30.4% |
 | Llama 3.3 70B | 2,000 | 25.5 | 41.7% |
 
-RAID+ labels capture which model produced a text and say nothing about quality. In
+RAID+ labels capture which model produced a text, not how well it reads. In
 Beemo, raw responses averaged
-30.2, expert edits 25.3, human answers 20.0. Quality labels exist in neither dataset.
-
+30.2, expert edits 25.3, human answers 20.0. Neither dataset has quality labels.
 
 ## Where Zero Slop came from
 
@@ -198,7 +195,6 @@ python3 scripts/calibrate.py --selftest
 python3 scripts/register.py --selftest
 python3 bench/make_charts.py --check
 ```
-
 
 ## License
 

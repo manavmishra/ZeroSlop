@@ -116,7 +116,7 @@ second. These are reproducible checks with stated limits, not universal claims.
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.7.2 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.7.3 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

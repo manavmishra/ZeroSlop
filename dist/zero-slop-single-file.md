@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.7.2"
+  version: "2.7.3"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -191,7 +191,9 @@ conversation, a linked or supplied sample, or none). A sample-built, named
 scoring profile under `$ZERO_SLOP_HOME/voices/` contains only existing
 watchlist-word exceptions. It does not contain the sample or capture the
 writer's cadence, syntax, humor, or tone. Skip code blocks, quotes, and legal
-boilerplate.
+boilerplate — but only the quoted or boilerplate words themselves: the authored frame
+around them (labels, emphasis, list geometry) is the writer's prose and stays in
+scope.
 **Record the input format** — pasted text, .md, .docx, .pdf,
 .html, .txt, a JSON field — because the output must come back in that same
 format (step 9). Take a form inventory: decide which parts of the document are
