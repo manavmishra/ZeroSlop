@@ -1,78 +1,87 @@
 {
- "_comment": "The ratchet: every miss an audit or a competitor catches becomes a fixture here, in the same change. metric entries are verified by register.py --recall; check entries name the eval.md family a reading pass must catch, and --recall verifies the span exists and the family is a real check.",
- "fixtures": [
-  {
-   "file": "adjective-inflation.md",
-   "expect": [
+  "_comment": "The ratchet: every miss an audit or a competitor catches becomes a fixture here, in the same change. metric entries are verified by register.py --recall; check entries name the eval.md family a reading pass must catch, and --recall verifies the span exists and the family is a real check.",
+  "fixtures": [
     {
-     "metric": "adjective_inflation",
-     "span": "a real improvement"
+      "file": "adjective-inflation.md",
+      "expect": [
+        {
+          "metric": "adjective_inflation",
+          "span": "a real improvement"
+        },
+        {
+          "metric": "adjective_inflation",
+          "span": "a genuine breakthrough"
+        }
+      ]
     },
     {
-     "metric": "adjective_inflation",
-     "span": "a genuine breakthrough"
+      "file": "monument-negation.md",
+      "expect": [
+        {
+          "metric": "monument_verb",
+          "span": "stands as a testament"
+        },
+        {
+          "metric": "negation_triad",
+          "span": "no runbook, no owner, no rollback"
+        },
+        {
+          "metric": "negation_triad",
+          "span": "Not reviewed, not staged, not announced"
+        }
+      ]
+    },
+    {
+      "file": "dangling-thin.md",
+      "expect": [
+        {
+          "metric": "thin_section",
+          "span": "Install"
+        },
+        {
+          "metric": "thin_section",
+          "span": "Configure"
+        },
+        {
+          "metric": "dangling_pointer",
+          "span": "download the installer"
+        }
+      ]
+    },
+    {
+      "file": "referent-cycling.md",
+      "expect": [
+        {
+          "metric": "referent_cluster",
+          "span": "local tools"
+        },
+        {
+          "check": "Synonym cycling",
+          "span": "the local checker"
+        }
+      ]
+    },
+    {
+      "file": "mic-drop.md",
+      "expect": [
+        {
+          "metric": "verbless_fragment",
+          "span": "The review queue."
+        },
+        {
+          "check": "Antithesis pairs",
+          "span": "Different teams, different fixes, same bottleneck."
+        }
+      ]
+    },
+    {
+      "file": "caveat-template.md",
+      "expect": [
+        {
+          "check": "Robotic symmetry",
+          "span": "Neither figure includes bot traffic"
+        }
+      ]
     }
-   ]
-  },
-  {
-   "file": "monument-negation.md",
-   "expect": [
-    {
-     "metric": "monument_verb",
-     "span": "stands as a testament"
-    },
-    {
-     "metric": "negation_triad",
-     "span": "no runbook, no owner, no rollback"
-    },
-    {
-     "metric": "negation_triad",
-     "span": "Not reviewed, not staged, not announced"
-    }
-   ]
-  },
-  {
-   "file": "dangling-thin.md",
-   "expect": [
-    {
-     "metric": "thin_section",
-     "span": "Install"
-    },
-    {
-     "metric": "thin_section",
-     "span": "Configure"
-    },
-    {
-     "metric": "dangling_pointer",
-     "span": "download the installer"
-    }
-   ]
-  },
-  {
-   "file": "referent-cycling.md",
-   "expect": [
-    {
-     "metric": "referent_cluster",
-     "span": "local tools"
-    },
-    {
-     "check": "Synonym cycling",
-     "span": "the local checker"
-    }
-   ]
-  },
-  {
-   "file": "mic-drop.md",
-   "expect": [
-    {
-     "metric": "verbless_fragment",
-     "span": "The review queue."
-    },
-    {
-     "check": "Antithesis pairs",
-     "span": "Different teams, different fixes, same bottleneck."
-    }
-   ]
-  }
- ]
+  ]
 }

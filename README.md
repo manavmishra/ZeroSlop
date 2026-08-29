@@ -47,6 +47,7 @@ Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skil
 
 You get the edited draft, a before-and-after score, and the flagged phrases quoted with why. `/zero-slop inspect (your writing)` reviews without rewriting.
 For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the threshold.
+
 ## The slop that Zero Slop catches
 
 290 weighted patterns and a 96-term lexicon, including:
@@ -64,18 +65,18 @@ For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the
 
 A reading pass covers defects of the whole document, which no span pattern reaches: one shape repeated seven times, statistics piled into a paragraph,
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
-76 checks.
+78 checks.
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
-Neither number identifies the author.
+Authorship is a question these numbers never answer.
 
 ## How it works
 
 ![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
 Eight roles form one workflow. Each is a job rather than a service: a single model can handle
-several of them, each as its own pass, so nothing grades its own output.
+several, each as its own pass, so nothing grades its own output.
 
 | Role | Who does it | What happens |
 |---|---|---|
@@ -111,7 +112,7 @@ style.
 ## What's inside
 
 [`SKILL.md`](SKILL.md) has the workflow and [`references/eval.md`](references/eval.md) the
-76 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
+78 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
 with [`scripts/register.py`](scripts/register.py) running the reading pass.
 [`bench/README.md`](bench/README.md) documents every benchmark with its limits.
 
@@ -161,8 +162,7 @@ runs, which is local timing noise and no kind of speed claim.
 
 On one Apple silicon Mac: 1,000 documents in 2.1956 seconds (455.5 per second), a
 15,201-word document in 0.3225 seconds, the slowest stress case in 2.2577 seconds, an
-8,000-word learning pass in 0.1811 seconds. Editing time is excluded; none of this is a
-service-level guarantee.
+8,000-word learning pass in 0.1811 seconds. Editing time is excluded; expect different numbers on different machines.
 
 ### Current models
 
@@ -178,7 +178,7 @@ The pinned [RAID+](https://huggingface.co/datasets/markstanl/RAID-Plus) sample y
 
 RAID+ labels capture which model produced a text and say nothing about quality. In
 Beemo, raw responses averaged
-30.2, expert edits 25.3, human answers 20.0. Neither dataset carries quality labels.
+30.2, expert edits 25.3, human answers 20.0. Quality labels exist in neither dataset.
 
 
 ## Where Zero Slop came from
