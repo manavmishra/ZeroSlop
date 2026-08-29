@@ -461,10 +461,18 @@ def load_checks(path: pathlib.Path | None = None) -> list[dict]:
                 "id": f"{section}{item.group(1)}",
                 "section": section,
                 "title": title,
-                "ask": item.group(3).strip(),
+                # Collected as a list and joined below. Rebuilding the string on
+                # every continuation line reread the whole ask to append six words.
+                "ask": [item.group(3).strip()],
             }
-        elif current and line.startswith("    "):
-            current["ask"] = (current["ask"] + " " + line.strip()).strip()
+        # Continuation lines clear the item number by three spaces on some items
+        # and four on others. Testing for four dropped every three-space item and
+        # truncated its ask to whatever fit beside the title: A2's ask parsed as
+        # the single word "The". Any indent counts now, and a whitespace-only
+        # line still falls through to the terminator below instead of appending
+        # nothing and holding the item open.
+        elif current and line.startswith((" ", "\t")) and line.strip():
+            current["ask"].append(line.strip())
         elif current and not line.strip():
             checks.append(current)
             current = None
@@ -472,6 +480,7 @@ def load_checks(path: pathlib.Path | None = None) -> list[dict]:
         checks.append(current)
 
     for c in checks:
+        c["ask"] = " ".join(c["ask"]).strip()
         low = c["title"].lower()
         c["auto"] = next((v for k, v in AUTO_ANSWERED.items() if k in low), None)
         c["skip"] = c["section"] in SKIP_SECTIONS
@@ -481,6 +490,7 @@ def load_checks(path: pathlib.Path | None = None) -> list[dict]:
 def read_packet(text: str, name: str) -> dict:
     """Emit the reading brief. The host model answers it; nothing here guesses."""
     prose = prose_of(text)
+    checks = load_checks()  # one parse feeds all three views below
     paras = []
     for i, para in enumerate(re.split(r"\n\s*\n", prose), 1):
         para = para.strip()
@@ -507,15 +517,15 @@ def read_packet(text: str, name: str) -> dict:
         },
         "questions": [
             {"id": c["id"], "title": c["title"], "ask": c["ask"]}
-            for c in load_checks()
+            for c in checks
             if not c["skip"] and not c["auto"]
         ],
         "answered_from_measurement": [
             {"id": c["id"], "title": c["title"], "metric": c["auto"]}
-            for c in load_checks() if c["auto"]
+            for c in checks if c["auto"]
         ],
         "handled_by_fidelity_gate": [
-            {"id": c["id"], "title": c["title"]} for c in load_checks() if c["skip"]
+            {"id": c["id"], "title": c["title"]} for c in checks if c["skip"]
         ],
         "paragraphs": paras,
     }
@@ -579,7 +589,7 @@ def verdict(text: str, answers: dict) -> tuple[int, str]:
     out.append("")
 
     out.append("  Read by the model:")
-    for check in [c for c in load_checks() if not c["skip"] and not c["auto"]]:
+    for check in checks:  # same filtered list built above
         qid = check["id"]
         got = answers.get(qid)
         if not isinstance(got, dict) or got.get("answer") not in ("pass", "fail"):

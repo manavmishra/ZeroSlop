@@ -2039,6 +2039,17 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn(f"v{v}", self.docs["ONE-PAGER.md"],
                       "one-pager does not match the plugin manifest")
 
+    def test_website_shows_the_shipped_version(self):
+        """zero-slop.ai froze at 2.6.1 while the repo shipped 2.7.3, because the
+        landing page pins the version as its own literal and the release checklist
+        never reached website/. The site's own canary catches it, but only after a
+        full build nobody runs at release time. Check the literal here instead."""
+        version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
+        page = (ROOT / "website" / "app" / "page.tsx").read_text()
+        self.assertIn(f'const skillVersion = "{version}";', page,
+                      "website/app/page.tsx does not show the shipped version -- "
+                      "zero-slop.ai will advertise the wrong release")
+
     def test_skill_frontmatter_uses_supported_keys(self):
         header = self.docs["SKILL.md"].split("---", 2)[1]
         top = {m.group(1) for line in header.splitlines()
@@ -3427,6 +3438,42 @@ class RegisterGate(unittest.TestCase):
         checks = module.load_checks()
         self.assertEqual(declared, len(checks))
         self.assertEqual(len(checks), len({c["id"] for c in checks}))
+
+    def test_wrapped_checklist_items_reach_the_gate_whole(self):
+        """Counting items proved they reached the gate, not that they arrived
+        intact. A four-space continuation test missed the three-space items and
+        cut each ask to whatever fit beside the title: A6 reached the model as
+        "Repeated sentence shapes, identical paragraph geometry, stacked". The
+        wrapped lines carry the thresholds, examples and budgets, which is most of
+        what the checklist knows, so assert the last line of every wrapped item
+        survives into the ask it belongs to."""
+        import re as _re
+        module = self._register()
+        raw = module.EVAL_PATH.read_text(encoding="utf-8")
+        raw = _re.sub(r"\*\*([^*\n]*)\n\s+([^*\n]*)\*\*", r"**\1 \2**", raw)
+        lines = raw.splitlines()
+        asks = {c["id"].lstrip("ABCDEF"): c["ask"] for c in module.load_checks()}
+        wrapped = 0
+        for i, line in enumerate(lines):
+            item = _re.match(r"^(\d+[a-z]?)\.\s+\*\*", line)
+            if not item:
+                continue
+            tail = []
+            for nxt in lines[i + 1:]:
+                if not nxt.strip() or _re.match(r"^\S", nxt):
+                    break
+                tail.append(nxt.strip())
+            if not tail:
+                continue
+            wrapped += 1
+            ask = asks[item.group(1)]
+            self.assertTrue(ask.endswith(tail[-1]),
+                            f"item {item.group(1)} truncated: ask ends {ask[-60:]!r}, "
+                            f"eval.md ends {tail[-1][-60:]!r}")
+            self.assertGreaterEqual(len(ask.split()), 10,
+                                    f"item {item.group(1)} wraps in eval.md but its "
+                                    f"ask is {len(ask.split())} words: {ask!r}")
+        self.assertGreater(wrapped, 40, "expected most checklist items to wrap")
 
     def test_fabricated_evidence_is_rejected(self):
         spec = importlib.util.spec_from_file_location("register", self.SCRIPT)
