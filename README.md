@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.1-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.2-72528F">
 </p>
 
 Score your writing 0 to 100 for AI slop, then edit it out without changing a single fact.
@@ -14,8 +14,7 @@ Score your writing 0 to 100 for AI slop, then edit it out without changing a sin
 
 ## Problem
 
-AI writing has an accent: "It's not X. It's Y." "Here's the thing nobody tells you."
-"This marks a pivotal moment." Ask an AI to fix it and it sands off the vocabulary and
+AI writing has an accent: "It's not X. It's Y." "Here's the thing nobody tells you." Ask an AI to fix it and it sands off the vocabulary and
 cadence that made the writing yours, and rewrites your numbers on the way.
 
 
@@ -38,7 +37,7 @@ npx skills add manavmishra/ZeroSlop --global
 ```
 
 ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md).
-Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skills update zero-slop --global` updates an existing CLI install later.
+Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skills update zero-slop --global` updates it later.
 
 ## How to use Zero Slop
 
@@ -46,10 +45,8 @@ Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skil
 /zero-slop (your writing)
 ```
 
-You get the edited draft, a before-and-after score, and the flagged phrases quoted with
-what needed work. `/zero-slop inspect (your writing)` reviews without rewriting.
-For a folder, `slopscore.py --batch drafts/ --gate 25` exits non-zero above the threshold
-and drops into CI.
+You get the edited draft, a before-and-after score, and the flagged phrases quoted with why. `/zero-slop inspect (your writing)` reviews without rewriting.
+For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the threshold.
 ## The slop that Zero Slop catches
 
 290 weighted patterns and a 96-term lexicon, including:
@@ -65,14 +62,13 @@ and drops into CI.
 9. **Synonym cycling.** The agent, the assistant, the tool, all one thing.
 10. **Marketing riders.** "robust" and "leverage" score only beside a marketing trigger, so a runbook stays quiet.
 
-A reading pass covers what no pattern reaches, where the defect is the document rather
-than any span: one shape repeated seven times, statistics piled into a paragraph,
+A reading pass covers defects of the whole document, which no span pattern reaches: one shape repeated seven times, statistics piled into a paragraph,
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
 76 checks.
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
-Neither number claims to identify who wrote the text.
+Neither number identifies the author.
 
 ## How it works
 
@@ -100,12 +96,10 @@ tools use only Python's standard library.
 
 ## Private learning from your edits
 
-Nothing is learned until you hand over both versions: what the assistant produced and
-what you kept. Zero Slop watches nothing on its own: no file monitoring, no browser
+Learning starts only when you hand over both versions: the produced and the kept. Zero Slop watches nothing on its own: no file monitoring, no browser
 hooks, no reaching into where you publish.
 
-A phrase must disappear from three unrelated pieces before it becomes a private rule; a
-single word needs five. Each must be new and stay silent on known-human text. Private
+A phrase must vanish from three unrelated pieces to become a private rule; a word, five. Each must be new and stay silent on known-human text. Private
 data stays under `$ZERO_SLOP_HOME`.
 
 This is human-in-the-loop online learning. It never retrains Claude, GPT, or another
@@ -148,6 +142,13 @@ rewrites and 16/18 of the incumbent's. On mean score across this second set we l
 
 ![Method-hidden editorial preference on 18 drafts](assets/bench-incumbent-hidden.png)
 
+Cross-checks the tools didn't build: an external checker's clean rates, and a
+method-hidden quality ranking.
+
+![External checker clean rates per method](assets/bench-external-checker.png)
+
+![Method-hidden quality ranking, lower is better](assets/bench-blind-quality.png)
+
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
 universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
@@ -158,9 +159,9 @@ runs, which is local timing noise and no kind of speed claim.
 
 ### Speed
 
-On one Apple silicon Mac: 1,000 documents in 1.9958 seconds (501.1 per second), a
-15,201-word document in 0.3223 seconds, slowest stress case 2.4438 seconds, an 8,000-word
-learning pass 0.1627 seconds. Editing time sits outside these numbers. None is a
+On one Apple silicon Mac: 1,000 documents in 2.1956 seconds (455.5 per second), a
+15,201-word document in 0.3225 seconds, the slowest stress case in 2.2577 seconds, an
+8,000-word learning pass in 0.1811 seconds. Editing time is excluded; none of this is a
 service-level guarantee.
 
 ### Current models
