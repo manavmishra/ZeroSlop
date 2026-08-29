@@ -38,6 +38,7 @@ BUDGETS = {
     "subtractive_contrast": (6.0, 3),
     "comma_series": (26.0, 8),
     "significance_scaffolding": (0.0, 1),
+    "classifier_scaffolding": (1.5, 1),
     "inanimate_agent": (4.0, 2),
     "repeated_openings": (3.0, 2),
     # Added after a three-way audit found eight families the reading pass missed
@@ -68,6 +69,29 @@ RX_SIGNIFICANCE = re.compile(
     r"|this is what .{0,40} looks like when"
     r"|what (?:that|this) means is"
     r"|the (?:key|important) (?:point|thing) (?:here )?is)\b",
+    re.I,
+)
+
+# The mild half of announced significance: a clause that grades, previews or
+# ranks the point instead of delivering it. RX_SIGNIFICANCE above catches the
+# theatrical form ("Here's the detail that matters:"); these are the flat
+# classifiers that read as ordinary prose and scored clear on every channel --
+# "The economics are simple", "the ones that matter", "limits worth stating".
+# Found by running a competing skill over ten already-clean pages, so the
+# ratchet applies: the anchors ship here and data/corpus/must-flag keeps them
+# honest. The shapes no anchor reaches are asked of the reader in eval.md A11,
+# because whether a sentence earns its claim is a judgment, not a match.
+# Wrapped prose is still prose: the separators are \s+ so a tell that happens to
+# straddle a line break is still counted.
+RX_CLASSIFIER = re.compile(
+    r"\b(?:the\s+\w+\s+(?:is|are|was|were)\s+simple"
+    r"|(?:has|have|had)\s+a\s+simple\s+\w+"
+    r"|the\s+(?:dangerous|important|interesting|tricky|hard|scary|surprising|real)"
+    r"\s+(?:part|thing|bit|point|question)\s+(?:here\s+)?is"
+    r"|worth\s+(?:stating|sitting\s+with|pausing\s+on|dwelling\s+on)"
+    r"|the\s+ones?\s+that\s+(?:actually\s+)?matters?"
+    r"|(?:one|an)\s+honest\s+(?:caveat|note|admission|answer)"
+    r"|that\s+is\s+the\s+(?:finding|part|point)\s+worth)\b",
     re.I,
 )
 
@@ -252,6 +276,7 @@ def measure(text: str) -> dict:
     subtractive = [" ".join(m.split()) for m in RX_SUBTRACTIVE.findall(prose)]
     series = RX_SERIES.findall(prose)
     significance = [" ".join(m.split()) for m in RX_SIGNIFICANCE.findall(prose)]
+    classifier = [" ".join(m.group(0).split()) for m in RX_CLASSIFIER.finditer(prose)]
     inanimate = [" ".join(m.split()) for m in RX_INANIMATE.findall(prose)]
 
     openings = sentence_openings(prose)
@@ -290,6 +315,7 @@ def measure(text: str) -> dict:
         "subtractive_contrast": {"count": len(subtractive), "per_1k": per_k(len(subtractive)), "hits": subtractive[:12]},
         "comma_series": {"count": len(series), "per_1k": per_k(len(series))},
         "significance_scaffolding": {"count": len(significance), "per_1k": per_k(len(significance)), "hits": significance[:6]},
+        "classifier_scaffolding": {"count": len(classifier), "per_1k": per_k(len(classifier)), "hits": classifier[:6]},
         "inanimate_agent": {"count": len(inanimate), "per_1k": per_k(len(inanimate)), "hits": inanimate[:8]},
         "repeated_openings": {"count": len(repeated), "per_1k": per_k(len(repeated)), "hits": repeated[:6]},
         "paragraph_uniformity": uniformity,
@@ -319,6 +345,7 @@ LABEL = {
     "subtractive_contrast": "Binary contrasts",
     "comma_series": "Comma-series density",
     "significance_scaffolding": "Announced significance",
+    "classifier_scaffolding": "Graded not delivered (stems)",
     "inanimate_agent": "Inanimate subjects, human verbs",
     "repeated_openings": "Repeated sentence openings",
 }
@@ -398,6 +425,13 @@ AUTO_ANSWERED = {
     "comma-series density": "comma_series",
     "announced significance": "significance_scaffolding",
     "significance scaffolding": "significance_scaffolding",
+    # Interpretive metadiscourse is deliberately NOT here. A density metric can
+    # answer "how often does this shape appear"; it cannot answer "does this
+    # sentence earn its claim", and the anchored stems below match only the
+    # shapes they were built from. Auto-answering the check with them scored 0
+    # on a draft carrying "What's easy to miss:" and "This is the insight that
+    # changed how I think about..." -- the count silenced the question instead
+    # of answering it. The reader answers A16; the stems only give a head start.
 }
 SKIP_SECTIONS = {"C"}  # owned by slopscore --fidelity
 

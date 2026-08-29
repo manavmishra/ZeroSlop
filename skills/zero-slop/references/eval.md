@@ -82,8 +82,19 @@ the report even when they are zero.
     significance: highlighting, underscoring, reflecting, showcasing.
 15. **Importance puffery.** "Marks a pivotal moment." "Stands as a testament." State
     the fact and let the reader weigh it.
-16. **Interpretive metadiscourse.** Lines that step outside the subject to tell the
-    reader what to notice or how much weight to give it.
+16. **Interpretive metadiscourse. Count per 1,000 words: ___** Lines that step outside
+    the subject to tell the reader what to notice or how much weight to give it. Two
+    forms, and the flat one is the one that survives every other channel. Theatrical:
+    "Here's the detail that matters:" Flat: "The economics are simple." "The dangerous
+    part is that slop feels fast." "The score has limits worth stating." "One honest
+    caveat before the ranking." Each grades, previews or ranks the point instead of
+    delivering it, and each reads as ordinary prose, so a clear writing score is no
+    evidence at all. Test every candidate by deletion: if the sentence after it still
+    lands, the classifier was scaffolding. Anchored stems are counted for you; the
+    shapes no stem reaches are yours to find, because whether a sentence earns its
+    claim is a judgment and not a match. A zero on the anchored count is not an
+    answer to this check and never closes it: the stems match the shapes they were
+    built from, and this family's whole character is that it arrives in new ones.
 17. **Weasel attribution.** "Studies show." "Experts agree." Name the source, or flag
     it for the writer. Never invent one. An unnamed validator is the same defect —
     "an external checker", "a third-party audit", "an independent review" — name the
@@ -183,6 +194,17 @@ the report even when they are zero.
 47. **Wall-of-text reply.** Paragraphing that hides a sequence the reader needs. A
     long narrative paragraph is not a wall of text merely because it is long; the tell
     is a buried list of steps or options.
+47a. **Compression standing in for editing. `reorder_ratio`: ___** Cutting and
+    reordering are different edits and they do not produce the same draft. Subtraction
+    leaves every surviving sentence exactly where the model put it, so a shorter draft
+    can read more machine-shaped than the one it replaced; a measured case scored the
+    original 83 for predictability, the compressed rewrite 92, and the reordered
+    rewrite 58. A ratio near zero on a rewrite that cut a lot of words means the ladder
+    delivered its lexicon and formatting rungs and skipped its order rung. That is not
+    automatically wrong: a draft whose argument already arrives in the right sequence
+    should keep it, and shuffling a sound structure to move a number is exactly the
+    over-correction hard rule 3 forbids. What the check forbids is not noticing. Say
+    which one happened and why the order you shipped is the right one.
 
 ## C. Fidelity
 
@@ -203,6 +225,18 @@ the report even when they are zero.
     source, never a word list.
 53. **Non-prose untouched.** Code, front matter, tables, blockquotes, identifiers,
     paths, and heading hierarchy intact.
+53a. **Every dropped figure ruled, not defaulted.** The gate protects every number
+    it sees and cannot tell a measured fact from a flourish, because the difference
+    is whether a source stands behind it and that lives in the document, not in the
+    digits. So it hands you each dropped figure with the sentence it came from
+    (`figure_evidence`) and waits. Rule on each one: a figure with a source, a unit,
+    a baseline or a citation must be restored; an unsourced multiplier or statistic
+    doing an intensifier's job -- "the 10x move", "tenfold", "~70% of pilots fail" --
+    was right to cut, and you record that ruling rather than letting the gate assume
+    it. Never invent a citation to keep a number alive. Unruled means unresolved:
+    the default is that the figure stays, so silence here is a failed check and not
+    a pass. Both errors are real. Restoring a flourish is how a rewrite ships fake
+    precision, and dropping a measurement is how it ships a lie.
 
 ## D. Voice and readability
 

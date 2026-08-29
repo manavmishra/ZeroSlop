@@ -941,7 +941,11 @@ CHANNELS = [
 # could check, and things whose invention is the failure the skill forbids.
 FACT_RX = [
     ("figure",  r"(?<![\w.])\$?\d[\d,]*(?:\.\d+)?\s*(?:%|percent|x|bn|m|k|million|billion)?(?![\w])"),
-    ("name",    r"\b(?:[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]+)*)\b"),
+    # A name never spans a line break. Allowing \s+ here let a run swallow the
+    # paragraph boundary after a heading -- "Leverage\n\nThe", "Mishra\n\nPaste"
+    # -- and the invented run then read as a dropped entity in any rewrite that
+    # repunctuated the section.
+    ("name",    r"\b(?:[A-Z][a-z]{2,}(?:[ \t]+[A-Z][a-z]+)*)\b"),
     ("quote",   r"[\u201c\"]([^\u201d\"]{6,120})[\u201d\"]"),
     ("url",     r"https?://\S+"),
 ]
@@ -1014,6 +1018,46 @@ are artificial bookmark despite hey modern please researchers save unpopular wel
 NOT_NAME_WORDS = {word.lower() for word in NOT_NAMES} | COMMON_WORDS
 
 
+def _peel_entity(run, prose, other):
+    """The entity inside a title-case run, or None if the run holds no name.
+
+    A capitalised ordinary word glues itself to the name that follows it --
+    "With Claude", "In March", "At Acme". Discarding the whole run loses the
+    entity, so the rewrite that punctuates the sentence differently gets
+    reported as having dropped a name that is still sitting in it. Peel the
+    leading word and re-test what remains.
+    """
+    while run:
+        if run in NOT_NAMES or len(run) < 3:
+            return None
+        low = run.lower()
+        tokens = re.findall(r"[a-z]+", low)
+        # A title-cased run made entirely of ordinary sentence words is not an
+        # entity (for example, "Shipped Tuesday").
+        if tokens and all(token in NOT_NAME_WORDS for token in tokens):
+            return None
+        single = " " not in run
+        # A capitalised common word ("Draw", "Usually", "Start"), an adverb
+        # ("Finally"), or a sentence-opening gerund ("Watching") is not an
+        # entity; a real name never is.
+        if single and (low in COMMON_WORDS
+                       or low.endswith("ly") or low.endswith("ing")):
+            return None
+        # A word is only a name if it is never used as an ordinary lowercase
+        # word -- not here, and not in the text we compare against.
+        # "Under"/"Shipped" appear lowercased somewhere in normal prose;
+        # "Priya"/"Acme" do not. Strip the capitalised forms first so the
+        # entity cannot vouch for itself.
+        head = run.split()[0]
+        blob = re.sub(r"\b" + re.escape(head) + r"\b", " ", prose + " " + other)
+        if not re.search(r"\b" + re.escape(head.lower()) + r"\b", blob):
+            return run
+        if single:
+            return None
+        run = run.split(" ", 1)[1]
+    return None
+
+
 def facts(text, _other=""):
     """Checkable claims in a draft: figures, named entities, quotes, links."""
     # URLs contain lowercase forms of the names they point at ("acme.io" made
@@ -1040,32 +1084,8 @@ def facts(text, _other=""):
         for m in re.finditer(rx, urls if kind == "url" else prose):
             v = (m.group(1) if m.lastindex else m.group(0)).strip()
             if kind == "name":
-                if v in NOT_NAMES or len(v) < 3:
-                    continue
-                low = v.lower()
-                tokens = re.findall(r"[a-z]+", low)
-                # A title-cased run made entirely of ordinary sentence words is
-                # not an entity (for example, "Shipped Tuesday").
-                if tokens and all(token in NOT_NAME_WORDS for token in tokens):
-                    continue
-                # A capitalised common word ("Draw", "Usually", "Start"), an
-                # adverb ("Finally"), or a sentence-opening gerund ("Watching",
-                # "Calling") is not an entity; a real name never is.
-                if " " not in v and (low in COMMON_WORDS
-                                     or low.endswith("ly") or low.endswith("ing")):
-                    continue
-                # A word is only a name if it is never used as an ordinary
-                # lowercase word — not here, and not in the text we compare
-                # against. "Under"/"Shipped" appear lowercased somewhere in
-                # normal prose; "Priya"/"Acme" do not. Multi-word entities keep
-                # their head token for this test.
-                head = v.split()[0]
-                # Is this token ever used as an ordinary lowercase word, here or
-                # in the compared text? Sentence openers are ("under load",
-                # "shipped tuesday"); real names never are. Strip the capitalized
-                # forms first so the entity cannot vouch for itself.
-                blob = re.sub(r"\b" + re.escape(head) + r"\b", " ", prose + " " + other)
-                if re.search(r"\b" + re.escape(head.lower()) + r"\b", blob):
+                v = _peel_entity(v, prose, other)
+                if not v:
                     continue
             if kind == "figure":
                 v = v.replace(",", "").lstrip("$").rstrip()
@@ -1263,8 +1283,49 @@ def structure_changes(before, after):
     return findings
 
 
-def fidelity(before, after):
+# An unsourced figure -- "the 10x move", "tenfold", "~70% of pilots fail" -- is
+# an intensifier wearing a number's clothes. The gate exists to protect facts,
+# and a figure with no source behind it is not one. Protecting it anyway made
+# the gate report the honest cut as a dropped fact, and rerank sorts on
+# fidelity first, so the rewrite that KEPT the fake precision won. That is the
+# gate preserving slop, which is the opposite of its job.
+#
+# Which figures are load-bearing is a contextual judgment, so this script does
+# not make it. No pattern can separate "fell 40%" from "10x better" reliably --
+# the difference is whether a source stands behind the number, which lives in
+# the surrounding document, not in the digits. The tool's job is to hand the
+# reviewer the evidence; the ruling belongs to the assistant running the
+# verifier role (SKILL step 7, "Unsourced statistics") or to the writer. A
+# figure is protected until someone with context says otherwise, so the default
+# behaviour here is exactly as strict as it was before.
+
+
+def figure_contexts(text, figures):
+    """Each figure with the sentence it sits in, so a reviewer can rule on it.
+
+    Evidence, not a verdict: the caller decides whether a dropped figure was a
+    measured fact that must be restored or an unsourced flourish that was right
+    to cut.
+    """
+    out = {}
+    for figure in figures:
+        for sentence in sentences(text):
+            if re.search(r"\b" + re.escape(figure) + r"\b", sentence, re.I):
+                out[figure] = " ".join(sentence.split())
+                break
+        else:
+            out[figure] = ""
+    return out
+
+
+def fidelity(before, after, adjudicated=None):
     """Did the rewrite keep every fact, and did it add any?
+
+    ``adjudicated`` is the set of dropped figures a reviewer with context has
+    ruled unsourced, so cutting them is an improvement rather than a loss. It
+    is empty unless someone explicitly rules, which keeps the deterministic
+    default strict: this function never decides on its own that a number was
+    only rhetoric.
 
     The benchmark's worst result was a rewrite that invented a feeling the
     author never described — the exact thing hard rule 1 forbids — and nothing
@@ -1275,6 +1336,8 @@ def fidelity(before, after):
     a, b = facts(before, after), facts(after, before)
     structure = structure_changes(before, after)
     rows, kept_all, invented_any = [], True, False
+    adjudicated = set(adjudicated or ())
+    unsourced, dropped_items = set(), set()
     def entity_tokens(entity):
         return {w for w in re.findall(r"[a-z]+", entity.lower())
                 if w not in NOT_NAME_WORDS}
@@ -1298,10 +1361,26 @@ def fidelity(before, after):
             dropped = {e for e in a[kind] if not entity_match(e, b[kind])}
             added = {e for e in b[kind] if not entity_match(e, a[kind])}
             kept = a[kind] - dropped
+            # A word capitalised once at a heading or sentence start reads
+            # exactly like a product name to any lexical rule -- "Embedded
+            # governance", "Models + Context = Leverage". Which one it is
+            # depends on the document, so the reviewer rules and the tool
+            # supplies the sentence rather than guessing.
+            unsourced |= dropped & adjudicated
+            dropped = dropped - adjudicated
+            dropped_items |= dropped
         else:
             kept = a[kind] & b[kind]
             dropped = a[kind] - b[kind]
             added = b[kind] - a[kind]
+            if kind == "figure" and dropped:
+                # Figures the reviewer has ruled unsourced were right to cut,
+                # so they stop failing preservation. Nothing is ruled without
+                # that explicit judgment, and adding a figure is still an
+                # invention however it was ruled.
+                unsourced |= dropped & adjudicated
+                dropped = dropped - adjudicated
+                dropped_items |= dropped
         if not (a[kind] or b[kind]):
             continue
         rows.append((kind, kept, dropped, added))
@@ -1316,7 +1395,55 @@ def fidelity(before, after):
         kept_all = False
         invented_any = invented_any or any(row["added"] for row in structure)
     return {"rows": rows, "preserved": kept_all, "invented": invented_any,
-            "interior": new_interior, "structure": structure}
+            "interior": new_interior, "structure": structure,
+            "unsourced": unsourced,
+            # The sentence each dropped figure came from, so whoever rules on
+            # it can see whether a source stood behind the number.
+            "figure_evidence": figure_contexts(before, dropped_items)}
+
+
+def reorder_ratio(before, after):
+    """How much of the surviving material the rewrite actually moved.
+
+    0.0 means every kept sentence is still in its original order; 1.0 means the
+    order was inverted. Cutting and reordering are different edits with
+    different results: subtraction leaves the surviving prose sitting exactly
+    where the model would have put it, while moving the payoff changes what the
+    reader meets first. Nothing in the gate could tell the two apart, so a
+    compression-only rewrite passed every check the ladder's order rung was
+    supposed to enforce.
+    """
+    def shingles(text):
+        out = []
+        for sentence in sentences(text):
+            words = {w for w in re.findall(r"[a-z]{4,}", sentence.lower())
+                     if w not in NOT_NAME_WORDS}
+            if words:
+                out.append(words)
+        return out
+
+    src, dst = shingles(before), shingles(after)
+    if len(src) < 2 or len(dst) < 2:
+        return 0.0
+    order = []
+    for target in dst:
+        best, best_at = 0.0, None
+        for i, source in enumerate(src):
+            union = len(target | source)
+            overlap = len(target & source) / union if union else 0.0
+            if overlap > best:
+                best, best_at = overlap, i
+        if best >= 0.3 and best_at is not None:
+            order.append(best_at)
+    if len(order) < 2:
+        return 0.0
+    pairs = inversions = 0
+    for i in range(len(order)):
+        for j in range(i + 1, len(order)):
+            pairs += 1
+            if order[i] > order[j]:
+                inversions += 1
+    return round(inversions / pairs, 3) if pairs else 0.0
 
 
 # The shared rewrite-quality objective. One definition of "a better rewrite",
@@ -1326,10 +1453,18 @@ def fidelity(before, after):
 RW_GATE = {"email": 35, "research": 40, "professional": 40}
 RW_GATE_DEFAULT = 25
 RW_FORMAL = {"research", "professional"}
-RW_WEIGHTS = {"deslop": 0.45, "gate": 0.25, "rhythm": 0.15, "length": 0.15}
+# "structure" exists because the other four terms all saturate on a draft that
+# arrives clean: deslop is ~0 when there is no slop to remove, and gate, rhythm
+# and length each cap at 1.0, so every candidate scored an identical 0.55 and
+# the ranking fell through to the fidelity tier. A meter with no opinion about
+# which rewrite is better is the reason a worse rewrite could win.
+RW_WEIGHTS = {"deslop": 0.40, "gate": 0.20, "rhythm": 0.12, "length": 0.13,
+              "structure": 0.15}
+RW_REORDER_FULL = 0.20
 
 
-def rewrite_score(before_text, after_text, genre=None, data=None):
+def rewrite_score(before_text, after_text, genre=None, data=None,
+                  adjudicated=None):
     """Score one rewrite: a soft quality in [0,1] plus its fidelity flags."""
     if data is None:
         data = load_patterns()
@@ -1340,14 +1475,25 @@ def rewrite_score(before_text, after_text, genre=None, data=None):
     clamp = lambda x: max(0.0, min(1.0, x))
     deslop = clamp((b_ai - a["ai_likelihood"]) / b_ai)
     gate = 1.0 if a["ai_likelihood"] <= RW_GATE.get(genre, RW_GATE_DEFAULT) else 0.0
-    rhythm = clamp(a.get("burstiness", 0.0) / 0.45)
+    # Formal genres score with the rhythm-uniformity penalty switched off,
+    # because an even pulse is native to an abstract rather than a tell. The
+    # objective was still paying for burstiness there, so a casualised abstract
+    # outranked one that kept its register -- the composite penalising formal
+    # writing for being formal, which is the thing --formal exists to stop.
+    rhythm = 1.0 if formal else clamp(a.get("burstiness", 0.0) / 0.45)
     bw, aw = len(before_text.split()), len(after_text.split())
     length = 1.0 if not bw or aw / bw >= 0.6 else clamp((aw / bw) / 0.6)
+    reorder = reorder_ratio(before_text, after_text)
+    structure = clamp(reorder / RW_REORDER_FULL)
     soft = sum(RW_WEIGHTS[k] * v for k, v in
-               {"deslop": deslop, "gate": gate, "rhythm": rhythm, "length": length}.items())
-    fid = fidelity(before_text, after_text)
+               {"deslop": deslop, "gate": gate, "rhythm": rhythm,
+                "length": length, "structure": structure}.items())
+    fid = fidelity(before_text, after_text, adjudicated)
     return {"soft": round(soft, 4), "deslop": round(deslop, 3), "gate": gate,
             "rhythm": round(rhythm, 3), "length": round(length, 3),
+            "structure": round(structure, 3), "reorder": reorder,
+            "unsourced": sorted(fid["unsourced"]),
+            "figure_evidence": fid["figure_evidence"],
             "after_ai": a["ai_likelihood"], "before_ai": b["ai_likelihood"],
             "burstiness": round(a.get("burstiness", 0.0), 3),
             "high_tells": sum(1 for h in a.get("hits", []) if h.get("w", 0) >= 4),

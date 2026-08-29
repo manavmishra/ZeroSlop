@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.3-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.4-72528F">
 </p>
 
 Score your writing 0 to 100 for AI slop, then edit it out without changing a single fact.
@@ -64,7 +64,7 @@ For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the
 
 A reading pass covers defects of the whole document, which no span pattern reaches: one shape repeated seven times, statistics piled into a paragraph,
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
-78 checks.
+80 checks.
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
@@ -110,7 +110,7 @@ style.
 ## What's inside
 
 [`SKILL.md`](SKILL.md) has the workflow and [`references/eval.md`](references/eval.md) the
-78 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
+80 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
 with [`scripts/register.py`](scripts/register.py) running the reading pass.
 [`bench/README.md`](bench/README.md) documents every benchmark with its limits.
 
@@ -151,9 +151,10 @@ rates, and a method-hidden quality ranking.
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
 universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
-editorial panel ([`bench/README.md`](bench/README.md)), v2.6.1 matched the prior 84.2% result. Its four new checks left all 114
-frozen document scores unchanged and 18 human controls clear, while the four target cases
-moved from 9.5 to between 30.7 and 65.1. Median throughput was 0.03% lower across 12
+editorial panel ([`bench/README.md`](bench/README.md)), v2.7.4 matched the prior 84.2% result
+with every frozen document score unchanged, all 18 human controls clear and all 18 search
+cases still caught: the release moves what the gate asks and leaves the meter
+untouched. Median throughput was 2.32% lower across 12
 runs, which is local timing noise and no kind of speed claim.
 
 ### Speed

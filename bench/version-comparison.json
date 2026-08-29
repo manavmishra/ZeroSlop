@@ -1,19 +1,19 @@
 {
  "result_kind": "interleaved_local_version_comparison",
- "measured_at": "2026-08-27T05:36:03+00:00",
+ "measured_at": "2026-08-29T22:26:23+00:00",
  "environment": {
   "platform": "Darwin",
   "architecture": "arm64",
   "python": "3.9.6"
  },
  "baseline": {
-  "version": "2.5.10",
-  "commit": "47ff90d7669117020fe7b3c8a1c4596af5cc4292",
-  "slopscore_sha256": "1ba34f869f36d80f8cab34c9efc578346ea44acc912a2d64302e5a3033a9bc82"
+  "version": "2.7.3",
+  "commit": "dd953d9b78d540ab0b45f88a688903f8cecdc801",
+  "slopscore_sha256": "99217fff003a0c58e653b2c5ae4ae43dfd9c5d8c0d37c33c4ada4f5e1877c34a"
  },
  "candidate": {
-  "version": "2.7.3",
-  "slopscore_sha256": "99217fff003a0c58e653b2c5ae4ae43dfd9c5d8c0d37c33c4ada4f5e1877c34a"
+  "version": "2.7.4",
+  "slopscore_sha256": "ef5f93e59a25fbf8998a6786a34af63a1e62f1834877ac26fe58d5f01d7f7ff4"
  },
  "workload": {
   "documents_per_run": 600,
@@ -24,38 +24,38 @@
  },
  "timing_seconds": {
   "baseline": [
-   0.9771,
-   0.9581,
-   0.9584,
-   0.9429,
-   0.9427,
-   0.943,
-   0.9439,
-   0.9504,
-   0.9549,
-   0.948,
-   0.9494,
-   0.9522
+   1.2517,
+   1.4488,
+   1.2153,
+   3.0525,
+   1.255,
+   1.284,
+   1.1062,
+   1.1865,
+   1.0037,
+   0.9783,
+   0.9674,
+   0.961
   ],
   "candidate": [
-   0.9811,
-   0.9644,
-   0.961,
-   0.9579,
-   0.9369,
-   0.9396,
-   0.9504,
-   0.9472,
-   0.9494,
-   0.9462,
-   1.2777,
-   0.95
+   1.6144,
+   1.9317,
+   1.3203,
+   1.5739,
+   1.3719,
+   1.2926,
+   1.0888,
+   1.1663,
+   0.9805,
+   1.1623,
+   0.9747,
+   0.9724
   ],
-  "median_baseline": 0.9499,
-  "median_candidate": 0.9502,
-  "documents_per_second_baseline": 631.6,
-  "documents_per_second_candidate": 631.4,
-  "median_speed_change_pct": -0.03
+  "median_baseline": 1.2009,
+  "median_candidate": 1.2294,
+  "documents_per_second_baseline": 499.6,
+  "documents_per_second_candidate": 488.0,
+  "median_speed_change_pct": -2.32
  },
  "frozen_regression": {
   "score_changes": 0,
@@ -105,19 +105,19 @@
    "candidate": 22.9
   },
   "reasoning_artifact": {
-   "baseline": 9.5,
+   "baseline": 65.1,
    "candidate": 65.1
   },
   "novelty_inflation": {
-   "baseline": 9.5,
+   "baseline": 41.7,
    "candidate": 41.7
   },
   "emotional_flatline": {
-   "baseline": 9.5,
+   "baseline": 30.7,
    "candidate": 30.7
   },
   "acknowledgment_loop": {
-   "baseline": 9.5,
+   "baseline": 30.7,
    "candidate": 30.7
   }
  },
