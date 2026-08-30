@@ -8,7 +8,7 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.7.5-72528F">
 </p>
 
-Take AI out of your AI writing
+Take all the slop out of your AI writing. The #1 agentic anti-slop skill
 
 ![A scored sentence before and after editing](assets/demo.png)
 
