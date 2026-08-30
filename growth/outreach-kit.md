@@ -36,15 +36,25 @@ dispute them, with the link request last and explicitly optional.
 |---|---:|---|---|
 | [blader/humanizer](https://github.com/blader/humanizer) | 38,903 | Yes, 35.4 | Issue [#250](https://github.com/blader/humanizer/issues/250) |
 | [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) | 6,459 | Yes, 28.4 | Issue [#45](https://github.com/petergyang/no-ai-slop/issues/45) |
-| [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) | 16,583 | No | Held |
-| [isatimur/de-slop](https://github.com/isatimur/de-slop) | 2 | No | Held |
+| [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) | 16,583 | Capability chart | Issue [#64](https://github.com/hardikpandya/stop-slop/issues/64) |
+| [isatimur/de-slop](https://github.com/isatimur/de-slop) | 2 | Capability chart | Issue [#18](https://github.com/isatimur/de-slop/issues/18) |
 
-**Why the other two are held.** They are credited in the README but are in
-neither the head-to-head replay nor the capability chart, so there is no
-finding to bring them and nothing on offer. A message whose only content is
-"please link to me" is the thing that makes maintainers close issues unread.
-Send those two only once there is a reason: a benchmark row that includes them,
-or a change of theirs that Zero Slop adopts.
+**How the last two got unblocked.** They were held because there was nothing to
+bring them: credited in the README but absent from both the replay and the
+capability chart, so the only possible message was "please link to me", which
+is what makes maintainers close issues unread.
+
+The fix was to make the finding rather than wait for one. The README credited
+six projects and the chart audited four, which was the wrong way round anyway.
+Auditing both against the same sixteen capabilities takes no model runs and no
+budget, only reading their repositories at a pinned commit — and it produces
+something they actually want, which is a claim about their project that they
+can correct. de-slop came out as the most capable of the six after Zero Slop,
+with five native, and that is the honest result rather than a courtesy.
+
+The general move, if you need it again: when you have nothing to offer a
+project, look for something true about them that nobody has written down yet.
+An audit they can dispute beats a favour they have to grant.
 
 The general shape that worked, if you extend this later: give them something
 first, make the ask last, and say plainly that no is fine.
