@@ -86,8 +86,11 @@ def compute():
         for genre, row in sorted(search["by_genre"].items())
     ]
     audit = json.loads(CAPABILITY_AUDIT.read_text())
-    products = ["zero_slop", "avoid_ai_writing", "blader", "no_ai_slop",
-                "unslop_text"]
+    # Derived from the audit rather than listed here: two products were added to
+    # competitor-capabilities.json and silently did not render, because this list
+    # was the real source of truth for the chart. Zero Slop stays first as the
+    # subject of the comparison; the rest follow the audit's own order.
+    products = ["zero_slop"] + [k for k in audit["products"] if k != "zero_slop"]
     capability_matrix = {
         "audited_on": audit["audited_on"],
         "products": [
@@ -277,10 +280,14 @@ def _hbar(path, title, subtitle, rows, ours_label, axis_ticks=None):
 def _capability_matrix(path, audit):
     """Render a presence matrix without turning capabilities into a quality score."""
     from PIL import Image, ImageDraw
-    W, left, top, rowh = 1500, 620, 168, 43
+    # Widened from 1500 when the audit went from five products to seven: at the
+    # old width the owner/name labels ran into each other. Long labels also wrap
+    # at the slash now, so "JCarterJohnson/unslop-text" stacks instead of
+    # overlapping its neighbour.
+    W, left, top, rowh = 1760, 620, 172, 43
     products = audit["products"]
     rows = audit["rows"]
-    column_left, column_right = 720, W - 90
+    column_left, column_right = 760, W - 90
     centers = [
         column_left + i * (column_right - column_left) / (len(products) - 1)
         for i in range(len(products))
@@ -296,9 +303,15 @@ def _capability_matrix(path, audit):
            font=_font(13), fill=MUTE)
 
     for x, (_, label, commit) in zip(centers, products):
-        d.text((x, 125), label, font=_font(13, label == "Zero Slop"),
-               fill=INK if label == "Zero Slop" else MUTE, anchor="ma")
-        d.text((x, 145), commit[:8], font=_font(10), fill=MUTE, anchor="ma")
+        is_subject = label == "Zero Slop"
+        parts = label.split("/", 1)
+        lines = [parts[0] + "/", parts[1]] if len(parts) == 2 else [label]
+        for line_index, line in enumerate(lines):
+            d.text((x, 120 + line_index * 17), line,
+                   font=_font(13, is_subject),
+                   fill=INK if is_subject else MUTE, anchor="ma")
+        d.text((x, 120 + len(lines) * 17 + 3), commit[:8],
+               font=_font(10), fill=MUTE, anchor="ma")
 
     for i, row in enumerate(rows):
         y = top + i * rowh
