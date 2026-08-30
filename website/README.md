@@ -1,5 +1,14 @@
 # Zero Slop website
 
+> [!CAUTION]
+> **This is not the live site.** zero-slop.ai is built from a separate repository,
+> [ZSWebpage](https://github.com/manavmishra/ZSWebpage), checked out locally at
+> `~/Documents/ChatGPT/ZSWEBSITE/ZSWebpage`. This directory is an older iteration:
+> it still uses the grey `#f3f4ef` paper instead of production's pastel `#faf5e0`,
+> and it builds one page where the live site serves fourteen. Deploying from here
+> overwrote production once. `npm run deploy:cloudflare` now refuses; do not
+> restore the old wrangler command. Edit the site in ZSWebpage.
+
 The public site for [Zero Slop](https://github.com/manavmishra/ZeroSlop), built
 with React and vinext, then exported as a static Cloudflare Pages site.
 
