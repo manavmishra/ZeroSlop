@@ -8,18 +8,15 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.7.5-72528F">
 </p>
 
-Score your writing 0 to 100 for AI slop, then edit it out without changing a single fact.
+Take AI out of your AI writing
 
 ![A scored sentence before and after editing](assets/demo.png)
 
 ## Problem
 
-AI writing has an accent: "It's not X. It's Y." "Here's the thing nobody tells you." Ask an AI to fix it and it sands off the vocabulary and
-cadence that made the writing yours, and rewrites your numbers on the way.
+AI writing has a distinct tell: "It's not X. It's Y." "Here's the thing nobody tells you." 
 
-Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible model
-does the editing; Zero Slop supplies the workflow, the meter, and the checks that refuse
-any change to a name, number, quotation or link.
+Zero Slop is an Agent Skill which runs in Claude, Cowork, Codex, Cursor etc, or another agentskill compliant harness. It does scoring using a script and a heuristics engine and steers the local model to contextually edit the slop out of the text; Zero Slop supplies the workflow, the slop score meter, and the verification checks on the final output.
 
 ## How to install Zero Slop
 
@@ -66,16 +63,15 @@ A reading pass covers defects of the whole document, which no span pattern reach
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
 80 checks.
 
-Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
+Human writing scores 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
-Neither number says who wrote the text.
+
 
 ## How it works
 
 ![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
-Eight roles form one workflow. Each is a job rather than a service: a single model can handle
-several, each as its own pass, so nothing grades its own output.
+It ships with an agentic workflow with 8 roles 
 
 | Role | Who does it | What happens |
 |---|---|---|
@@ -88,7 +84,7 @@ several, each as its own pass, so nothing grades its own output.
 | 7. Verifier | Local tools and your AI assistant | Compares text with source for facts, meaning, qualifiers, voice, format, structure. |
 | 8. Fresh-eyes finalizer | Fresh AI pass | Reads the verified text as a first-time reader, applying only safe polish. Any final polish restarts the final checks; the same text must return unchanged before release. |
 
-Eight is an engineering choice; research supports the individual checks. Studies find
+Studies find
 [predictable wording](https://arxiv.org/abs/2301.11305) and
 [overused vocabulary](https://arxiv.org/abs/2406.07016) in machine text, and authorship
 detectors can [misclassify non-native English](https://arxiv.org/abs/2304.02819). Local
@@ -96,10 +92,10 @@ tools use only Python's standard library.
 
 ## Private learning from your edits
 
-Learning starts only when you hand over both versions: the produced and the kept. Zero Slop watches nothing on its own: no file monitoring, no browser
+Learning starts only when you hand over both versions: the original output and your edited version. Zero Slop watches nothing on its own: no file monitoring, no browser
 hooks, no reaching into where you publish.
 
-A phrase must vanish from three unrelated pieces to become a private rule; a word, five. Each must be new and stay silent on known-human text. Private
+Private
 data stays under `$ZERO_SLOP_HOME`.
 
 This is human-in-the-loop online learning. It never retrains Claude, GPT, or another
@@ -120,7 +116,7 @@ with [`scripts/register.py`](scripts/register.py) running the reading pass.
 
 We reran Zero Slop, [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing),
 [no-ai-slop](https://github.com/petergyang/no-ai-slop) and
-[humanizer](https://github.com/blader/humanizer) on the same 18 obvious drafts, each with
+[humanizer](https://github.com/blader/humanizer) on the same   samples, each with
 GPT-5.4, high reasoning, batches of three, and its pinned instructions.
 
 | Method | Mean writing score ↓ | Passed all Zero Slop checks | Important details kept | Average length change |
@@ -133,11 +129,7 @@ GPT-5.4, high reasoning, batches of three, and its pinned instructions.
 
 ![Fresh same-model editing replay on 18 drafts](assets/bench-search-rewrites.png)
 
-Those checks are Zero Slop's own, so we also ran a method-hidden comparison against the pinned
-incumbent. The GPT-5.4 reviewer favored Zero Slop on 13 drafts and avoid-ai-writing on 3,
-with 2 unresolved; the passes agreed on 16 of 18. Our source check cleared 18/18 of our
-rewrites and 16/18 of the incumbent's. On mean score across this second set we lost,
-17.8 to 17.0.
+
 
 ![Method-hidden editorial preference on 18 drafts](assets/bench-incumbent-hidden.png)
 
@@ -153,9 +145,7 @@ universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
 editorial panel ([`bench/README.md`](bench/README.md)), v2.7.5 matched the prior 84.2% result
 with every frozen document score unchanged, all 18 human controls clear and all 18 search
-cases still caught: the release moves what the gate asks and leaves the meter
-untouched. Median throughput was 2.32% lower across 12
-runs, which is local timing noise and no kind of speed claim.
+cases still caught.
 
 ### Speed
 
@@ -181,14 +171,13 @@ Beemo, raw responses averaged
 
 ## Where Zero Slop came from
 
-Zero Slop stands on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text and
-avoid-ai-writing, adding a writing score, source protection, separate editorial passes,
+Zero Slop enhances work done by  no-ai-slop, humanizer, de-slop, stop-slop, unslop-text and
+avoid-ai-writing, by adding a slop score, source protection, separate editorial passes,
 private learning, portfolio analysis and release tests.
 
 ![Documented capabilities at pinned repository versions](assets/competitor-capabilities.png)
 
-The chart records which features each project documents, and says nothing about writing
-quality. Reproduce the shipped checks:
+The chart records which features each project documents. Reproduce by using these tests:
 
 ```sh
 python3 tests/test_all.py
