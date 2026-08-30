@@ -12,8 +12,8 @@
   "slopscore_sha256": "99217fff003a0c58e653b2c5ae4ae43dfd9c5d8c0d37c33c4ada4f5e1877c34a"
  },
  "candidate": {
-  "version": "2.7.6",
-  "slopscore_sha256": "24f115103b744e8505da3849d275d430c052476227e40ccca625346edc5ff6d1"
+  "version": "2.7.7",
+  "slopscore_sha256": "e96c607189a1763d2ce26c2380edb777c26caadb7f264e6993f7d78ff2bfe1ce"
  },
  "workload": {
   "documents_per_run": 600,

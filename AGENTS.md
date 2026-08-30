@@ -47,6 +47,11 @@ are examples, not limits.
   term after one exact word match. It does not store the sample or model the
   writer's full style, and the profile has no effect unless selected with
   `--voice NAME`. Never commit these profiles.
+- `$ZERO_SLOP_HOME/notes.json` — a run counter and one boolean, so the single
+  GitHub-star note can be shown once and never again. It records no text, no
+  scores, no paths and no identifiers, is never sent anywhere, and the note is
+  suppressed entirely by `ZERO_SLOP_NO_NOTES=1`, by `--json`, `--batch` or
+  `--gate`, and by any run whose stdout is not a terminal.
 - `bench/` (if present) — reproducible benchmark harness and scorecard.
 
 ## Maintenance contract

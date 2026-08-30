@@ -3444,6 +3444,99 @@ class VersionCheck(unittest.TestCase):
                 self.assertNotIn("Traceback", result.stderr)
 
 
+class StarNote(unittest.TestCase):
+    """The one-time star ask must never nag, and never reach a machine.
+
+    A tool that deletes manipulative filler cannot ship a nag, so these tests
+    are mostly about the note NOT appearing. Each one is a way the note could
+    annoy someone or corrupt output, held shut.
+    """
+
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+        self.env = {"ZERO_SLOP_HOME": self.home}
+        # Reload the module against a throwaway home so the marker file and the
+        # run counter cannot leak between tests or touch the developer's own.
+        spec = importlib.util.spec_from_file_location(
+            "slop_note", ROOT / "scripts" / "slopscore.py")
+        self.mod = importlib.util.module_from_spec(spec)
+        os.environ["ZERO_SLOP_HOME"] = self.home
+        spec.loader.exec_module(self.mod)
+
+    def tearDown(self):
+        os.environ.pop("ZERO_SLOP_HOME", None)
+        shutil.rmtree(self.home, ignore_errors=True)
+
+    def _run(self, argv=(), isatty=True, env=None):
+        return self.mod.record_human_run(list(argv), isatty=isatty, env=env or {})
+
+    def test_stays_silent_until_the_third_run(self):
+        self.assertIsNone(self._run())
+        self.assertIsNone(self._run())
+        self.assertIn("github.com/manavmishra/ZeroSlop", self._run())
+
+    def test_never_appears_twice(self):
+        for _ in range(2):
+            self._run()
+        self.assertIsNotNone(self._run())
+        for _ in range(20):
+            self.assertIsNone(self._run(), "the note repeated; that is a nag")
+
+    def test_machine_readable_runs_never_see_it(self):
+        # --json, --batch and --gate are the documented CI shapes. A note in any
+        # of them corrupts output or noise up a build log.
+        for flag in ("--json", "--batch", "--gate"):
+            with self.subTest(flag=flag):
+                for _ in range(6):
+                    self.assertIsNone(self._run([flag]))
+
+    def test_a_pipe_never_sees_it(self):
+        for _ in range(6):
+            self.assertIsNone(self._run(isatty=False))
+
+    def test_machine_runs_do_not_advance_the_counter(self):
+        # Otherwise a CI job would silently burn the one human ask.
+        for _ in range(10):
+            self._run(["--json"])
+            self._run(isatty=False)
+        self.assertIsNone(self._run())
+        self.assertIsNone(self._run())
+        self.assertIsNotNone(self._run(), "CI runs consumed the human's ask")
+
+    def test_opt_out_holds_forever(self):
+        for _ in range(10):
+            self.assertIsNone(self._run(env={"ZERO_SLOP_NO_NOTES": "1"}))
+        # And opting out must not have quietly counted those runs either.
+        self.assertIsNone(self._run())
+        self.assertIsNone(self._run())
+        self.assertIsNotNone(self._run())
+
+    def test_note_is_one_ask_with_no_interaction(self):
+        for _ in range(2):
+            self._run()
+        note = self._run()
+        self.assertLessEqual(len(note.strip().splitlines()), 2)
+        for banned in ("y/n", "[Y/n]", "press", "Press", "input("):
+            self.assertNotIn(banned, note)
+        self.assertIn("only time", note)
+        self.assertIn("ZERO_SLOP_NO_NOTES", note, "the note must say how to silence it")
+
+    def test_a_read_only_home_does_not_break_scoring(self):
+        os.chmod(self.home, 0o500)
+        try:
+            for _ in range(4):
+                self._run()  # must not raise
+        finally:
+            os.chmod(self.home, 0o700)
+
+    def test_predicate_agrees_with_the_recorder(self):
+        self.assertFalse(self.mod.star_note_is_due([], isatty=True, env={}))
+        self._run()
+        self.assertFalse(self.mod.star_note_is_due([], isatty=True, env={}))
+        self._run()
+        self.assertTrue(self.mod.star_note_is_due([], isatty=True, env={}))
+
+
 class RegisterGate(unittest.TestCase):
     """The register pass carries the families the pattern meter cannot reach.
     Its own selftest asserts that every check in references/eval.md reaches the

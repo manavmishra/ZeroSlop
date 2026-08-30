@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.6-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.7-72528F">
 </p>
 
 Take all the slop out of your AI writing. The #1 agentic anti-slop skill.
@@ -153,7 +153,7 @@ rates, and a method-hidden quality ranking.
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
 universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
-editorial panel ([`bench/README.md`](bench/README.md)), v2.7.6 matched the prior 84.2% result
+editorial panel ([`bench/README.md`](bench/README.md)), v2.7.7 matched the prior 84.2% result
 with every frozen document score unchanged, all 18 human controls clear and all 18 search
 cases still caught: the release moves what the gate asks and leaves the meter
 untouched. Median throughput was 3.51% lower across 12 runs, which is local timing

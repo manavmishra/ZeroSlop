@@ -45,6 +45,89 @@ class PatternData(dict):
     """JSON-compatible pattern mapping with an out-of-band compiled plan."""
 
 
+# One-time note asking for a GitHub star.
+#
+# 448 machines cloned this in a fortnight and seventeen people had starred it,
+# because nothing ever asked. The risk in fixing that is obvious: a tool whose
+# whole job is deleting manipulative filler cannot itself nag, so every rule
+# below is a restriction rather than a reach.
+#
+#   - Once per machine, ever. A marker in the state directory, not a counter
+#     that resets.
+#   - Not until the third run, so it asks people who kept using it rather than
+#     people evaluating it once.
+#   - Never when the output is being read by a machine: --json, --batch,
+#     --gate, or any run whose stdout is not a terminal. CI logs stay clean.
+#   - No prompt, no keypress, no opening a browser, no network call. One line
+#     to stderr, so it cannot corrupt piped output even if the checks above
+#     were somehow wrong.
+#   - ZERO_SLOP_NO_NOTES=1 turns it off for good.
+NOTES_FILE = HOME / "notes.json"
+STAR_NOTE_AFTER_RUNS = 3
+
+
+def _load_notes():
+    try:
+        with open(NOTES_FILE, encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_notes(state):
+    try:
+        HOME.mkdir(parents=True, exist_ok=True)
+        tmp = NOTES_FILE.with_suffix(".json.tmp")
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(state, fh)
+        os.replace(tmp, NOTES_FILE)
+    except OSError:
+        pass  # a read-only home must never break a score
+
+
+def star_note_is_due(argv=None, isatty=None, env=None):
+    """Decide without writing anything, so the rule is testable in isolation."""
+    argv = sys.argv[1:] if argv is None else argv
+    env = os.environ if env is None else env
+    if env.get("ZERO_SLOP_NO_NOTES"):
+        return False
+    if any(flag in argv for flag in ("--json", "--batch", "--gate")):
+        return False
+    if not (sys.stdout.isatty() if isatty is None else isatty):
+        return False
+    state = _load_notes()
+    if state.get("star_note_shown"):
+        return False
+    return int(state.get("human_runs", 0)) + 1 >= STAR_NOTE_AFTER_RUNS
+
+
+def record_human_run(argv=None, isatty=None, env=None):
+    """Count this run and, if it is the one, return the note to print."""
+    argv = sys.argv[1:] if argv is None else argv
+    env = os.environ if env is None else env
+    if env.get("ZERO_SLOP_NO_NOTES"):
+        return None
+    if any(flag in argv for flag in ("--json", "--batch", "--gate")):
+        return None
+    if not (sys.stdout.isatty() if isatty is None else isatty):
+        return None
+    state = _load_notes()
+    if state.get("star_note_shown"):
+        return None
+    state["human_runs"] = int(state.get("human_runs", 0)) + 1
+    due = state["human_runs"] >= STAR_NOTE_AFTER_RUNS
+    if due:
+        state["star_note_shown"] = True
+    _save_notes(state)
+    if not due:
+        return None
+    return ("\n  If Zero Slop has been useful, a star helps people find it: "
+            "https://github.com/manavmishra/ZeroSlop\n"
+            "  This is the only time you will see this. "
+            "ZERO_SLOP_NO_NOTES=1 silences all notes.")
+
+
 def _voice_path(name):
     """Resolve a profile name without letting it become a filesystem path."""
     if not VOICE_NAME.fullmatch(name or "") or name in (".", ".."):
@@ -1823,6 +1906,11 @@ def main():
         print(f"  Check against {gv:g}: {verdict}{why}. This covers writing patterns and "
               f"layout; your AI assistant still reviews the ideas, voice, and facts.")
         sys.exit(0 if ok else 1)
+
+    # Last line of a human run, and only ever once. See record_human_run.
+    note = record_human_run()
+    if note:
+        print(note, file=sys.stderr)
 
 
 if __name__ == "__main__":
