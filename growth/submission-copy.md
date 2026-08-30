@@ -20,7 +20,7 @@ Zero Slop
 
 ## Tagline, under 40 characters
 
-The anti-slop editor for AI writing.
+The #1 anti-slop editor for AI writing.
 
 ## One-liner, under 60 characters
 

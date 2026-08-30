@@ -68,7 +68,7 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         type: "image/jpeg",
-        alt: "Zero Slop. Make AI writing sound like you.",
+        alt: "Zero Slop. Say No to AI Slop. The #1 anti-slop editor skill.",
       },
     ],
   },
