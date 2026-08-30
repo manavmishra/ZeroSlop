@@ -156,7 +156,7 @@ universal ranking. Drafts, mappings, verdicts, hashes and limits:
 editorial panel ([`bench/README.md`](bench/README.md)), v2.7.6 matched the prior 84.2% result
 with every frozen document score unchanged, all 18 human controls clear and all 18 search
 cases still caught: the release moves what the gate asks and leaves the meter
-untouched. Median throughput was 2.32% lower across 12 runs, which is local timing
+untouched. Median throughput was 3.51% lower across 12 runs, which is local timing
 noise and no kind of speed claim.
 
 ### Speed

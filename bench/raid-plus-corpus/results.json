@@ -19,7 +19,7 @@
  },
  "scorer": {
   "version": "2.7.6",
-  "slopscore_sha256": "ef5f93e59a25fbf8998a6786a34af63a1e62f1834877ac26fe58d5f01d7f7ff4",
+  "slopscore_sha256": "24f115103b744e8505da3849d275d430c052476227e40ccca625346edc5ff6d1",
   "patterns_sha256": "465f14bce035247f084b563380ba558c96c23abb057a6420b155f080cbba2682",
   "learned_sha256": "8427cf1f2b3aa45494db94c0ce30969dbc7368174138c5b771c15951ca12f483",
   "generic_gate": 25.0,

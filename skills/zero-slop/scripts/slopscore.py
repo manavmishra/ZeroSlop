@@ -159,6 +159,39 @@ def _apply_voice(base, name):
 SENT_SPLIT = re.compile(r"(?<=[.!?])[\")”’]?\s+(?=[A-Z“\"(0-9])")
 WORD = re.compile(r"[A-Za-z’']+")
 
+
+# A quoted span longer than this is a passage, not a named tell, and stays in
+# scope. Short enough to exempt "delve" or "it's not just X, it's Y"; short
+# enough that quoting cannot be used to smuggle paragraphs past the meter.
+QUOTE_SKIP_LIMIT = 200
+
+_BLOCKQUOTE_SCAN_RX = re.compile(r"(?m)^[ \t]*>[ \t]?.*$")
+_INLINE_QUOTE_RXS = (
+    re.compile(rf'"[^"\n]{{0,{QUOTE_SKIP_LIMIT}}}"'),
+    re.compile(rf"“[^”\n]{{0,{QUOTE_SKIP_LIMIT}}}”"),
+)
+
+
+def mask_quoted(text):
+    """Blank quoted material for the pattern meter, keeping every offset.
+
+    Naming a cliche in order to discuss it is the opposite of committing it,
+    and step 0 of SKILL.md has always said to skip quotes. Only the phrase
+    meter and the lexicon honour that: rhythm, readability, word variety and
+    formatting still read the quotation, because a quote a writer chose to
+    include is part of how the finished page reads.
+
+    Spans are replaced character for character, so sentence offsets, word
+    counts and hit positions are identical to the unmasked text.
+    """
+    def blank(match):
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    text = _BLOCKQUOTE_SCAN_RX.sub(blank, text)
+    for rx in _INLINE_QUOTE_RXS:
+        text = rx.sub(blank, text)
+    return text
+
 # Normalise only detector-evasion characters, never ordinary non-Latin prose.
 # A Cyrillic or Greek lookalike is mapped only when it appears in the same word
 # as an ASCII letter (for example, dеlvе). This keeps Russian and Greek text
@@ -418,6 +451,10 @@ def score_text(text, data, formal=False):
                         if n_words >= 200 else None)
     sent_spans = _sentence_spans(text)
     sents = [text[a:b].replace("\n", " ") for a, b in sent_spans]
+    # Same string with quotations blanked out, used only by the phrase meter
+    # and the lexicon. Offsets match `text` exactly.
+    scan_text = mask_quoted(text)
+    scan_sents = [scan_text[a:b].replace("\n", " ") for a, b in sent_spans]
     hits = []
     pattern_spans = []  # (start, end, lower-rx, compiled-rx) for dedup below
 
@@ -449,10 +486,10 @@ def score_text(text, data, formal=False):
             continue
         if hints:
             if lowercase_text is None:
-                lowercase_text = text.lower()
+                lowercase_text = scan_text.lower()
             if not any(hint in lowercase_text for hint in hints):
                 continue
-        for m in compiled.finditer(text):
+        for m in compiled.finditer(scan_text):
             hits.append({
                 "cat": category, "name": name, "w": weight,
                 "quote": m.group(0)[:90].strip(),
@@ -484,7 +521,7 @@ def score_text(text, data, formal=False):
                    and (term in rx_lower or compiled.search(matched))
                    for ps, pe, rx_lower, compiled in pattern_spans)
 
-    candidates = [candidate for candidate in _term_candidates(text, data["lexicon"])
+    candidates = [candidate for candidate in _term_candidates(scan_text, data["lexicon"])
                   if not _pattern_owns(candidate[:2], candidate[2], candidate[4])]
     last_end = 0
     for s, e, term, w, quote in candidates:
@@ -494,7 +531,7 @@ def score_text(text, data, formal=False):
         hits.append({"cat": "lexicon", "name": term, "w": w, "quote": quote})
     riders, triggers = data.get("riders", {}), data.get("rider_triggers", [])
     if riders:
-        for (a, _), sent in zip(sent_spans, sents):
+        for (a, _), sent in zip(sent_spans, scan_sents):
             sl = sent.lower()
             if not any(t in sl for t in triggers):
                 continue
