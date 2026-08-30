@@ -167,7 +167,14 @@ test("keeps the final UI accessible, responsive, and free of template residue", 
   assert.doesNotMatch(page, /_sites-preview|SkeletonPreview/);
   assert.doesNotMatch(layout, /Starter Project|codex-preview/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-  assert.match(packageJson, /pages deploy website\/dist\/static --cwd \.\./);
+  // This pinned the deploy command that pointed at production and, run from
+  // here, replaced the live site with this older one-page build. The guard that
+  // replaced it is what must not regress now, so the assertion is inverted:
+  // deploy:cloudflare has to be refuse-deploy.mjs, and must never again carry a
+  // wrangler command aimed at the zero-slop project.
+  assert.match(packageJson, /"deploy:cloudflare":\s*"node scripts\/refuse-deploy\.mjs"/);
+  assert.doesNotMatch(packageJson, /pages deploy/);
+  assert.doesNotMatch(packageJson, /--project-name=zero-slop/);
 });
 
 test("publishes crawl controls and an AI-readable product summary", async () => {
