@@ -1,8 +1,11 @@
 # Outreach kit
 
-Ready-to-send copy for the placements that actually distribute a tool in this
-category. Nothing here has been sent. Each block names where it goes, what the
-host's stated bar is, and what has to be true before sending.
+Copy for the placements that actually distribute a tool in this category, and
+a record of what has been sent. Each block names where it goes, what the host's
+stated bar is, and what has to be true before sending.
+
+Sent on 30 August: both directory PRs, and issues to the two ancestor projects
+that appear in the benchmark. Still to send: console.dev, Show HN, Reddit.
 
 Score this file before changing it:
 
@@ -17,58 +20,52 @@ lists come after the repository can survive the click: a visitor who lands on a
 
 ---
 
-## 1. Reciprocal links from the four ancestor projects
+## 1. Reciprocal links from the ancestor projects
 
-The README credits these projects. They hold roughly 62,000 stars between them
-and none of them link back. A maintainer accepts this when the crediting is
-already mutual and the PR is small.
+**Status, 30 August: two sent, two held.** The audit assumed these were
+one-line PRs into an existing related-projects list. None of the four repos has
+such a section, so a PR would have to invent one in someone else's README while
+promoting a competitor. That is the shape maintainers reject, and this is a
+small community Zero Slop depends on.
 
-| Repository | Stars | Where to add |
-|---|---:|---|
-| [blader/humanizer](https://github.com/blader/humanizer) | 38,893 | Related projects / README footer |
-| [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) | 16,581 | Related projects |
-| [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) | 6,458 | Related projects |
-| [conorbronsdon/avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing) | — | Related projects |
+What was sent instead: an issue to each of the two projects that appear in the
+replay benchmark, leading with **their own results** and an invitation to
+dispute them, with the link request last and explicitly optional.
 
-**PR title:** `Add Zero Slop to related projects`
+| Repository | Stars | In the benchmark | Action |
+|---|---:|---|---|
+| [blader/humanizer](https://github.com/blader/humanizer) | 38,903 | Yes, 35.4 | Issue [#250](https://github.com/blader/humanizer/issues/250) |
+| [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) | 6,459 | Yes, 28.4 | Issue [#45](https://github.com/petergyang/no-ai-slop/issues/45) |
+| [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) | 16,583 | No | Held |
+| [isatimur/de-slop](https://github.com/isatimur/de-slop) | 2 | No | Held |
 
-**PR body:**
+**Why the other two are held.** They are credited in the README but are in
+neither the head-to-head replay nor the capability chart, so there is no
+finding to bring them and nothing on offer. A message whose only content is
+"please link to me" is the thing that makes maintainers close issues unread.
+Send those two only once there is a reason: a benchmark row that includes them,
+or a change of theirs that Zero Slop adopts.
 
-> Zero Slop credits this project in its README as prior work it builds on, so
-> this adds the link in the other direction.
->
-> Zero Slop is an MIT Agent Skill that scores prose 0-100 with a local,
-> dependency-free Python scorer, then edits against a fact gate that rejects any
-> rewrite changing a name, number, quotation or link. It runs the same
-> before-and-after benchmark across several of these tools, including this one,
-> and publishes the drafts, mappings and hashes so the comparison can be rerun.
->
-> Happy to drop this if related-project links are not something you want in the
-> README.
+The general shape that worked, if you extend this later: give them something
+first, make the ask last, and say plainly that no is fine.
 
-**One-line entry:**
+## 2. Small directories
 
-```markdown
-- [Zero Slop](https://github.com/manavmishra/ZeroSlop) — scores prose 0-100 and edits it against a fact gate. MIT, offline, zero dependencies.
-```
+**Both sent on 30 August.**
 
----
+- [shannhk/avoid-slop](https://github.com/shannhk/avoid-slop) (177 stars) — PR
+  [#2](https://github.com/shannhk/avoid-slop/pull/2). This list does not use
+  bullets: every entry is a section with a blockquote, an install line, two or
+  three paragraphs on what is distinctive, and a row in the Comparison table.
+  A one-line entry would have been rejected on format alone. Placed last in
+  Writing rather than against their roundup ordering.
+- [hwajongpark/awesome-slop](https://github.com/hwajongpark/awesome-slop) (5
+  stars) — PR [#5](https://github.com/hwajongpark/awesome-slop/pull/5), one
+  line in *Fix it: humanizers*, with an offer to add the linters line too.
 
-## 2. Small directories, submit now
-
-Neither of these needs traction, and both exist to list exactly this.
-
-**[shannhk/avoid-slop](https://github.com/shannhk/avoid-slop)** (177 stars) — "a
-curated directory of open-source tools for eliminating AI-generated slop". Open
-a PR adding Zero Slop to the text-tools section:
-
-```markdown
-- **[Zero Slop](https://github.com/manavmishra/ZeroSlop)** — Agent Skill that scores writing 0-100 for AI-sounding language, names the phrases behind the score, and rewrites them. A local fact gate rejects any version that adds or drops a name, number, quotation or link. Offline, zero dependencies, MIT.
-```
-
-**[hwajongpark/awesome-slop](https://github.com/hwajongpark/awesome-slop)** (5
-stars) — same entry, tools section. Small, but it is an exact-match list and
-costs one PR.
+Both entries were scored before submission: 14.1 and 11.0, no flagged phrases.
+Match the house format before writing the copy — that mattered more here than
+the wording did.
 
 ---
 
