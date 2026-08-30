@@ -2057,6 +2057,37 @@ class DocsMatchReality(unittest.TestCase):
         self.assertLessEqual(top, {"name", "description", "license", "metadata",
                                    "allowed-tools"})
 
+    def test_npm_package_is_executable(self):
+        """The registry package must be able to install the skill.
+
+        2.7.1 through 2.7.5 shipped with no bin, no main and no scripts, so
+        `npx zero-slop` did nothing: the only working install path was the
+        `skills` CLI against GitHub, and the registry's download count measured
+        mirrors rather than people. This pins the executable half.
+        """
+        pkg = json.loads((ROOT / "package.json").read_text())
+        self.assertEqual(pkg.get("bin"), {"zero-slop": "bin/zero-slop.mjs"},
+                         "package.json no longer declares the zero-slop bin")
+        entry = ROOT / "bin" / "zero-slop.mjs"
+        self.assertTrue(entry.exists(), "bin/zero-slop.mjs is missing")
+        self.assertTrue(os.access(entry, os.X_OK), "bin/zero-slop.mjs is not executable")
+        self.assertIn("bin/", pkg["files"], "the tarball would not ship bin/")
+        # The payload the CLI copies has to be the payload the tarball carries,
+        # or `npx zero-slop install` would deliver a different skill from the
+        # plugin and the zip.
+        source = entry.read_text()
+        for shipped in ("SKILL.md", "references", "scripts", "data"):
+            self.assertIn(f'"{shipped}"', source,
+                          f"the CLI no longer installs {shipped}")
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed")
+        r = subprocess.run([node, str(entry), "--version"], capture_output=True,
+                           text=True, cwd=str(ROOT))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(r.stdout.strip(), pkg["version"],
+                         "the CLI reports a different version from package.json")
+
     def test_plugin_manifests_have_required_identity(self):
         for folder in (".claude-plugin", ".codex-plugin"):
             manifest = json.loads((ROOT / folder / "plugin.json").read_text())

@@ -5,10 +5,12 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.5-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.6-72528F">
 </p>
 
-Take all the slop out of your AI writing. The #1 agentic anti-slop skill
+Take all the slop out of your AI writing. The #1 agentic anti-slop skill.
+
+Score your writing 0 to 100 for AI slop, see the exact phrases behind the number, and edit them out without changing a single fact. Free, MIT, scored offline with no account. Worked examples and the full benchmark are at [zero-slop.ai](https://zero-slop.ai).
 
 ![A scored sentence before and after editing](assets/demo.png)
 
@@ -16,7 +18,7 @@ Take all the slop out of your AI writing. The #1 agentic anti-slop skill
 
 AI writing has a distinct tell: "It's not X. It's Y." "Here's the thing nobody tells you." 
 
-Zero Slop is an Agent Skill which runs in Claude, Cowork, Codex, Cursor etc, or another agentskill compliant harness. It does scoring using a script and a heuristics engine and steers the local model to contextually edit the slop out of the text; Zero Slop supplies the workflow, the slop score meter, and the verification checks on the final output.
+Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible model does the editing; Zero Slop supplies the workflow and the checks that refuse any change to a name, number, quotation or link. It runs in Claude Code, Cowork, Codex, Cursor, Warp, Zed, and any other harness that reads SKILL.md.
 
 ## How to install Zero Slop
 
@@ -30,6 +32,13 @@ Or install it with `npx`:
 
 ```sh
 npx skills add manavmishra/ZeroSlop --global
+```
+
+Or from the registry, which also installs the scorer as a command:
+
+```sh
+npx zero-slop install          # add --harness codex|cursor|opencode|zed
+npx zero-slop score draft.md   # score without installing anything
 ```
 
 ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md).
@@ -63,7 +72,7 @@ A reading pass covers defects of the whole document, which no span pattern reach
 paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
 80 checks.
 
-Human writing scores 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
+Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
 
 
@@ -71,7 +80,7 @@ unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.jso
 
 ![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
-It ships with an agentic workflow with 8 roles 
+Eight roles form one workflow. Each is a job rather than a service, run as its own pass so nothing grades its own output. The research supports the checks, not the number eight, which is an engineering choice.
 
 | Role | Who does it | What happens |
 |---|---|---|
@@ -109,6 +118,7 @@ style.
 80 checks. [`scripts/slopscore.py`](scripts/slopscore.py) is the meter and fact gate,
 with [`scripts/register.py`](scripts/register.py) running the reading pass.
 [`bench/README.md`](bench/README.md) documents every benchmark with its limits.
+[zero-slop.ai](https://zero-slop.ai) has the same reference as browsable pages, plus the [benchmark in full](https://zero-slop.ai/benchmark/).
 
 ## Evidence
 
@@ -143,9 +153,11 @@ rates, and a method-hidden quality ranking.
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
 universal ranking. Drafts, mappings, verdicts, hashes and limits:
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
-editorial panel ([`bench/README.md`](bench/README.md)), v2.7.5 matched the prior 84.2% result
+editorial panel ([`bench/README.md`](bench/README.md)), v2.7.6 matched the prior 84.2% result
 with every frozen document score unchanged, all 18 human controls clear and all 18 search
-cases still caught.
+cases still caught: the release moves what the gate asks and leaves the meter
+untouched. Median throughput was 2.32% lower across 12 runs, which is local timing
+noise and no kind of speed claim.
 
 ### Speed
 
@@ -177,7 +189,7 @@ private learning, portfolio analysis and release tests.
 
 ![Documented capabilities at pinned repository versions](assets/competitor-capabilities.png)
 
-The chart records which features each project documents. Reproduce by using these tests:
+The chart records which features each project documents. It says nothing about writing quality and is not a claim about which tool writes better. Reproduce by using these tests:
 
 ```sh
 python3 tests/test_all.py
