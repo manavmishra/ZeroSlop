@@ -15,7 +15,44 @@ formatting, then gives your AI assistant a guarded editing workflow. Its
 MIT-licensed local checks run offline; your existing AI assistant does the editing.
 See the benchmark at [zero-slop.ai](https://zero-slop.ai).
 
-![A scored sentence before and after editing](assets/demo.png)
+```sh
+npx zero-slop install
+```
+
+### What it does, on a real draft
+
+A launch post, as the model wrote it:
+
+> We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience. It's not just a redesign, it's a fundamental reimagining of how users engage with our platform. In today's fast-paced landscape, the ability to iterate quickly is crucial. By harnessing the power of machine learning, we've been able to reduce setup time by 40%. Here's the thing nobody tells you: onboarding is where most products lose their users. We're excited to continue this journey with you.
+
+`slopscore.py --explain` on that paragraph, unedited:
+
+```text
+Writing score: 100.0/100  [major rewrite]
+  Flagged phrases : 11 across 83 words
+  Sentence variety: too even
+  Main issues     : canned LinkedIn phrase, promotional language, manufactured
+                    stakes, two-part contrast used as a formula, performed
+                    writer's voice, buzzword used as promotion
+
+  Flagged phrases (11), strongest first:
+    "In today's fast-paced"  manufactured stakes; start where the reader needs to start
+    "We're thrilled to"      canned LinkedIn phrase; say what happened without the stock opening
+    "It's not just a redesign, it's"
+                             two-part contrast used as a formula; state the claim once, plainly
+    "Here's the thing"       performed writer's voice; say the thing plainly
+    'cutting-edge'           promotional language; name what it does; cut the adjectives
+    'leveraged'              buzzword used as promotion; use the plain word
+```
+
+The rewrite, with the fact gate holding `40%` in place:
+
+> We rebuilt onboarding and cut setup time by 40%. Most of that came from removing three configuration steps that only ever set defaults. What is left is account linking, which still takes four screens and is what we are fixing next.
+
+```text
+Writing score: 10.8/100  [clear]
+  Flagged phrases : 0 across 40 words
+```
 
 ## Problem
 
