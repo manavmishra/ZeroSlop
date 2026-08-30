@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Small, stdlib-only primitives for durable and concurrency-safe state updates.
 
-Zero Slop's scorer is read-only, but the learning and calibration tools perform
-read-modify-write updates. Atomic replacement prevents torn JSON; lock directories
-prevent two processes from silently overwriting each other's observations.
+Zero Slop never alters a scored draft. Learning and calibration update private state,
+and an interactive score can update one local, one-time note marker. Atomic
+replacement prevents torn files; lock directories prevent concurrent processes from
+silently overwriting each other's state.
 """
 from contextlib import contextmanager
 import hashlib

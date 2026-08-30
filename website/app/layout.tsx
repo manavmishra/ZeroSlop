@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 
 const title = "Zero Slop: AI Writing Humanizer & Anti-Slop Checker";
 const description =
-  "Score and rewrite AI-sounding prose without losing facts. Zero Slop is a free, open-source humanizer with local scoring and fidelity checks.";
-const socialTitle = "Zero Slop: Remove the AI accent. Keep every fact.";
+  "Score and rewrite AI-sounding prose while protecting the source. Zero Slop is a free, open-source writing skill with local scoring and final checks.";
+const socialTitle = "Zero Slop: Remove the AI accent. Protect the source.";
 const socialDescription =
   "A free, open-source writing tool that scores AI-like patterns, rewrites the draft, and checks figures, names, quotes, and links.";
 
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         type: "image/jpeg",
-        alt: "Zero Slop. Say No to AI Slop. The #1 anti-slop editor skill.",
+        alt: "Zero Slop. Say no to AI slop. An anti-slop editor skill.",
       },
     ],
   },

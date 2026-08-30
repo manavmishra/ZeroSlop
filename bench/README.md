@@ -46,7 +46,7 @@ current corpus checks.
 - `performance.py`, `performance-results.json` — local scorer and learning-loop
   timings with the machine record, raw runs, medians, and CI ceilings.
 - `version_compare.py`, `version-comparison.json` — the 12-run interleaved
-  v2.5.10/v2.6.0 timing vectors, exact scorer hashes, frozen score parity, new
+  v2.7.7/v2.7.8 timing vectors, exact scorer hashes, frozen score parity, new
   adversarial cases, and structured-document protections.
 - `quality-corpus/` — a method-hidden, source-grouped 72-item editorial-quality
   panel with two independent label files, unresolved disagreements, and split metrics.

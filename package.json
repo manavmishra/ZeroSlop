@@ -1,7 +1,7 @@
 {
   "name": "zero-slop",
-  "version": "2.7.7",
-  "description": "An Agent Skill that scores AI-sounding prose 0-100 locally and rewrites it without losing a fact. Runs inside Claude Code, Codex, Cursor, Warp, Zed and other SKILL.md agents. Offline, zero dependencies, MIT.",
+  "version": "2.7.8",
+  "description": "An Agent Skill that scores AI-sounding prose locally, guides the host AI through an editorial rewrite, and checks changed source details. The local tools run offline with zero dependencies.",
   "bin": {
     "zero-slop": "bin/zero-slop.mjs"
   },

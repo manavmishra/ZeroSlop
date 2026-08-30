@@ -4,7 +4,7 @@ import { ExampleGallery } from "./ExampleGallery";
 
 const githubUrl = "https://github.com/manavmishra/ZeroSlop";
 const releaseUrl = `${githubUrl}/releases/latest`;
-const skillVersion = "2.7.7";
+const skillVersion = "2.7.8";
 const compatibleAgents = [
   "Codex",
   "Claude Code",
@@ -68,7 +68,7 @@ const softwareJsonLd = {
     "AI writing pattern scoring",
     "Meaning-preserving rewrites for social posts, articles, documents, and presentations",
     "Local offline scoring",
-    "Figure, name, quote, and link fidelity checks",
+    "Checks for changed figures, names, quotes, and links",
   ],
   offers: {
     "@type": "Offer",

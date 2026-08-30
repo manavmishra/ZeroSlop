@@ -5,20 +5,28 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.7-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.7.8-72528F">
 </p>
 
-Take all the slop out of your AI writing. The #1 agentic anti-slop skill.
+Less slop, more pop.
 
-Score your writing 0 to 100 for AI slop, see the exact phrases behind the number, and edit them out without changing a single fact. Free, MIT, scored offline with no account. Worked examples and the full benchmark are at [zero-slop.ai](https://zero-slop.ai).
+Zero Slop finds stock phrasing, mechanical rhythm, vague claims, and canned
+formatting, then gives your AI assistant a guarded editing workflow. Its
+MIT-licensed local checks run offline; your existing AI assistant does the editing.
+See the benchmark at [zero-slop.ai](https://zero-slop.ai).
 
 ![A scored sentence before and after editing](assets/demo.png)
 
 ## Problem
 
-AI writing has a distinct tell: "It's not X. It's Y." "Here's the thing nobody tells you." 
+AI-assisted writing often converges on the same constructions: "It's not X. It's Y."
+"Here's the thing nobody tells you." One phrase proves little. Repetition across
+wording, rhythm, structure, and formatting is the problem.
 
-Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible model does the editing; Zero Slop supplies the workflow and the checks that refuse any change to a name, number, quotation or link. It runs in Claude Code, Cowork, Codex, Cursor, Warp, Zed, and any other harness that reads SKILL.md.
+Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible
+model edits; local tools check names, numbers, quotations, links, code, tables, and
+paths. Your AI compares meaning because matching words cannot catch every changed
+claim. It runs in any harness that reads `SKILL.md`.
 
 ## How to install Zero Slop
 
@@ -42,7 +50,8 @@ npx zero-slop score draft.md   # score without installing anything
 ```
 
 ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md).
-Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skills update zero-slop --global` updates it later.
+Claude.ai users can upload the [latest release ZIP](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip).
+`npx skills update zero-slop --global` updates a skills CLI installation later.
 
 ## How to use Zero Slop
 
@@ -50,8 +59,9 @@ Claude.ai users can upload [`dist/zero-slop.zip`](dist/zero-slop.zip). `npx skil
 /zero-slop (your writing)
 ```
 
-You get the edited draft, a before-and-after score, and the flagged phrases quoted with why. `/zero-slop inspect (your writing)` reviews without rewriting.
-For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the threshold.
+You get the edited draft, before-and-after scores, and quoted flagged phrases.
+`/zero-slop inspect (your writing)` reviews without rewriting. For a folder,
+`slopscore.py --batch drafts/ --gate 25` fails above the threshold.
 
 ## The slop that Zero Slop catches
 
@@ -68,9 +78,9 @@ For a folder, `slopscore.py --batch drafts/ --gate 25` fails the build above the
 9. Synonym cycling: the agent, the assistant, the tool, all one thing.
 10. Marketing riders: "robust" and "leverage" score only beside a marketing trigger, so a runbook stays quiet.
 
-A reading pass covers defects of the whole document, which no span pattern reaches: one shape repeated seven times, statistics piled into a paragraph,
-paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md) has all
-80 checks.
+A reading pass covers document-wide problems: repeated shapes, crowded statistics,
+and paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md)
+has all 80 checks.
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
@@ -101,15 +111,13 @@ tools use only Python's standard library.
 
 ## Private learning from your edits
 
-Learning starts only when you hand over both versions: the original output and your edited version. Zero Slop watches nothing on its own: no file monitoring, no browser
-hooks, no reaching into where you publish.
+Learning starts only when you provide the original output and your edited version.
+Zero Slop does not monitor files, browsers, or publishing tools.
 
-Private
-data stays under `$ZERO_SLOP_HOME`.
+Private data stays under `$ZERO_SLOP_HOME`.
 
-This is human-in-the-loop online learning. It never retrains Claude, GPT, or another
-model, and involves no neural training or RLHF. A profile can exempt existing watchlist
-words when selected by name; it does not learn cadence, tone, or a complete writing
+This human-in-the-loop learning never retrains the model. A profile selected by name
+can exempt existing watchlist words; it does not learn cadence, tone, or a complete
 style.
 
 ## What's inside
@@ -120,16 +128,18 @@ with [`scripts/register.py`](scripts/register.py) running the reading pass.
 [`bench/README.md`](bench/README.md) documents every benchmark with its limits.
 [zero-slop.ai](https://zero-slop.ai) has the same reference as browsable pages, plus the [benchmark in full](https://zero-slop.ai/benchmark/).
 
-## Evidence
+## Testing and limits
 
 ### Against other tools, same model, same drafts
 
-We reran Zero Slop, [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing),
+The saved replay ran Zero Slop, [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing),
 [no-ai-slop](https://github.com/petergyang/no-ai-slop) and
-[humanizer](https://github.com/blader/humanizer) on the same   samples, each with
-GPT-5.4, high reasoning, batches of three, and its pinned instructions.
+[humanizer](https://github.com/blader/humanizer) on the same 18 drafts, each with
+GPT-5.4, high reasoning, batches of three, and pinned instructions. The Zero Slop
+outputs came from v2.5.9; later releases rescore those frozen outputs but do not
+pretend to have regenerated them.
 
-| Method | Mean writing score ↓ | Passed all Zero Slop checks | Important details kept | Average length change |
+| Method | Mean writing score ↓ | Passed Zero Slop's local gates | Source check passed | Average length change |
 |---|---:|---:|---:|---:|
 | Original drafts | 76.3 | 0/18 | — | — |
 | Zero Slop | 12.8 | 18/18 | 18/18 | -8.9% |
@@ -151,19 +161,23 @@ rates, and a method-hidden quality ranking.
 ![Method-hidden quality ranking, lower is better](assets/bench-blind-quality.png)
 
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
-universal ranking. Drafts, mappings, verdicts, hashes and limits:
-[`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/). On the 38-item
-editorial panel ([`bench/README.md`](bench/README.md)), v2.7.7 matched the prior 84.2% result
-with every frozen document score unchanged, all 18 human controls clear and all 18 search
-cases still caught: the release moves what the gate asks and leaves the meter
-untouched. Median throughput was 3.51% lower across 12 runs, which is local timing
-noise and no kind of speed claim.
+universal ranking. Drafts, mappings, verdicts, hashes, version records, and limits are
+in [`bench/README.md`](bench/README.md). The separate method-hidden two-way replay used
+Zero Slop v2.6.0 and is preserved in
+[`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/).
+
+For the 38-item editorial panel, the current scorer matched the prior 84.2% result.
+All frozen scores stayed unchanged, all 18 human controls remained below the gate,
+and all 18 obvious search cases remained above it. These fixed-sample checks are not
+proof of general accuracy. We recorded 6.51% higher median throughput across 12 interleaved
+local runs; treat that as machine noise, not a speed claim.
 
 ### Speed
 
-On one Apple silicon Mac: 1,000 documents in 2.1956 seconds (455.5 per second), a
-15,201-word document in 0.3225 seconds, the slowest stress case in 2.2577 seconds, an
-8,000-word learning pass in 0.1811 seconds. Editing time is excluded; expect different numbers on different machines.
+On one busy Apple silicon Mac: 1,000 documents in 3.2233 seconds (310.2 per second),
+a 15,201-word document in 0.4757 seconds, the slowest stress case in 3.3487 seconds,
+and an 8,000-word learning pass in 0.2284 seconds. Editing time is excluded; expect
+different results on other machines and loads.
 
 ### Current models
 
@@ -183,9 +197,9 @@ Beemo, raw responses averaged
 
 ## Where Zero Slop came from
 
-Zero Slop enhances work done by  no-ai-slop, humanizer, de-slop, stop-slop, unslop-text and
-avoid-ai-writing, by adding a slop score, source protection, separate editorial passes,
-private learning, portfolio analysis and release tests.
+Zero Slop builds on work by no-ai-slop, humanizer, de-slop, stop-slop, unslop-text,
+and avoid-ai-writing. It adds a writing score, source protection, separate editorial
+passes, private learning, portfolio analysis, and release tests.
 
 ![Documented capabilities at pinned repository versions](assets/competitor-capabilities.png)
 

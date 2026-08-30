@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile Python sources
-        run: python3 -m compileall -q scripts tests
+        run: python3 -m compileall -q scripts tests bench
       - name: Validate pattern data
         run: |
           python3 -c "import json; json.load(open('data/patterns.json')); json.load(open('data/learned.json'))"
@@ -65,6 +65,12 @@ jobs:
 
       - name: Predictability probe self-test
         run: python3 scripts/predictability.py --selftest
+
+      - name: Final-review and benchmark contracts
+        run: |
+          python3 scripts/register.py --selftest
+          python3 bench/validate_corpus_registry.py
+          python3 bench/make_charts.py --check
 
       - name: Validate repository graphics
         run: |

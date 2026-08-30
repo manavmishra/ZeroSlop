@@ -2,11 +2,12 @@
 
 ## Runtime boundary
 
-The installed skill ships seven standard-library Python modules:
+The installed skill ships eight standard-library Python modules:
 
 | File | Purpose | Writes | Network |
 |---|---|---|---|
-| `scripts/slopscore.py` | score, heatmap, and fidelity checks | none | none |
+| `scripts/slopscore.py` | score, heatmap, and fidelity checks | one-time interactive-note state under `$ZERO_SLOP_HOME`; never the draft | none |
+| `scripts/register.py` | document-level measurements and validated final-review packets | none | none |
 | `scripts/predictability.py` | create and score deterministic cloze probes | none | none |
 | `scripts/rerank.py` | rank candidate rewrites | optional user-selected output | none |
 | `scripts/learn.py` | private online learning, named scoring profiles, reviewed imports/exports | `$ZERO_SLOP_HOME`; shared taxonomy only through explicit maintainer `--merge --apply` | none |
@@ -17,6 +18,11 @@ The installed skill ships seven standard-library Python modules:
 Scoring and rewriting do not transmit the draft. The version checker sends only a GET
 for the latest public release tag, times out after 2.5 seconds, fails open, and can be
 disabled with `ZS_NO_UPDATE_CHECK=1`.
+
+An ordinary interactive score may update a local counter and show one optional
+GitHub-star note after the third run. That state remains under `$ZERO_SLOP_HOME`, is
+never transmitted, and is skipped for pipes, JSON, batch, and gate runs. Set
+`ZERO_SLOP_NO_NOTES=1` to disable it.
 
 Build, packaging, benchmark, chart, PDF, website, and test utilities remain in the
 repository but are excluded from the installed plugin runtime.
@@ -57,6 +63,11 @@ overwrite an existing file. Imported contributions are untrusted: Zero Slop disc
 their regexes, rebuilds patterns locally from the reviewed spans, and reruns the safety
 gate.
 
+The npm installer stages a complete copy before replacement. `--force` refuses roots,
+the home directory, the current project, symlinks, files, and nonempty directories that
+do not contain a verifiable Zero Slop runtime. A failed copy leaves the installed skill
+in place.
+
 ## Known limits
 
 - A sample-based `--voice` profile records an existing lexicon or context-gated
@@ -67,9 +78,9 @@ gate.
   proof that a pattern is safe for every dialect, genre, or language.
 - The 0–100 result is a transparent heuristic surface score, not a calibrated
   probability that AI wrote the text.
-- Scripted fidelity checks cover figures, names, quotations, links, and asserted
-  feelings. Claim meaning, qualifiers, voice, and format still require the final
-  semantic review described in `SKILL.md`.
+- Scripted fidelity checks cover figures, names, quotations, links, asserted
+  feelings, and protected document structure. Claim meaning, qualifiers, and voice
+  still require the final semantic review described in `SKILL.md`.
 - Feedback recurrence proves content diversity, not independent authorship. Local
   isolation prevents that limitation from changing the shared detector automatically.
 

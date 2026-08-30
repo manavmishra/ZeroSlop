@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.7.7"
+  version: "2.7.8"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -504,6 +504,17 @@ Re-run the local tools. A version clears the fact gate only when ALL hold:
   wording may change; their content and nesting may not. This deterministic
   check still cannot see a subtly reframed claim, changed emphasis, or shifted
   implication, so the judgment pass below remains mandatory
+- if a reviewer confirms that a dropped figure was an unsourced flourish rather
+  than a fact, record the decision in a source-bound JSON file and rerun:
+
+  ```
+  python3 <skill-root>/scripts/slopscore.py --fidelity \
+    --adjudication <ruling.json> <original> <rewrite>
+  ```
+
+  The file contains schema `1`, the SHA-256 of the exact original text, and
+  `allow_dropped_figures`. It can excuse only figures found in that source; it
+  cannot weaken checks for names, quotations, links, feelings, or structure
 - shape (social genres only): the scorer reports `broetry` when most
   paragraphs are single sentences and fragments run three or more deep. This
   is its own axis, never folded into the score, because broetry is a slop tell
@@ -741,9 +752,10 @@ facts, meaning, structure, and whether the writing is performing rather than say
 ```
 
 The "two-part contrasts / announcements" row is the performed-register count from
-step 2. Add a line for the register gate beside it: `Register gate: 58 checks, 0
-failed` or the count that did fail. A report without it is a report that skipped the
-checklist. **Print it even when both numbers are zero**, and print it on a draft that
+step 2. Add a line beside it: `Final review: 80 checks, 0 failed` or the count
+that did fail. The 80 checks include AI reading, local measurements, and source
+protection; do not imply that one script performed all of them. **Print it even when
+both numbers are zero**, and print it on a draft that
 scored clean. It is the only evidence that the pass ran; a report without it is a
 report that skipped it.
 

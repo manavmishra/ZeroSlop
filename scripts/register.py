@@ -51,6 +51,15 @@ BUDGETS = {
     "referent_cluster": (1.5, 1),
     "adjective_inflation": (1.5, 1),
 }
+# A short draft cannot support a per-1,000-word rate, so it uses an absolute
+# recurrence floor instead. Two families appear once in the certified-human
+# corpus; requiring two keeps those controls quiet while still closing the old
+# "everything under 300 words passes" bypass.
+SHORT_FLOORS = {
+    **{key: floor for key, (_budget, floor) in BUDGETS.items()},
+    "dangling_pointer": 2,
+    "referent_cluster": 2,
+}
 
 # "X, not Y." and "A rather than B." The corrective appositive. Each instance is
 # usually careful writing, which is why no pattern list contains it.
@@ -287,7 +296,7 @@ def measure(text: str) -> dict:
 
     paras = paragraphs(prose)
     lengths = [len(p.split()) for p in paras]
-    uniformity = (
+    paragraph_uniformity = (
         round(statistics.pstdev(lengths) / statistics.mean(lengths), 2)
         if len(lengths) > 2 and statistics.mean(lengths)
         else None
@@ -300,7 +309,7 @@ def measure(text: str) -> dict:
     fragments = verbless_fragments(prose)
     thin = thin_sections(text)
     clusters = referent_clusters(text)
-    uniformity, column = table_row_uniformity(text)
+    table_uniformity, column = table_row_uniformity(text)
 
     return {
         "words": words,
@@ -311,14 +320,14 @@ def measure(text: str) -> dict:
         "verbless_fragment": {"count": len(fragments), "per_1k": per_k(len(fragments)), "hits": fragments[:5]},
         "thin_section": {"count": len(thin), "per_1k": per_k(len(thin)), "hits": thin[:6]},
         "referent_cluster": {"count": len(clusters), "per_1k": per_k(len(clusters)), "hits": clusters[:3]},
-        "table_uniformity": {"share": uniformity, "column": column},
+        "table_uniformity": {"share": table_uniformity, "column": column},
         "subtractive_contrast": {"count": len(subtractive), "per_1k": per_k(len(subtractive)), "hits": subtractive[:12]},
         "comma_series": {"count": len(series), "per_1k": per_k(len(series))},
         "significance_scaffolding": {"count": len(significance), "per_1k": per_k(len(significance)), "hits": significance[:6]},
         "classifier_scaffolding": {"count": len(classifier), "per_1k": per_k(len(classifier)), "hits": classifier[:6]},
         "inanimate_agent": {"count": len(inanimate), "per_1k": per_k(len(inanimate)), "hits": inanimate[:8]},
         "repeated_openings": {"count": len(repeated), "per_1k": per_k(len(repeated)), "hits": repeated[:6]},
-        "paragraph_uniformity": uniformity,
+        "paragraph_uniformity": paragraph_uniformity,
     }
 
 
@@ -329,7 +338,10 @@ def verdicts(m: dict) -> list[tuple[str, float, float, bool]]:
     for key, (budget, floor) in BUDGETS.items():
         value = m[key]["per_1k"]
         count = m[key]["count"]
-        ok = short or value <= budget or count < floor
+        # Rates are unstable on short drafts, but an absolute budget is not.
+        # Below MIN_WORDS, use only the recurrence floor; otherwise require
+        # both enough instances and a rate over budget before failing.
+        ok = count < SHORT_FLOORS[key] if short else value <= budget or count < floor
         rows.append((key, value, budget, ok))
     return rows
 
@@ -360,8 +372,11 @@ def render(m: dict, name: str) -> str:
         out.append(f"  Under {MIN_WORDS} words. Rates are not reported: one instance in a short")
         out.append("  document swamps the rate. Counts only.")
         out.append("")
+        states = {key: ok for key, _value, _budget, ok in verdicts(m)}
         for key in BUDGETS:
-            out.append(f"        {LABEL[key]:<32} {m[key]['count']:>6} found")
+            mark = "ok  " if states[key] else "OVER"
+            out.append(f"  {mark}  {LABEL[key]:<32} {m[key]['count']:>6} found"
+                       f"   limit {SHORT_FLOORS[key] - 1}")
         return "\n".join(out)
     for key, value, budget, ok in verdicts(m):
         mark = "ok  " if ok else "OVER"
@@ -500,8 +515,8 @@ def read_packet(text: str, name: str) -> dict:
         "file": name,
         "instruction": (
             "Work section by section, one pass per section: answer all of section A "
-            "before opening B, and so on. Sixty questions held at once get a "
-            "sixty-th of your attention each; ten at a time get read. Answer with "
+            "before opening B, and so on. Do not hold the whole checklist in "
+            "attention at once; work in small sections and answer each item. Answer with "
             "pass or fail; where a question asks for a count, give the number. Quote "
             "exact spans as evidence; never paraphrase. Then fill _coverage: map "
             "every paragraph id to \"clean\" or to the list of check ids that fire "
@@ -547,8 +562,21 @@ def check_evidence(raw: str, answers: dict, checks: list[dict]) -> list[str]:
         if not isinstance(got, dict):
             continue
         answer = got.get("answer")
-        quotes = [q for q in (got.get("evidence") or []) if isinstance(q, str)]
+        raw_quotes = got.get("evidence")
+        if raw_quotes is not None and not isinstance(raw_quotes, list):
+            problems.append(f"{check['id']} evidence must be a list of exact quotes")
+            raw_quotes = []
+        elif isinstance(raw_quotes, list) and any(not isinstance(q, str) for q in raw_quotes):
+            problems.append(f"{check['id']} evidence entries must all be strings")
+        quotes = [q for q in (raw_quotes or []) if isinstance(q, str)]
         count = got.get("count")
+
+        if ("___" in check["title"] and "count" in check["title"].lower()
+                and (isinstance(count, bool) or not isinstance(count, int) or count < 0)):
+            problems.append(f"{check['id']} is missing a required count")
+        elif count is not None and (isinstance(count, bool)
+                                    or not isinstance(count, int) or count < 0):
+            problems.append(f"{check['id']} count must be a non-negative integer or null")
 
         if answer == "fail" and not quotes:
             problems.append(f"{check['id']} failed with no quoted evidence")
@@ -572,6 +600,9 @@ def check_evidence(raw: str, answers: dict, checks: list[dict]) -> list[str]:
 
 def verdict(text: str, answers: dict) -> tuple[int, str]:
     """Combine the measured rates with the model's read. Both must clear."""
+    if not isinstance(answers, dict):
+        return 1, ("Register verdict\n\n  FAIL    answer packet must be a JSON object "
+                   "keyed by checklist id. No checks were accepted.")
     m = measure(text)
     checks = [c for c in load_checks() if not c["skip"] and not c["auto"]]
     out = ["Register verdict", ""]
@@ -602,7 +633,10 @@ def verdict(text: str, answers: dict) -> tuple[int, str]:
         out.append(f"    {state:<5} {qid:<5}{check['title'][:48]}{shown}")
         if got["answer"] == "fail":
             failed.append(qid)
-            for quote in (got.get("evidence") or [])[:3]:
+            quotes = got.get("evidence")
+            if not isinstance(quotes, list):
+                quotes = []
+            for quote in quotes[:3]:
                 out.append(f"           · {str(quote)[:84]}")
     out.append("")
 
@@ -614,12 +648,53 @@ def verdict(text: str, answers: dict) -> tuple[int, str]:
         out.append("            paragraph nobody read; the checklist was answered from memory.")
         failed.append("coverage (missing)")
     else:
+        known_paragraphs = set(para_ids)
+        # JSON object keys arrive as strings, but verdict() is also a public
+        # library function. Treat an in-process packet with non-string keys as
+        # invalid input instead of letting sorting or joining raise TypeError.
+        unknown = sorted(
+            (key for key in coverage if not isinstance(key, str)
+             or key not in known_paragraphs),
+            key=str,
+        )
         unread = [i for i in para_ids if i not in coverage]
+        coverage_problems = []
+        valid_check_ids = {c["id"] for c in checks}
+        if unknown:
+            coverage_problems.append(
+                "unknown paragraph id(s): " + ", ".join(map(str, unknown[:8])))
+        for para_id in para_ids:
+            if para_id not in coverage:
+                continue
+            value = coverage[para_id]
+            if value == "clean":
+                continue
+            if not isinstance(value, list) or not value:
+                coverage_problems.append(
+                    f"{para_id} must be clean or a non-empty list of failed check ids")
+                continue
+            if any(not isinstance(check_id, str) for check_id in value):
+                coverage_problems.append(f"{para_id} check ids must be strings")
+                continue
+            if len(value) != len(set(value)):
+                coverage_problems.append(f"{para_id} repeats a check id")
+            for check_id in value:
+                if check_id not in valid_check_ids:
+                    coverage_problems.append(f"{para_id} names unknown check {check_id}")
+                else:
+                    referenced = answers.get(check_id)
+                    if not isinstance(referenced, dict) or referenced.get("answer") != "fail":
+                        coverage_problems.append(
+                            f"{para_id} names {check_id}, but that check did not fail")
         if unread:
             out.append(f"    FAIL    {len(unread)} paragraph(s) never dispositioned: "
                        + ", ".join(unread[:8]))
             failed.append("coverage (incomplete)")
-        else:
+        if coverage_problems:
+            for problem in coverage_problems:
+                out.append(f"    FAIL    {problem}")
+            failed.append("coverage (invalid)")
+        if not unread and not coverage_problems:
             flagged = sum(1 for v in coverage.values() if v != "clean")
             out.append(f"    ok      all {len(para_ids)} paragraphs dispositioned, "
                        f"{flagged} carrying findings")
@@ -634,7 +709,12 @@ def verdict(text: str, answers: dict) -> tuple[int, str]:
         out.append("    Re-read the draft and quote the exact span, or change the answer.")
     else:
         answered = sum(1 for c in checks if isinstance(answers.get(c["id"]), dict))
-        quoted = sum(len(answers.get(c["id"], {}).get("evidence") or []) for c in checks)
+        quoted = 0
+        for check in checks:
+            got = answers.get(check["id"])
+            quotes = got.get("evidence") if isinstance(got, dict) else None
+            if isinstance(quotes, list):
+                quoted += sum(isinstance(quote, str) for quote in quotes)
         if not answered:
             out.append("    none    no answer matched any check id. The answers file is for a")
             out.append("            different checklist, or the ids are wrong.")

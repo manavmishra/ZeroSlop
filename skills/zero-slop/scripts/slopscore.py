@@ -24,6 +24,8 @@ The phrase lists live beside this script in ../data/patterns.json and
 """
 import bisect
 import functools
+import hashlib
+import importlib.util
 import json
 import math
 import re
@@ -37,7 +39,19 @@ SHAPE_SOLO_THRESHOLD = 0.62  # calibrated, see calibrate.py --shape
 # Where personal voice profiles live — outside the repo, since they are the
 # user's own writing. One file per author, git-ignored by construction.
 import os
-HOME = Path(os.environ.get("ZERO_SLOP_HOME", Path.home() / ".zero-slop")).expanduser()
+
+# The scorer is both a CLI and an importable single-file module. Load its
+# adjacent helper by path so importlib callers do not have to modify sys.path,
+# and so an unrelated third-party module named ``safeio`` cannot be selected.
+_SAFEIO_SPEC = importlib.util.spec_from_file_location(
+    "_zero_slop_safeio", Path(__file__).resolve().with_name("safeio.py"))
+if _SAFEIO_SPEC is None or _SAFEIO_SPEC.loader is None:  # pragma: no cover
+    raise ImportError("cannot load Zero Slop's adjacent safeio.py")
+_SAFEIO = importlib.util.module_from_spec(_SAFEIO_SPEC)
+_SAFEIO_SPEC.loader.exec_module(_SAFEIO)
+atomic_write_text = _SAFEIO.atomic_write_text
+file_locks = _SAFEIO.file_locks
+HOME = Path(os.environ.get("ZERO_SLOP_HOME") or Path.home() / ".zero-slop").expanduser()
 VOICE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
 
 
@@ -77,13 +91,10 @@ def _load_notes():
 
 def _save_notes(state):
     try:
-        HOME.mkdir(parents=True, exist_ok=True)
-        tmp = NOTES_FILE.with_suffix(".json.tmp")
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(state, fh)
-        os.replace(tmp, NOTES_FILE)
+        atomic_write_text(NOTES_FILE, json.dumps(state) + "\n", mode=0o600)
+        return True
     except OSError:
-        pass  # a read-only home must never break a score
+        return False  # a read-only home must never break a score
 
 
 def star_note_is_due(argv=None, isatty=None, env=None):
@@ -112,14 +123,22 @@ def record_human_run(argv=None, isatty=None, env=None):
         return None
     if not (sys.stdout.isatty() if isatty is None else isatty):
         return None
-    state = _load_notes()
-    if state.get("star_note_shown"):
+    try:
+        # A short best-effort lock prevents simultaneous terminal runs from
+        # both printing the one-time note. Contention or a read-only state
+        # directory must never delay or fail the score itself.
+        with file_locks([NOTES_FILE], timeout=0.25):
+            state = _load_notes()
+            if state.get("star_note_shown"):
+                return None
+            state["human_runs"] = int(state.get("human_runs", 0)) + 1
+            due = state["human_runs"] >= STAR_NOTE_AFTER_RUNS
+            if due:
+                state["star_note_shown"] = True
+            if not _save_notes(state):
+                return None
+    except (OSError, SystemExit):
         return None
-    state["human_runs"] = int(state.get("human_runs", 0)) + 1
-    due = state["human_runs"] >= STAR_NOTE_AFTER_RUNS
-    if due:
-        state["star_note_shown"] = True
-    _save_notes(state)
     if not due:
         return None
     return ("\n  If Zero Slop has been useful, a star helps people find it: "
@@ -1201,14 +1220,15 @@ def facts(text, _other=""):
     out = {}
     for kind, rx in FACT_RX:
         found = set()
-        for m in re.finditer(rx, urls if kind == "url" else prose):
+        flags = re.I if kind == "figure" else 0
+        for m in re.finditer(rx, urls if kind == "url" else prose, flags):
             v = (m.group(1) if m.lastindex else m.group(0)).strip()
             if kind == "name":
                 v = _peel_entity(v, prose, other)
                 if not v:
                     continue
             if kind == "figure":
-                v = v.replace(",", "").lstrip("$").rstrip()
+                v = v.replace(",", "").lstrip("$").rstrip().lower()
                 v = re.sub(r"\s*percent$", "%", v)
                 v = re.sub(r"\s*(million|bn|billion|m|k)$",
                            lambda x: {"million":"m","billion":"bn"}.get(x.group(1), x.group(1)), v)
@@ -1276,7 +1296,9 @@ BLOCKQUOTE_LINE_RX = re.compile(r"^[ \t]*>[^\n]*$", re.M)
 HEADING_RX = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$", re.M)
 PATH_RX = re.compile(
     r"(?<![\w:])((?:\.\.?/|/)[A-Za-z0-9._~\-]+"
-    r"(?:/[A-Za-z0-9._~\-]+)*|[A-Za-z]:\\[A-Za-z0-9._\\~\-]+)"
+    r"(?:/[A-Za-z0-9._~\-]+)*|(?:[A-Za-z0-9._~\-]+/)+"
+    r"[A-Za-z0-9._~\-]+\.[A-Za-z0-9._~\-]+|"
+    r"[A-Za-z]:\\[A-Za-z0-9._\\~\-]+)"
 )
 
 
@@ -1436,6 +1458,49 @@ def figure_contexts(text, figures):
         else:
             out[figure] = ""
     return out
+
+
+def load_adjudication(path, original):
+    """Load explicit dropped-figure rulings bound to one exact source text.
+
+    The file is intentionally small and closed-schema. It cannot weaken name,
+    quote, URL, feeling, or structure checks, and it cannot excuse a number that
+    was not present in the source it names.
+    """
+    source = Path(path)
+    try:
+        if source.stat().st_size > 65_536:
+            raise ValueError("adjudication file exceeds 64 KiB")
+        payload = json.loads(source.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot read adjudication file: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("adjudication file must be a JSON object")
+    expected = {"schema", "original_sha256", "allow_dropped_figures"}
+    if set(payload) != expected or payload.get("schema") != 1:
+        raise ValueError("adjudication file must use schema 1 and only documented keys")
+    digest = payload.get("original_sha256")
+    actual = hashlib.sha256(original.encode("utf-8")).hexdigest()
+    if not isinstance(digest, str) or digest != actual:
+        raise ValueError("adjudication source hash does not match the original text")
+    raw = payload.get("allow_dropped_figures")
+    if not isinstance(raw, list) or len(raw) > 100:
+        raise ValueError("allow_dropped_figures must be a list of at most 100 figures")
+    original_figures = facts(original)["figure"]
+    allowed = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip() or len(item) > 80:
+            raise ValueError("each allowed figure must be a short non-empty string")
+        parsed = facts(item)["figure"]
+        if len(parsed) != 1:
+            raise ValueError(f"allowed figure is not one unambiguous figure: {item!r}")
+        canonical = next(iter(parsed))
+        if canonical not in original_figures:
+            raise ValueError(f"allowed figure is absent from the original: {item!r}")
+        allowed.append(canonical)
+    if len(allowed) != len(set(allowed)):
+        raise ValueError("allow_dropped_figures contains a duplicate")
+    return set(allowed)
 
 
 def fidelity(before, after, adjudicated=None):
@@ -1620,8 +1685,8 @@ def rewrite_score(before_text, after_text, genre=None, data=None,
             "preserved": fid["preserved"], "invented": fid["invented"]}
 
 
-def render_fidelity(before, after):
-    r = fidelity(before, after)
+def render_fidelity(before, after, adjudicated=None):
+    r = fidelity(before, after, adjudicated)
     out = ["", "  FACT AND MEANING CHECK · original vs edited text", ""]
     for kind, kept, dropped, added in r["rows"]:
         out.append(f"  {kind:<8} {len(kept)} kept"
@@ -1640,6 +1705,9 @@ def render_fidelity(before, after):
         out.append("  protected document content changed:")
         for finding in r["structure"][:8]:
             out.append(f"           {finding['code']:<23} {finding['message']}")
+    if r.get("unsourced"):
+        for figure in sorted(r["unsourced"]):
+            out.append(f"  ruled cut {figure!r} (reviewer marked it unsourced)")
     out += ["",
             "  Result: " + ("facts preserved; nothing added"
                              if r["preserved"] and not r["invented"] else
@@ -1726,7 +1794,7 @@ def main():
     if "--help" in argv or "-h" in argv:
         print(__doc__)
         return 0
-    value_flags = {"--gate", "--genre", "--voice"}
+    value_flags = {"--gate", "--genre", "--voice", "--adjudication"}
     bool_flags = {"--json", "--explain", "--formal", "--fidelity", "--dna",
                   "--portfolio", "--batch", "--heatmap"}
     unknown = [arg for arg in argv if arg.startswith("--")
@@ -1739,6 +1807,8 @@ def main():
              if flag in argv]
     if len(modes) > 1:
         raise SystemExit("choose only one mode: " + ", ".join(modes))
+    if "--adjudication" in argv and "--fidelity" not in argv:
+        raise SystemExit("--adjudication is valid only with --fidelity")
 
     gv, _ = gate_value()
     # Values that belong to a flag (--gate 25, --genre social, --voice manav)
@@ -1773,9 +1843,16 @@ def main():
         if len(args) != 2:
             sys.exit("--fidelity needs exactly two files: before and after")
         before, after = _read_text_file(args[0]), _read_text_file(args[1])
-        for line in render_fidelity(before, after):
+        adjudicated = None
+        ruling_path = _required_option_value(argv, "--adjudication")
+        if ruling_path:
+            try:
+                adjudicated = load_adjudication(ruling_path, before)
+            except ValueError as exc:
+                raise SystemExit(str(exc)) from exc
+        for line in render_fidelity(before, after, adjudicated):
             print(line)
-        r = fidelity(before, after)
+        r = fidelity(before, after, adjudicated)
         sys.exit(0 if (r["preserved"] and not r["invented"]) else 1)
 
     if "--dna" in sys.argv:

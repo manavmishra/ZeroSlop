@@ -13,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "package.json"
+      - "bin/**"
       - "SKILL.md"
       - "references/**"
       - "scripts/**"
@@ -66,6 +67,7 @@ jobs:
         run: |
           python3 tests/test_all.py
           python3 scripts/calibrate.py --selftest
+          python3 scripts/register.py --selftest
 
       # The npm tarball and the Claude Code plugin must ship the same runtime.
       # If build_plugin.py's mirror has drifted from the files allowlist, the

@@ -1,19 +1,19 @@
 {
  "result_kind": "interleaved_local_version_comparison",
- "measured_at": "2026-08-30T12:22:12+00:00",
+ "measured_at": "2026-08-30T22:32:14+00:00",
  "environment": {
   "platform": "Darwin",
   "architecture": "arm64",
   "python": "3.9.6"
  },
  "baseline": {
-  "version": "2.7.3",
-  "commit": "dd953d9b78d540ab0b45f88a688903f8cecdc801",
-  "slopscore_sha256": "99217fff003a0c58e653b2c5ae4ae43dfd9c5d8c0d37c33c4ada4f5e1877c34a"
+  "version": "2.7.7",
+  "commit": "51d1d3bc055d59782a5d10c330bbaa63106e7d78",
+  "slopscore_sha256": "e96c607189a1763d2ce26c2380edb777c26caadb7f264e6993f7d78ff2bfe1ce"
  },
  "candidate": {
-  "version": "2.7.7",
-  "slopscore_sha256": "e96c607189a1763d2ce26c2380edb777c26caadb7f264e6993f7d78ff2bfe1ce"
+  "version": "2.7.8",
+  "slopscore_sha256": "f9649903f798b6e964be19e29d7b6e695621ff4913d30e038517ea501dc5d69d"
  },
  "workload": {
   "documents_per_run": 600,
@@ -24,38 +24,38 @@
  },
  "timing_seconds": {
   "baseline": [
-   1.3211,
-   1.5829,
-   1.558,
-   1.3564,
-   1.3116,
-   1.618,
-   1.3422,
-   1.5805,
-   1.3982,
-   1.4811,
-   1.7778,
-   1.3931
+   1.6935,
+   1.7614,
+   1.4768,
+   1.868,
+   1.4126,
+   1.8729,
+   1.869,
+   2.3754,
+   2.3247,
+   1.865,
+   1.8203,
+   1.8644
   ],
   "candidate": [
-   1.2872,
-   1.3327,
-   1.4731,
-   1.5128,
-   1.5066,
-   1.5866,
-   1.6105,
-   1.4774,
-   1.5475,
-   1.46,
-   2.1413,
-   1.3463
+   1.6985,
+   1.8031,
+   1.4665,
+   1.6719,
+   1.906,
+   1.6917,
+   1.5468,
+   1.9185,
+   2.3733,
+   2.0577,
+   1.8831,
+   1.625
   ],
-  "median_baseline": 1.4397,
-  "median_candidate": 1.492,
-  "documents_per_second_baseline": 416.8,
-  "documents_per_second_candidate": 402.1,
-  "median_speed_change_pct": -3.51
+  "median_baseline": 1.8647,
+  "median_candidate": 1.7508,
+  "documents_per_second_baseline": 321.8,
+  "documents_per_second_candidate": 342.7,
+  "median_speed_change_pct": 6.51
  },
  "frozen_regression": {
   "score_changes": 0,
@@ -132,6 +132,14 @@
   },
   "inline_and_path": {
    "baseline_blocks": true,
+   "candidate_blocks": true
+  },
+  "capitalized_magnitude": {
+   "baseline_blocks": false,
+   "candidate_blocks": true
+  },
+  "bare_relative_path": {
+   "baseline_blocks": false,
    "candidate_blocks": true
   },
   "heading_level": {

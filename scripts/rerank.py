@@ -36,7 +36,7 @@ def _tier(s):
     return 0 if s["preserved"] else 1
 
 
-def rank(original, candidates, genre=None):
+def rank(original, candidates, genre=None, adjudicated=None):
     """candidates: {name: text}. Returns them scored and sorted, best first.
 
     Sort key: fidelity tier first (a fabrication can never win), then soft quality,
@@ -55,7 +55,7 @@ def rank(original, candidates, genre=None):
     data = slopscore.load_patterns()
     scored = []
     for name, text in candidates.items():
-        s = slopscore.rewrite_score(original, text, genre, data)
+        s = slopscore.rewrite_score(original, text, genre, data, adjudicated)
         s["name"], s["text"] = name, text
         scored.append(s)
     scored.sort(key=lambda s: (_tier(s), -s["soft"], s["after_ai"],
@@ -93,6 +93,8 @@ def main(argv=None):
     ap.add_argument("--original", required=True, metavar="FILE")
     ap.add_argument("--candidates", metavar="JSON_FILE")
     ap.add_argument("--genre")
+    ap.add_argument("--adjudication", metavar="JSON_FILE",
+                    help="source-bound rulings for figures intentionally removed")
     ap.add_argument("--out", metavar="FILE")
     ap.add_argument("--emit", action="store_true")
     ap.add_argument("files", nargs="*")
@@ -122,8 +124,15 @@ def main(argv=None):
     if len(candidates) < 2:
         ap.error("give at least two candidate rewrites to choose between")
 
+    adjudicated = None
+    if args.adjudication:
+        import slopscore
+        try:
+            adjudicated = slopscore.load_adjudication(args.adjudication, original)
+        except ValueError as exc:
+            ap.error(str(exc))
     try:
-        scored = rank(original, candidates, args.genre)
+        scored = rank(original, candidates, args.genre, adjudicated)
     except ValueError as exc:
         ap.error(str(exc))
     print(render(scored))

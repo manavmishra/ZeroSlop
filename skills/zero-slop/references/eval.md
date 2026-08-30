@@ -232,8 +232,11 @@ the report even when they are zero.
     (`figure_evidence`) and waits. Rule on each one: a figure with a source, a unit,
     a baseline or a citation must be restored; an unsourced multiplier or statistic
     doing an intensifier's job -- "the 10x move", "tenfold", "~70% of pilots fail" --
-    was right to cut, and you record that ruling rather than letting the gate assume
-    it. Never invent a citation to keep a number alive. Unruled means unresolved:
+    was right to cut. Record that ruling in a source-bound JSON file and rerun
+    `slopscore.py --fidelity --adjudication ruling.json original rewrite`; the
+    file carries schema `1`, the exact original text's SHA-256, and an
+    `allow_dropped_figures` list. Never invent a citation to keep a number alive.
+    Unruled means unresolved:
     the default is that the figure stays, so silence here is a failed check and not
     a pass. Both errors are real. Restoring a flourish is how a rewrite ships fake
     precision, and dropping a measurement is how it ships a lie.

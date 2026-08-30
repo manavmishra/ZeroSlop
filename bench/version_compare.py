@@ -145,6 +145,9 @@ def main():
         "frontmatter": ("---\ndraft: false\n---\n\nText.", "---\ndraft: true\n---\n\nText."),
         "inline_and_path": ("Run `check.py` from ./scripts/check.py.",
                             "Run `test.py` from ./scripts/test.py."),
+        "capitalized_magnitude": ("Acme raised $4.2M.", "Acme raised $4.9M."),
+        "bare_relative_path": ("Run scripts/slopscore.py.",
+                               "Run scripts/register.py."),
         "heading_level": ("# Title\n\n## Detail", "# Title\n\n### Detail"),
     }
     structured_results = {

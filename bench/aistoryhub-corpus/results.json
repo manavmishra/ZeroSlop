@@ -16,13 +16,13 @@
  "probe": {
   "definition": "Use the supplied example when present; otherwise use an unambiguous literal term in a lexical, persona, or channel category.",
   "testable_entries": 754,
-  "surface_rule_hit": 273,
-  "surface_rule_hit_rate": 36.2,
+  "surface_rule_hit": 272,
+  "surface_rule_hit_rate": 36.1,
   "by_confidence": {
    "orange": {
     "testable": 297,
-    "surface_rule_hit": 69,
-    "surface_rule_hit_rate": 23.2
+    "surface_rule_hit": 68,
+    "surface_rule_hit_rate": 22.9
    },
    "red": {
     "testable": 359,
@@ -63,8 +63,8 @@
    },
    "words_and_phrases": {
     "testable": 509,
-    "surface_rule_hit": 201,
-    "surface_rule_hit_rate": 39.5
+    "surface_rule_hit": 200,
+    "surface_rule_hit_rate": 39.3
    }
   },
   "by_lifecycle": {
@@ -80,8 +80,8 @@
    },
    "live": {
     "testable": 738,
-    "surface_rule_hit": 259,
-    "surface_rule_hit_rate": 35.1
+    "surface_rule_hit": 258,
+    "surface_rule_hit_rate": 35.0
    },
    "red_herring": {
     "testable": 1,

@@ -11,6 +11,7 @@ data/ so a failing run can never corrupt the shipped taxonomy.
 """
 import json
 import contextlib
+import hashlib
 import importlib.util
 import io
 import os
@@ -1917,6 +1918,9 @@ class DocsMatchReality(unittest.TestCase):
         self.assertNotIn("Two independent LLMs", readme)
         self.assertNotIn("55/40", readme)
         self.assertNotIn("blind judges", readme.lower())
+        self.assertIn("outputs came from v2.5.9", readme)
+        self.assertIn("two-way replay used Zero Slop v2.6.0", compact)
+        self.assertIn("releases/latest/download/zero-slop.zip", readme)
 
     def test_readme_uses_reader_language(self):
         readme = self.docs["README.md"].lower()
@@ -2087,6 +2091,103 @@ class DocsMatchReality(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual(r.stdout.strip(), pkg["version"],
                          "the CLI reports a different version from package.json")
+
+    def test_npm_force_install_refuses_an_unrelated_directory(self):
+        """--force is an update switch, not permission to recursively erase an
+        arbitrary directory."""
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed")
+        entry = ROOT / "bin" / "zero-slop.mjs"
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "project"
+            dest.mkdir()
+            sentinel = dest / "keep-me.txt"
+            sentinel.write_text("user data")
+            env = os.environ.copy()
+            env["HOME"] = str(Path(td) / "home")
+            result = subprocess.run(
+                [node, str(entry), "install", "--dir", str(dest), "--force"],
+                capture_output=True, text=True, cwd=str(ROOT), env=env,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(sentinel.read_text(), "user data")
+            self.assertIn("not a Zero Slop installation", result.stdout + result.stderr)
+
+    def test_npm_install_rejects_missing_option_values(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed")
+        entry = ROOT / "bin" / "zero-slop.mjs"
+        with tempfile.TemporaryDirectory() as td:
+            env = os.environ.copy()
+            env["HOME"] = str(Path(td) / "home")
+            result = subprocess.run(
+                [node, str(entry), "install", "--dir"], capture_output=True,
+                text=True, cwd=str(ROOT), env=env,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("--dir needs a value", result.stdout + result.stderr)
+
+    def test_npm_force_install_updates_only_a_verified_skill(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed")
+        entry = ROOT / "bin" / "zero-slop.mjs"
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "zero-slop"
+            env = os.environ.copy()
+            env["HOME"] = str(Path(td) / "home")
+            first = subprocess.run(
+                [node, str(entry), "install", "--dir", str(dest)],
+                capture_output=True, text=True, cwd=str(ROOT), env=env,
+            )
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            (dest / "stale.txt").write_text("old")
+            update = subprocess.run(
+                [node, str(entry), "install", "--dir", str(dest), "--force"],
+                capture_output=True, text=True, cwd=str(ROOT), env=env,
+            )
+            self.assertEqual(update.returncode, 0, update.stdout + update.stderr)
+            self.assertFalse((dest / "stale.txt").exists())
+            self.assertIn("name: zero-slop", (dest / "SKILL.md").read_text())
+
+    def test_empty_private_home_override_does_not_write_into_the_project(self):
+        env = os.environ.copy()
+        env["ZERO_SLOP_HOME"] = ""
+        code = ("import sys; sys.path.insert(0, 'scripts'); "
+                "import slopscore, learn; print(slopscore.HOME); print(learn.HOME)")
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                                text=True, cwd=str(ROOT), env=env)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        homes = [Path(line).resolve() for line in result.stdout.splitlines()]
+        self.assertEqual(len(homes), 2)
+        self.assertTrue(all(path != ROOT.resolve() for path in homes), homes)
+
+    def test_scorer_imports_by_file_path_without_sys_path_changes(self):
+        """Benchmarks and embedded callers load the scorer directly by path;
+        adjacent runtime helpers must still resolve in that mode."""
+        code = (
+            "import importlib.util; "
+            "p='scripts/slopscore.py'; "
+            "s=importlib.util.spec_from_file_location('standalone_scorer', p); "
+            "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
+            "print(m.score_text('The cache expires hourly.', m.load_patterns())['ai_likelihood'])"
+        )
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                                text=True, cwd=str(ROOT))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_workflow_actions_are_pinned_and_release_checks_the_mirror(self):
+        workflows = ROOT / ".github" / "workflows"
+        for path in workflows.glob("*.yml"):
+            for action in re.findall(r"^\s*- uses:\s*([^\s#]+)", path.read_text(), re.M):
+                with self.subTest(path=path.name, action=action):
+                    self.assertRegex(action, r"@[0-9a-f]{40}$")
+        release = (workflows / "release-assets.yml").read_text()
+        self.assertIn("scripts/build_plugin.py --check", release)
+        publish = (workflows / "publish-npm.yml").read_text()
+        self.assertIn('- "bin/**"', publish)
 
     def test_plugin_manifests_have_required_identity(self):
         for folder in (".claude-plugin", ".codex-plugin"):
@@ -2358,6 +2459,9 @@ class SearchCorpus(unittest.TestCase):
                             for row in record["new_adversarial_detection"].values()))
         self.assertTrue(all(row["candidate_blocks"]
                             for row in record["new_structured_fidelity"].values()))
+        for case in ("capitalized_magnitude", "bare_relative_path"):
+            self.assertFalse(record["new_structured_fidelity"][case]["baseline_blocks"])
+            self.assertTrue(record["new_structured_fidelity"][case]["candidate_blocks"])
 
     def test_historical_judge_record_is_well_formed_and_linked(self):
         record = json.loads((ROOT / "bench" / "replication.json").read_text())
@@ -2822,6 +2926,14 @@ class Fidelity(unittest.TestCase):
         made_up = self.SRC.replace("40%", "40% and churn fell 12%")
         self.assertTrue(slopscore.fidelity(self.SRC, made_up)["invented"])
 
+    def test_capitalized_magnitude_suffix_cannot_hide_a_changed_figure(self):
+        """Money figures are commonly written with uppercase M/K/BN. The old
+        expression captured only the integer prefix, so $4.2M -> $4.9M looked
+        unchanged."""
+        result = slopscore.fidelity("Acme raised $4.2M.", "Acme raised $4.9M.")
+        self.assertFalse(result["preserved"], result)
+        self.assertTrue(result["invented"], result)
+
     def test_sentence_openers_are_not_entities(self):
         """'The', 'See', 'This' are not names; treating them as facts would
         make every rewrite look lossy."""
@@ -2975,6 +3087,42 @@ class Fidelity(unittest.TestCase):
         self.assertFalse(result["preserved"])
         self.assertIn("inline-code-missing", codes)
         self.assertIn("path-missing", codes)
+
+    def test_bare_relative_paths_are_preserved(self):
+        before = "Run scripts/slopscore.py before publishing the release."
+        changed = "Run scripts/register.py before publishing the release."
+        result = slopscore.fidelity(before, changed)
+        codes = {row["code"] for row in result["structure"]}
+        self.assertFalse(result["preserved"], result)
+        self.assertIn("path-missing", codes)
+
+    def test_cli_accepts_a_source_bound_dropped_figure_ruling(self):
+        """The library accepted reviewer rulings, but the shipped command had
+        no way to receive one. A hash binds the ruling to the exact source."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            before = "The unsourced pitch promised a 10x move."
+            original = root / "before.md"
+            edited = root / "after.md"
+            ruling = root / "ruling.json"
+            original.write_text(before)
+            edited.write_text("The pitch made a promise.")
+            ruling.write_text(json.dumps({
+                "schema": 1,
+                "original_sha256": hashlib.sha256(before.encode()).hexdigest(),
+                "allow_dropped_figures": ["10x"],
+            }))
+            result = run([str(SCORER), "--fidelity", "--adjudication",
+                          str(ruling), str(original), str(edited)])
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+            bad = json.loads(ruling.read_text())
+            bad["original_sha256"] = "0" * 64
+            ruling.write_text(json.dumps(bad))
+            rejected = run([str(SCORER), "--fidelity", "--adjudication",
+                            str(ruling), str(original), str(edited)])
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("does not match", rejected.stdout + rejected.stderr)
 
     def test_heading_hierarchy_is_preserved_but_wording_may_change(self):
         before = "# How it works\n\nText.\n\n## Private learning\n\nMore text."
@@ -3151,6 +3299,12 @@ class Diagram(unittest.TestCase):
         """The pasteable bundle is what ChatGPT and Codex users actually get."""
         r = run([str(ROOT / "scripts" / "build_bundle.py"), "--check"])
         self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_single_file_bundle_contains_every_mandatory_final_pass(self):
+        bundle = (ROOT / "dist" / "zero-slop-single-file.md").read_text()
+        for required in ("references/eval.md", "references/fresh-eyes.md"):
+            self.assertIn(f"# FILE: {required}", bundle,
+                          f"single-file installs cannot run {required}")
 
     def test_one_pager_pdf_is_current(self):
         try:
@@ -3482,6 +3636,14 @@ class StarNote(unittest.TestCase):
         for _ in range(20):
             self.assertIsNone(self._run(), "the note repeated; that is a nag")
 
+    def test_simultaneous_runs_cannot_print_the_note_twice(self):
+        from concurrent.futures import ThreadPoolExecutor
+        for _ in range(2):
+            self._run()
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            notes = list(pool.map(lambda _index: self._run(), range(8)))
+        self.assertEqual(sum(note is not None for note in notes), 1, notes)
+
     def test_machine_readable_runs_never_see_it(self):
         # --json, --batch and --gate are the documented CI shapes. A note in any
         # of them corrupts output or noise up a build log.
@@ -3620,6 +3782,112 @@ class RegisterGate(unittest.TestCase):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module
+
+    def _passing_answers(self, module, text):
+        checks = [c for c in module.load_checks() if not c["auto"] and not c["skip"]]
+        answers = {
+            c["id"]: {"answer": "pass", "count": 0, "evidence": [], "note": "checked"}
+            for c in checks
+        }
+        para_ids = [p["id"] for p in module.read_packet(text, "draft")["paragraphs"]]
+        answers["_coverage"] = {i: "clean" for i in para_ids}
+        return answers
+
+    def test_short_drafts_still_enforce_absolute_budgets(self):
+        module = self._register()
+        text = ("The key point is uptime. What this means is the cache failed. "
+                "Here's the thing that matters: the rollback worked.")
+        measured = module.measure(text)
+        self.assertLess(measured["words"], module.MIN_WORDS)
+        rows = {key: ok for key, _value, _budget, ok in module.verdicts(measured)}
+        self.assertFalse(rows["significance_scaffolding"], rows)
+        self.assertIn("OVER", module.render(measured, "short.md"))
+
+    def test_paragraph_and_table_uniformity_are_independent_measurements(self):
+        module = self._register()
+        text = (
+            "A short opening paragraph has enough words to enter the measurement and set a baseline.\n\n"
+            + "A medium paragraph adds more words so its length differs clearly from the first one. " * 2
+            + "\n\n"
+            + "A deliberately long paragraph varies the document rhythm and must not inherit a table score. " * 5
+            + "\n\n| Role | Work |\n|---|---|\n"
+            + "| A | Finds wording, rhythm, readability, and formatting problems |\n" * 4
+        )
+        measured = module.measure(text)
+        self.assertIsNotNone(measured["paragraph_uniformity"])
+        self.assertIsNotNone(measured["table_uniformity"]["share"])
+        self.assertNotEqual(measured["paragraph_uniformity"],
+                            measured["table_uniformity"]["share"])
+
+    def test_verdict_fails_cleanly_on_a_non_object_answer_packet(self):
+        module = self._register()
+        code, report = module.verdict("The team shipped the fix and documented it.", [])
+        self.assertEqual(code, 1, report)
+        self.assertIn("answer packet", report.lower())
+
+    def test_malformed_answer_fields_fail_closed_without_a_traceback(self):
+        module = self._register()
+        text = ("The team shipped the fix and documented the result for everyone. "
+                "The release owner checked the rollback and signed the record.")
+        answers = self._passing_answers(module, text)
+        answers["A1"] = "pass"
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("A1", report)
+
+        answers = self._passing_answers(module, text)
+        answers["A1"] = {"answer": "fail", "count": 1,
+                         "evidence": {"not": "a list"}}
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("evidence must be a list", report)
+
+        answers = self._passing_answers(module, text)
+        para_id = next(iter(answers["_coverage"]))
+        answers["_coverage"][para_id] = [{"not": "a check id"}]
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("strings", report)
+
+        answers = self._passing_answers(module, text)
+        para_id = next(iter(answers["_coverage"]))
+        answers["A1"] = "fail"
+        answers["_coverage"][para_id] = ["A1"]
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("did not fail", report)
+
+        answers = self._passing_answers(module, text)
+        answers["_coverage"][7] = "clean"
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("unknown paragraph id(s): 7", report)
+
+    def test_required_counts_cannot_be_omitted(self):
+        module = self._register()
+        text = "The team shipped the fix and documented the result for the release."
+        answers = self._passing_answers(module, text)
+        answers["A1"].pop("count")
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("missing a required count", report)
+
+    def test_coverage_rejects_unknown_paragraphs_and_invalid_findings(self):
+        module = self._register()
+        text = ("The team shipped the fix and documented the result for everyone. "
+                "The release owner checked the rollback and signed the record.")
+        answers = self._passing_answers(module, text)
+        answers["_coverage"]["p999"] = "clean"
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("unknown paragraph", report)
+
+        answers = self._passing_answers(module, text)
+        para_id = next(iter(answers["_coverage"]))
+        answers["_coverage"][para_id] = ["A999"]
+        code, report = module.verdict(text, answers)
+        self.assertEqual(code, 1, report)
+        self.assertIn("unknown check", report)
 
     def test_each_register_detector_fires_on_its_own_defect(self):
         """The detectors had only negative tests: silent on certified-human text.

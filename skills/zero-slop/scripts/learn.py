@@ -71,8 +71,8 @@ SHARED_LOG = DATA / "learned-log.md"
 # default and lives outside the repository — a checkout should never carry one
 # person's writing. Override with ZERO_SLOP_HOME to relocate or to share a
 # deliberate team-scoped store.
-HOME = Path(os.environ.get("ZERO_SLOP_HOME",
-                           Path.home() / ".zero-slop")).expanduser()
+HOME = Path(os.environ.get("ZERO_SLOP_HOME")
+            or Path.home() / ".zero-slop").expanduser()
 OBS = HOME / "reflections.json"
 LOCAL = HOME / "learned.json"
 LOCAL_LOG = HOME / "learned-log.md"
