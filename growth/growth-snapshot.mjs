@@ -53,7 +53,20 @@ async function allStargazers() {
   return stars;
 }
 
-const [meta, views, clones, referrers, paths, releases, stargazers] = await Promise.all([
+// The registry download count is meaningless before 2.7.6 (no bin shipped, so
+// nothing was installable and the traffic was mirrors). Captured from that
+// release on as the one number that measures the npm install path directly.
+async function npmDownloads(pkg) {
+  const range = `https://api.npmjs.org/downloads/range/last-month/${pkg}`;
+  const res = await fetch(range, { headers: { "User-Agent": headers["User-Agent"] } });
+  if (!res.ok) return null;
+  const body = await res.json();
+  const daily = body.downloads ?? [];
+  const last7 = daily.slice(-7).reduce((sum, d) => sum + d.downloads, 0);
+  return { last_7d: last7, last_30d: daily.reduce((s, d) => s + d.downloads, 0), daily };
+}
+
+const [meta, views, clones, referrers, paths, releases, stargazers, npm] = await Promise.all([
   get(`/repos/${repo}`),
   get(`/repos/${repo}/traffic/views`),
   get(`/repos/${repo}/traffic/clones`),
@@ -61,6 +74,7 @@ const [meta, views, clones, referrers, paths, releases, stargazers] = await Prom
   get(`/repos/${repo}/traffic/popular/paths`),
   get(`/repos/${repo}/releases?per_page=100`),
   allStargazers(),
+  npmDownloads("zero-slop"),
 ]);
 
 // Clone counts are dominated by mirrors, proxies and scanners: this repo has
@@ -93,7 +107,12 @@ const row = {
     tag: r.tag_name,
     published_at: r.published_at,
     downloads: (r.assets ?? []).reduce((sum, a) => sum + (a.download_count ?? 0), 0),
+    // Per asset, because the three install surfaces convert differently: the
+    // zip is the claude.ai button, the single file is ChatGPT, the PDF is
+    // marketing. One total hides which one is actually working.
+    assets: (r.assets ?? []).map((a) => ({ name: a.name, downloads: a.download_count ?? 0 })),
   })),
+  npm,
   stargazers_count_walked: stargazers.length,
   stargazers,
 };
@@ -110,6 +129,6 @@ for (const s of stargazers) {
 }
 const days = [...byDay.entries()].sort((a, b) => (a[0] < b[0] ? 1 : -1)).slice(0, 7);
 
-console.log(`stars=${row.stars} forks=${row.forks} views14d=${row.views_14d.uniques}u clones_above_floor=${row.clones_debiased?.above_floor ?? "n/a"}`);
+console.log(`stars=${row.stars} forks=${row.forks} views14d=${row.views_14d.uniques}u clones_above_floor=${row.clones_debiased?.above_floor ?? "n/a"} npm7d=${npm?.last_7d ?? "n/a"}`);
 console.log("stars per day (last 7 with activity):");
 for (const [day, n] of days) console.log(`  ${day}  ${"*".repeat(Math.min(n, 60))} ${n}`);
