@@ -12,7 +12,10 @@
 //
 // The scorer output in the script below is real. It is what
 // `scripts/slopscore.py --explain` prints for the draft shown, and the same
-// numbers appear in the README next to the same paragraph. Re-run the scorer
+// numbers appear in the README next to the same paragraph, and they must stay
+// equal to it: the README's rewrite was tightened after this file first
+// carried a different one, and the screencast went stale the same day.
+// Re-run the scorer
 // before editing any figure here: a screencast that overstates the meter would
 // be the one piece of slop in the repository.
 
@@ -67,8 +70,8 @@ const SCRIPT = [
   { kind: "out", html: `<span style="color:${C.dim}">  rewriting, then checking names, numbers, quotes, links</span>`, hold: 7 },
   { kind: "out", html: `<span style="color:${C.green}">  fact gate: 40% held</span>`, hold: 5 },
   { kind: "gap" },
-  { kind: "out", html: `<span style="color:${C.ink}">Writing score: </span><span style="color:${C.green};font-weight:600">10.8/100</span><span style="color:${C.dim}">  [clear]</span>`, hold: 4 },
-  { kind: "out", html: `<span style="color:${C.muted}">  Flagged phrases : 0 across 40 words</span>`, hold: 26 },
+  { kind: "out", html: `<span style="color:${C.ink}">Writing score: </span><span style="color:${C.green};font-weight:600">9.5/100</span><span style="color:${C.dim}">  [clear]</span>`, hold: 4 },
+  { kind: "out", html: `<span style="color:${C.muted}">  Flagged phrases : 0 across 10 words</span>`, hold: 26 },
 ];
 
 const CHARS_PER_FRAME = 3;
