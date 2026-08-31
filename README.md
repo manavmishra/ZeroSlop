@@ -57,8 +57,8 @@ Writing score: 10.8/100  [clear]
 ## Problem
 
 AI-assisted writing often converges on the same constructions: "It's not X. It's Y."
-"Here's the thing nobody tells you." One phrase proves little. Repetition across
-wording, rhythm, structure, and formatting is the problem.
+"Here's the thing nobody tells you." One emdash is fine. Multiple emdashes, definitely slop. Repetition across 
+wording, rhythm, structure, and formatting is often the tell of slop.
 
 Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible
 model edits; local tools check names, numbers, quotations, links, code, tables, and
