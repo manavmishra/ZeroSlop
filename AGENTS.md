@@ -54,9 +54,11 @@ are examples, not limits.
   `--gate`, and by any run whose stdout is not a terminal.
 - `bench/` (if present) — reproducible benchmark harness and scorecard.
 - `website/` is a retained, testable snapshot, not the source of the live site.
-  Its deploy command intentionally refuses. The yellow production site lives in
-  `github.com/manavmishra/ZSWebpage`; make and deploy site changes there. Do not
-  remove the refusal guard or deploy this snapshot to `zero-slop.ai`.
+  Its deploy command intentionally refuses. The live site at `zero-slop.ai` is
+  built from `github.com/manavmishra/ZSWebpage`; make and deploy site changes
+  there. Do not remove the refusal guard or deploy this snapshot to
+  `zero-slop.ai`. Identify production by its domain, not its palette: the colour
+  named here went stale the day the site was repainted.
 
 ## Maintenance contract
 
