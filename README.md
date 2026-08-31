@@ -45,20 +45,19 @@ Writing score: 100.0/100  [major rewrite]
     'leveraged'              buzzword used as promotion; use the plain word
 ```
 
-The rewrite, with the fact gate holding `40%` in place:
+The rewrite, limited to the draft's stated claims:
 
-> We rebuilt onboarding and cut setup time by 40%. Most of that came from removing three configuration steps that only ever set defaults. What is left is account linking, which still takes four screens and is what we are fixing next.
+> We used machine learning to reduce onboarding setup time by 40%.
 
 ```text
-Writing score: 10.8/100  [clear]
-  Flagged phrases : 0 across 40 words
+Writing score: 9.5/100  [clear]
+  Flagged phrases : 0 across 10 words
 ```
 
 ## Problem
 
 AI-assisted writing often converges on the same constructions: "It's not X. It's Y."
-"Here's the thing nobody tells you." One emdash is fine. Multiple emdashes, definitely slop. Repetition across 
-wording, rhythm, structure, and formatting is often the tell of slop.
+"Here's the thing nobody tells you." One emdash is fine. Multiple emdashes, definitely slop. The same effect can come from repetition in the wording or the structure. Mechanical rhythm and overworked formatting can do it too.
 
 Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible
 model edits; local tools check names, numbers, quotations, links, code, tables, and
@@ -131,7 +130,7 @@ Eight roles form one workflow. Each is a job rather than a service, run as its o
 
 | Role | Who does it | What happens |
 |---|---|---|
-| 1. Scorer | Local tools | Finds the exact wording, rhythm, readability, and formatting problems that raised the writing score. |
+| 1. Scorer | Local tools | Finds the exact phrases behind the writing score, then checks pacing and readability. It also catches overworked formatting. |
 | 2. Interpreter | Your AI assistant | Reads the claims, purpose, audience, structure, and voice before changing anything. |
 | 3. Rewriter | Your AI assistant | Removes stock language and rebuilds order, rhythm, and tone without inventing detail. |
 | 4. Fact gate | Local tools | Rejects any version that changes names, numbers, quotations, links, code, tables, paths, or structure. |

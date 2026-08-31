@@ -1902,7 +1902,7 @@ class DocsMatchReality(unittest.TestCase):
         # 1350 -> 1700 on 2026-08-30 for the worked example that now opens the
         # page: the draft as a model wrote it, real slopscore.py --explain output
         # over that exact paragraph (100.0, eleven flagged phrases across 83
-        # words), the rewrite, and its score (10.8, none). That is about 260
+        # words), the source-bound rewrite, and its score. That is about 260
         # words and it is the only part of the file that shows the meter working
         # rather than describing it. Everything else in the project points here,
         # and a reader arriving from a directory listing decides on the first
@@ -1929,6 +1929,44 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("outputs came from v2.5.9", readme)
         self.assertIn("two-way replay used Zero Slop v2.6.0", compact)
         self.assertIn("releases/latest/download/zero-slop.zip", readme)
+
+    def test_readme_worked_example_is_source_bound_and_measured(self):
+        """The showcase rewrite must not invent the substance it claims to protect.
+
+        The previous version added three configuration steps, default settings,
+        a four-screen account-linking flow, and a product-roadmap commitment that
+        appeared nowhere in the displayed source. Pin this small public example as
+        a fixture: changing it requires an explicit new source/rewrite pair and
+        fresh measurements rather than plausible-sounding product detail.
+        """
+        readme = self.docs["README.md"]
+        source_match = re.search(
+            r"A launch post, as AI wrote it:\s*\n\s*(?P<quote>>[^\n]+)", readme
+        )
+        rewrite_match = re.search(
+            r"The rewrite, limited to the draft's stated claims:\s*\n\s*"
+            r"(?P<quote>>[^\n]+)", readme
+        )
+        self.assertIsNotNone(source_match, "README source example is missing")
+        self.assertIsNotNone(rewrite_match, "README source-bound rewrite is missing")
+
+        source = source_match.group("quote").removeprefix(">").strip()
+        rewrite = rewrite_match.group("quote").removeprefix(">").strip()
+        self.assertEqual(
+            rewrite,
+            "We used machine learning to reduce onboarding setup time by 40%.",
+        )
+
+        fidelity = slopscore.fidelity(source, rewrite)
+        self.assertTrue(fidelity["preserved"], fidelity)
+        self.assertFalse(fidelity["invented"], fidelity)
+
+        score = slopscore.score_text(rewrite, slopscore.load_patterns())
+        self.assertEqual(score["n_words"], 10)
+        self.assertEqual(len(score["hits"]), 0)
+        self.assertAlmostEqual(score["ai_likelihood"], 9.5, places=1)
+        self.assertIn("Writing score: 9.5/100", readme)
+        self.assertIn("Flagged phrases : 0 across 10 words", readme)
 
     def test_readme_uses_reader_language(self):
         readme = self.docs["README.md"].lower()
