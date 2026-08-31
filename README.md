@@ -11,8 +11,8 @@
 Less slop, more pop in your writing.
 
 Zero Slop finds stock phrasing, mechanical rhythm, vague claims, and canned
-formatting, then gives your AI assistant an editing workflow on guardrails. Its
-MIT-licensed local checks run offline; your existing AI assistant does the editing.
+formatting, then gives your AI assistant or agent harness an editing workflow on guardrails. Its
+MIT-licensed local checks run offline; your existing AI assistant or harness does the editing.
 See the benchmark at [zero-slop.ai](https://zero-slop.ai).
 
 ```sh
