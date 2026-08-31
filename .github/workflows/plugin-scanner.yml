@@ -1,0 +1,123 @@
+name: plugin scanner
+
+# HOL's plugin registry gives a listed project the full trust score only when it
+# keeps scanner CI running; without it the listing stays eligible but takes a
+# 10% reduction. That is the whole reason this file exists, so it is written to
+# be boring: pinned to exact commits, least privilege, and unable to fail the
+# build for reasons that are not about this repository.
+#
+# Everything third-party is pinned to a commit SHA rather than a moving tag.
+# ai-plugin-scanner-action shipped 556 patch releases on v1, and `@v1` is a
+# mutable pointer: whoever controls the tag controls what runs here. The SHA
+# below is v1.2.556, which pins plugin-scanner 3.0.24 inside the action, fetches
+# the wheel with `--only-binary --no-deps`, and verifies its PyPI attestations
+# before installing. Upgrading is a deliberate edit to this file, reviewed like
+# any other dependency bump.
+#
+# The scanner's heavy dependency tree (litellm, keyring, mcp, cryptography) only
+# arrives with the opt-in Cisco extra, so both Cisco switches stay off. Zero Slop
+# ships a standard-library scorer with no runtime dependencies; CI should not
+# quietly contradict that.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # "Continuous checks" is what the registry actually asks for, and a repo can
+  # sit for weeks without a push while an advisory lands against something it
+  # already contains.
+  schedule:
+    - cron: "27 5 * * 1"
+  workflow_dispatch:
+
+# Read-only by default. The one job that needs more says so itself.
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-scanner-${{ github.event.pull_request.number || github.ref }}
+  # Superseded pull-request runs are noise. A push to main or a scheduled run is
+  # the audit record, so those are never cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scan:
+    name: scan
+    runs-on: ubuntu-24.04
+    # Pinned rather than ubuntu-latest: a runner image rollover should not be
+    # able to change what this reports.
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # Only for the code-scanning upload below, which is isolated and optional.
+      security-events: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The scanner reads the tree. It never needs to push, and leaving a
+          # credential in .git/config for a third-party step to inherit is the
+          # cheapest supply-chain mistake there is.
+          persist-credentials: false
+
+      - name: Scan the plugin surface
+        id: scan
+        uses: hashgraph-online/ai-plugin-scanner-action@e8d22252f8696244a1a29f61ee9e7107266c1156 # v1.2.556 (plugin-scanner 3.0.24)
+        with:
+          plugin_dir: "."
+          mode: scan
+          # This repository is listed in a public catalogue, so it is held to the
+          # profile that catalogue applies rather than the laxer default.
+          profile: public-marketplace
+          format: sarif
+          output: plugin-scanner.sarif
+          # No live network probing. A gate that reaches the internet fails when
+          # someone else's host is down, and reports something different on
+          # Tuesday than it did on Monday.
+          online: "false"
+          # Keeps the install to one attested wheel with no dependencies.
+          install_cisco: "false"
+          cisco_skill_scan: "off"
+          # This can open issues in other people's repositories and wants a token
+          # with issues:write to do it. Submission is a human decision.
+          submission_enabled: "false"
+          # The action uploads SARIF itself, but then a code-scanning outage or a
+          # disabled feature fails the whole gate. Uploaded separately below.
+          upload_sarif: "false"
+          pr_comment: "off"
+          write_step_summary: "true"
+          # Fail on findings that are actually about this repository's security,
+          # and only at high or critical. Gating on low/info would hand the build
+          # to someone else's rule tuning across 556 releases.
+          fail_on_severity: high
+          # Deliberately not gated on their score. The trust score is a number on
+          # their directory page that moves when they retune it; it is not a
+          # statement about whether this commit is safe to merge.
+          min_score: "0"
+
+      - name: Keep the report as evidence
+        # Runs even when the scan fails, because a failed scan is exactly the
+        # report someone will want to read.
+        if: always() && hashFiles('plugin-scanner.sarif') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: plugin-scanner-sarif-${{ github.run_id }}
+          path: plugin-scanner.sarif
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Publish to code scanning
+        # Isolated and non-blocking on purpose. A fork pull request has no
+        # security-events write, and code scanning may be off on a given
+        # repository; neither is a reason to redden a security gate. The artifact
+        # above is the durable record either way.
+        if: >-
+          always()
+          && hashFiles('plugin-scanner.sarif') != ''
+          && github.event.pull_request.head.repo.fork != true
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
+        with:
+          sarif_file: plugin-scanner.sarif
+          category: ai-plugin-scanner
