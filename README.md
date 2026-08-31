@@ -8,10 +8,10 @@
   <img alt="version" src="https://img.shields.io/badge/version-2.7.8-72528F">
 </p>
 
-Less slop, more pop.
+Less slop, more pop in your writing.
 
 Zero Slop finds stock phrasing, mechanical rhythm, vague claims, and canned
-formatting, then gives your AI assistant a guarded editing workflow. Its
+formatting, then gives your AI assistant an editing workflow on guardrails. Its
 MIT-licensed local checks run offline; your existing AI assistant does the editing.
 See the benchmark at [zero-slop.ai](https://zero-slop.ai).
 
@@ -21,7 +21,7 @@ npx zero-slop install
 
 ### What it does, on a real draft
 
-A launch post, as the model wrote it:
+A launch post, as AI wrote it:
 
 > We're thrilled to announce that our team has leveraged cutting-edge AI to deliver a seamless onboarding experience. It's not just a redesign, it's a fundamental reimagining of how users engage with our platform. In today's fast-paced landscape, the ability to iterate quickly is crucial. By harnessing the power of machine learning, we've been able to reduce setup time by 40%. Here's the thing nobody tells you: onboarding is where most products lose their users. We're excited to continue this journey with you.
 
