@@ -1,0 +1,28 @@
+# Third-party Actions are pinned to commit SHAs in every workflow here, which
+# is the right default: a tag is a mutable pointer, and whoever controls it
+# controls what runs in CI. The cost of that is a pin nobody notices going
+# stale, including when the pinned commit is the one carrying an advisory.
+#
+# Dependabot is the counterweight. It opens a pull request when a pinned
+# action moves, so an upgrade stays a reviewed edit rather than a tag someone
+# else can change underneath us.
+#
+# The npm ecosystem is listed even though this package has no dependencies at
+# all. That is the product's claim, and an empty lockfile plus a watcher is how
+# it stays true rather than merely being asserted.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
