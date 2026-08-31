@@ -19,7 +19,7 @@ See the benchmark at [zero-slop.ai](https://zero-slop.ai).
 npx zero-slop install
 ```
 
-![Scoring a launch post at 100.0, rewriting it to 10.8, with the 40% figure held by the fact gate](assets/zero-slop-demo.gif)
+![Scoring a launch post at 100.0, rewriting it to 9.5, with the 40% figure held by the fact gate](assets/zero-slop-demo.gif)
 
 ### What it does, on a real draft
 
