@@ -6,6 +6,7 @@
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
   <img alt="version" src="https://img.shields.io/badge/version-2.7.8-72528F">
+  <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
 </p>
 
 Less slop, more pop in your writing.
@@ -80,7 +81,10 @@ Or install it with `npx`:
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Or from the registry, which also installs the scorer as a command:
+Or from the registry, which also installs the scorer as a command. Zero Slop is
+listed in [awesome-ai-plugins](https://github.com/hashgraph-online/awesome-ai-plugins)
+and carries a public profile in the [HOL plugin registry](https://hol.org/guard/plugins),
+where its trust score and scanner results are published:
 
 ```sh
 npx zero-slop install          # add --harness codex|cursor|opencode|zed
