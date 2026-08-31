@@ -50,6 +50,7 @@
     "!scripts/contextual.py",
     "!scripts/contextual-signals.md",
     "!references/contextual-signals.md",
+    "!scripts/make-readme-gif.mjs",
     "!scripts/growth-snapshot.mjs",
     "!data/voices/",
     "!**/__pycache__/"
