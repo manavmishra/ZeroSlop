@@ -35,6 +35,7 @@ import sys
 # certified-human samples would let these budgets be derived rather than argued.
 MIN_WORDS = 300
 BUDGETS = {
+    "antithesis_pair": (0.0, 2),
     "subtractive_contrast": (6.0, 3),
     "comma_series": (26.0, 8),
     "significance_scaffolding": (0.0, 1),
@@ -60,6 +61,81 @@ SHORT_FLOORS = {
     "dangling_pointer": 2,
     "referent_cluster": 2,
 }
+
+# eval.md A1 / SKILL.md step 2.1: antithesis pairs -- two balanced statements,
+# the second landing the twist. Budget is ONE per piece, and "three or more under
+# 500 words means the register failed whatever the score said."
+#
+# This report had no row for that family. RX_SUBTRACTIVE below is a different
+# check -- eval.md A2, the corrective appositive, judged on density -- and it was
+# carrying the whole contrast family's name in the report while A1 went
+# unmeasured. A 479-word manifesto with five antithesis pairs in it therefore
+# printed "Binary contrasts: 1 found, ok" and nothing else about contrast.
+#
+# Two of the four shapes are reachable without a parser, and only those two ship:
+#   marked staccato   -- "Not perfect. Honest."
+#   adjacent isocolon -- one verb frame, both arguments swapped: "Speed is moving
+#                        fast. Velocity is moving fast in the same direction."
+# Bare subject swap and unmarked reversal stay the reader's judgment, exactly as
+# references/tells.md already says they must.
+ANTITHESIS_STOP = frozenset("""
+a an the this that these those it its is are was were be been being am do does did
+to of in on at by for with from as and or but so if then than not no nor yet
+we you they he she i us our your their his her them me my their there here
+one two three first second next last own same very just only also more most less
+""".split())
+
+# The negation can open the pair ("Not perfect. Honest.") or land at the end of
+# it ("The draft was cheap. The signal it sent was not."). Both are in tells.md.
+RX_MARKED_OPEN = re.compile(r"^\W*not\b", re.I)
+RX_MARKED_CLOSE = re.compile(r"\b(?:was|were|is|are|did|does|do|has|have|had|will)\s+not\W*$", re.I)
+
+
+def _antithesis_content(sent: str) -> list[str]:
+    """Content words, with a trailing -s folded away so a verb frame still
+    matches when only its agreement changed: 'let' and 'lets' are one frame."""
+    out = []
+    for word in re.findall(r"[A-Za-z][\w'-]*", sent):
+        word = word.lower()
+        if word in ANTITHESIS_STOP:
+            continue
+        if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
+            word = word[:-1]
+        out.append(word)
+    return out
+
+
+def antithesis_pairs(prose: str) -> list[str]:
+    """Adjacent balanced sentences: the marked form, and the swapped-argument one."""
+    out = []
+    sents = _sentences(prose)
+    for first, second in zip(sents, sents[1:]):
+        n_first, n_second = len(first.split()), len(second.split())
+        # Both halves have to be short enough to read as one figure. A short
+        # line beside a paragraph-length sentence is not a balanced pair.
+        if not (2 <= n_first <= 14 and 1 <= n_second <= 14):
+            continue
+        # Marked: the twist is announced, at either end of the pair.
+        if RX_MARKED_OPEN.match(first) and n_second <= 10:
+            out.append(f"{first} {second}")
+            continue
+        if RX_MARKED_CLOSE.search(second) and n_first <= 10:
+            out.append(f"{first} {second}")
+            continue
+        head, tail = _antithesis_content(first), _antithesis_content(second)
+        if len(head) < 2 or len(tail) < 2:
+            continue
+        # Identical content is repetition, not antithesis: the figure needs the
+        # arguments to have changed.
+        if head == tail:
+            continue
+        shared = set(head) & set(tail)
+        # A shared frame carrying most of the shorter sentence, with the
+        # arguments changed: that is the figure, not an accidental echo.
+        if len(shared) >= 2 and len(shared) / min(len(head), len(tail)) >= 0.5:
+            out.append(f"{first} {second}")
+    return out
+
 
 # "X, not Y." and "A rather than B." The corrective appositive. Each instance is
 # usually careful writing, which is why no pattern list contains it.
@@ -142,6 +218,28 @@ RX_INFLATION = re.compile(
     r"(?:improvement|progress|difference|impact|result|results|value|win|shift"
     r"|change|benefit|breakthrough|game.?changer)\b", re.I)
 
+# An imperative is the bare base form, so it carries none of the inflection
+# (-s, -ed, -es) or the auxiliaries FINITE_VERB looks for: "Play to win." and
+# "Build durable growth." were both being reported as verbless fragments. On the
+# seven-line manifesto that surfaced this, two of the five hits were imperatives,
+# so 40% of the document's one finding was wrong. A closed list is the same
+# device FINITE_VERB already is, and it only ever fires at a sentence opening.
+IMPERATIVE_OPENER = re.compile(
+    r"^\W*(?:and|but|so|then|now|first|next|finally)?\W*"
+    r"(?:add|aim|allow|apply|ask|assume|avoid|begin|book|break|bring|build|buy"
+    r"|call|change|check|choose|clean|clear|click|close|collect|come|compare"
+    r"|consider|copy|count|cover|create|cut|decide|define|delete|deliver|design"
+    r"|do|draw|drive|drop|edit|enter|expect|explain|fill|find|finish|fix|focus"
+    r"|follow|forget|get|give|go|grab|grow|handle|help|hire|hold|imagine|include"
+    r"|install|invest|join|keep|know|launch|lead|learn|leave|let|listen|look"
+    r"|love|make|meet|move|name|note|notice|open|pay|pick|plan|play|point|prefer"
+    r"|press|pull|push|put|read|remember|remove|repeat|replace|report|reset"
+    r"|return|review|run|save|say|scale|see|select|sell|send|set|share|ship|show"
+    r"|sign|skip|solve|sort|speak|spend|stand|start|stay|stop|study|take|talk"
+    r"|teach|tell|test|think|throw|touch|track|treat|trust|try|turn|update|use"
+    r"|wait|walk|want|watch|win|write)\b",
+    re.I)
+
 FINITE_VERB = re.compile(
     r"\b(?:is|are|was|were|be|been|being|has|have|had|do|does|did|can|could|will"
     r"|would|shall|should|may|might|must|gets?|goes|comes?|makes?|takes?|gives?"
@@ -160,6 +258,8 @@ def verbless_fragments(prose: str) -> list[str]:
         if not (3 <= len(words) <= 12):
             continue
         if sent.rstrip().endswith(":") or sent.lstrip().startswith(("-", "*", "#", "|")):
+            continue
+        if IMPERATIVE_OPENER.match(sent):
             continue
         if not FINITE_VERB.search(sent):
             out.append(sent)
@@ -307,6 +407,7 @@ def measure(text: str) -> dict:
     triads = [" ".join(m.group(0).split()) for m in NEGATION_TRIAD.finditer(prose)]
     dangling = dangling_pointers(text)
     fragments = verbless_fragments(prose)
+    antithesis = antithesis_pairs(prose)
     thin = thin_sections(text)
     clusters = referent_clusters(text)
     table_uniformity, column = table_row_uniformity(text)
@@ -321,6 +422,7 @@ def measure(text: str) -> dict:
         "thin_section": {"count": len(thin), "per_1k": per_k(len(thin)), "hits": thin[:6]},
         "referent_cluster": {"count": len(clusters), "per_1k": per_k(len(clusters)), "hits": clusters[:3]},
         "table_uniformity": {"share": table_uniformity, "column": column},
+        "antithesis_pair": {"count": len(antithesis), "per_1k": per_k(len(antithesis)), "hits": antithesis[:6]},
         "subtractive_contrast": {"count": len(subtractive), "per_1k": per_k(len(subtractive)), "hits": subtractive[:12]},
         "comma_series": {"count": len(series), "per_1k": per_k(len(series))},
         "significance_scaffolding": {"count": len(significance), "per_1k": per_k(len(significance)), "hits": significance[:6]},
@@ -354,7 +456,8 @@ LABEL = {
     "verbless_fragment": "Verbless fragments",
     "thin_section": "Headings over a sentence or two",
     "referent_cluster": "One thing under several names",
-    "subtractive_contrast": "Binary contrasts",
+    "antithesis_pair": "Antithesis pairs",
+    "subtractive_contrast": "Binary contrasts (X, not Y)",
     "comma_series": "Comma-series density",
     "significance_scaffolding": "Announced significance",
     "classifier_scaffolding": "Graded not delivered (stems)",

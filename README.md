@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.7.8-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.8.0-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations"><img alt="Listed in awesome-ai-plugins" src="https://img.shields.io/badge/awesome--ai--plugins-listed-2C6E8F"></a>
   <a href="https://zero-slop.ai/try/"><img alt="This README scores 12.0 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55"></a>
@@ -226,7 +226,7 @@ Zero Slop v2.6.0 and is preserved in
 For the 38-item editorial panel, the current scorer matched the prior 84.2% result.
 All frozen scores stayed unchanged, all 18 human controls remained below the gate,
 and all 18 obvious search cases remained above it. These fixed-sample checks are not
-proof of general accuracy. We recorded 6.51% higher median throughput across 12 interleaved
+proof of general accuracy. We recorded 1.86% lower median throughput across 31 interleaved
 local runs; treat that as machine noise, not a speed claim.
 
 ### Speed

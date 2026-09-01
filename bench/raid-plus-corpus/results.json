@@ -1,105 +1,105 @@
 {
- "result_kind": "current_model_surface_audit",
- "calibrated_accuracy": false,
- "source": {
-  "dataset": "markstanl/RAID-Plus",
-  "revision": "317600a0c8dd5ce835b4a2aac360ac7b575cc380",
-  "last_modified": "2026-05-14T18:05:37.000Z",
-  "rows": 8000,
-  "scored_rows": 7627,
-  "failed_or_empty_rows": 373,
-  "model_rows": {
-   "deepseek-v3": 2000,
-   "gemini-3.1-pro": 2000,
-   "gemma-3-27b": 2000,
-   "llama-3.3-70b": 2000
+  "result_kind": "current_model_surface_audit",
+  "calibrated_accuracy": false,
+  "source": {
+    "dataset": "markstanl/RAID-Plus",
+    "revision": "317600a0c8dd5ce835b4a2aac360ac7b575cc380",
+    "last_modified": "2026-05-14T18:05:37.000Z",
+    "rows": 8000,
+    "scored_rows": 7627,
+    "failed_or_empty_rows": 373,
+    "model_rows": {
+      "deepseek-v3": 2000,
+      "gemini-3.1-pro": 2000,
+      "gemma-3-27b": 2000,
+      "llama-3.3-70b": 2000
+    },
+    "content_sha256": "b043624ed6cc16a2c92cdd63c2ed1ddd33ac5efc7bf7c5d461758431f8f7017a",
+    "license": "MIT"
   },
-  "content_sha256": "b043624ed6cc16a2c92cdd63c2ed1ddd33ac5efc7bf7c5d461758431f8f7017a",
-  "license": "MIT"
- },
- "scorer": {
-  "version": "2.7.8",
-  "slopscore_sha256": "f9649903f798b6e964be19e29d7b6e695621ff4913d30e038517ea501dc5d69d",
-  "patterns_sha256": "465f14bce035247f084b563380ba558c96c23abb057a6420b155f080cbba2682",
-  "learned_sha256": "8427cf1f2b3aa45494db94c0ce30969dbc7368174138c5b771c15951ca12f483",
-  "generic_gate": 25.0,
-  "formal_domains": [
-   "abstracts"
-  ]
- },
- "overall": {
-  "documents": 7627,
-  "mean_writing_score": 19.6,
-  "median_writing_score": 15.6,
-  "middle_50_pct_range": [
-   9.5,
-   24.8
-  ],
-  "at_or_above_generic_gate": 1896,
-  "at_or_above_generic_gate_pct": 24.9
- },
- "models": {
-  "deepseek-v3": {
-   "documents": 1995,
-   "mean_writing_score": 14.5,
-   "median_writing_score": 9.5,
-   "middle_50_pct_range": [
-    9.5,
-    17.7
-   ],
-   "at_or_above_generic_gate": 202,
-   "at_or_above_generic_gate_pct": 10.1,
-   "failed_or_empty": 5
+  "scorer": {
+    "version": "2.8.0",
+    "slopscore_sha256": "f9649903f798b6e964be19e29d7b6e695621ff4913d30e038517ea501dc5d69d",
+    "patterns_sha256": "465f14bce035247f084b563380ba558c96c23abb057a6420b155f080cbba2682",
+    "learned_sha256": "8427cf1f2b3aa45494db94c0ce30969dbc7368174138c5b771c15951ca12f483",
+    "generic_gate": 25.0,
+    "formal_domains": [
+      "abstracts"
+    ]
   },
-  "gemini-3.1-pro": {
-   "documents": 1998,
-   "mean_writing_score": 17.0,
-   "median_writing_score": 9.5,
-   "middle_50_pct_range": [
-    9.5,
-    20.9
-   ],
-   "at_or_above_generic_gate": 363,
-   "at_or_above_generic_gate_pct": 18.2,
-   "failed_or_empty": 2
+  "overall": {
+    "documents": 7627,
+    "mean_writing_score": 19.6,
+    "median_writing_score": 15.6,
+    "middle_50_pct_range": [
+      9.5,
+      24.8
+    ],
+    "at_or_above_generic_gate": 1896,
+    "at_or_above_generic_gate_pct": 24.9
   },
-  "gemma-3-27b": {
-   "documents": 1634,
-   "mean_writing_score": 21.6,
-   "median_writing_score": 18.4,
-   "middle_50_pct_range": [
-    9.5,
-    27.5
-   ],
-   "at_or_above_generic_gate": 497,
-   "at_or_above_generic_gate_pct": 30.4,
-   "failed_or_empty": 366
+  "models": {
+    "deepseek-v3": {
+      "documents": 1995,
+      "mean_writing_score": 14.5,
+      "median_writing_score": 9.5,
+      "middle_50_pct_range": [
+        9.5,
+        17.7
+      ],
+      "at_or_above_generic_gate": 202,
+      "at_or_above_generic_gate_pct": 10.1,
+      "failed_or_empty": 5
+    },
+    "gemini-3.1-pro": {
+      "documents": 1998,
+      "mean_writing_score": 17.0,
+      "median_writing_score": 9.5,
+      "middle_50_pct_range": [
+        9.5,
+        20.9
+      ],
+      "at_or_above_generic_gate": 363,
+      "at_or_above_generic_gate_pct": 18.2,
+      "failed_or_empty": 2
+    },
+    "gemma-3-27b": {
+      "documents": 1634,
+      "mean_writing_score": 21.6,
+      "median_writing_score": 18.4,
+      "middle_50_pct_range": [
+        9.5,
+        27.5
+      ],
+      "at_or_above_generic_gate": 497,
+      "at_or_above_generic_gate_pct": 30.4,
+      "failed_or_empty": 366
+    },
+    "llama-3.3-70b": {
+      "documents": 2000,
+      "mean_writing_score": 25.5,
+      "median_writing_score": 21.3,
+      "middle_50_pct_range": [
+        13.8,
+        33.1
+      ],
+      "at_or_above_generic_gate": 834,
+      "at_or_above_generic_gate_pct": 41.7,
+      "failed_or_empty": 0
+    }
   },
-  "llama-3.3-70b": {
-   "documents": 2000,
-   "mean_writing_score": 25.5,
-   "median_writing_score": 21.3,
-   "middle_50_pct_range": [
-    13.8,
-    33.1
-   ],
-   "at_or_above_generic_gate": 834,
-   "at_or_above_generic_gate_pct": 41.7,
-   "failed_or_empty": 0
-  }
- },
- "domains": {
-  "abstracts": {
-   "documents": 7627,
-   "mean_writing_score": 19.6,
-   "median_writing_score": 15.6,
-   "middle_50_pct_range": [
-    9.5,
-    24.8
-   ],
-   "at_or_above_generic_gate": 1896,
-   "at_or_above_generic_gate_pct": 24.9
-  }
- },
- "limits": "RAID+ supplies machine provenance, not slop-quality labels. These score distributions are not editorial quality, authorship accuracy, precision, recall, or a comparison with human writing."
+  "domains": {
+    "abstracts": {
+      "documents": 7627,
+      "mean_writing_score": 19.6,
+      "median_writing_score": 15.6,
+      "middle_50_pct_range": [
+        9.5,
+        24.8
+      ],
+      "at_or_above_generic_gate": 1896,
+      "at_or_above_generic_gate_pct": 24.9
+    }
+  },
+  "limits": "RAID+ supplies machine provenance, not slop-quality labels. These score distributions are not editorial quality, authorship accuracy, precision, recall, or a comparison with human writing."
 }

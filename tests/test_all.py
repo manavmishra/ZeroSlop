@@ -3967,6 +3967,9 @@ class RegisterGate(unittest.TestCase):
                 "A rate, not a rule. Judgment, not law. It is advice, not policy. "),
             "inanimate_agent": pad + "Research shows the gap. Studies find the same. "
                 "The data suggests otherwise and the chart records the trend.",
+            "antithesis_pair": pad + "Not perfect. Honest. "
+                "Speed is moving fast. Velocity is moving fast in one direction. "
+                "The draft was cheap. The signal it sent was not.",
         }
         for family, text in cases.items():
             with self.subTest(family=family):
@@ -4000,6 +4003,50 @@ class RegisterGate(unittest.TestCase):
         dangle = module.dangling_pointers(
             "Users on claude.ai can upload the ZIP. The docs explain the rest.")
         self.assertGreaterEqual(len(dangle), 1, dangle)
+
+    def test_bare_imperatives_are_not_verbless_fragments(self):
+        """An imperative is the base form, so it carries none of the inflection
+        or auxiliaries the finite-verb test looks for. Before the opener list,
+        "Play to win." and "Build durable growth." were both reported as
+        verbless -- two of the five hits on the manifesto that surfaced it."""
+        module = self._register()
+        for line in ("Play to win.", "Build durable growth.", "Ship the thing today.",
+                     "Read the manual first.", "Keep the change simple."):
+            with self.subTest(line=line):
+                self.assertEqual(module.verbless_fragments(line), [], line)
+        # The genuinely verbless ones still are: a noun phrase is not a sentence
+        # just because the detector learned about imperatives.
+        for line in ("Company over team over self.", "In innovation at scale.",
+                     "Not in photography."):
+            with self.subTest(line=line):
+                self.assertEqual(len(module.verbless_fragments(line)), 1, line)
+
+    def test_antithesis_pairs_counts_the_shapes_eval_md_names(self):
+        """eval.md A1 is a separate family from A2, the subtractive contrast, and
+        the report had no row for it: a draft could run five antithesis pairs
+        against a budget of one and print "Binary contrasts: 1 found, ok"."""
+        module = self._register()
+        for text in ("Not perfect. Honest.",
+                     "The draft was cheap. The signal it sent was not.",
+                     "Open weights let you adapt a model. "
+                     "An open stack lets you adapt the machinery that created it."):
+            with self.subTest(text=text[:40]):
+                self.assertEqual(len(module.antithesis_pairs(text)), 1, text)
+        # Budget is one per piece, so a single figure is never a finding and two
+        # always are, at any length -- the rate cannot soften an absolute rule.
+        one = module.measure("Not perfect. Honest. " + "The team shipped it. " * 20)
+        two = module.measure("Not perfect. Honest. Not fast. Careful. "
+                             + "The team shipped it. " * 20)
+        states = lambda m: {k: ok for k, _r, _b, ok in module.verdicts(m)}
+        self.assertTrue(states(one)["antithesis_pair"], one["antithesis_pair"])
+        self.assertFalse(states(two)["antithesis_pair"], two["antithesis_pair"])
+        # And it stays silent on the certified-human corpus it was calibrated
+        # against: a family that fires there is a worse bug than one that sleeps.
+        for sample in sorted((ROOT / "data" / "corpus" / "must-not-flag").glob("*.txt")):
+            with self.subTest(sample=sample.name):
+                m = module.measure(sample.read_text())
+                self.assertTrue(states(m)["antithesis_pair"],
+                                f"{sample.name}: {m['antithesis_pair']['hits']}")
 
     def test_register_gate_fails_on_a_dense_fixture_and_passes_the_readme(self):
         """End to end at the measurement layer: a document built from the defects
