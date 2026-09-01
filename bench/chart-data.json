@@ -259,7 +259,7 @@
  ],
  "contextual_ablation": [
   [
-   "v2.8.0 local score",
+   "v2.8.1 local score",
    93.18
   ],
   [
@@ -283,6 +283,24 @@
   [
    "Unresolved",
    2
+  ]
+ ],
+ "antithesis_accuracy": [
+  [
+   "recall, 2.8.0",
+   40.0
+  ],
+  [
+   "recall, now",
+   90.0
+  ],
+  [
+   "precision, 2.8.0",
+   80.0
+  ],
+  [
+   "precision, now",
+   100.0
   ]
  ],
  "capability_matrix": {

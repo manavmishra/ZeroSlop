@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "items": 58,
+  "antithesis_items": 30,
+  "ordinary_items": 28,
+  "true_positives": 27,
+  "false_negatives": 3,
+  "false_positives": 0,
+  "true_negatives": 28,
+  "recall": 0.9,
+  "precision": 1.0,
+  "specificity": 1.0,
+  "in_reach_items": 27,
+  "in_reach_recall": 1.0,
+  "missed": [
+    "anti-pos-27",
+    "anti-pos-28",
+    "anti-pos-29"
+  ],
+  "false_positive_ids": [],
+  "limits": "hand-authored and hand-labelled by the maintainer; a regression floor for the detector, not field accuracy and not an independently adjudicated corpus"
+}

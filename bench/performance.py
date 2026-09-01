@@ -16,6 +16,7 @@ CORPUS = ROOT / "data" / "corpus" / "must-not-flag"
 OUTPUT = ROOT / "bench" / "performance-results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 import learn  # noqa: E402
+import register  # noqa: E402
 import slopscore  # noqa: E402
 import contextual  # noqa: E402
 from safeio import atomic_write_text  # noqa: E402
@@ -47,6 +48,22 @@ def compute():
     }.items():
         elapsed = timed(lambda value=value: slopscore.score_text(value, data), repeats=1)[0]
         pathological[label] = round(elapsed, 4)
+
+    # The register pass runs on every draft the skill touches and was the one
+    # local tool with no timing on record. It segments sentences and walks every
+    # adjacent pair, so its cost scales with the document rather than with the
+    # pattern table, and that is worth watching separately from the meter.
+    register_batch = timed(lambda: [register.measure(ordinary) for _ in range(1000)])
+    register_long = timed(lambda: register.measure(large))
+    register_pathological = {}
+    for label, value in {
+        "single_character": "a" * 60000,
+        "repeated_word": "the " * 12000,
+        "no_sentence_terminator": "alpha beta gamma " * 12000,
+        "all_sentence_terminators": ". " * 30000,
+    }.items():
+        elapsed = timed(lambda value=value: register.measure(value), repeats=1)[0]
+        register_pathological[label] = round(elapsed, 4)
 
     old_observations = learn.OBS
     with tempfile.TemporaryDirectory() as directory:
@@ -118,6 +135,17 @@ def compute():
             "median_large_document_seconds": round(st.median(long_doc), 4),
             "pathological_input_seconds": pathological,
         },
+        "register": {
+            "batch_documents": 1000,
+            "batch_repeats": len(register_batch),
+            "batch_seconds": [round(value, 4) for value in register_batch],
+            "median_batch_seconds": round(st.median(register_batch), 4),
+            "median_documents_per_second": round(1000 / st.median(register_batch), 1),
+            "large_document_words": len(large.split()),
+            "large_document_seconds": [round(value, 4) for value in register_long],
+            "median_large_document_seconds": round(st.median(register_long), 4),
+            "pathological_input_seconds": register_pathological,
+        },
         "learning": {
             "reflect_diff_words": reflect_words,
             "reflect_seconds": round(reflect, 4),
@@ -137,6 +165,8 @@ def compute():
             "batch_1000_seconds_lt": 60,
             "large_document_seconds_lt": 30,
             "each_pathological_input_seconds_lt": 15,
+            "register_batch_1000_seconds_lt": 60,
+            "register_large_document_seconds_lt": 30,
             "reflect_seconds_lt": 30,
             "retrieval_5000_preferences_seconds_lt": 1,
             "contextual_2000_paragraph_prepare_seconds_lt": 3,

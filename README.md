@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.8.0-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.8.1-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations"><img alt="Listed in awesome-ai-plugins" src="https://img.shields.io/badge/awesome--ai--plugins-listed-2C6E8F"></a>
   <a href="https://zero-slop.ai/try/"><img alt="This README scores 12.0 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55"></a>
@@ -191,10 +191,9 @@ with [`scripts/register.py`](scripts/register.py) running the reading pass.
 
 The saved replay ran Zero Slop, [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing),
 [no-ai-slop](https://github.com/petergyang/no-ai-slop) and
-[humanizer](https://github.com/blader/humanizer) on the same 18 drafts, each with
-GPT-5.4, high reasoning, batches of three, and pinned instructions. The Zero Slop
-outputs came from v2.5.9; later releases rescore those frozen outputs but do not
-pretend to have regenerated them.
+[humanizer](https://github.com/blader/humanizer) over 18 drafts with GPT-5.4, high
+reasoning, and pinned instructions. Zero Slop's outputs came from v2.5.9; later
+releases rescore those frozen outputs rather than pretend to regenerate them.
 
 | Method | Mean writing score ↓ | Passed Zero Slop's local gates | Source check passed | Average length change |
 |---|---:|---:|---:|---:|
@@ -218,23 +217,44 @@ rates, and a method-hidden quality ranking.
 ![Method-hidden quality ranking, lower is better](assets/bench-blind-quality.png)
 
 This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
-universal ranking. Drafts, mappings, verdicts, hashes, version records, and limits are
-in [`bench/README.md`](bench/README.md). The separate method-hidden two-way replay used
+universal ranking. Drafts, hashes, and limits are in [`bench/README.md`](bench/README.md). The separate method-hidden two-way replay used
 Zero Slop v2.6.0 and is preserved in
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/).
 
 For the 38-item editorial panel, the current scorer matched the prior 84.2% result.
 All frozen scores stayed unchanged, all 18 human controls remained below the gate,
 and all 18 obvious search cases remained above it. These fixed-sample checks are not
-proof of general accuracy. We recorded 1.86% lower median throughput across 31 interleaved
-local runs; treat that as machine noise, not a speed claim.
+proof of general accuracy.
 
 ### Speed
 
-On one busy Apple silicon Mac: 1,000 documents in 3.2233 seconds (310.2 per second),
-a 15,201-word document in 0.4757 seconds, the slowest stress case in 3.3487 seconds,
-and an 8,000-word learning pass in 0.2284 seconds. Editing time is excluded; expect
-different results on other machines and loads.
+One busy Apple silicon Mac. Meter: 1,000 documents in 2.5035 seconds (399.4 per
+second), 15,201 words in 0.4301 seconds, worst stress case 3.2518 seconds. Reading
+pass, untimed on record until now: 0.8304 seconds for the same 1,000 (1,204.2 per
+second), 0.1359 for the same large document, linear to 96,000 words. Learning pass,
+8,000 words: 0.2027 seconds. Across 31 interleaved runs against 2.7.7 we measured
+0.07% higher median throughput; that is machine noise, not a speed claim. Editing
+time is excluded.
+
+### Reading-pass accuracy
+
+The reading pass budgets antithesis pairs by frequency, so the count has to be right
+before the budget means anything. It had never been measured. On 58 labelled pairs in
+[`bench/antithesis/`](bench/antithesis/):
+
+| Reading pass | 2.8.0 | now |
+|---|---:|---:|
+| Recall, all shapes | 40.0% | 90.0% |
+| Recall, shapes in reach | 44.4% | 100% |
+| Precision | 80.0% | 100% |
+| False positives | 3 | 0 |
+
+![Antithesis detection before and after, on 58 labelled pairs](assets/bench-antithesis.png)
+
+Bare subject swap and the weak isocolon stay out of reach and count against recall: the
+first is a judgment call in `references/tells.md`, the second is identical to ordinary
+parallel prose on every lexical statistic. Maintainer labels on constructed pairs, so
+this is a regression floor, not field accuracy.
 
 ### Current models
 

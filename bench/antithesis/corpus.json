@@ -1,0 +1,350 @@
+[
+  {
+    "id": "anti-pos-00",
+    "shape": "marked-open",
+    "label": "antithesis",
+    "text": "Not perfect. Honest."
+  },
+  {
+    "id": "anti-pos-01",
+    "shape": "marked-open",
+    "label": "antithesis",
+    "text": "Not a rewrite. A rebuild."
+  },
+  {
+    "id": "anti-pos-02",
+    "shape": "marked-open",
+    "label": "antithesis",
+    "text": "Not in photography. In innovation at scale."
+  },
+  {
+    "id": "anti-pos-03",
+    "shape": "marked-open",
+    "label": "antithesis",
+    "text": "Not louder. Clearer."
+  },
+  {
+    "id": "anti-pos-04",
+    "shape": "marked-close",
+    "label": "antithesis",
+    "text": "The draft was cheap. The signal it sent was not."
+  },
+  {
+    "id": "anti-pos-05",
+    "shape": "marked-close",
+    "label": "antithesis",
+    "text": "The tool is fast. The team is not."
+  },
+  {
+    "id": "anti-pos-06",
+    "shape": "marked-close",
+    "label": "antithesis",
+    "text": "Revenue recovered last year. Margin did not."
+  },
+  {
+    "id": "anti-pos-07",
+    "shape": "marked-close",
+    "label": "antithesis",
+    "text": "The migration finished on time. The rollback plan did not."
+  },
+  {
+    "id": "anti-pos-08",
+    "shape": "marked-inside",
+    "label": "antithesis",
+    "text": "It is not a probe. It is a verdict."
+  },
+  {
+    "id": "anti-pos-09",
+    "shape": "marked-inside",
+    "label": "antithesis",
+    "text": "We do not guess. We measure."
+  },
+  {
+    "id": "anti-pos-10",
+    "shape": "marked-inside",
+    "label": "antithesis",
+    "text": "This is not a redesign. It is a rebuild."
+  },
+  {
+    "id": "anti-pos-11",
+    "shape": "marked-inside",
+    "label": "antithesis",
+    "text": "That is not the constraint. Latency is."
+  },
+  {
+    "id": "anti-pos-12",
+    "shape": "marked-inside",
+    "label": "antithesis",
+    "text": "She did not argue the case. She proved it."
+  },
+  {
+    "id": "anti-pos-13",
+    "shape": "marked-contracted",
+    "label": "antithesis",
+    "text": "Slop isn't a vibe. It's measurable."
+  },
+  {
+    "id": "anti-pos-14",
+    "shape": "marked-contracted",
+    "label": "antithesis",
+    "text": "It isn't a rewrite. It's a rebuild."
+  },
+  {
+    "id": "anti-pos-15",
+    "shape": "marked-contracted",
+    "label": "antithesis",
+    "text": "The problem isn't the model. It's the prompt."
+  },
+  {
+    "id": "anti-pos-16",
+    "shape": "marked-contracted",
+    "label": "antithesis",
+    "text": "We don't ship features. We ship outcomes."
+  },
+  {
+    "id": "anti-pos-17",
+    "shape": "marked-contrastive",
+    "label": "antithesis",
+    "text": "That creates speed. But speed is not velocity."
+  },
+  {
+    "id": "anti-pos-18",
+    "shape": "marked-contrastive",
+    "label": "antithesis",
+    "text": "The team grew fast. But headcount is not capacity."
+  },
+  {
+    "id": "anti-pos-19",
+    "shape": "isocolon",
+    "label": "antithesis",
+    "text": "Open weights let you adapt a model. An open stack lets you adapt the machinery that created it."
+  },
+  {
+    "id": "anti-pos-20",
+    "shape": "isocolon",
+    "label": "antithesis",
+    "text": "Speed is moving fast. Velocity is moving fast in the same direction."
+  },
+  {
+    "id": "anti-pos-21",
+    "shape": "isocolon",
+    "label": "antithesis",
+    "text": "A junior engineer reads the error. A senior engineer reads the stack trace."
+  },
+  {
+    "id": "anti-pos-22",
+    "shape": "isocolon",
+    "label": "antithesis",
+    "text": "Good tests describe behaviour. Great tests describe intent."
+  },
+  {
+    "id": "anti-pos-23",
+    "shape": "stock-closer",
+    "label": "antithesis",
+    "text": "Ai2 argues for a principle. This is what that principle looks like."
+  },
+  {
+    "id": "anti-pos-24",
+    "shape": "stock-closer",
+    "label": "antithesis",
+    "text": "The charter promises transparency. This is what transparency looks like in practice."
+  },
+  {
+    "id": "anti-pos-25",
+    "shape": "unmarked-reversal",
+    "label": "antithesis",
+    "text": "No frontier lab had to decide. Thai researchers made that call themselves."
+  },
+  {
+    "id": "anti-pos-26",
+    "shape": "unmarked-reversal",
+    "label": "antithesis",
+    "text": "No regulator had to intervene. The exchange delisted the token on its own."
+  },
+  {
+    "id": "anti-pos-27",
+    "shape": "subject-swap",
+    "label": "antithesis",
+    "text": "Llama is open-weights. Dolma releases the data."
+  },
+  {
+    "id": "anti-pos-28",
+    "shape": "subject-swap",
+    "label": "antithesis",
+    "text": "Pytest reports the failure. Hypothesis finds it."
+  },
+  {
+    "id": "anti-pos-29",
+    "shape": "weak-isocolon",
+    "label": "antithesis",
+    "text": "A meter reports a number. A reader reports a feeling."
+  },
+  {
+    "id": "anti-neg-00",
+    "shape": "plain",
+    "label": "ordinary",
+    "text": "The build passed. The tests ran overnight."
+  },
+  {
+    "id": "anti-neg-01",
+    "shape": "plain",
+    "label": "ordinary",
+    "text": "Payroll closes on Friday. Invoices are due the following Monday."
+  },
+  {
+    "id": "anti-neg-02",
+    "shape": "plain",
+    "label": "ordinary",
+    "text": "Rates rose in March. Unemployment held steady through the quarter."
+  },
+  {
+    "id": "anti-neg-03",
+    "shape": "plain",
+    "label": "ordinary",
+    "text": "Open the panel and check the fuse. Replace it if the filament is broken."
+  },
+  {
+    "id": "anti-neg-04",
+    "shape": "plain",
+    "label": "ordinary",
+    "text": "The vendor shipped on the fourteenth. Customs cleared it a week later."
+  },
+  {
+    "id": "anti-neg-05",
+    "shape": "plain",
+    "label": "ordinary",
+    "text": "Sales closed twelve deals in Q3. Marketing sourced eight of them."
+  },
+  {
+    "id": "anti-neg-06",
+    "shape": "anaphora",
+    "label": "ordinary",
+    "text": "We shipped on Tuesday. We wrote down what broke."
+  },
+  {
+    "id": "anti-neg-07",
+    "shape": "anaphora",
+    "label": "ordinary",
+    "text": "The service retries three times. The service then gives up."
+  },
+  {
+    "id": "anti-neg-08",
+    "shape": "anaphora",
+    "label": "ordinary",
+    "text": "I called the office twice. I left a message both times."
+  },
+  {
+    "id": "anti-neg-09",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "Do not merge this yet. I will review it tomorrow."
+  },
+  {
+    "id": "anti-neg-10",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "The server did not respond. We restarted it and checked the logs again."
+  },
+  {
+    "id": "anti-neg-11",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "She did not attend the meeting. Her manager sent the notes instead."
+  },
+  {
+    "id": "anti-neg-12",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "The patch does not apply cleanly. Rebase onto main and try again."
+  },
+  {
+    "id": "anti-neg-13",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "Passwords are never stored in plain text. They are hashed with a per-user salt."
+  },
+  {
+    "id": "anti-neg-14",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "No refunds are issued after thirty days. Contact support for an exception."
+  },
+  {
+    "id": "anti-neg-15",
+    "shape": "negation-not-figure",
+    "label": "ordinary",
+    "text": "The tenant cannot reach the database directly. All traffic goes through the proxy."
+  },
+  {
+    "id": "anti-neg-16",
+    "shape": "imperative",
+    "label": "ordinary",
+    "text": "Add the key to the config. Then restart the service."
+  },
+  {
+    "id": "anti-neg-17",
+    "shape": "imperative",
+    "label": "ordinary",
+    "text": "Read the manual first. Run the installer afterwards."
+  },
+  {
+    "id": "anti-neg-18",
+    "shape": "shared-words-repetition",
+    "label": "ordinary",
+    "text": "The cache was cold on the first run. The cache was warm on the second run."
+  },
+  {
+    "id": "anti-neg-19",
+    "shape": "shared-words-repetition",
+    "label": "ordinary",
+    "text": "The report lists every active vendor. The report also lists every expired contract."
+  },
+  {
+    "id": "anti-neg-20",
+    "shape": "shared-words-repetition",
+    "label": "ordinary",
+    "text": "Version one shipped in March. Version two shipped in June."
+  },
+  {
+    "id": "anti-neg-21",
+    "shape": "technical",
+    "label": "ordinary",
+    "text": "The parser reads the header. The validator checks the checksum against it."
+  },
+  {
+    "id": "anti-neg-22",
+    "shape": "technical",
+    "label": "ordinary",
+    "text": "Latency rose to 400ms under load. Throughput held at 12k requests per second."
+  },
+  {
+    "id": "anti-neg-23",
+    "shape": "technical",
+    "label": "ordinary",
+    "text": "The index rebuilds nightly. Queries fall back to a sequential scan while it runs."
+  },
+  {
+    "id": "anti-neg-24",
+    "shape": "narrative",
+    "label": "ordinary",
+    "text": "He put the letter down. Outside, the rain had already started."
+  },
+  {
+    "id": "anti-neg-25",
+    "shape": "narrative",
+    "label": "ordinary",
+    "text": "The meeting ran long. Nobody mentioned the budget until the end."
+  },
+  {
+    "id": "anti-neg-26",
+    "shape": "quoted-example",
+    "label": "ordinary",
+    "text": "The guide warns against it. See the section on stacked negation for details."
+  },
+  {
+    "id": "anti-neg-27",
+    "shape": "list-prose",
+    "label": "ordinary",
+    "text": "The kit contains a driver, two bits, and a spare fuse. Assembly takes about ten minutes."
+  }
+]

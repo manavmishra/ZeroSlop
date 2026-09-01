@@ -18,6 +18,12 @@ current corpus checks.
   construction (seeded shuffles, so packets rebuild identically).
 - `objective-panel.json`, `judge-dimensions.json`, `replication.json` —
   computed results.
+- `antithesis/` — 58 labelled adjacent-sentence pairs, 30 antithesis and 28
+  ordinary, for the reading pass's antithesis detector. The negatives are
+  adversarial for that detector: negation that is not a figure, anaphora,
+  repeated subjects, shared vocabulary, and parallel technical prose. Two
+  positive shapes are documented as out of reach and count against recall
+  rather than being excused. Maintainer labels on constructed pairs.
 - `search-corpus/` — 18 anonymous, search-informed slop paraphrases across
   LinkedIn, X, email, blog, newsletter, and research, plus five pinned rewrite
   methods and an item-level public AIStoryHub checker cross-check.
@@ -76,6 +82,7 @@ python3 bench/beemo-corpus/audit.py --fetch --check
 python3 bench/raid-plus-corpus/audit.py --fetch --check
 python3 bench/quality-corpus/build_manifest.py --check
 python3 bench/quality-corpus/evaluate.py --manifest bench/quality-corpus/manifest.json --labels bench/quality-corpus/labels-rater-a.json --labels bench/quality-corpus/labels-rater-b.json --out bench/quality-corpus/results.json --check
+python3 bench/antithesis/evaluate.py --check
 python3 bench/feature-ablation/check.py
 python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check

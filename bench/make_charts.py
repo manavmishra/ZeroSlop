@@ -210,6 +210,17 @@ def compute():
         ("contextual research review", round(
             research["held_out_test_accuracy"] * 100, 2)),
     ]
+    # The reading pass had no accuracy measurement at all until 2.8.1: it fired
+    # on four hand-picked anchors and stayed silent on the human corpus, which
+    # is not the same thing as recall. Both bars are the same 58 labelled pairs.
+    antithesis = json.loads((ROOT / "bench" / "antithesis" / "results.json").read_text())
+    antithesis_accuracy = [
+        ["recall, 2.8.0", 40.0],
+        ["recall, now", round(antithesis["recall"] * 100, 1)],
+        ["precision, 2.8.0", 80.0],
+        ["precision, now", round(antithesis["precision"] * 100, 1)],
+    ]
+
     return {"raid_plus_surface": raid_plus_surface,
             "detector_panel": panel,
             "search_corpus": search_panel,
@@ -221,6 +232,7 @@ def compute():
             "blind_quality": blind_quality,
             "contextual_ablation": contextual_ablation,
             "incumbent_hidden_preferences": incumbent_hidden_preferences,
+            "antithesis_accuracy": antithesis_accuracy,
             "capability_matrix": capability_matrix}
 
 
@@ -263,7 +275,13 @@ def _hbar(path, title, subtitle, rows, ours_label, axis_ticks=None):
         d.text((gx - 8, H - 40), f"{tick:g}", font=_font(12), fill=MUTE)
     for i, (label, val) in enumerate(rows):
         y = top + i * rowh
-        ours = ours_label is None or label == ours_label
+        # A set highlights several rows: a before/after chart has two "ours".
+        if ours_label is None:
+            ours = True
+        elif isinstance(ours_label, (set, frozenset, list, tuple)):
+            ours = label in ours_label
+        else:
+            ours = label == ours_label
         d.text((x0 - 16, y + rowh // 2 - 9), label, font=_font(15, ours),
                fill=INK if ours else MUTE, anchor="ra")
         bw = (x1 - x0) * val / vmax
@@ -421,6 +439,13 @@ def render(datasets):
         datasets["incumbent_hidden_preferences"],
         datasets["incumbent_hidden_preferences"][0][0],
         axis_ticks=[0, 3, 6, 9, 12, 15, 18]))
+    out.append(_hbar(
+        ASSETS / "bench-antithesis.png",
+        "Antithesis detection on a labelled set",
+        "58 labelled adjacent-sentence pairs, same corpus for both bars. Higher is better. "
+        "Maintainer labels on constructed pairs; a regression floor, not field accuracy.",
+        datasets["antithesis_accuracy"], {"recall, now", "precision, now"},
+        axis_ticks=[0, 25, 50, 75, 100]))
     out.append(_capability_matrix(
         ASSETS / "competitor-capabilities.png",
         datasets["capability_matrix"]))

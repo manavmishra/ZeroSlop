@@ -81,22 +81,41 @@ SHORT_FLOORS = {
 ANTITHESIS_STOP = frozenset("""
 a an the this that these those it its is are was were be been being am do does did
 to of in on at by for with from as and or but so if then than not no nor yet
-we you they he she i us our your their his her them me my their there here
+we you they he she i us our your their his her them me my there here
 one two three first second next last own same very just only also more most less
+every all each any some many few way thing
 """.split())
 
-# The negation can open the pair ("Not perfect. Honest.") or land at the end of
-# it ("The draft was cheap. The signal it sent was not."). Both are in tells.md.
+# Negation, including the contracted forms. "isn't", "don't" and "won't" carry
+# the figure exactly as "is not" does, and the shipped detector matched none of
+# them: "Slop isn't a vibe. It's measurable." is a documented anchor in
+# references/tells.md and it walked straight past.
+NEGATION = re.compile(r"\b(?:not|never|cannot)\b|\w+n['’]t\b", re.I)
+# A copula in both halves is the "X is A. Y is B." frame, which is the marked
+# figure's usual carrier and is absent from ordinary negated prose ("The server
+# did not respond. We restarted it.").
+COPULA = re.compile(r"\b(?:is|are|was|were|be|been|am)\b|\w+['’]s\b|\w+n['’]t\b", re.I)
 RX_MARKED_OPEN = re.compile(r"^\W*not\b", re.I)
-RX_MARKED_CLOSE = re.compile(r"\b(?:was|were|is|are|did|does|do|has|have|had|will)\s+not\W*$", re.I)
+RX_MARKED_CLOSE = re.compile(
+    r"\b(?:was|were|is|are|did|does|do|has|have|had|will|can|could|would)\s+not\W*$", re.I)
+# The two template shapes the meter already anchors (this-is-what-looks-like,
+# no-x-had-to). The meter scores them as spans; the register pass has to COUNT
+# them, because tells.md budgets the family by frequency and a span hit is not
+# a count.
+RX_CONTRASTIVE = re.compile(r"^\W*(?:but|yet|however)\b", re.I)
+RX_STOCK_CLOSER = re.compile(r"\bthis is what\b.{0,60}?\blooks? like\b", re.I)
+RX_UNMARKED_REVERSAL = re.compile(r"^\W*no\s+[\w-]+(?:\s+[\w-]+){0,3}\s+had to\b", re.I)
 
 
-def _antithesis_content(sent: str) -> list[str]:
+def _tokens(sent: str) -> list[str]:
+    return [w.lower() for w in re.findall(r"[A-Za-z][\w'’-]*", sent)]
+
+
+def _antithesis_content(tokens: list[str]) -> list[str]:
     """Content words, with a trailing -s folded away so a verb frame still
     matches when only its agreement changed: 'let' and 'lets' are one frame."""
     out = []
-    for word in re.findall(r"[A-Za-z][\w'-]*", sent):
-        word = word.lower()
+    for word in tokens:
         if word in ANTITHESIS_STOP:
             continue
         if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
@@ -105,35 +124,102 @@ def _antithesis_content(sent: str) -> list[str]:
     return out
 
 
+def _common_prefix(a: list[str], b: list[str]) -> int:
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
+# A heading or a list lead-in carries no terminal punctuation, so it arrives
+# from _sentences glued to the paragraph beneath it. Rather than change the
+# splitter or prose_of -- both are shared by every family, and moving either one
+# pushed four to eleven documents over budget on rate alone -- this family
+# rejects the glued span itself. Nothing else sees the change.
+RX_SCAFFOLD = re.compile(r"^\s*(?:[#>|]|[-*+]\s|\d+\.\s)|\*\*|\n\s*(?:[#>|]|[-*+]\s|\d+\.\s)")
+
+
 def antithesis_pairs(prose: str) -> list[str]:
-    """Adjacent balanced sentences: the marked form, and the swapped-argument one."""
+    """Adjacent balanced sentences where the second lands the twist.
+
+    Recall is bounded and the bound is a property of the figure, not of the
+    implementation. "A meter reports a number. A reader reports a feeling." and
+    "The report lists every vendor. The appendix lists every contract." are the
+    same construction to every lexical statistic -- same lengths, same one
+    shared word, same 0.33 overlap -- and only the first is antithesis. What
+    separates them is semantic opposition, which no word count can see. So the
+    marked shapes, where a negation anchors the figure, are matched broadly;
+    the unmarked ones are matched only where the parallel is strong enough to
+    be structural. Bare subject swap stays the reader's call, as tells.md says.
+    """
     out = []
     sents = _sentences(prose)
-    for first, second in zip(sents, sents[1:]):
-        n_first, n_second = len(first.split()), len(second.split())
-        # Both halves have to be short enough to read as one figure. A short
-        # line beside a paragraph-length sentence is not a balanced pair.
-        if not (2 <= n_first <= 14 and 1 <= n_second <= 14):
+    toks = [_tokens(s) for s in sents]
+    cont = [_antithesis_content(t) for t in toks]
+    # Matches do not overlap. The figure is a pair, so a sentence that has
+    # already landed one twist cannot also be the setup for the next: three
+    # short consecutive sentences were producing two pairs out of one figure
+    # and inflating a rate the budget reads directly.
+    consumed = -1
+    for i in range(len(sents) - 1):
+        if i <= consumed:
             continue
-        # Marked: the twist is announced, at either end of the pair.
-        if RX_MARKED_OPEN.match(first) and n_second <= 10:
-            out.append(f"{first} {second}")
+        first, second = sents[i], sents[i + 1]
+        ta, tb = toks[i], toks[i + 1]
+        na, nb = len(ta), len(tb)
+        if not (2 <= na <= 14 and 1 <= nb <= 14):
             continue
-        if RX_MARKED_CLOSE.search(second) and n_first <= 10:
-            out.append(f"{first} {second}")
+        if RX_SCAFFOLD.search(first) or RX_SCAFFOLD.search(second):
             continue
-        head, tail = _antithesis_content(first), _antithesis_content(second)
-        if len(head) < 2 or len(tail) < 2:
-            continue
-        # Identical content is repetition, not antithesis: the figure needs the
-        # arguments to have changed.
-        if head == tail:
-            continue
+        head, tail = cont[i], cont[i + 1]
         shared = set(head) & set(tail)
-        # A shared frame carrying most of the shorter sentence, with the
-        # arguments changed: that is the figure, not an accidental echo.
+        prefix = _common_prefix(ta, tb)
+        negated = bool(NEGATION.search(first) or NEGATION.search(second))
+
+        # Marked, announced at the open or the close of the pair.
+        if RX_MARKED_OPEN.match(first) and nb <= 10:
+            out.append(f"{first} {second}"); consumed = i + 1; continue
+        if RX_MARKED_CLOSE.search(second) and na <= 10:
+            out.append(f"{first} {second}"); consumed = i + 1; continue
+        # Marked, carried inside the pair. A negation alone is ordinary prose,
+        # so the halves also have to be short AND share a frame. One shared
+        # topic word is not a frame: "The AI roles supply judgment. A generating
+        # role never certifies its own output." shares "role" and is ordinary
+        # prose. The frame is a repeated opening, a copula on both sides, or two
+        # words in common.
+        if negated and na <= 10 and nb <= 8 and (prefix >= 1 or len(shared) >= 2):
+            out.append(f"{first} {second}"); consumed = i + 1; continue
+        # A copula on both sides is the weakest of the three frames, so it only
+        # counts when the halves are staccato-short. "Passwords are never stored
+        # in plain text. They are hashed with a per-user salt." is two copulas
+        # and a negation and no figure at all.
+        if (negated and na <= 7 and nb <= 6
+                and COPULA.search(first) and COPULA.search(second)):
+            out.append(f"{first} {second}"); consumed = i + 1; continue
+        # A contrastive opener on the second half is the twist announced by a
+        # conjunction rather than by the negation's position: "That creates
+        # speed. But speed is not velocity."
+        if (negated and RX_CONTRASTIVE.match(second) and na <= 8 and nb <= 7
+                and (shared or COPULA.search(second))):
+            out.append(f"{first} {second}"); consumed = i + 1; continue
+        # The two template shapes the meter anchors, counted here.
+        if RX_STOCK_CLOSER.search(second) or RX_UNMARKED_REVERSAL.match(first):
+            out.append(f"{first} {second}"); consumed = i + 1; continue
+        # Isocolon: one frame, both arguments swapped. A repeated opening is
+        # restatement rather than a swap, but only when the repeated part
+        # carries meaning: "Version one shipped in March. Version two shipped in
+        # June." repeats the subject and is enumeration, while "A junior
+        # engineer reads the error. A senior engineer reads the stack trace."
+        # repeats only the article and is the figure. So the test is whether any
+        # CONTENT word opens both halves, not whether any token does.
+        shared_open = any(w not in ANTITHESIS_STOP for w in ta[:prefix])
+        if shared_open or head == tail or len(head) < 2 or len(tail) < 2:
+            continue
         if len(shared) >= 2 and len(shared) / min(len(head), len(tail)) >= 0.5:
             out.append(f"{first} {second}")
+            consumed = i + 1
     return out
 
 
