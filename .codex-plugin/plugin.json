@@ -30,6 +30,9 @@
       "Score",
       "Learn"
     ],
+    "websiteURL": "https://zero-slop.ai/",
+    "privacyPolicyURL": "https://zero-slop.ai/privacy/",
+    "termsOfServiceURL": "https://github.com/manavmishra/ZeroSlop/blob/main/LICENSE",
     "defaultPrompt": [
       "(text)",
       "is this slop? (text)",

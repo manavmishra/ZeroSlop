@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-marketplace-manifest.json",
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
   "name": "zero-slop",
   "owner": {
     "name": "Manav Mishra",
