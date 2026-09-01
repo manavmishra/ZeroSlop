@@ -7,6 +7,7 @@
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
   <img alt="version" src="https://img.shields.io/badge/version-2.7.8-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
+  <a href="https://zero-slop.ai/try/"><img alt="This README scores 12.0 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55"></a>
 </p>
 
 Less slop, more pop in your writing.
@@ -14,7 +15,8 @@ Less slop, more pop in your writing.
 Zero Slop finds stock phrasing, mechanical rhythm, vague claims, and canned
 formatting, then gives your AI assistant or agent harness an editing workflow on guardrails. Its
 MIT-licensed local checks run offline; your existing AI assistant or harness does the editing.
-See the benchmark at [zero-slop.ai](https://zero-slop.ai).
+Score a draft at [zero-slop.ai/try](https://zero-slop.ai/try/); benchmark at
+[zero-slop.ai](https://zero-slop.ai).
 
 ```sh
 npx zero-slop install
@@ -104,6 +106,18 @@ Claude.ai users can upload the [latest release ZIP](https://github.com/manavmish
 You get the edited draft, before-and-after scores, and quoted flagged phrases.
 `/zero-slop inspect (your writing)` reviews without rewriting. For a folder,
 `slopscore.py --batch drafts/ --gate 25` fails above the threshold.
+
+## Show your score
+
+The badge above is this README's own, from `npx zero-slop score README.md`.
+Put yours up the same way:
+
+```md
+[![Slop score](https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55)](https://zero-slop.ai/try/)
+```
+
+Colours are the scorer's bands: `0f7d55` under 25, `b8860b` under 60, `b0502c`
+above.
 
 ## The slop that Zero Slop catches
 
