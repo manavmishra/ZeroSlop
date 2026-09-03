@@ -11,6 +11,7 @@ import io
 import json
 import re
 import sys
+import tarfile
 import time
 import urllib.error
 import urllib.request
@@ -96,12 +97,17 @@ def check_once(*, fetch_fn=fetch, emit=print):
         else:
             problems.append(f"the GitHub release ZIP is invalid ({exc}).")
 
+    npm_tarball_url = None
     try:
         metadata = json.loads(fetch_fn("https://registry.npmjs.org/zero-slop/latest"))
         published = metadata.get("version")
         emit(f"published to npm          {published}")
         if published != shipped:
             problems.append(f"npm publishes {published or 'no version'}, not {shipped}.")
+        else:
+            npm_tarball_url = metadata.get("dist", {}).get("tarball")
+            if not isinstance(npm_tarball_url, str) or not npm_tarball_url.startswith("https://"):
+                problems.append("the npm package metadata has no HTTPS tarball URL.")
     except urllib.error.HTTPError as exc:
         problems.append(f"the npm package endpoint returned HTTP {exc.code}.")
     except Exception as exc:
@@ -109,6 +115,58 @@ def check_once(*, fetch_fn=fetch, emit=print):
             skipped.append(f"npm ({exc})")
         else:
             problems.append(f"the npm package response is invalid ({exc}).")
+
+    if npm_tarball_url:
+        try:
+            blob = fetch_fn(npm_tarball_url, binary=True)
+            with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as archive:
+                names = set(archive.getnames())
+
+                def read_member(name):
+                    member = archive.extractfile(name)
+                    if member is None:
+                        raise ValueError(f"{name} is not a regular file")
+                    return member.read()
+
+                required = {
+                    "package/package.json",
+                    "package/SKILL.md",
+                    "package/bin/zero-slop.mjs",
+                }
+                missing = sorted(required - names)
+                if missing:
+                    raise ValueError(f"missing {', '.join(missing)}")
+                package = json.loads(read_member("package/package.json"))
+                package_version = package.get("version")
+                command = package.get("bin", {}).get("zero-slop") \
+                    if isinstance(package.get("bin"), dict) else package.get("bin")
+                skill_match = re.search(
+                    rb'version:\s*"([0-9.]+)"', read_member("package/SKILL.md")
+                )
+                if not skill_match:
+                    raise ValueError("package/SKILL.md has no version")
+                skill_version = skill_match.group(1).decode()
+                if command != "bin/zero-slop.mjs":
+                    raise ValueError(f"zero-slop command points to {command!r}")
+                if package_version != skill_version:
+                    raise ValueError(
+                        f"package.json says {package_version}, SKILL.md says {skill_version}"
+                    )
+            emit(f"inside npm package        {package_version}")
+            if package_version != shipped:
+                problems.append(
+                    f"the npm tarball contains {package_version}, not {shipped}."
+                )
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                problems.append("the npm package tarball is missing (HTTP 404).")
+            else:
+                problems.append(f"the npm package tarball returned HTTP {exc.code}.")
+        except Exception as exc:
+            if _unreachable(exc):
+                skipped.append(f"npm package tarball ({exc})")
+            else:
+                problems.append(f"the npm package tarball is invalid ({exc}).")
 
     return problems, skipped
 

@@ -19,11 +19,13 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
 import unittest
 import urllib.error
 import xml.etree.ElementTree as ET
+import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
@@ -2336,16 +2338,131 @@ class DocsMatchReality(unittest.TestCase):
         spec.loader.exec_module(module)
         shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
 
+        package = io.BytesIO()
+        with tarfile.open(fileobj=package, mode="w:gz") as archive:
+            files = {
+                "package/package.json": json.dumps({
+                    "version": shipped,
+                    "bin": {"zero-slop": "bin/zero-slop.mjs"},
+                }).encode(),
+                "package/SKILL.md": f'---\nversion: "{shipped}"\n---\n'.encode(),
+                "package/bin/zero-slop.mjs": b"#!/usr/bin/env node\n",
+            }
+            for name, content in files.items():
+                info = tarfile.TarInfo(name)
+                info.size = len(content)
+                archive.addfile(info, io.BytesIO(content))
+
         def fake_fetch(url, *, binary=False):
             if url.endswith("/releases/latest"):
                 return json.dumps({"tag_name": f"v{shipped}"})
             if url.endswith("/zero-slop.zip"):
                 raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
-            return json.dumps({"version": shipped})
+            if url.endswith("/zero-slop/latest"):
+                return json.dumps({
+                    "version": shipped,
+                    "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
+                })
+            if url.endswith("/zero-slop.tgz"):
+                return package.getvalue()
+            raise AssertionError(url)
 
         problems, skipped = module.check_once(fetch_fn=fake_fetch)
         self.assertEqual(skipped, [])
         self.assertTrue(any("ZIP is missing" in p for p in problems), problems)
+
+    def test_npm_metadata_without_downloadable_package_is_drift(self):
+        """A registry may expose metadata before its tarball has replicated.
+        Installation is not ready until the exact package can be opened and its
+        skill and command entry point agree with the repository."""
+        spec = importlib.util.spec_from_file_location(
+            "release_surfaces_npm", ROOT / "scripts" / "check_release_surfaces.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+
+        def release_zip():
+            blob = io.BytesIO()
+            with zipfile.ZipFile(blob, "w") as archive:
+                archive.writestr("zero-slop/SKILL.md", f'---\nversion: "{shipped}"\n---\n')
+            return blob.getvalue()
+
+        def fake_fetch(url, *, binary=False):
+            if url.endswith("/releases/latest"):
+                return json.dumps({"tag_name": f"v{shipped}"})
+            if url.endswith("/zero-slop.zip"):
+                return release_zip()
+            if url.endswith("/zero-slop/latest"):
+                return json.dumps({
+                    "version": shipped,
+                    "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
+                })
+            if url.endswith("/zero-slop.tgz"):
+                raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+            raise AssertionError(url)
+
+        problems, skipped = module.check_once(fetch_fn=fake_fetch)
+        self.assertEqual(skipped, [])
+        self.assertTrue(any("npm package tarball is missing" in p for p in problems), problems)
+
+    def test_npm_package_must_contain_matching_skill_and_command(self):
+        spec = importlib.util.spec_from_file_location(
+            "release_surfaces_npm_contents",
+            ROOT / "scripts" / "check_release_surfaces.py",
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+
+        release_blob = io.BytesIO()
+        with zipfile.ZipFile(release_blob, "w") as archive:
+            archive.writestr("zero-slop/SKILL.md", f'---\nversion: "{shipped}"\n---\n')
+
+        def make_package(*, skill_version=shipped, command="bin/zero-slop.mjs",
+                         include_command=True):
+            blob = io.BytesIO()
+            with tarfile.open(fileobj=blob, mode="w:gz") as archive:
+                files = {
+                    "package/package.json": json.dumps({
+                        "version": shipped,
+                        "bin": {"zero-slop": command},
+                    }).encode(),
+                    "package/SKILL.md": (
+                        f'---\nversion: "{skill_version}"\n---\n'.encode()
+                    ),
+                }
+                if include_command:
+                    files["package/bin/zero-slop.mjs"] = b"#!/usr/bin/env node\n"
+                for name, content in files.items():
+                    info = tarfile.TarInfo(name)
+                    info.size = len(content)
+                    archive.addfile(info, io.BytesIO(content))
+            return blob.getvalue()
+
+        cases = {
+            "skill version drift": make_package(skill_version="0.0.0"),
+            "wrong command": make_package(command="bin/missing.mjs"),
+            "missing command": make_package(include_command=False),
+        }
+        for label, package_blob in cases.items():
+            with self.subTest(label=label):
+                def fake_fetch(url, *, binary=False):
+                    if url.endswith("/releases/latest"):
+                        return json.dumps({"tag_name": f"v{shipped}"})
+                    if url.endswith("/zero-slop.zip"):
+                        return release_blob.getvalue()
+                    if url.endswith("/zero-slop/latest"):
+                        return json.dumps({
+                            "version": shipped,
+                            "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
+                        })
+                    if url.endswith("/zero-slop.tgz"):
+                        return package_blob
+                    raise AssertionError(url)
+
+                problems, skipped = module.check_once(fetch_fn=fake_fetch, emit=lambda _: None)
+                self.assertEqual(skipped, [])
+                self.assertTrue(any("npm package tarball is invalid" in p for p in problems), problems)
 
     def test_plugin_manifests_have_required_identity(self):
         for folder in (".claude-plugin", ".codex-plugin"):
