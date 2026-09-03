@@ -1,0 +1,11 @@
+# Local state and generated output are not part of the public plugin surface.
+.DS_Store
+.env
+.env.*
+node_modules/
+.wrangler/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.log
+plugin-scanner.sarif
