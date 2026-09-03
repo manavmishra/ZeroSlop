@@ -59,6 +59,13 @@ jobs:
 
       - name: Single-file bundle in sync
         run: python3 scripts/build_bundle.py --check
+      # The in-repo version surfaces have a unit test. These live outside the
+      # tree and had nothing watching them: v2.8.2 and v2.8.3 were tagged and
+      # never released, so the ZIP the README hands Claude.ai users served
+      # v2.8.1 for two releases. Skips rather than fails when a host is
+      # unreachable, so a dropped connection cannot redden the run.
+      - name: Published surfaces match the shipped version
+        run: python3 scripts/check_release_surfaces.py
 
       - name: False-positive regression
         run: python3 scripts/calibrate.py --selftest

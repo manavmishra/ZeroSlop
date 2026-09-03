@@ -1,0 +1,38 @@
+name: release on tag
+
+# v2.8.2 and v2.8.3 were tagged and pushed and never became releases, so
+# releases/latest went on serving v2.8.1 -- which is the ZIP the README hands
+# Claude.ai users. attach-release-assets already rebuilds and uploads the
+# artifacts, but it fires on `release: published`, and nothing was publishing.
+#
+# Pushing the tag is the release now. This creates it if it does not exist,
+# which then triggers the asset workflow exactly as a manual release does.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: create the release if the tag has none
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists; nothing to do"
+            exit 0
+          fi
+          # The tag message is the release note. A tag pushed without one gets
+          # a stub rather than an empty release, so the ZIP still publishes.
+          NOTES="$(git tag -l --format='%(contents)' "$TAG")"
+          if [ -z "$NOTES" ]; then
+            NOTES="Zero Slop $TAG. See the commit history for what changed."
+          fi
+          gh release create "$TAG" --latest --title "Zero Slop $TAG" --notes "$NOTES"
