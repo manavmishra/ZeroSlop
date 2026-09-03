@@ -346,5 +346,107 @@
     "shape": "list-prose",
     "label": "ordinary",
     "text": "The kit contains a driver, two bits, and a spare fuse. Assembly takes about ten minutes."
+  },
+  {
+    "id": "anti-neg-28",
+    "shape": "quantifier-not",
+    "label": "ordinary",
+    "text": "Not all customers migrated in the first wave. We contacted the rest in April."
+  },
+  {
+    "id": "anti-neg-29",
+    "shape": "quantifier-not",
+    "label": "ordinary",
+    "text": "Not every request is cached. The CDN handles the rest."
+  },
+  {
+    "id": "anti-neg-30",
+    "shape": "quantifier-not",
+    "label": "ordinary",
+    "text": "Not much changed in the second quarter. Headcount stayed flat."
+  },
+  {
+    "id": "anti-neg-31",
+    "shape": "quantifier-not",
+    "label": "ordinary",
+    "text": "Not surprisingly, the queue backed up. We added two more workers."
+  },
+  {
+    "id": "anti-neg-32",
+    "shape": "negated-plain",
+    "label": "ordinary",
+    "text": "The report does not include Q3 numbers. The report will be updated on Friday."
+  },
+  {
+    "id": "anti-neg-33",
+    "shape": "negated-plain",
+    "label": "ordinary",
+    "text": "We did not get the contract. We moved on to the next bid."
+  },
+  {
+    "id": "anti-neg-34",
+    "shape": "negated-plain",
+    "label": "ordinary",
+    "text": "I did not get your email. I checked the spam folder too."
+  },
+  {
+    "id": "anti-neg-35",
+    "shape": "negated-plain",
+    "label": "ordinary",
+    "text": "It does not run on Windows. It runs on Linux and macOS."
+  },
+  {
+    "id": "anti-neg-36",
+    "shape": "negated-plain",
+    "label": "ordinary",
+    "text": "The service does not retry on timeout. The service logs the failure instead."
+  },
+  {
+    "id": "anti-neg-37",
+    "shape": "enumeration",
+    "label": "ordinary",
+    "text": "The free tier includes ten seats. The pro tier includes fifty seats."
+  },
+  {
+    "id": "anti-neg-38",
+    "shape": "enumeration",
+    "label": "ordinary",
+    "text": "The east warehouse ships on Monday. The west warehouse ships on Thursday."
+  },
+  {
+    "id": "anti-neg-39",
+    "shape": "enumeration",
+    "label": "ordinary",
+    "text": "Our Toronto office opens at nine. Our Vancouver office opens at eight."
+  },
+  {
+    "id": "anti-neg-40",
+    "shape": "enumeration",
+    "label": "ordinary",
+    "text": "Basic support answers within two business days. Premium support answers within four hours."
+  },
+  {
+    "id": "anti-pos-30",
+    "shape": "marked-bold",
+    "label": "antithesis",
+    "text": "We do not guess. We **measure**."
+  },
+  {
+    "id": "anti-pos-31",
+    "shape": "marked-bold",
+    "label": "antithesis",
+    "text": "The dashboard is not a **verdict**. It is a report."
+  },
+  {
+    "id": "anti-pos-32",
+    "shape": "marked-contracted",
+    "label": "antithesis",
+    "text": "Revenue recovered last year. Margin didn't."
+  },
+  {
+    "id": "anti-pos-33",
+    "shape": "marked-contracted",
+    "label": "antithesis",
+    "text": "The machines made words cheap. Attention still isn't."
   }
 ]

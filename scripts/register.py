@@ -95,9 +95,13 @@ NEGATION = re.compile(r"\b(?:not|never|cannot)\b|\w+n['’]t\b", re.I)
 # figure's usual carrier and is absent from ordinary negated prose ("The server
 # did not respond. We restarted it.").
 COPULA = re.compile(r"\b(?:is|are|was|were|be|been|am)\b|\w+['’]s\b|\w+n['’]t\b", re.I)
-RX_MARKED_OPEN = re.compile(r"^\W*not\b", re.I)
+RX_MARKED_OPEN = re.compile(
+    r"^\W*not\s+(?!all\b|every\b|only\b|just\b|much\b|many\b|most\b|enough\b"
+    r"|yet\b|quite\b|nearly\b|entirely\b|\w+ly\b)", re.I)
 RX_MARKED_CLOSE = re.compile(
-    r"\b(?:was|were|is|are|did|does|do|has|have|had|will|can|could|would)\s+not\W*$", re.I)
+    r"\b(?:was|were|is|are|did|does|do|has|have|had|will|can|could|would)\s+not\W*$"
+    r"|\b(?:wasn|weren|isn|aren|didn|doesn|don|hasn|haven|hadn|won|can|couldn|wouldn)"
+    r"['\u2019]t\W*$", re.I)
 # The two template shapes the meter already anchors (this-is-what-looks-like,
 # no-x-had-to). The meter scores them as spans; the register pass has to COUNT
 # them, because tells.md budgets the family by frequency and a span hit is not
@@ -138,7 +142,20 @@ def _common_prefix(a: list[str], b: list[str]) -> int:
 # splitter or prose_of -- both are shared by every family, and moving either one
 # pushed four to eleven documents over budget on rate alone -- this family
 # rejects the glued span itself. Nothing else sees the change.
-RX_SCAFFOLD = re.compile(r"^\s*(?:[#>|]|[-*+]\s|\d+\.\s)|\*\*|\n\s*(?:[#>|]|[-*+]\s|\d+\.\s)")
+RX_SCAFFOLD = re.compile(r"^\s*(?:[#>|]|[-*+]\s|\d+\.\s|\*\*)|\n\s*(?:[#>|]|[-*+]\s|\d+\.\s|\*\*)")
+
+
+# Cardinals and calendar words. Their presence in the part of a pair that
+# differs marks a specification rather than a rhetorical figure.
+ENUMERATED_VALUE = frozenset("""
+one two three four five six seven eight nine ten eleven twelve twenty thirty
+forty fifty sixty seventy eighty ninety hundred thousand million billion
+first second third fourth fifth
+monday tuesday wednesday thursday friday saturday sunday
+january february march april may june july august september october november
+december hour hours minute minutes day days week weeks month months year years
+am pm noon midnight
+""".split())
 
 
 def antithesis_pairs(prose: str) -> list[str]:
@@ -189,7 +206,24 @@ def antithesis_pairs(prose: str) -> list[str]:
         # role never certifies its own output." shares "role" and is ordinary
         # prose. The frame is a repeated opening, a copula on both sides, or two
         # words in common.
-        if negated and na <= 10 and nb <= 8 and (prefix >= 1 or len(shared) >= 2):
+        # `prefix >= 1` counted a shared stopword as a frame, so "It does not
+        # run on Windows. It runs on Linux and macOS." qualified on "it" alone.
+        # Requiring a CONTENT frame instead was too strict: "We do not guess. We
+        # measure." shares only "we" and is the figure.
+        #
+        # What separates them is the payoff, not the frame. The figure lands its
+        # twist in a breath -- "We measure." "She proved it." -- while ordinary
+        # negated prose just carries on at normal length. So a stopword frame is
+        # allowed, but only when the second half is that short.
+        content_prefix = any(w not in ANTITHESIS_STOP for w in ta[:prefix])
+        shared_content = {w for w in shared if w not in ANTITHESIS_STOP}
+        # A repeated CONTENT opening is anaphora -- "The report ... The report
+        # ..." -- which the isocolon branch below already refuses for exactly
+        # this reason. Here it was being read as a frame, i.e. as evidence for
+        # the figure rather than against it.
+        strong_frame = len(shared_content) >= 2 and not content_prefix
+        weak_frame = prefix >= 1 or len(shared) >= 2
+        if negated and na <= 10 and ((strong_frame and nb <= 8) or (weak_frame and nb <= 5)):
             out.append(f"{first} {second}"); consumed = i + 1; continue
         # A copula on both sides is the weakest of the three frames, so it only
         # counts when the halves are staccato-short. "Passwords are never stored
@@ -217,6 +251,20 @@ def antithesis_pairs(prose: str) -> list[str]:
         shared_open = any(w not in ANTITHESIS_STOP for w in ta[:prefix])
         if shared_open or head == tail or len(head) < 2 or len(tail) < 2:
             continue
+        # Enumeration wears the same clothes as isocolon: one frame, both
+        # arguments swapped, the same word overlap. "The free tier includes ten
+        # seats. The pro tier includes fifty seats." is structurally identical
+        # to "A junior engineer reads the error. A senior engineer reads the
+        # stack trace." -- four shared words and 0.67 overlap in both.
+        #
+        # What separates them is what varies. A specification varies a VALUE:
+        # a quantity, a weekday, a time. The figure varies a CONCEPT. So a
+        # cardinal or a calendar word in the part that differs means this is a
+        # table written as prose, and the pass stays quiet.
+        differing = set(head) | set(tail)
+        if differing & ENUMERATED_VALUE or any(
+                any(ch.isdigit() for ch in w) for w in differing):
+            continue
         if len(shared) >= 2 and len(shared) / min(len(head), len(tail)) >= 0.5:
             out.append(f"{first} {second}")
             consumed = i + 1
@@ -226,7 +274,7 @@ def antithesis_pairs(prose: str) -> list[str]:
 # "X, not Y." and "A rather than B." The corrective appositive. Each instance is
 # usually careful writing, which is why no pattern list contains it.
 RX_SUBTRACTIVE = re.compile(
-    r"[^.\n]{3,90}?,\s+not\s+[^.\n]{3,60}[.\n]"
+    r"[^.\n]{3,90}?[,\u2014\u2013]\s*(?:not|never)\s+[^.\n]{3,60}[.\n]"
     r"|[^.\n]{3,70}\brather than\b[^.\n]{3,50}[.\n]",
     re.I,
 )

@@ -259,7 +259,7 @@
  ],
  "contextual_ablation": [
   [
-   "v2.8.2 local score",
+   "v2.8.3 local score",
    93.18
   ],
   [
@@ -292,7 +292,7 @@
   ],
   [
    "recall, now",
-   90.0
+   91.2
   ],
   [
    "precision, 2.8.0",

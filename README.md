@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.8.2-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.8.3-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations"><img alt="Listed in awesome-ai-plugins" src="https://img.shields.io/badge/awesome--ai--plugins-listed-2C6E8F"></a>
   <a href="https://zero-slop.ai/try/"><img alt="This README scores 12.0 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55"></a>
@@ -228,33 +228,35 @@ proof of general accuracy.
 
 ### Speed
 
-One busy Apple silicon Mac. Meter: 1,000 documents in 2.5035 seconds (399.4 per
-second), 15,201 words in 0.4301 seconds, worst stress case 3.2518 seconds. Reading
-pass, untimed on record until now: 0.8304 seconds for the same 1,000 (1,204.2 per
-second), 0.1359 for the same large document, linear to 96,000 words. Learning pass,
-8,000 words: 0.2027 seconds. Across 24 interleaved runs against 2.7.7 we measured
-0.08% lower median throughput; that is machine noise, not a speed claim. Editing
+One busy Apple silicon Mac. Meter: 1,000 documents in 1.9949 seconds (501.3 per
+second), 15,201 words in 0.3200 seconds, worst stress case 2.3077 seconds.
+Reading pass: 0.7712 seconds for the same 1,000 (1296.7 per
+second), 0.1054 for the same large document, linear to 96,000 words. Learning
+pass, 8,000 words: 0.2832 seconds. Across 24 interleaved runs against 2.7.7 we measured
+0.22% higher median throughput; that is machine noise, not a speed claim. Editing
 time is excluded.
 
 ### Reading-pass accuracy
 
 The reading pass budgets antithesis pairs by frequency, so the count has to be right
-before the budget means anything. It had never been measured. On 58 labelled pairs in
+before the budget means anything. On 75 labelled pairs in
 [`bench/antithesis/`](bench/antithesis/):
 
 | Reading pass | 2.8.0 | now |
 |---|---:|---:|
-| Recall, all shapes | 40.0% | 90.0% |
+| Recall, all shapes | 40.0% | 91.2% |
 | Recall, shapes in reach | 44.4% | 100% |
 | Precision | 80.0% | 100% |
 | False positives | 3 | 0 |
 
-![Antithesis detection before and after, on 58 labelled pairs](assets/bench-antithesis.png)
+2.8.3 added the families the 58-pair corpus never tested, where 2.8.2 scores 67.5%
+precision.
 
-Bare subject swap and the weak isocolon stay out of reach and count against recall: the
-first is a judgment call in `references/tells.md`, the second is identical to ordinary
-parallel prose on every lexical statistic. Maintainer labels on constructed pairs, so
-this is a regression floor, not field accuracy.
+![Antithesis detection before and after, on 75 labelled pairs](assets/bench-antithesis.png)
+
+Bare subject swap and the weak isocolon stay out of reach and count against recall: both
+are identical to ordinary prose on every lexical statistic. Maintainer labels on
+constructed pairs, so this is a regression floor, not field accuracy.
 
 ### Current models
 
