@@ -5,6 +5,10 @@ import { editorReply, signedEditorHeaders, tooShort } from "./model";
 import { releaseReady, runPipeline, scorerGuidance, verifierPassed } from "./pipeline";
 import type { RankedRewrite, WritingReport } from "./types";
 
+function signingKeyForTests(): string {
+  return Array.from({ length: 40 }, (_, index) => String.fromCharCode(97 + (index % 26))).join("");
+}
+
 test("verifier accepts only the exact success token", () => {
   assert.equal(verifierPassed("OK"), true);
   assert.equal(verifierPassed("OK."), true);
@@ -68,14 +72,15 @@ test("scorer guidance is bounded and gives rewriters exact targets", () => {
 });
 
 test("editor requests are signed without exposing the shared secret", async () => {
+  const signingKey = signingKeyForTests();
   const headers = await signedEditorHeaders(
-    "test-only-editor-secret-32-characters-long",
+    signingKey,
     '{"role":"verify"}',
     1_700_000_000_000,
   );
   assert.equal(headers["x-zero-slop-timestamp"], "1700000000000");
   assert.match(headers["x-zero-slop-signature"] ?? "", /^[0-9a-f]{64}$/);
-  assert.doesNotMatch(JSON.stringify(headers), /test-only-editor-secret/);
+  assert.ok(!Object.values(headers).includes(signingKey));
 });
 
 function writingReport(score: number): WritingReport {
@@ -139,7 +144,7 @@ test("a short low-scoring draft still gets the checks that abstained", async () 
       SCORER: scorer,
       SCORER_VERSION: "2.8.6",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
-      EDITOR_SHARED_SECRET: "test-only-editor-secret-32-characters-long",
+      EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: "The importer now maps CSV headers automatically.", genre: "general" });
     assert.notEqual(result.rolesCompleted, 1);
     assert.ok(editorCalls > 0);
@@ -210,7 +215,7 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
       SCORER: scorer,
       SCORER_VERSION: "2.8.6",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
-      EDITOR_SHARED_SECRET: "test-only-editor-secret-32-characters-long",
+      EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
 
     assert.equal(result.status, "rewritten");

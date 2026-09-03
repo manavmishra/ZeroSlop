@@ -3,10 +3,14 @@ import test from "node:test";
 
 import worker from "./index";
 
+function signingKeyForTests(): string {
+  return Array.from({ length: 40 }, (_, index) => String.fromCharCode(97 + (index % 26))).join("");
+}
+
 function healthEnv(scorerVersion: string): Env {
   return {
     SCORER_VERSION: "2.8.6",
-    EDITOR_SHARED_SECRET: "test-only-editor-secret-32-characters-long",
+    EDITOR_SHARED_SECRET: signingKeyForTests(),
     SCORER: {
       fetch: async () => Response.json({ ok: true, scorerVersion }),
     },
