@@ -149,7 +149,10 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
         rewriteSource,
         deadline,
         spentRungs,
-        rewriteRound > 0,
+        // Prefer a fresh rung, but do not turn a healthy one-model fallback
+        // into an outage. The retry changes both the role and scorer guidance;
+        // strict model independence remains mandatory for verification below.
+        false,
       );
       if (!written) continue;
       if (!spentRungs.includes(written.rung)) spentRungs.push(written.rung);

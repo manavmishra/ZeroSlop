@@ -220,6 +220,8 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
     assert.equal(result.independentModelChecks, 2);
     assert.equal(result.passedFinalChecks, true);
     assert.ok(editorCalls.every((call) => call.noStore === true));
+    const rewrites = editorCalls.filter((call) => String(call.role).startsWith("rewrite_"));
+    assert.ok(rewrites.every((call) => call.strictExclude === false));
     const verifiers = editorCalls.filter((call) => call.role === "verify");
     assert.equal(verifiers.length, 2);
     const secondVerifier = verifiers[1];
