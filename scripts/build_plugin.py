@@ -33,6 +33,9 @@ ITEMS = ["SKILL.md", "references", "scripts", "data"]
 EXCLUDE = {
     "voices", "__pycache__", "build_plugin.py", "build_bundle.py",
     "build_onepager_pdf.py", "build_skill_zip.py", "check_svg.py",
+    # A maintainer check against GitHub and npm, not something an installed
+    # skill should carry or run.
+    "check_release_surfaces.py",
     "contextual.py", "contextual-signals.md", ".DS_Store",
     "make-readme-gif.mjs",
 }
