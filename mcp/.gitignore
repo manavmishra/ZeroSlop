@@ -1,0 +1,12 @@
+gateway/node_modules/
+gateway/.wrangler/
+gateway/worker-configuration.d.ts
+.wrangler/
+scorer/node_modules/
+scorer/.wrangler/
+scorer/.venv/
+scorer/.venv-workers/
+scorer/python_modules/
+scorer/pylock.toml
+scorer/src/engine/__pycache__/
+scorer/src/__pycache__/

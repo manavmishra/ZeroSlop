@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "zero-slop-scorer",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-09-03",
+  "compatibility_flags": ["python_workers"],
+  "workers_dev": false,
+  "find_additional_modules": true,
+  "base_dir": "src",
+  "preserve_file_names": true,
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.json"],
+      "fallthrough": true
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "head_sampling_rate": 1
+    }
+  }
+}

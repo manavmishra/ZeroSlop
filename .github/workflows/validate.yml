@@ -99,3 +99,46 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm test
+
+  mcp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: mcp/gateway
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            mcp/gateway/package-lock.json
+            mcp/scorer/package-lock.json
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.5"
+      - name: Verify exact scorer bundle
+        working-directory: .
+        run: |
+          python3 mcp/scripts/sync_scorer.py --check
+          python3 mcp/scripts/test_scorer.py
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run check
+      - run: npm run dry-run
+      - name: Install scorer Worker dependencies
+        working-directory: mcp/scorer
+        run: npm ci
+      - name: Lock and install scorer Python dependencies
+        working-directory: mcp/scorer
+        run: uv sync --locked
+      - name: Audit scorer Worker dependencies
+        working-directory: mcp/scorer
+        run: npm audit --audit-level=high
+      - name: Package scorer Worker
+        working-directory: mcp/scorer
+        run: npm run dry-run

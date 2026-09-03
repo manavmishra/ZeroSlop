@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "zero-slop-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-03",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "mcp.zero-slop.ai",
+      "custom_domain": true
+    }
+  ],
+  "services": [
+    {
+      "binding": "SCORER",
+      "service": "zero-slop-scorer"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "PIPELINE_LIMITER",
+      "namespace_id": "2805",
+      "simple": {
+        "limit": 300,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "SCORER_VERSION": "2.8.6",
+    "EDITOR_ENDPOINT": "https://zero-slop.ai/api/demo-rewrite",
+    "ALLOWED_ORIGINS": "https://zero-slop.ai,https://www.zero-slop.ai,https://chatgpt.com,https://claude.ai"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "head_sampling_rate": 1
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.05
+    }
+  }
+}

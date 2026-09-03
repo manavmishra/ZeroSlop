@@ -1,0 +1,26 @@
+{
+  "name": "@zero-slop/mcp-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "check": "wrangler types && tsc --noEmit && tsx --test src/*.test.ts",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "dry-run": "wrangler deploy --dry-run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "0.22.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "tsx": "4.20.5",
+    "typescript": "5.9.3",
+    "wrangler": "4.129.0"
+  }
+}

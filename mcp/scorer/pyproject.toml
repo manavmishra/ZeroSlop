@@ -1,0 +1,11 @@
+[project]
+name = "zero-slop-scorer-worker"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["workers-runtime-sdk"]
+
+[dependency-groups]
+dev = [
+  "workers-py>=1.9",
+  "workers-runtime-sdk",
+]

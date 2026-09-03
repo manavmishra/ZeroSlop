@@ -1,0 +1,16 @@
+{
+  "name": "@zero-slop/mcp-scorer",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "deploy": "uv run pywrangler deploy",
+    "dev": "uv run pywrangler dev",
+    "dry-run": "uv run pywrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "4.129.0"
+  }
+}
