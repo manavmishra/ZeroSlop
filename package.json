@@ -47,6 +47,7 @@
     "!scripts/build_plugin.py",
     "!scripts/build_skill_zip.py",
     "!scripts/check_svg.py",
+    "!scripts/check_release_surfaces.py",
     "!scripts/contextual.py",
     "!scripts/contextual-signals.md",
     "!references/contextual-signals.md",

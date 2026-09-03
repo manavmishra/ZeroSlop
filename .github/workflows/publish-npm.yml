@@ -112,6 +112,7 @@ jobs:
               "references/contextual-signals.md", "scripts/build_plugin.py",
               "scripts/build_bundle.py", "scripts/build_skill_zip.py",
               "scripts/build_onepager_pdf.py", "scripts/check_svg.py",
+              "scripts/check_release_surfaces.py",
             ];
             const files = require("/tmp/pack.json")[0].files.map((f) => f.path);
             const leaked = banned.filter((b) => files.includes(b));
