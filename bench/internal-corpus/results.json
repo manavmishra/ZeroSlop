@@ -1,0 +1,118 @@
+{
+ "result_kind": "private_maintainer_regression",
+ "calibrated_accuracy": false,
+ "source": {
+  "document_id": "1JT32uRH_HsQavHOfWnrrZNiaBRC60d9r19PX5fSIoW8",
+  "sha256": "e7a897580e478fd0fffff811b7b8fd3d8e3b45d52b25242d72c651b08d5ef300",
+  "documents": 9,
+  "source_committed": false
+ },
+ "scorer": {
+  "version": "2.8.5",
+  "slopscore_sha256": "8591d73d087ea86a49627e9c0deb322ede680477c8133a1e29c16edfa073c29f",
+  "patterns_sha256": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+  "generic_gate": 25.0
+ },
+ "summary": {
+  "mean_writing_score": 26.4,
+  "at_or_above_generic_gate": 4,
+  "documents_with_reading_findings": 3
+ },
+ "items": [
+  {
+   "id": 1,
+   "words": 280,
+   "writing_score": 50.2,
+   "findings": [
+    "less-like-more-like",
+    "performed-candor",
+    "real-conversation-closer",
+    "social-validation",
+    "staged-negative-ladder"
+   ],
+   "reading_checks_over_budget": []
+  },
+  {
+   "id": 2,
+   "words": 41,
+   "writing_score": 9.5,
+   "findings": [],
+   "reading_checks_over_budget": []
+  },
+  {
+   "id": 3,
+   "words": 391,
+   "writing_score": 47.6,
+   "findings": [
+    "engagement-bait",
+    "heres-how-why",
+    "not-x-but-y"
+   ],
+   "reading_checks_over_budget": []
+  },
+  {
+   "id": 4,
+   "words": 254,
+   "writing_score": 11.3,
+   "findings": [],
+   "reading_checks_over_budget": []
+  },
+  {
+   "id": 5,
+   "words": 474,
+   "writing_score": 27.3,
+   "findings": [
+    "emoji-arrow-bullet",
+    "question-hook-opener"
+   ],
+   "reading_checks_over_budget": [
+    "verbless_fragment"
+   ]
+  },
+  {
+   "id": 6,
+   "words": 197,
+   "writing_score": 22.6,
+   "findings": [
+    "didnt-just",
+    "lingering-attention"
+   ],
+   "reading_checks_over_budget": []
+  },
+  {
+   "id": 7,
+   "words": 444,
+   "writing_score": 17.1,
+   "findings": [
+    "heres-how-why",
+    "stop-start"
+   ],
+   "reading_checks_over_budget": [
+    "verbless_fragment"
+   ]
+  },
+  {
+   "id": 8,
+   "words": 501,
+   "writing_score": 11.3,
+   "findings": [
+    "false-range"
+   ],
+   "reading_checks_over_budget": []
+  },
+  {
+   "id": 9,
+   "words": 282,
+   "writing_score": 40.6,
+   "findings": [
+    "hedge-stack",
+    "listicle-stem",
+    "marketing-register"
+   ],
+   "reading_checks_over_budget": [
+    "verbless_fragment"
+   ]
+  }
+ ],
+ "limits": "Maintainer-curated examples with no per-item rubric or clean controls. This is a private drift and missed-case review, not accuracy or field validation."
+}

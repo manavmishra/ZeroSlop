@@ -1,26 +1,17 @@
 #!/usr/bin/env python3
-"""Every published surface must advertise the version this repo ships.
+"""Confirm that GitHub and npm serve the version in this repository.
 
-The in-repo surfaces already have a unit test: plugin manifests, SKILL.md, the
-README badge, the one-pager, the website literal. Nothing watched the surfaces
-that live outside the tree, and that is exactly where the drift happened --
-v2.8.2 and v2.8.3 were tagged and never released, so
-releases/latest/download/zero-slop.zip, which the README hands Claude.ai users,
-served v2.8.1 for two releases.
-
-Checked here:
-  the newest GitHub release tag
-  the skill version inside that release's zero-slop.zip
-  the version published to npm
-
-Network is optional. Unreachable is reported and skipped, never failed: this
-runs beside a test suite that must work offline, and a check that cries wolf
-on a dropped connection gets ignored. Only a real disagreement exits non-zero.
+The check distinguishes an unreachable service from a reachable service with a
+missing or stale artifact. Offline developer runs may skip unreachable hosts;
+release automation uses ``--require-network`` and a bounded wait so publication
+latency cannot be mistaken for either success or permanent drift.
 """
+import argparse
 import io
 import json
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 import zipfile
@@ -33,64 +24,135 @@ TIMEOUT = 20
 
 def fetch(url, *, binary=False):
     req = urllib.request.Request(url, headers={"User-Agent": "zero-slop-release-check"})
-    for attempt in range(3):
+    last_error = None
+    for _attempt in range(3):
         try:
-            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-                return r.read() if binary else r.read().decode()
-        except urllib.error.HTTPError as e:
-            if 400 <= e.code < 500:
-                raise
-        except Exception:
-            if attempt == 2:
-                raise
-    raise RuntimeError("unreachable")
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
+                body = response.read()
+                return body if binary else body.decode()
+        except urllib.error.HTTPError:
+            # A server response is authoritative. Retrying a 404 and later
+            # calling it "offline" hid the missing v2.8.4 release ZIP.
+            raise
+        except Exception as exc:  # DNS, timeout, TLS, or disconnected network
+            last_error = exc
+    raise last_error or RuntimeError("unreachable")
 
 
-def main() -> int:
+def _unreachable(exc):
+    return isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError)) \
+        and not isinstance(exc, urllib.error.HTTPError)
+
+
+def check_once(*, fetch_fn=fetch, emit=print):
+    """Return ``(problems, skipped)`` for one external-state snapshot."""
     shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
-    print(f"this repo ships           {shipped}")
+    emit(f"this repo ships           {shipped}")
     problems, skipped = [], []
 
+    release_url = f"https://api.github.com/repos/{REPO}/releases/latest"
     try:
-        rel = json.loads(fetch(f"https://api.github.com/repos/{REPO}/releases/latest"))
-        tag = rel.get("tag_name", "")
-        print(f"newest GitHub release     {tag}")
+        release = json.loads(fetch_fn(release_url))
+        tag = release.get("tag_name", "")
+        emit(f"newest GitHub release     {tag}")
         if tag.lstrip("v") != shipped:
-            problems.append(f"the newest GitHub release is {tag}, not v{shipped}. "
-                            f"Tag pushed without a release? release-on-tag.yml should have created it.")
-    except Exception as e:
-        skipped.append(f"GitHub releases ({e})")
+            problems.append(
+                f"the newest GitHub release is {tag or 'unnamed'}, not v{shipped}."
+            )
+    except urllib.error.HTTPError as exc:
+        problems.append(f"the GitHub release endpoint returned HTTP {exc.code}.")
+    except Exception as exc:
+        if _unreachable(exc):
+            skipped.append(f"GitHub releases ({exc})")
+        else:
+            problems.append(f"the GitHub release response is invalid ({exc}).")
 
+    zip_url = f"https://github.com/{REPO}/releases/latest/download/zero-slop.zip"
     try:
-        blob = fetch(f"https://github.com/{REPO}/releases/latest/download/zero-slop.zip", binary=True)
-        z = zipfile.ZipFile(io.BytesIO(blob))
-        names = [n for n in z.namelist() if n.endswith("SKILL.md")]
-        inside = re.search(r'version:\s*"([0-9.]+)"', z.read(names[0]).decode()).group(1)
-        print(f"inside that release's ZIP {inside}")
+        blob = fetch_fn(zip_url, binary=True)
+        with zipfile.ZipFile(io.BytesIO(blob)) as archive:
+            names = [name for name in archive.namelist() if name.endswith("SKILL.md")]
+            if len(names) != 1:
+                raise ValueError(f"expected one SKILL.md, found {len(names)}")
+            match = re.search(
+                r'version:\s*"([0-9.]+)"', archive.read(names[0]).decode()
+            )
+            if not match:
+                raise ValueError("SKILL.md has no version")
+            inside = match.group(1)
+        emit(f"inside that release's ZIP {inside}")
         if inside != shipped:
-            problems.append(f"releases/latest/download/zero-slop.zip contains {inside}, not {shipped}. "
-                            f"This is the download the README gives Claude.ai users.")
-    except Exception as e:
-        skipped.append(f"release ZIP ({e})")
+            problems.append(
+                f"releases/latest/download/zero-slop.zip contains {inside}, not {shipped}."
+            )
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            problems.append("the GitHub release ZIP is missing (HTTP 404).")
+        else:
+            problems.append(f"the GitHub release ZIP returned HTTP {exc.code}.")
+    except Exception as exc:
+        if _unreachable(exc):
+            skipped.append(f"release ZIP ({exc})")
+        else:
+            problems.append(f"the GitHub release ZIP is invalid ({exc}).")
 
     try:
-        meta = json.loads(fetch("https://registry.npmjs.org/zero-slop/latest"))
-        print(f"published to npm          {meta.get('version')}")
-        if meta.get("version") != shipped:
-            problems.append(f"npm publishes {meta.get('version')}, not {shipped}.")
-    except Exception as e:
-        skipped.append(f"npm ({e})")
+        metadata = json.loads(fetch_fn("https://registry.npmjs.org/zero-slop/latest"))
+        published = metadata.get("version")
+        emit(f"published to npm          {published}")
+        if published != shipped:
+            problems.append(f"npm publishes {published or 'no version'}, not {shipped}.")
+    except urllib.error.HTTPError as exc:
+        problems.append(f"the npm package endpoint returned HTTP {exc.code}.")
+    except Exception as exc:
+        if _unreachable(exc):
+            skipped.append(f"npm ({exc})")
+        else:
+            problems.append(f"the npm package response is invalid ({exc}).")
 
-    for s in skipped:
-        print(f"skipped: {s}")
-    if problems:
-        print()
-        for p in problems:
-            print(f"DRIFT: {p}")
-        return 1
-    if not skipped:
-        print("\nEvery published surface advertises the version this repo ships.")
-    return 0
+    return problems, skipped
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument(
+        "--require-network", action="store_true",
+        help="fail rather than skip when a published service is unreachable",
+    )
+    parser.add_argument(
+        "--wait-seconds", type=int, default=0, metavar="N",
+        help="wait up to N seconds for GitHub and npm publication to converge",
+    )
+    args = parser.parse_args(argv)
+    if args.wait_seconds < 0 or args.wait_seconds > 900:
+        parser.error("--wait-seconds must be between 0 and 900")
+
+    deadline = time.monotonic() + args.wait_seconds
+    attempt = 0
+    while True:
+        attempt += 1
+        if attempt > 1:
+            print(f"\npublication check {attempt}")
+        problems, skipped = check_once()
+        effective = list(problems)
+        if args.require_network:
+            effective.extend(f"required service was unreachable: {item}" for item in skipped)
+        if not effective:
+            for item in skipped:
+                print(f"skipped: {item}")
+            if not skipped:
+                print("\nEvery published surface advertises the version this repo ships.")
+            return 0
+        if time.monotonic() >= deadline:
+            for item in skipped:
+                print(f"skipped: {item}")
+            print()
+            for problem in effective:
+                print(f"DRIFT: {problem}")
+            return 1
+        remaining = max(0, int(deadline - time.monotonic()))
+        print(f"publication has not converged; retrying in 15 seconds ({remaining}s remain)")
+        time.sleep(min(15, max(0, deadline - time.monotonic())))
 
 
 if __name__ == "__main__":

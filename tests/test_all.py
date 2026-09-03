@@ -22,6 +22,7 @@ import sys
 import tempfile
 import time
 import unittest
+import urllib.error
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
@@ -41,6 +42,7 @@ QUALITY_ROOT = ROOT / "bench" / "quality-corpus"
 QUALITY_BUILD = QUALITY_ROOT / "build_manifest.py"
 CORPUS_REGISTRY = ROOT / "bench" / "validate_corpus_registry.py"
 FEATURE_ABLATION = ROOT / "bench" / "feature-ablation" / "check.py"
+INTERNAL_CORPUS = ROOT / "bench" / "internal-corpus" / "evaluate.py"
 
 import learn  # noqa: E402
 import slopscore  # noqa: E402
@@ -2310,6 +2312,41 @@ class DocsMatchReality(unittest.TestCase):
         publish = (workflows / "publish-npm.yml").read_text()
         self.assertIn('- "bin/**"', publish)
 
+    def test_tag_release_builds_and_attaches_assets_without_a_chained_workflow(self):
+        """A workflow-created release cannot trigger another workflow when it
+        uses GITHUB_TOKEN. The tag job must therefore attach its own assets."""
+        workflows = ROOT / ".github" / "workflows"
+        tagged = (workflows / "release-on-tag.yml").read_text()
+        validate = (workflows / "validate.yml").read_text()
+        self.assertIn("python3 scripts/build_skill_zip.py", tagged)
+        self.assertIn("dist/zero-slop.zip", tagged)
+        self.assertIn("dist/zero-slop-single-file.md", tagged)
+        self.assertIn("assets/Zero-Slop-One-Pager.pdf", tagged)
+        self.assertIn("python3 -m unittest tests.test_all", tagged)
+        self.assertIn("gh release upload", tagged,
+                      "an idempotent rerun must repair a release with missing assets")
+        self.assertNotIn("scripts/check_release_surfaces.py", validate,
+                         "ordinary validation must not race a concurrent release")
+        self.assertIn("scripts/check_release_surfaces.py --require-network", tagged)
+
+    def test_missing_release_zip_is_drift_not_an_offline_skip(self):
+        spec = importlib.util.spec_from_file_location(
+            "release_surfaces", ROOT / "scripts" / "check_release_surfaces.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+
+        def fake_fetch(url, *, binary=False):
+            if url.endswith("/releases/latest"):
+                return json.dumps({"tag_name": f"v{shipped}"})
+            if url.endswith("/zero-slop.zip"):
+                raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+            return json.dumps({"version": shipped})
+
+        problems, skipped = module.check_once(fetch_fn=fake_fetch)
+        self.assertEqual(skipped, [])
+        self.assertTrue(any("ZIP is missing" in p for p in problems), problems)
+
     def test_plugin_manifests_have_required_identity(self):
         for folder in (".claude-plugin", ".codex-plugin"):
             manifest = json.loads((ROOT / folder / "plugin.json").read_text())
@@ -2876,6 +2913,34 @@ class CorpusAdmission(unittest.TestCase):
             with self.subTest(corpus_id):
                 self.assertNotEqual(rows[corpus_id]["tier"], "release_gate")
                 self.assertNotEqual(rows[corpus_id]["status"], "measured")
+
+    def test_private_maintainer_corpus_is_registered_without_source_text(self):
+        registry = json.loads((ROOT / "bench" / "corpus-registry.json").read_text())
+        rows = {row["id"]: row for row in registry["datasets"]}
+        row = rows["manav-slop-examples"]
+        self.assertEqual(row["access"], "private Google Doc; source text not committed")
+        self.assertIn("not accuracy", row["result"])
+        result = json.loads((ROOT / "bench" / "internal-corpus" / "results.json").read_text())
+        self.assertEqual(result["source"]["documents"], 9)
+        self.assertNotIn("text", json.dumps(result).lower())
+
+    def test_private_maintainer_corpus_replays_when_available(self):
+        source = Path.home() / ".zero-slop" / "evals" / "slop-examples.md"
+        if not source.exists():
+            self.skipTest("private maintainer corpus is not installed on this machine")
+        result = run([str(INTERNAL_CORPUS), "--source", str(source), "--check"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_private_corpus_report_never_copies_source_prose(self):
+        spec = importlib.util.spec_from_file_location("internal_corpus", INTERNAL_CORPUS)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        sample = "1) A deliberately ordinary sentence.\n\n2\\) Another short example.\n\n3)"
+        report = module.evaluate_text(sample, version="test")
+        self.assertEqual(report["source"]["documents"], 2)
+        rendered = json.dumps(report)
+        self.assertNotIn("deliberately ordinary", rendered)
+        self.assertNotIn("another short", rendered.lower())
 
 
 class FeatureAblation(unittest.TestCase):

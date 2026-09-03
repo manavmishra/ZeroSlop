@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.8.4",
+  "version": "2.8.5",
   "description": "An Agent Skill that scores AI-sounding prose locally, guides the host AI through an editorial rewrite, and checks changed source details. The local tools run offline with zero dependencies.",
   "bin": {
     "zero-slop": "bin/zero-slop.mjs"

@@ -110,13 +110,13 @@ The external distribution checks remain current. RAID+ contributed 7,627 usable
 generations from four model families; their mean writing scores ranged from 14.5 to
 25.5. In Beemo, raw model responses averaged 30.2, expert edits 25.3, and independent
 human answers 20.0. Neither dataset labels editorial quality. On one Apple silicon
-Mac, the local checker processed 1,000 documents in 1.9958 seconds, or 501.1 per
+Mac, the local checker processed 1,000 documents in 1.9929 seconds, or 501.8 per
 second. These are reproducible checks with stated limits, not universal claims.
 
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.8.4 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.8.5 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

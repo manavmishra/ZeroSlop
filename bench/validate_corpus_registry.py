@@ -49,7 +49,8 @@ def validate(path=REGISTRY):
                 "arb", "editlens", "maga-bench", "m4gt-bench",
                 "coling-2025-mgt", "m4", "autextification", "no-robots",
                 "blog-authorship", "enron", "persuade-2", "llm-excess-vocab",
-                "slop-forensics", "slopbench", "wikipedia-signs"}
+                "slop-forensics", "slopbench", "wikipedia-signs",
+                "manav-slop-examples"}
     missing = required - ids
     if missing:
         raise ValueError("registry omits requested sources: " + ", ".join(sorted(missing)))

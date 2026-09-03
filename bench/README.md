@@ -62,6 +62,9 @@ current corpus checks.
   every proposed external corpus. Label semantics, provenance, access terms, and the
   claim a corpus may support are explicit; authorship labels never stand in for
   slop-quality labels.
+- `internal-corpus/` — a hash-pinned replay of Manav's nine-example private Google
+  Doc. The source stays in `~/.zero-slop/evals/`; only aggregate findings are
+  committed. It catches drift and missed cases but does not measure accuracy.
 - `competitor-capabilities.json` — a feature-presence audit at pinned commits for
   Zero Slop, avoid-ai-writing, humanizer, no-ai-slop, and JCarterJohnson's
   unslop-text. It records what each repository documents; it does not measure which
@@ -83,6 +86,7 @@ python3 bench/raid-plus-corpus/audit.py --fetch --check
 python3 bench/quality-corpus/build_manifest.py --check
 python3 bench/quality-corpus/evaluate.py --manifest bench/quality-corpus/manifest.json --labels bench/quality-corpus/labels-rater-a.json --labels bench/quality-corpus/labels-rater-b.json --out bench/quality-corpus/results.json --check
 python3 bench/antithesis/evaluate.py --check
+python3 bench/internal-corpus/evaluate.py --check
 python3 bench/feature-ablation/check.py
 python3 bench/validate_corpus_registry.py
 python3 bench/make_charts.py --check

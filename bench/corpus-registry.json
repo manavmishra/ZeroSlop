@@ -52,6 +52,19 @@
       "source_pin": "bundled corpus.json"
     },
     {
+      "id": "manav-slop-examples",
+      "name": "Private maintainer slop examples",
+      "url": "https://docs.google.com/document/d/1JT32uRH_HsQavHOfWnrrZNiaBRC60d9r19PX5fSIoW8/edit?tab=t.0",
+      "license": "private maintainer material; aggregate results only",
+      "label_semantics": "maintainer-curated examples without per-item labels, a rubric, or clean controls",
+      "intended_use": "private release drift replay and missed-case review",
+      "tier": "release_research",
+      "access": "private Google Doc; source text not committed",
+      "status": "measured",
+      "result": "nine populated examples replayed from a hash-pinned private snapshot; not accuracy",
+      "source_pin": "SHA-256 e7a897580e478fd0fffff811b7b8fd3d8e3b45d52b25242d72c651b08d5ef300"
+    },
+    {
       "id": "aistoryhub",
       "name": "AIStoryHub AI Slop Corpus v1.8",
       "url": "https://aistoryhub.co/corpus",
