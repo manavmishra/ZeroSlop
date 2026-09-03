@@ -742,6 +742,61 @@ class CommunityReportedSignals(unittest.TestCase):
                 self.assertIn(phrase, tells)
                 self.assertIn(phrase, readalong)
 
+    def test_social_performance_stack_has_mechanical_anchors(self):
+        """A long social post can dilute one candour marker until the meter
+        calls the whole draft clear. These repeated, formulaic shapes made a
+        real 280-word post score 15.0 while an editor rewrote most of it. Each
+        anchor is narrow enough to report on its own; together they form the
+        cluster the score is designed to measure."""
+        data = slopscore.load_patterns()
+        cases = {
+            "less-like-more-like": (
+                "The forum feels less like a working group and more like a stage."
+            ),
+            "social-validation": (
+                "I know I'm not alone. If you've felt the fatigue, you're not imagining it."
+            ),
+            "staged-negative-ladder": (
+                "Not in a feed. Not in a public thread. But in a private community."
+            ),
+            "real-conversation-closer": (
+                "That is where the real conversations are starting to happen."
+            ),
+        }
+        for expected, text in cases.items():
+            with self.subTest(expected=expected):
+                names = {hit["name"] for hit in slopscore.score_text(text, data)["hits"]}
+                self.assertIn(expected, names)
+
+        # The production failure happened in a long post: one old tell was
+        # diluted by the document length until the whole draft read "clear."
+        # Keep this synthetic rather than storing a writer's submitted prose.
+        stack = " ".join(cases.values())
+        filler = "The group meets each month to compare notes and answer questions. " * 14
+        result = slopscore.score_text(stack + " " + filler, data)
+        self.assertGreaterEqual(result["ai_likelihood"], 25)
+
+    def test_social_performance_anchors_do_not_ban_literal_comparisons(self):
+        data = slopscore.load_patterns()
+        controls = {
+            "less-like-more-like": (
+                "The second sample looks less like granite and more like basalt under the lens."
+            ),
+            "social-validation": (
+                "The incident report confirms that no one else was logged in."
+            ),
+            "staged-negative-ladder": (
+                "The cache is not in memory. It is not in Redis. The record is in Postgres."
+            ),
+            "real-conversation-closer": (
+                "The recorded conversation happened in the conference room."
+            ),
+        }
+        for forbidden, text in controls.items():
+            with self.subTest(forbidden=forbidden):
+                names = {hit["name"] for hit in slopscore.score_text(text, data)["hits"]}
+                self.assertNotIn(forbidden, names)
+
 
 # --------------------------------------------------------------------------
 class ContextualSignals(unittest.TestCase):
@@ -2474,6 +2529,9 @@ class SearchCorpus(unittest.TestCase):
 
     def test_readme_performance_table_matches_the_structured_record(self):
         result = json.loads((ROOT / "bench" / "performance-results.json").read_text())
+        self.assertGreaterEqual(result["measurement"]["warmup_runs_per_probe"], 1)
+        self.assertGreaterEqual(result["measurement"]["default_measured_runs"], 5)
+        self.assertEqual(result["measurement"]["summary"], "median")
         readme = re.sub(r"\s+", " ", (ROOT / "README.md").read_text())
         scorer = result["scorer"]
         self.assertIn(f"{scorer['median_batch_seconds']:.4f} seconds", readme)
@@ -4029,6 +4087,25 @@ class RegisterGate(unittest.TestCase):
                      "Not in photography."):
             with self.subTest(line=line):
                 self.assertEqual(len(module.verbless_fragments(line)), 1, line)
+
+    def test_curly_contractions_and_irregular_verbs_are_not_fragments(self):
+        """The document pass treated curly apostrophes as token boundaries and
+        knew only suffix-shaped verbs. That made complete sentences such as
+        "I've found" and "you've felt" look verbless."""
+        module = self._register()
+        sentences = (
+            "Over the past few months, I’ve found the smaller group more useful.",
+            "If you’ve felt the delay, you’re not imagining it.",
+            "The editor found the mismatch and wrote down the cause.",
+        )
+        for sentence in sentences:
+            with self.subTest(sentence=sentence):
+                self.assertEqual(module.verbless_fragments(sentence), [], sentence)
+
+    def test_unicode_dash_bullets_are_not_misread_as_sentences(self):
+        module = self._register()
+        bullets = "– No sales pitch.\n– No posturing.\n– No automated filler."
+        self.assertEqual(module.verbless_fragments(module.prose_of(bullets)), [])
 
     def test_antithesis_corpus_result_is_current_and_holds_its_floors(self):
         """The detector had no recall measurement: it fired on four hand-picked

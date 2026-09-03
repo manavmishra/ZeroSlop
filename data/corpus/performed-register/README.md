@@ -1,6 +1,6 @@
 # performed-register — should-flag corpus
 
-Thirty-five spans a human editor flagged as slop on sight while the scorer
+Thirty-six spans a human editor flagged as slop on sight while the scorer
 passed every one clean (9.5–10.9, zero pattern hits). All come from
 zero-slop.ai blog drafts written in August 2026 — first-party text, so no
 external registry entry applies. They share one register: **performed-writer

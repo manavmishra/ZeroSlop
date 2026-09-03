@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.8.3"
+  version: "2.8.4"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -117,8 +117,8 @@ local and AI responsibilities distinct:
    and directly fix stumbles, repetition, weak transitions, and awkward flow.
 7. **Verifier — local tools plus the AI assistant.** Check the exact final text
    against the source for the writing score, facts, meaning, qualifiers, voice,
-   format, and structure. Any repair returns through roles 5 and 6 before role 7
-   runs again.
+   format, and structure. This is a release gate, not advice: a warning blocks
+   delivery. Any repair returns through roles 5 and 6 before role 7 runs again.
 8. **Fresh-eyes finalizer — a new AI pass.** Read the verified text as a first-time
    reader, apply only safe final polish, and approve it without changes. A role 8
    edit restarts roles 5 through 8; the finalizer never bypasses verification.
@@ -218,7 +218,7 @@ Run the heuristic surface scorer on the draft:
 python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
 ```
 
-Every channel runs on every draft: the pattern meter (290 weighted tells plus
+Every channel runs on every draft: the pattern meter (294 weighted tells plus
 a 96-term lexicon and 26 context-gated riders), rhythm and burstiness,
 long-form word variety, followability, formatting
 densities, and register. Each one is interpretable: pattern-meter hits come
@@ -959,7 +959,7 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 - `references/tells.md` — the master taxonomy (113 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current
-  release carries 290 weighted regexes because some tells need more than one.
+  release carries 294 weighted regexes because some tells need more than one.
 - `references/rewrite-moves.md` — the positive program: the six ladder rungs
   expanded, with before/after pairs and voice calibration.
 - `references/platforms.md` — LinkedIn, X/Twitter, email, blog, newsletter,

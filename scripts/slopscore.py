@@ -900,7 +900,7 @@ def render_portfolio(result):
 # broetry is a slop tell, not a machine tell: LinkedIn writers invented it
 # years before GPT-3, and it demonstrably performs on the platform. Whether to
 # trade reach for a human voice is the author's call, not the meter's.
-STRUCT_MARK = re.compile(r"^\s*(?:[-*+•>#]|\d+[.)]|\|)")
+STRUCT_MARK = re.compile(r"^\s*(?:[-–—*+•>#]|\d+[.)]|\|)")
 DIALOGUE_OPEN = re.compile("^[\"“‘']")
 
 

@@ -5,7 +5,7 @@
     "commit": "a28fc2bb24715b59b6d0bd461b6e900c92cb9564"
   },
   "candidate": {
-    "version": "2.8.3",
+    "version": "2.8.4",
     "production_path": "single"
   },
   "deterministic_surface_ablation": {
@@ -17,7 +17,7 @@
       "72-item blind quality panel"
     ],
     "baseline_score_vector_sha256": "152b7e478cef00d27a4cf663e5f4be1cc8fa402db4b17c6c6155468bb9536472",
-    "candidate_score_vector_sha256": "8b01ad1514a0b88dafe80d3780346a9693c5830a41c052a5518cb293e8886af0",
+    "candidate_score_vector_sha256": "ae4d79fd656b7d7588a0708f64020cdcc33dd6285ac59924341670ee7042aa69",
     "exactly_unchanged": false,
     "blind_quality_consensus_accuracy_baseline": 0.7105,
     "blind_quality_consensus_accuracy_candidate": 0.8421,

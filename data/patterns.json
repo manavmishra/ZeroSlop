@@ -163,6 +163,15 @@
    "last_confirmed": "2026-08-15"
   },
   {
+   "name": "social-validation",
+   "cat": "performed",
+   "rx": "\\b(?:i (?:know|realize) i(?:'|\u2019)m not alone|you(?:'|\u2019)re not (?:alone|imagining it)|if you(?:'|\u2019)ve (?:felt|noticed) [\\w '\u2019-]{2,36}, you(?:'|\u2019)re not (?:alone|imagining it))\\b",
+   "hints": ["not alone", "not imagining it"],
+   "w": 2.5,
+   "first_seen": "2026-09-03",
+   "last_confirmed": "2026-09-03"
+  },
+  {
    "name": "faux-insight",
    "cat": "performed",
    "rx": "\\b(?:what (?:most people|nobody) (?:get(?:s)? wrong|tells you|misses)|the part everyone misses|most people (?:don't|won't|never) (?:realize|see|notice)|here(?:(?:'|\u2019)s| is| has) what (?:i|we) learned)\\b",
@@ -225,6 +234,15 @@
    "w": 4,
    "first_seen": "2026-08-03",
    "last_confirmed": "2026-08-03"
+  },
+  {
+   "name": "staged-negative-ladder",
+   "cat": "contrast",
+   "rx": "(?:^|[.!?]\\s+|\\n)[\u2013\u2014*+\u2022-]*\\s*not in (?:an? |the )?[\\w '\u2019-]{2,32}\\.\\s*(?:[\u2013\u2014*+\u2022-]+\\s*)?not in (?:an? |the )?[\\w '\u2019-]{2,32}\\.\\s*(?:[\u2013\u2014*+\u2022-]+\\s*)?but in (?:an? |the )?[\\w '\u2019-]{2,48}",
+   "hints": ["not in a", "not in the"],
+   "w": 5,
+   "first_seen": "2026-09-03",
+   "last_confirmed": "2026-09-03"
   },
   {
    "name": "this-isnt-about",
@@ -514,6 +532,15 @@
    "w": 5,
    "first_seen": "2026-08-14",
    "last_confirmed": "2026-08-14"
+  },
+  {
+   "name": "less-like-more-like",
+   "cat": "contrast",
+   "rx": "\\b(?:feel(?:s|ing)?|seem(?:s|ing)?) less like (?:an? |the )?[\\w '\u2019-]{2,48}(?:,| and)? (?:an? )?(?:little )?more like (?:an? |the )?[\\w '\u2019-]{2,48}",
+   "hints": ["less like", "more like"],
+   "w": 4,
+   "first_seen": "2026-09-03",
+   "last_confirmed": "2026-09-03"
   },
   {
    "name": "thats-not-thats",
@@ -1176,6 +1203,15 @@
    "w": 4,
    "first_seen": "2026-08-14",
    "last_confirmed": "2026-08-14"
+  },
+  {
+   "name": "real-conversation-closer",
+   "cat": "performed",
+   "rx": "\\bwhere the (?:real|genuine|meaningful) (?:conversation|conversations|connection|connections) (?:is|are) (?:starting to |finally )?(?:happen|happening|taking place)\\b",
+   "hints": ["real conversation", "genuine conversation", "meaningful conversation"],
+   "w": 3,
+   "first_seen": "2026-09-03",
+   "last_confirmed": "2026-09-03"
   },
   {
    "name": "recipe-for",

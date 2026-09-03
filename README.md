@@ -5,10 +5,10 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.8.3-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.8.4-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations"><img alt="Listed in awesome-ai-plugins" src="https://img.shields.io/badge/awesome--ai--plugins-listed-2C6E8F"></a>
-  <a href="https://zero-slop.ai/try/"><img alt="This README scores 12.0 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55"></a>
+  <a href="https://zero-slop.ai/try/"><img alt="This README scores 11.6 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-11.6%2F100-0f7d55"></a>
 </p>
 
 Less slop, more pop in your writing.
@@ -114,7 +114,7 @@ The badge above is this README's own, from `npx zero-slop score README.md`.
 Put yours up the same way:
 
 ```md
-[![Slop score](https://img.shields.io/badge/slop%20score-12.0%2F100-0f7d55)](https://zero-slop.ai/try/)
+[![Slop score](https://img.shields.io/badge/slop%20score-11.6%2F100-0f7d55)](https://zero-slop.ai/try/)
 ```
 
 Colours are the scorer's bands: `0f7d55` under 25, `b8860b` under 60, `b0502c`
@@ -122,7 +122,7 @@ above.
 
 ## The slop that Zero Slop catches
 
-290 weighted patterns and a 96-term lexicon, including:
+294 weighted patterns and a 96-term lexicon, including:
 
 1. Binary contrasts: "It's not X. It's Y."
 2. Throat-clearing openers: "Here's the thing," "Let me be clear"
@@ -228,12 +228,12 @@ proof of general accuracy.
 
 ### Speed
 
-One busy Apple silicon Mac. Meter: 1,000 documents in 1.9949 seconds (501.3 per
-second), 15,201 words in 0.3200 seconds, worst stress case 2.3077 seconds.
-Reading pass: 0.7712 seconds for the same 1,000 (1296.7 per
-second), 0.1054 for the same large document, linear to 96,000 words. Learning
-pass, 8,000 words: 0.2832 seconds. Across 24 interleaved runs against 2.7.7 we measured
-0.22% higher median throughput; that is machine noise, not a speed claim. Editing
+One busy Apple silicon Mac. Meter: 1,000 documents in 1.9537 seconds (511.8 per
+second), 15,201 words in 0.3179 seconds, worst stress case 2.4137 seconds.
+Reading pass: 0.7741 seconds for the same 1,000 (1291.9 per
+second), 0.1051 for the same large document, linear to 96,000 words. Learning
+pass, 8,000 words: 0.1597 seconds. Across 24 interleaved runs against 2.7.7 we measured
+1.29% lower median throughput; that is machine noise, not a speed claim. Editing
 time is excluded.
 
 ### Reading-pass accuracy

@@ -380,6 +380,26 @@ FINITE_VERB = re.compile(
     r"|gate[sd]?|gives?|runs?|gets?|gave|gone)\b"
     r"|\b\w+(?:s|ed|es)\b", re.I)
 
+# Curly apostrophes are ordinary prose, not token boundaries. A contracted
+# auxiliary makes the clause finite even when the main verb is irregular or a
+# participle ("I’ve found", "you’re seeing"). The old tokeniser split those
+# into ``I``/``ve`` and ``you``/``re`` and then reported complete sentences as
+# fragments. Keep this conservative: a possible possessive false negative is
+# safer than telling a writer that a grammatical sentence has no verb.
+CONTRACTED_FINITE = re.compile(r"\b[A-Za-z][\w-]*['’](?:m|re|ve|s|d|ll)\b", re.I)
+# Only forms that are rarely ordinary nouns or adjectives belong here. Ambiguous
+# forms such as ``cut``, ``left``, ``read``, ``set``, and ``thought`` made real
+# fragments look grammatical ("Nothing left in the queue"). Contractions are
+# handled separately above, so this small list only closes clear past-tense
+# holes in uncontracted sentences.
+IRREGULAR_FINITE = frozenset("""
+arose became began blew broke brought bought caught chose came dealt did drew
+drank drove ate fell fed felt fought found flew forgot forgave froze gave got
+grew had heard held hid kept knew laid led lent lost made meant met paid rode
+ran said saw sold sent shook showed sang sat slept spoke spent stood stole
+struck swam took taught told threw understood woke wore won wrote was were went
+""".split())
+
 # The -s half of that catch-all cannot tell a verb from a plural noun, and a
 # plural noun in a fragment made the whole fragment invisible: "Same compound,
 # three identifiers." and "Same assay, two units." both read as verbed on
@@ -434,6 +454,11 @@ def _looks_like_noun(sent: str, start: int) -> bool:
 
 
 def _has_finite_verb(sent: str) -> bool:
+    if CONTRACTED_FINITE.search(sent):
+        return True
+    if any(word.lower() in IRREGULAR_FINITE
+           for word in re.findall(r"[A-Za-z][\w'’-]*", sent)):
+        return True
     for match in FINITE_VERB.finditer(sent):
         word = match.group(0)
         # An explicit auxiliary or an -ed form is a verb wherever it appears.
@@ -456,10 +481,10 @@ def _sentences(prose: str) -> list[str]:
 def verbless_fragments(prose: str) -> list[str]:
     out = []
     for sent in _sentences(prose):
-        words = re.findall(r"[A-Za-z][\w'-]*", sent)
+        words = re.findall(r"[A-Za-z][\w'’-]*", sent)
         if not (3 <= len(words) <= 12):
             continue
-        if sent.rstrip().endswith(":") or sent.lstrip().startswith(("-", "*", "#", "|")):
+        if sent.rstrip().endswith(":") or sent.lstrip().startswith(("-", "–", "—", "•", "*", "#", "|")):
             continue
         if IMPERATIVE_OPENER.match(sent):
             continue
@@ -562,7 +587,7 @@ def prose_of(text: str) -> str:
     return "\n".join(
         line
         for line in text.split("\n")
-        if not line.strip().startswith(("|", "![", ">", "    "))
+        if not line.strip().startswith(("|", "![", ">", "-", "–", "—", "•", "*", "    "))
     )
 
 

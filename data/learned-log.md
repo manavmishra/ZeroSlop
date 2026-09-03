@@ -390,3 +390,14 @@ example that motivated it.
   alone: paragraph-order dependence, unsupported novelty, self-labelled
   significance, moral-adjective category errors, recap-flattery, and
   wall-of-text replies.
+- 2026-09-03 — v2.8.4 social-stage false negative. A long promotional social
+  post scored 15.0 because its only machine-readable signal was one candour
+  phrase; repeated validation, staged negative fragments, a less-like/more-like
+  comparison, and a generic "real conversations" close were left entirely to
+  the contextual reader. Added four narrow anchors whose combined weight finds
+  that stack without making any one ordinary phrase decisive. Also fixed the
+  reading pass so curly contractions, irregular past-tense verbs, and Unicode
+  dash bullets are not misreported as verbless prose. The reproduced miss moves
+  from 15.0 to 50.2, the edited version remains below the 25-point line, every
+  known-human control remains below it, and the exact finishing pipeline now
+  treats a verifier warning as a blocked release rather than advisory copy.

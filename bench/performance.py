@@ -22,7 +22,13 @@ import contextual  # noqa: E402
 from safeio import atomic_write_text  # noqa: E402
 
 
-def timed(fn, repeats=3):
+def timed(fn, repeats=5, warmups=1):
+    # Import caches, regex plans, filesystem pages, and the Python allocator all
+    # make a cold first sample unrepresentative of steady-state service work.
+    # Warm them explicitly, then use five measured runs so one scheduler spike
+    # cannot become the number printed in the README.
+    for _ in range(warmups):
+        fn()
     values = []
     for _ in range(repeats):
         started = time.perf_counter()
@@ -121,6 +127,11 @@ def compute():
             "architecture": platform.machine(),
             "logical_cpus": os.cpu_count(),
             "python": platform.python_version(),
+        },
+        "measurement": {
+            "warmup_runs_per_probe": 1,
+            "default_measured_runs": 5,
+            "summary": "median",
         },
         "scorer": {
             "batch_documents": 1000,

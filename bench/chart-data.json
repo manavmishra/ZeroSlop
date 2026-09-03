@@ -20,11 +20,11 @@
  "detector_panel": [
   [
    "original drafts",
-   76.5
+   76.9
   ],
   [
    "isatimur/de-slop",
-   26.9
+   27.3
   ],
   [
    "stacked pipeline",
@@ -36,7 +36,7 @@
   ],
   [
    "petergyang/no-ai-slop",
-   21.2
+   21.3
   ],
   [
    "hardikpandya/stop-slop",
@@ -259,7 +259,7 @@
  ],
  "contextual_ablation": [
   [
-   "v2.8.3 local score",
+   "v2.8.4 local score",
    93.18
   ],
   [
