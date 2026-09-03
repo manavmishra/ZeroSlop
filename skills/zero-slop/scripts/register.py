@@ -332,6 +332,74 @@ FINITE_VERB = re.compile(
     r"|gate[sd]?|gives?|runs?|gets?|gave|gone)\b"
     r"|\b\w+(?:s|ed|es)\b", re.I)
 
+# The -s half of that catch-all cannot tell a verb from a plural noun, and a
+# plural noun in a fragment made the whole fragment invisible: "Same compound,
+# three identifiers." and "Same assay, two units." both read as verbed on
+# `identifiers` and `units`. Since fragments are mostly noun phrases, and noun
+# phrases are mostly plural, the detector was blind to its own commonest shape.
+#
+# A determiner, number or quantifier immediately before an -s word makes it a
+# noun ("three identifiers", "no rules"), not a verb ("the model runs" keeps
+# its verb because "model" is not in this list). Same closed-list device as
+# IMPERATIVE_OPENER above, and measured the same way: on data/corpus/
+# must-not-flag it adds no findings at all.
+NOUN_MARKER = frozenset("""
+a an the this that these those my your his her its our their no some any
+many several few both all each every another other more most much little
+two three four five six seven eight nine ten dozen hundred thousand
+one first second third next last same own other
+of at in on for by with from to into onto over under about across through
+without within per via against between during after before
+""".split())
+# The prepositions are there for the same reason as the determiners: what
+# follows one is a noun, not a verb. "In innovation at scale." has two words
+# that are verbs elsewhere ("scale", and "innovation" is safe), and without
+# this the fragment reads as a sentence. An infinitive after "to" is not a
+# finite verb either, so listing it here is correct rather than convenient.
+
+
+# The base forms IMPERATIVE_OPENER already knows, reused away from the sentence
+# opening. A plural subject takes a bare verb -- "our engineers ship weekly" --
+# which carries no inflection for the catch-all to find, so without this the
+# fix above turns every such sentence into a fragment.
+BASE_VERBS = frozenset(
+    IMPERATIVE_OPENER.pattern
+    .split("(?:add|", 1)[1]
+    .split(")\\b", 1)[0]
+    .replace("|", " ")
+    .split()
+) | {"add"} | frozenset("""
+work need mean seem feel matter differ vary exist remain happen occur tend
+cost fail pass fit last agree apply depend belong arrive land stick
+""".split())
+# The extras are the stative and intransitive verbs a plural subject takes and
+# the imperative list has no reason to carry -- you do not tell someone to
+# "matter". "The tools work." was the fragment this produced without them. Each
+# one is also a noun in some context ("the work", "the cost"), which the
+# determiner test in _looks_like_noun already handles.
+
+
+def _looks_like_noun(sent: str, start: int) -> bool:
+    """Is the word at `start` sitting in a noun phrase rather than a verb slot?"""
+    prev = re.findall(r"[A-Za-z][\w'-]*", sent[:start])
+    return bool(prev) and prev[-1].lower() in NOUN_MARKER
+
+
+def _has_finite_verb(sent: str) -> bool:
+    for match in FINITE_VERB.finditer(sent):
+        word = match.group(0)
+        # An explicit auxiliary or an -ed form is a verb wherever it appears.
+        if not re.fullmatch(r"\w+(?:s|es)", word, re.I):
+            return True
+        if not _looks_like_noun(sent, match.start()):
+            return True                      # "the model runs"
+    # "three identifiers" is a noun, "one report" is a noun, but "engineers
+    # ship" is a verb: the same determiner test decides both.
+    for match in re.finditer(r"\b[A-Za-z][\w'-]*\b", sent):
+        if match.group(0).lower() in BASE_VERBS and not _looks_like_noun(sent, match.start()):
+            return True
+    return False
+
 
 def _sentences(prose: str) -> list[str]:
     return [x.strip() for x in re.split(r"(?<=[.!?])\s+", prose) if x.strip()]
@@ -347,7 +415,7 @@ def verbless_fragments(prose: str) -> list[str]:
             continue
         if IMPERATIVE_OPENER.match(sent):
             continue
-        if not FINITE_VERB.search(sent):
+        if not _has_finite_verb(sent):
             out.append(sent)
     return out
 
