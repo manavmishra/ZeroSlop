@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.8.5"
+  version: "2.8.6"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -58,8 +58,13 @@ citations, and the ladder below orders the signals by measured strength.
    number, name, anecdote, or experience — and experiential/interior claims
    count ("by test day it felt familiar", "I was terrified"): if the author
    didn't say it, it's fabrication, even when it would make the piece land
-   better. Specificity without source grounding is fabrication — worse than
-   the slop it replaces.
+   better. Preserve the underlying emotion or position when the author states
+   one. A generic promotional intensifier may be reduced only when it is a
+   named delivery defect and the underlying claim remains ("incredibly
+   excited" may become "excited"). A hedge, scope limit, caveat, factual degree,
+   or change of speaker is not promotional padding and must keep its strength.
+   Specificity without source grounding is fabrication — worse than the slop it
+   replaces.
 2. **Flag hollow spans, don't fill them.** Prose that makes no claim cannot be
    rescued by rewording. Flag it and ask for the missing substance.
 3. **No over-correction.** Trading AI-slop for edgy-slop (forced hot takes,
@@ -657,6 +662,10 @@ If verification requires any textual repair, send the repaired text through the 
 desk and final read-aloud pass again, then repeat every final check. Continue until the
 same text clears the copy desk, final read-aloud pass, semantic and format review,
 scorer, and fidelity gate.
+A required repair may raise the writing score from the previous draft as long as it
+stays below the release limit. Source meaning, stated emotion, and factual accuracy
+outrank a smaller number. Never discard a necessary semantic repair merely because an
+unsafe version scored lower; rerun every check on the repaired text instead.
 Limit this repair loop to three rounds. If a problem still cannot be resolved
 without guessing, return the best source-preserving version that completed both
 editorial passes and state the unresolved issue and failed check plainly. Outside
@@ -2058,7 +2067,9 @@ the report even when they are zero.
 49. **No invented specifics.** No number, name, anecdote, date, or source appeared
     that the author did not supply.
 50. **No invented interior claims.** No stated feeling, motive, or experience the
-    author never wrote.
+    author never wrote. An emotion or position present in the source still appears in
+    the rewrite. Its wording may lose a generic promotional intensifier when the
+    underlying claim remains; it may not disappear or switch speakers.
 51. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
     as the source.
 52. **Claims not reframed.** Same names and numbers can still carry a changed
@@ -2181,7 +2192,9 @@ rewriter to approve its own work.
 - **Reader effort.** A smart first-time reader can follow the argument once through.
   Unpack only a genuine stumble; do not dilute expert language the audience needs.
 - **Voice continuity.** The same person seems to have written the beginning, middle,
-  and end. Restore source-backed warmth or texture lost to over-editing.
+  and end. Restore source-backed warmth or texture lost to over-editing. Restore a
+  source-stated emotion or position that an earlier pass accidentally removed, using
+  plain language rather than reinstating empty promotional padding.
 - **Residual process language.** Remove internal labels, scoring talk, evaluation
   jargon, or comments meant for the editor rather than the reader.
 - **Genre and format.** The text looks and sounds native to its destination. Preserve

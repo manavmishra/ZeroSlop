@@ -212,7 +212,9 @@ the report even when they are zero.
 49. **No invented specifics.** No number, name, anecdote, date, or source appeared
     that the author did not supply.
 50. **No invented interior claims.** No stated feeling, motive, or experience the
-    author never wrote.
+    author never wrote. An emotion or position present in the source still appears in
+    the rewrite. Its wording may lose a generic promotional intensifier when the
+    underlying claim remains; it may not disappear or switch speakers.
 51. **Qualifiers survive.** Hedges, scope limits, and caveats carry the same strength
     as the source.
 52. **Claims not reframed.** Same names and numbers can still carry a changed

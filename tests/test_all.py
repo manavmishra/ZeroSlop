@@ -2121,6 +2121,15 @@ class DocsMatchReality(unittest.TestCase):
                 self.assertIn(phrase, brief)
         self.assertIn("references/fresh-eyes.md", skill)
 
+    def test_semantic_repairs_outrank_small_score_changes(self):
+        skill = " ".join(self.docs["SKILL.md"].lower().split())
+        brief = " ".join((ROOT / "references" / "fresh-eyes.md").read_text().lower().split())
+        self.assertIn("preserve the underlying emotion or position", skill)
+        self.assertIn("generic promotional intensifier", skill)
+        self.assertIn("a required repair may raise the writing score", skill)
+        self.assertIn("stays below the release limit", skill)
+        self.assertIn("restore a source-stated emotion", brief)
+
     def test_skill_report_template_speaks_to_the_writer(self):
         skill = self.docs["SKILL.md"]
         summary = re.search(

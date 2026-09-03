@@ -18,7 +18,9 @@ rewriter to approve its own work.
 - **Reader effort.** A smart first-time reader can follow the argument once through.
   Unpack only a genuine stumble; do not dilute expert language the audience needs.
 - **Voice continuity.** The same person seems to have written the beginning, middle,
-  and end. Restore source-backed warmth or texture lost to over-editing.
+  and end. Restore source-backed warmth or texture lost to over-editing. Restore a
+  source-stated emotion or position that an earlier pass accidentally removed, using
+  plain language rather than reinstating empty promotional padding.
 - **Residual process language.** Remove internal labels, scoring talk, evaluation
   jargon, or comments meant for the editor rather than the reader.
 - **Genre and format.** The text looks and sounds native to its destination. Preserve
