@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.8.9"
+  version: "2.8.10"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -669,9 +669,13 @@ restart the complete editorial sequence. If the second check still finds a probl
 return the safest source-preserving edit and name the remaining issue plainly.
 
 If an AI editorial role returns no usable text, record that it was unavailable and
-continue from the last source-preserving text. Unavailability is an abstention, not a
-reason to retry, switch models, or replay earlier roles. A caller with a one-request
-budget must never make a second remote request. Report any role that did not complete.
+continue from the last source-preserving text. For an explicit rewrite request, if that
+text is still the unchanged source, run `python3 scripts/rescue.py -` on the source and
+pass its output through the same scorer and fact gate. This deterministic availability
+editor removes only reviewed stock wrappers and never certifies itself; label its use
+plainly. Unavailability is an abstention, not a reason to retry, switch models, or replay
+earlier roles. A caller with a one-request budget must never make a second remote
+request. Report any role that did not complete.
 
 A required repair may raise the writing score from the previous draft as long as it
 stays below the release limit. Source meaning, stated emotion, and factual accuracy
@@ -993,6 +997,9 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
   requires the section A counts to be written down rather than judged silently.
 - `references/evidence.md` — the research basis: papers, detector mechanics,
   and why each ladder rung is ordered where it is.
+- `scripts/rescue.py` — the conservative, no-network availability editor shared by
+  installed skills and the web demo. It returns a changed draft when a known safe edit
+  is available, then leaves approval to the scorer and fact gate.
 
 ## Worked example (LinkedIn)
 

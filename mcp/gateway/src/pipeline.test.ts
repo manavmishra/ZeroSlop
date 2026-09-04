@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { callRole, editorReply, signedEditorHeaders, tooLong, tooShort } from "./model";
 import { localRescue, runPipeline, scorerGuidance } from "./pipeline";
 import type { WritingReport } from "./types";
+
+const rescueScript = fileURLToPath(new URL("../../../scripts/rescue.py", import.meta.url));
 
 function signingKeyForTests(): string {
   return Array.from({ length: 40 }, (_, index) => String.fromCharCode(97 + (index % 26))).join("");
@@ -136,7 +140,7 @@ test("an expired editor deadline makes no request", async () => {
 
 test("clean text exits after scoring without a model request", async () => {
   const scorer = { fetch: async () => Response.json(writingReport(9.5)) };
-  const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.8.9" } as unknown as Env,
+  const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.8.10" } as unknown as Env,
     { text: "The importer now maps CSV headers automatically.", genre: "general" });
   assert.equal(result.status, "already_clear");
   assert.equal(result.modelRequests, 0);
@@ -144,8 +148,8 @@ test("clean text exits after scoring without a model request", async () => {
 });
 
 test("the complete MCP edit uses one remote model request", async () => {
-  const original = "We are incredibly excited to share that Harbor 4.0 marks a transformative milestone for our journey.";
-  const rewrite = "Harbor 4.0 is available to the team.";
+  const original = "We are incredibly excited to share that Kairoset 4.0 marks a transformative milestone for our journey.";
+  const rewrite = "Kairoset 4.0 is available to the team.";
   let editorRequests = 0;
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
@@ -156,7 +160,7 @@ test("the complete MCP edit uses one remote model request", async () => {
   }) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.8.9",
+      SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.8.10",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(editorRequests, 1);
@@ -172,14 +176,14 @@ test("the complete MCP edit uses one remote model request", async () => {
 });
 
 test("a model outage still returns a changed local edit after one request", async () => {
-  const original = "We are incredibly excited to share some news about our journey with Harbor over 18 months.";
+  const original = "We are incredibly excited to share some news about our journey with Kairoset over 18 months.";
   const local = localRescue(original);
   let requests = 0;
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async () => { requests += 1; return Response.json({ error: "busy" }, { status: 503 }); }) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, local, 18), SCORER_VERSION: "2.8.9",
+      SCORER: scorerHarness(original, local, 18), SCORER_VERSION: "2.8.10",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "social" });
     assert.equal(requests, 1);
@@ -193,14 +197,14 @@ test("a model outage still returns a changed local edit after one request", asyn
 });
 
 test("an unsafe model response loses to the local source-safe edit", async () => {
-  const original = "We are incredibly excited to share some news about our journey with Harbor over 18 months.";
-  const invented = "Harbor doubled revenue over 18 months.";
+  const original = "We are incredibly excited to share some news about our journey with Kairoset over 18 months.";
+  const invented = "Kairoset doubled revenue over 18 months.";
   const local = localRescue(original);
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async () => Response.json({ rewrite: invented, provider: "workers-ai", model: "editor", stored: false })) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, local, 18, true), SCORER_VERSION: "2.8.9",
+      SCORER: scorerHarness(original, local, 18, true), SCORER_VERSION: "2.8.10",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "social" });
     assert.equal(result.text, local);
@@ -213,18 +217,18 @@ test("an unsafe model response loses to the local source-safe edit", async () =>
 
 test("local fallback preserves the launch fixture's protected details", () => {
   const input = "We are incredibly excited to share some news about our journey over the past 18 months. " +
-    "Our team spoke to 40 customers. The real win was not the time saved. It was watching Harbor move " +
+    "Our team spoke to 40 customers. The real win was not the time saved. It was watching Kairoset move " +
     "from day nine to day two while keeping its 4.8 score and serving 200 teams.";
   const output = localRescue(input);
   assert.notEqual(output, input);
   assert.doesNotMatch(output, /incredibly excited|excited to share|our journey|real win was not/i);
-  for (const detail of ["18", "40", "Harbor", "day nine", "day two", "4.8", "200"]) {
+  for (const detail of ["18", "40", "Kairoset", "day nine", "day two", "4.8", "200"]) {
     assert.ok(output.includes(detail), `lost ${detail}`);
   }
   assert.equal(localRescue("We're excited to share some news about the release."), "We're excited about the release.");
   assert.equal(
-    localRescue("Harbor 4.0 redefines what's possible in onboarding automation."),
-    "Harbor 4.0 updates onboarding automation.",
+    localRescue("Kairoset 4.0 redefines what's possible in onboarding automation."),
+    "Kairoset 4.0 updates onboarding automation.",
   );
   assert.equal(
     localRescue("We’re excited to share what’s happened. Onboarding isn’t a checklist—it’s a promise."),
@@ -233,23 +237,61 @@ test("local fallback preserves the launch fixture's protected details", () => {
   assert.equal(
     localRescue(
       "We are incredibly excited to share our transformative journey. " +
-      "The results speak for themselves: setup time is down 73 percent for Harbor.",
+      "The results speak for themselves: setup time is down 73 percent for Kairoset.",
     ),
-    "We're sharing our work. Setup time is down 73 percent for Harbor.",
+    "We're sharing our work. Setup time is down 73 percent for Kairoset.",
+  );
+  assert.equal(
+    localRescue("Our cutting‑edge editor handles 50 000 words."),
+    "Our editor handles 50 000 words.",
   );
 });
 
 test("local fallback never rewrites quotations, code, or links", () => {
   const input = [
     "We are incredibly excited to share some news about the release.",
-    'The customer wrote, "We are incredibly excited to share about Harbor."',
+    'The customer wrote, "We are incredibly excited to share about Kairoset."',
     "Keep `we are incredibly excited to share about` as the exact test fixture.",
     "See [our journey](https://example.com/our-journey) and https://example.com/we-are-incredibly-excited.",
   ].join("\n\n");
   const output = localRescue(input);
   assert.match(output, /^We're excited about the release\./);
-  assert.ok(output.includes('"We are incredibly excited to share about Harbor."'));
+  assert.ok(output.includes('"We are incredibly excited to share about Kairoset."'));
   assert.ok(output.includes("`we are incredibly excited to share about`"));
   assert.ok(output.includes("[our journey](https://example.com/our-journey)"));
   assert.ok(output.includes("https://example.com/we-are-incredibly-excited."));
+});
+
+test("local fallback fully cleans the public release fixture", () => {
+  const input = "We are thrilled to unveil Kairoset 4.0, a transformative release that redefines what is possible in onboarding automation.\n\n" +
+    "This release represents a significant milestone in our journey to empower teams everywhere. We have listened carefully to your feedback and are excited to deliver a suite of powerful new capabilities.\n\n" +
+    "Our cutting-edge mapping engine now automatically detects and maps fields across your connected systems, eliminating hours of tedious manual configuration.\n\n" +
+    "We have completely reimagined our search infrastructure, delivering results up to 40 times faster than before.\n\n" +
+    "Bulk export now handles up to 50000 records in a single operation, with robust error handling built in from the ground up.\n\n" +
+    "Audit logs give full visibility into every change, with 90 days of retention on all plans.\n\n" +
+    "We believe these improvements will fundamentally transform how your team works, and the release is available today.";
+  const output = localRescue(input);
+  assert.equal(output, "Kairoset 4.0 updates onboarding automation.\n\n" +
+    "We listened to your feedback and added new capabilities.\n\n" +
+    "Our mapping engine now automatically detects and maps fields across your connected systems, eliminating hours of manual configuration.\n\n" +
+    "We rebuilt our search infrastructure, delivering results up to 40 times faster than before.\n\n" +
+    "Bulk export now handles up to 50000 records in a single operation, with built-in error handling.\n\n" +
+    "Audit logs give full visibility into every change, with 90 days of retention on all plans.\n\n" +
+    "The release is available today.");
+});
+
+test("gateway fallback matches the installed skill byte for byte", () => {
+  const samples = [
+    "We are incredibly excited to share our transformative journey. The results speak for themselves: setup time is down 73 percent for Kairoset.",
+    "Our cutting‑edge editor handles 50 000 words.",
+    'The customer wrote, "We are incredibly excited to share about Kairoset." See [our journey](https://example.com/our-journey).',
+    "The update is available today. Search is up to 40 times faster.",
+  ];
+  for (const source of samples) {
+    const installed = execFileSync("python3", [rescueScript, "-"], {
+      input: source,
+      encoding: "utf8",
+    }).trimEnd();
+    assert.equal(localRescue(source), installed);
+  }
 });

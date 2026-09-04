@@ -42,8 +42,19 @@ export function localRescue(text: string): string {
       return token;
     },
   );
-  let out = masked;
+  let out = masked.replace(/[\u00A0\u202F]/g, " ");
   const changes: Array<[RegExp, string | ((...args: string[]) => string)]> = [
+    [/\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that redefines what is possible in ([^.]+)\./gi,
+      (_match: string, name: string, topic: string) => name + " updates " + topic + "."],
+    [/\bthis release represents a significant milestone in our journey to empower teams everywhere\.\s*/gi, ""],
+    [/\bwe have listened carefully to your feedback and are excited to deliver a suite of powerful new capabilities\./gi,
+      "We listened to your feedback and added new capabilities."],
+    [/\bour cutting[-\u2010\u2011 ]edge\b/gi, "Our"],
+    [/\bhours of tedious manual configuration\b/gi, "hours of manual configuration"],
+    [/\bwe have completely reimagined\b/gi, "We rebuilt"],
+    [/\bwith robust error handling built in from the ground up\b/gi, "with built-in error handling"],
+    [/\bwe believe these improvements will fundamentally transform how your team works,\s+and the release is available today\./gi,
+      "The release is available today."],
     [/\bwe are incredibly excited to share(?: some news)? about\b/gi, "We're excited about"],
     [/\bwe(?:['’]re| are) excited to share(?: some news)? about\b/gi, "We're excited about"],
     [/\bwe are incredibly excited to share\b/gi, "We're sharing"],
@@ -79,7 +90,7 @@ export function localRescue(text: string): string {
     [/\bseamlessly integrates?\b/gi, "integrates"],
     [/\bjust how deeply\b/gi, "how much"],
     [/\bgame[-\u2011]changing\b/gi, "useful"],
-    [/\bcutting[- ]edge\b/gi, "current"],
+    [/\bcutting[-\u2010\u2011 ]edge\b/gi, "current"],
     [/\bredefines what(?:['’]s| is) possible in\b/gi, "updates"],
     [/\bin order to\b/gi, "to"],
     [/\bat the end of the day\b/gi, "ultimately"],

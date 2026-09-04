@@ -22,7 +22,7 @@ gateway Worker
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
 private scorer Worker              one Workers AI editor
-exact Zero Slop 2.8.9              same composite edit as /try/
+exact Zero Slop 2.8.10              same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
@@ -45,8 +45,9 @@ The gateway marks a rewrite fully checked only when all of these are true:
 Missing an editorial target does not start another model request. The safest
 source-preserving edit comes back with a clear review warning. If the one model
 request fails or changes protected material, a conservative local editor removes
-known stock wording without changing source details. A clean source returns after
-scoring and is never sent to the model.
+known stock wording without changing source details. It follows the same fixtures as
+the installed `scripts/rescue.py` command and the browser demo. A clean source returns
+after scoring and is never sent to the model.
 
 ## Connect
 

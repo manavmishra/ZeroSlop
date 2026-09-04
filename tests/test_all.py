@@ -36,6 +36,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 DATA = ROOT / "data"
 CORPUS = DATA / "corpus" / "must-not-flag"
 SCORER = ROOT / "scripts" / "slopscore.py"
+RESCUE = ROOT / "scripts" / "rescue.py"
 LEARNER = ROOT / "scripts" / "learn.py"
 CONTEXTUAL = ROOT / "scripts" / "contextual.py"
 QUALITY_EVAL = ROOT / "bench" / "quality-corpus" / "evaluate.py"
@@ -48,6 +49,14 @@ INTERNAL_CORPUS = ROOT / "bench" / "internal-corpus" / "evaluate.py"
 
 import learn  # noqa: E402
 import slopscore  # noqa: E402
+
+
+def rescue(text):
+    """Run the deterministic availability editor through its public CLI."""
+    result = run([str(RESCUE), "-"], stdin=text)
+    if result.returncode:
+        raise AssertionError(result.stdout + result.stderr)
+    return result.stdout.rstrip("\n")
 
 
 def run(args, stdin=None, env=None):
@@ -96,6 +105,64 @@ class Taxonomy(unittest.TestCase):
         clash = [p["name"] for p in self.learned.get("patterns", [])
                  if p["name"] in base_names]
         self.assertEqual(clash, [], f"learned shadows base: {clash}")
+
+
+# --------------------------------------------------------------------------
+class AvailabilityEditor(unittest.TestCase):
+    """The no-network fallback must edit conservatively and identically everywhere."""
+
+    def test_release_fixture_is_cleaned_without_losing_details(self):
+        source = (
+            "We are thrilled to unveil Kairoset 4.0, a transformative release that "
+            "redefines what is possible in onboarding automation.\n\n"
+            "This release represents a significant milestone in our journey to empower "
+            "teams everywhere. We have listened carefully to your feedback and are "
+            "excited to deliver a suite of powerful new capabilities.\n\n"
+            "Our cutting-edge mapping engine now automatically detects and maps fields "
+            "across your connected systems, eliminating hours of tedious manual "
+            "configuration.\n\n"
+            "We have completely reimagined our search infrastructure, delivering results "
+            "up to 40 times faster than before.\n\n"
+            "Bulk export now handles up to 50000 records in a single operation, with "
+            "robust error handling built in from the ground up.\n\n"
+            "Audit logs give full visibility into every change, with 90 days of retention "
+            "on all plans.\n\n"
+            "We believe these improvements will fundamentally transform how your team "
+            "works, and the release is available today."
+        )
+        expected = (
+            "Kairoset 4.0 updates onboarding automation.\n\n"
+            "We listened to your feedback and added new capabilities.\n\n"
+            "Our mapping engine now automatically detects and maps fields across your "
+            "connected systems, eliminating hours of manual configuration.\n\n"
+            "We rebuilt our search infrastructure, delivering results up to 40 times "
+            "faster than before.\n\n"
+            "Bulk export now handles up to 50000 records in a single operation, with "
+            "built-in error handling.\n\n"
+            "Audit logs give full visibility into every change, with 90 days of retention "
+            "on all plans.\n\n"
+            "The release is available today."
+        )
+        output = rescue(source)
+        self.assertEqual(output, expected)
+        for detail in ("Kairoset 4.0", "40", "50000", "90 days"):
+            self.assertIn(detail, output)
+        self.assertLess(score(output), 25)
+
+    def test_protected_spans_and_unicode_survive(self):
+        source = (
+            'Our cutting‑edge editor handles 50\u202f000 words. The customer wrote, '
+            '"We are incredibly excited to share about Kairoset." See '
+            '[our journey](https://example.com/our-journey).'
+        )
+        output = rescue(source)
+        self.assertIn("Our editor handles 50 000 words.", output)
+        self.assertIn('"We are incredibly excited to share about Kairoset."', output)
+        self.assertIn("[our journey](https://example.com/our-journey)", output)
+
+    def test_clean_text_is_idempotent(self):
+        source = "The update is available today. Search is up to 40 times faster."
+        self.assertEqual(rescue(source), source)
 
 
 # --------------------------------------------------------------------------
@@ -3682,7 +3749,7 @@ class Diagram(unittest.TestCase):
         shipped = {p.name for p in (ROOT / "skills" / "zero-slop" / "scripts").glob("*.py")}
         self.assertEqual(shipped, {
             "calibrate.py", "learn.py", "predictability.py", "register.py",
-            "rerank.py", "safeio.py", "slopscore.py", "version_check.py",
+            "rerank.py", "rescue.py", "safeio.py", "slopscore.py", "version_check.py",
         })
         self.assertFalse((ROOT / "skills" / "zero-slop" / "references" /
                           "contextual-signals.md").exists())

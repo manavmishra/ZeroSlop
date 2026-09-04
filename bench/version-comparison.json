@@ -12,7 +12,7 @@
   "slopscore_sha256": "e96c607189a1763d2ce26c2380edb777c26caadb7f264e6993f7d78ff2bfe1ce"
  },
  "candidate": {
-  "version": "2.8.9",
+  "version": "2.8.10",
   "slopscore_sha256": "8591d73d087ea86a49627e9c0deb322ede680477c8133a1e29c16edfa073c29f"
  },
  "workload": {
