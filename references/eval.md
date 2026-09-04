@@ -3,11 +3,11 @@
 Answer every check with pass or fail. Where a check asks for a count, write the
 number down; a count is evidence, and a missing count means the pass did not run.
 
-Any fail sends the text back through the copy desk and read-aloud pass, after which
-every check here runs again on the new text. Limit that loop to three rounds. A failed
-check starts repair and changes the confidence label; it never suppresses the edited
-text. After the bounded loop, return the safest source-preserving edit and name every
-unresolved check plainly.
+Any fail permits one targeted textual repair followed by one local recheck. It does
+not restart the copy desk, read-aloud pass, or model request. A failed check changes
+the confidence label. It never suppresses the edited text when that edit preserves
+the source. After the recheck,
+return the safest source-preserving edit and name every unresolved check plainly.
 
 **This file exists because the meter cannot see most of what is on it.** The scorer
 reads the lexically anchored subset: listed phrases, sentence-length variance,
@@ -301,16 +301,18 @@ the report even when they are zero.
 
 ## F. Process integrity
 
-Role 8 answers this section. It is the check no single-agent eval can make.
+Role 8 answers this section when it runs separately. In a one-request service, the
+local verifier records the execution facts and the report names the consolidation.
 
-73. **Roles stayed separate.** The copy desk, read-aloud pass, verification, and
-    fresh-eyes review each ran as a distinct pass.
-74. **No self-certification.** No role graded text it generated.
+73. **Execution described accurately.** Separate passes are named as separate; a
+    one-response consolidation is named as one response, never as independent review.
+74. **No self-certification of facts.** The local source gate checks the generated
+    text even when the model performs an editorial self-check inside one response.
 75. **Counts reported.** Every count in section A appears in the summary, including
     the zeros.
 76. **The exact final text cleared every check.** Not an earlier draft, not a version
     that was repaired afterward.
-77. **Role 8 approved without changes.** If it changed anything, roles 5 through 8
-    ran again on the revision.
-78. **Fallbacks named honestly.** If the three-round limit was reached, the report
-    says which check failed and does not describe the result as fully verified.
+77. **Finalizer edits were rechecked locally.** If role 8 changed anything, the score,
+    fact, format, and structure checks ran once on that exact revision.
+78. **Fallbacks named honestly.** The report names an unavailable role, local fallback,
+    missed target, or one-request constraint and does not call it fully verified.

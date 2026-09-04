@@ -2078,7 +2078,7 @@ class DocsMatchReality(unittest.TestCase):
             "5. copy desk", "6. read-aloud editor", "7. verifier",
             "8. fresh-eyes finalizer",
         )
-        self.assertIn("eight roles form one workflow", readme)
+        self.assertIn("eight responsibilities form one workflow", readme)
         assert_claim(self, readme, "the eight roles are jobs rather than separate models",
                      "jobs, not separate models", "they are jobs", "each is a job",
                      "one model can handle several")
@@ -2087,7 +2087,9 @@ class DocsMatchReality(unittest.TestCase):
                      "research supports the checks")
         positions = [readme.index(role) for role in roles]
         self.assertEqual(positions, sorted(positions), "README role order drifted")
-        self.assertIn("any final polish restarts the final checks", readme)
+        self.assertIn("at most one live model call", readme)
+        self.assertIn("one final local recheck", readme)
+        self.assertNotIn("restarts the final checks", readme)
 
     def test_skill_enforces_the_same_eight_role_pipeline(self):
         skill = " ".join(self.docs["SKILL.md"].lower().split())
@@ -2100,10 +2102,12 @@ class DocsMatchReality(unittest.TestCase):
         )
         positions = [contract.index(role) for role in roles]
         self.assertEqual(positions, sorted(positions), "skill role order drifted")
-        self.assertIn("separate jobs, not eight models or services", contract)
+        self.assertIn("editorial jobs, not eight models or services", contract)
         self.assertIn("local tools plus the ai assistant", contract)
-        self.assertIn("any repair returns through roles 5 and 6", contract)
-        self.assertIn("a role 8 edit restarts roles 5 through 8", contract)
+        self.assertIn("one-request budget", contract)
+        self.assertIn("one model response is not independent review", contract)
+        self.assertIn("at most one targeted repair", contract)
+        self.assertIn("rerun the local score and fact checks once", contract)
 
     def test_fresh_eyes_finalizer_is_separate_and_closed_loop(self):
         skill = self.docs["SKILL.md"].lower()
@@ -2115,7 +2119,8 @@ class DocsMatchReality(unittest.TestCase):
         self.assertNotIn("dedicated fresh-eyes editor", readaloud)
         for phrase in (
             "first-time reader", "approve without changes", "copy desk",
-            "read-aloud", "verifier", "three rounds", "same exact text",
+            "read-aloud", "verifier", "rerun the local score",
+            "do not restart the ai pipeline", "never starts another model request",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, brief)
@@ -2130,13 +2135,14 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("stays below the release limit", skill)
         self.assertIn("restore a source-stated emotion", brief)
 
-    def test_bounded_recovery_always_returns_the_safest_edit(self):
+    def test_bounded_one_request_always_returns_the_safest_edit(self):
         skill = " ".join(self.docs["SKILL.md"].lower().split())
         evaluation = " ".join(
             (ROOT / "references" / "eval.md").read_text().lower().split()
         )
-        self.assertIn("retry that role once with a fresh pass", skill)
-        self.assertIn("do not replay earlier roles unless the text changes", skill)
+        self.assertIn("unavailability is an abstention", skill)
+        self.assertIn("must never make a second remote request", skill)
+        self.assertIn("do not restart the complete editorial sequence", skill)
         self.assertIn("return the safest source-preserving edit", skill)
         self.assertIn("a quality target controls the confidence label", skill)
         self.assertIn("never suppresses the edited text", evaluation)

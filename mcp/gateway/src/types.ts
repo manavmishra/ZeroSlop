@@ -83,6 +83,7 @@ export type PipelineResult = {
   factsPreserved: boolean;
   passedFinalChecks: boolean;
   independentModelChecks: number;
+  modelRequests: number;
   rolesCompleted: number;
   finishingRounds: number;
   scorerVersion: string;

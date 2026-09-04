@@ -48,17 +48,11 @@ and name the ambiguity.
 > followed by exactly one status: `approve without changes`, `changed — rerun final
 > checks`, or `unresolved — needs the writer`.
 
-## Closed finalization loop
+## Bounded finalization
 
-Approval is valid only when the finalizer returns `approve without changes`. If it
-changes even one character, apply the complete revision and rerun, in order:
-
-1. the copy desk;
-2. the read-aloud editor;
-3. the verifier, including local and contextual checks; and
-4. this fresh-eyes finalizer.
-
-Repeat for at most three rounds. The same exact text must clear all four roles, with
-the fresh-eyes finalizer approving it unchanged. If the remaining issue cannot be
-fixed without guessing, return the safest source-preserving edit, identify the
-unresolved span or unavailable pass, and do not describe it as fully verified.
+Return `approve without changes`, `changed`, or `unresolved — needs the writer`. If
+the finalizer changes the text, apply the complete revision and rerun the local score,
+fact, format, and structure checks once. Do not restart the AI pipeline. If the local
+recheck fails, return the safest source-preserving edit, identify the unresolved span,
+and do not describe it as fully verified. An unavailable finalizer is an abstention;
+it never starts another model request.

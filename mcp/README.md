@@ -16,41 +16,37 @@ MCP client
     v
 gateway Worker
     |-- per-colocation capacity limit
-    |-- 52 second end-to-end budget
-    |-- bounded eight-role editorial pipeline
+    |-- 36 second end-to-end budget
+    |-- one editor request, then local checks
     |
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
-private scorer Worker              production editor ladder
-exact Zero Slop 2.8.7              same fixed roles as /try/
+private scorer Worker              one Workers AI editor
+exact Zero Slop 2.8.8              same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
 input schema, deadlines, release policy, and security headers. A private
 Python Worker runs byte-for-byte copies of the shipped scorer modules. The
-model-only roles use the measured provider ladder already used by `/try/`.
-Calls run at temperature zero. Two binding-native backstops are appended to
-every deployment, so a stale environment ladder cannot silently remove the
-last editor or the second semantic verifier. The smaller backstop remains
-available for editing but is excluded from semantic certification because it
-failed the exact-token verifier fixture.
+five AI editorial responsibilities share one composite response, exactly as
+they do on `/try/`. The editor calls one binding-native Workers AI model at
+temperature zero. It has no provider ladder, model retry, or second finishing
+request. The scorer and source checks run before and after that response.
 
 The gateway marks a rewrite fully checked only when all of these are true:
 
 - deterministic reranking finds no dropped or invented facts;
 - the final writing score is below 25;
 - register and document-shape checks are clean;
-- copy-desk and read-aloud passes were available;
-- two verifier calls return the exact success token from different model
-  rungs; and
-- the fresh-eyes pass makes no unsafe or worse edit.
+- the one editorial response completed the copy-desk, read-aloud, and
+  fresh-eyes responsibilities; and
+- the final local recheck approves the exact text returned.
 
-Missing an editorial target starts bounded repair. If the target still is not met,
-the safest source-preserving edit comes back with a review warning instead of being
-discarded. Only two conditions can return the source unchanged: the editing service
-was unavailable, or every changed version failed the hard source check by adding or
-dropping protected material. A clean source returns immediately after scoring and is
-never sent to an editing model.
+Missing an editorial target does not start another model request. The safest
+source-preserving edit comes back with a clear review warning. If the one model
+request fails or changes protected material, a conservative local editor removes
+known stock wording without changing source details. A clean source returns after
+scoring and is never sent to the model.
 
 ## Connect
 
@@ -99,7 +95,7 @@ Drafts are capped at 20,000 characters.
 - The gateway signs the exact editor request body with HMAC-SHA-256. The editor
   accepts connector mode only with a valid signature less than 60 seconds old;
   the shared secret never reaches an MCP client.
-- The editor ladder requests zero-retention, no-training routing. Connector
+- The editor requests no storage. Connector
   drafts and rewrites are not logged by Zero Slop. Operational logs contain
   only status, sizes, scores, timings, and provider metadata.
 - First-party Analytics Engine telemetry records aggregate request, client,
@@ -117,8 +113,8 @@ Drafts are capped at 20,000 characters.
   overlay.
 - Tool input is treated as untrusted data. Callers cannot select a system
   prompt, provider URL, or model.
-- Host and Origin validation, strict schemas, bounded packet sizes, per-call
-  aborts, an end-to-end deadline, and a per-colocation capacity ceiling bound
+- Host and Origin validation, strict schemas, bounded packet sizes, a per-call
+  abort, an end-to-end deadline, and a per-colocation capacity ceiling bound
   abuse and cost.
 - Errors never include source text, generated text, stack traces, or provider
   credentials.

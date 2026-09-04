@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.8.7"
+  version: "2.8.8"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -75,10 +75,12 @@ citations, and the ladder below orders the signals by measured strength.
 
 ## Eight roles, one pipeline
 
-Run the rewrite workflow as eight ordered roles. They are separate jobs, not eight
-models or services. The same Claude, GPT, or other compatible model in the user's AI
-assistant may perform every editorial role, but each must be a separate pass. Keep
-local and AI responsibilities distinct:
+Run the rewrite workflow as eight ordered responsibilities. They are editorial jobs,
+not eight models or services. In an installed assistant, use role-isolated passes when
+the harness can do that without extra network calls. When a service has a one-request
+budget, combine the AI responsibilities into one structured editorial response and
+run the local checks before and after it. Name that consolidation honestly; one model
+response is not independent review. Keep local and AI responsibilities distinct:
 
 1. **Scorer — local tools.** Point to exact phrases and problems with rhythm,
    readability, formatting, and register; explain the writing score.
@@ -90,26 +92,28 @@ local and AI responsibilities distinct:
    quotations, or links; among the rest, select the version that best clears the
    measured checks. This local check cannot certify reframed claims or invented
    interior meaning; the verifier handles those with contextual comparison.
-5. **Copy desk — a fresh AI pass.** Correct grammar, spelling, punctuation, usage,
+5. **Copy desk — the AI assistant.** Correct grammar, spelling, punctuation, usage,
    diction, and consistency in the selected text.
-6. **Read-aloud editor — a fresh AI pass.** Read the complete copy-edited text aloud
+6. **Read-aloud editor — the AI assistant.** Read the complete copy-edited text aloud
    and directly fix stumbles, repetition, weak transitions, and awkward flow.
 7. **Verifier — local tools plus the AI assistant.** Check the exact final text
    against the source for the writing score, facts, meaning, qualifiers, voice,
-   format, and structure. A warning starts the repair loop and prevents an
-   unqualified approval; it does not erase the edited draft. Any repair returns
-   through roles 5 and 6 before role 7 runs again.
-8. **Fresh-eyes finalizer — a new AI pass.** Read the verified text as a first-time
-   reader, apply only safe final polish, and approve it without changes. A role 8
-   edit restarts roles 5 through 8; the finalizer never bypasses verification.
+   format, and structure. A warning prevents an unqualified approval; it never erases
+   a source-safe edit or starts an open-ended loop. Apply at most one targeted repair,
+   then rerun the local checks on the exact changed text.
+8. **Fresh-eyes finalizer — the AI assistant.** Read the verified text as a first-time
+   reader and apply only safe final polish. If it changes the text, rerun the local
+   score and fact checks once. Deliver the safest edit with a plain warning if a
+   remaining concern would require another model request or a guess.
 
 This is an engineering separation of responsibilities, not a claim that research has
 proved eight to be the uniquely correct number. Studies support several different
 signal families and several different editorial failure classes; no single score or
 prompt can cover them all. The local roles provide repeatable measurements. The AI
-roles supply contextual judgment and editing. A generating role never certifies its
-own output. Role 7 verifies; role 8 confirms that the same verified text reads cleanly
-to someone seeing it for the first time.
+roles supply contextual judgment and editing. A generating role does not certify its
+own factual safety. Role 7 supplies the local release checks; role 8 confirms that the
+result reads cleanly to someone seeing it for the first time. In a one-request service,
+the model's self-check is editorial guidance, not independent verification.
 
 ## Detailed workflow
 
@@ -633,34 +637,29 @@ format, and non-prose structure. Apply these contextual checks too:
   read as prose. The whole document uses one coherent register, and every
   cross-reference resolves exactly.
 
-If verification requires any textual repair, send the repaired text through the copy
-desk and final read-aloud pass again, then repeat every final check. Continue until the
-same text clears the copy desk, final read-aloud pass, semantic and format review,
-scorer, and fidelity gate.
+If verification finds a concrete textual defect, apply one targeted repair. Run the
+local score, fact, format, and structure checks once more on that exact text. Do not
+restart the complete editorial sequence. If the second check still finds a problem,
+return the safest source-preserving edit and name the remaining issue plainly.
 
-If an AI editorial role returns no usable text, retry that role once with a fresh pass.
-Use another available model when the harness supports model choice; otherwise use fresh
-context in the current assistant. Carry the last source-preserving edit forward while a
-role recovers. Do not replay earlier roles unless the text changes: retry the failed role,
-then continue with the remaining checks. Keep every retry bounded and report any role
-that remained unavailable.
+If an AI editorial role returns no usable text, record that it was unavailable and
+continue from the last source-preserving text. Unavailability is an abstention, not a
+reason to retry, switch models, or replay earlier roles. A caller with a one-request
+budget must never make a second remote request. Report any role that did not complete.
 
 A required repair may raise the writing score from the previous draft as long as it
 stays below the release limit. Source meaning, stated emotion, and factual accuracy
 outrank a smaller number. Never discard a necessary semantic repair merely because an
 unsafe version scored lower; rerun every check on the repaired text instead.
-Limit this repair loop to three rounds. If a problem still cannot be resolved
-without guessing, return the safest source-preserving edit and state the unresolved
-issue, unavailable role, or missed target plainly. Never replace an explicit rewrite
-request with the unchanged source merely because a quality target was missed. A quality
-target controls the confidence label; it does not decide whether the writer receives
-the work. A fallback should complete both editorial passes whenever they are available,
-and it must never be described as fully verified when a check did not complete.
+There is at most one targeted repair. If a problem still cannot be resolved without
+guessing, return the safest source-preserving edit and state the unresolved issue,
+unavailable role, or missed target plainly. Never replace an explicit rewrite request
+with the unchanged source merely because a quality target was missed. A quality target
+controls the confidence label; it does not decide whether the writer receives the work.
+A fallback must never be described as fully verified when a check did not complete.
 
-Initial gate failure → rewrite and recheck (max 3 passes). Final verification
-repair → copy desk, read-aloud pass, and every check again (max 3 rounds). If the
-initial gate still fails after three passes, keep the best version and flag it:
-"needs a real claim/detail, not better words."
+Initial gate failure → keep the best safe edit and flag the missed target. Final
+verification defect → one targeted repair and one local recheck. Then deliver.
 
 ### 8. Fresh-eyes finalizer — approve the reader's copy
 
@@ -681,14 +680,12 @@ roles actually stayed separate, whether any role certified its own output, and
 whether the counts were reported. A generating role cannot answer those about
 itself, which is why they sit with the finalizer.
 
-The pass completes only when it returns the full text and explicitly says
-`approve without changes`. If it changes anything, apply that complete revision,
-then rerun the copy desk, read-aloud editor, verifier, and fresh-eyes finalizer in
-that order. A role 8 edit therefore restarts roles 5 through 8. Limit the loop to
-three rounds. The same exact text must clear roles 5, 6, and 7 and then receive a
-no-change approval from role 8. If safe approval is impossible without guessing,
-return the safest source-preserving edit, name the unresolved span or unavailable
-pass, and do not call it fully verified.
+The pass returns the full text plus one status: `approve without changes`, `changed`,
+or `unresolved — needs the writer`. If it changes anything, apply the complete revision
+and rerun the local score, fact, format, and structure checks once. Do not restart the
+model pipeline. If safe approval is impossible without guessing, return the safest
+source-preserving edit, name the unresolved span or unavailable pass, and do not call
+it fully verified.
 
 ### 9. Report in plain language
 
@@ -961,8 +958,8 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
   the signs of human writing to preserve.
 - `references/readalong.md` — the mandatory, separate read-aloud pass that
   fixes flow, cohesion, and stumbles directly in the deliverable.
-- `references/fresh-eyes.md` — the separate first-time-reader finalizer that
-  approves the verified text without changes or restarts every final pass.
+- `references/fresh-eyes.md` — the first-time-reader finalizer and its bounded
+  one-recheck rule.
 - `references/copy-desk.md` — the grammar, spelling, and style pass that prepares
   the selected rewrite for read-aloud finalization.
 - `references/eval.md` — the pass/fail checklist for roles 7 and 8. It carries the

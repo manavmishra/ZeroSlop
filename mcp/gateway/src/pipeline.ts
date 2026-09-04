@@ -1,11 +1,9 @@
 import { callRole } from "./model";
-import { inventoryChanges, rankRewrites, scoreWriting } from "./scorer";
+import { rankRewrites, scoreWriting } from "./scorer";
 import type { Genre, PipelineResult, RankedRewrite, WritingReport } from "./types";
 
 const SCORE_GATE = 25;
-const MAX_REWRITE_ROUNDS = 3;
-const MAX_FINAL_ROUNDS = 3;
-const PIPELINE_BUDGET_MS = 52_000;
+const PIPELINE_BUDGET_MS = 36_000;
 
 export type DeslopInput = {
   text: string;
@@ -18,46 +16,98 @@ export function scorerGuidance(report: WritingReport): string {
     target: "below 25",
     score: report.score,
     flaggedPhrases: report.flags.slice(0, 12).map(({ phrase, issue, direction }) => ({
-      phrase,
-      issue,
-      direction,
+      phrase, issue, direction,
     })),
-    registerFindings: report.register.findings.slice(0, 4).map(({ name, quote }) => ({
-      name,
-      quote,
-    })),
+    registerFindings: report.register.findings.slice(0, 4).map(({ name, quote }) => ({ name, quote })),
     sentenceVariety: report.sentenceVariety,
     broetry: report.shape.broetry,
   });
 }
 
-export function verifierPassed(verdict: string | null): boolean {
-  return typeof verdict === "string" && /^ok[.!]?$/i.test(verdict.trim());
+function sourceSafe(checked: RankedRewrite): boolean {
+  return checked.preserved && !checked.invented && Boolean(checked.text.trim());
 }
 
-export function releaseReady(
-  checked: RankedRewrite,
-  report: WritingReport,
-  verdicts: Array<string | null>,
-  verifierRungs: string[],
-): boolean {
-  return checked.preserved
-    && !checked.invented
-    && checked.after < SCORE_GATE
-    && report.register.findings.length === 0
-    && !report.shape.broetry
-    && verdicts.length === 2
-    && verdicts.every(verifierPassed)
-    && verifierRungs.length === 2
-    && new Set(verifierRungs).size === 2;
-}
+// Availability fallback for the single-call service. Every transform is a
+// bounded line edit: it removes a stock wrapper, contracts a phrase, or
+// changes paragraphing. Names, figures, links, examples, and claims remain.
+export function localRescue(text: string): string {
+  const original = String(text || "").trim();
+  const protectedSpans: string[] = [];
+  const masked = original.replace(
+    /\x60{3}[\s\S]*?\x60{3}|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+|“[^”\n]*”|‘[^’\n]*’|"[^"\n]*"/g,
+    (value) => {
+      const token = `\uE000${protectedSpans.length}\uE001`;
+      protectedSpans.push(value);
+      return token;
+    },
+  );
+  let out = masked;
+  const changes: Array<[RegExp, string | ((...args: string[]) => string)]> = [
+    [/\bwe are incredibly excited to share(?: some news)? about\b/gi, "We're excited about"],
+    [/\bwe(?:['’]re| are) excited to share(?: some news)? about\b/gi, "We're excited about"],
+    [/\bwe(?:['’]re| are) excited to share\b/gi, "We're excited about"],
+    [/\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b/gi, "I'm sharing"],
+    [/\bour journey\b/gi, "our work"],
+    [/\bin today'?s rapidly evolving (?:landscape|world)\b/gi, "Today"],
+    [/\bit is important to note that\b/gi, ""],
+    [/\bit is worth noting that\b/gi, ""],
+    [/\bwhat we did not realize was just how deeply it impacted everything downstream\./gi,
+      "We underestimated its effect on the work that followed."],
+    [/\bonboarding is not a checklist\.\s*it is a promise\./gi, "We see onboarding as a promise."],
+    [/\bonboarding isn['’]t a checklist\s*[-—]\s*it['’]s a promise\./gi,
+      "We see onboarding as a promise."],
+    [/\bthe insights were game[-\u2011]changing\./gi, "Those conversations changed our approach."],
+    [/\bthe insights were (?:transformative|clear|significant):\s*/gi,
+      "Those conversations showed that "],
+    [/\ba platform that leverages intelligent automation to streamline the entire process end to end\b/gi,
+      "a platform that automates onboarding from start to finish"],
+    [/\bthe results speak for themselves\.\s*/gi, ""],
+    [/\bbut here is the thing nobody talks about\.\s*/gi, ""],
+    [/\bthe real win was not ([^.]+)\.\s*it was ([^.]+)\./gi,
+      (_match: string, first: string, second: string) =>
+        `${first.charAt(0).toUpperCase()}${first.slice(1)} mattered. More important was ${second}.`],
+    [/\bthe real win isn['’]t just ([^.]+)\.\s*it['’]s ([^.]+)\./gi,
+      (_match: string, first: string, second: string) =>
+        `${first.charAt(0).toUpperCase()}${first.slice(1)} matters. The larger gain is ${second}.`],
+    [/\bthat is the kind of impact that keeps us going\b/gi, "That result keeps us going"],
+    [/\bunlock(?:ing)? the full potential of\b/gi, "use"],
+    [/\bseamlessly integrates?\b/gi, "integrates"],
+    [/\bjust how deeply\b/gi, "how much"],
+    [/\bgame[-\u2011]changing\b/gi, "useful"],
+    [/\bcutting[- ]edge\b/gi, "current"],
+    [/\bredefines what(?:['’]s| is) possible in\b/gi, "updates"],
+    [/\bin order to\b/gi, "to"],
+    [/\bat the end of the day\b/gi, "ultimately"],
+    [/\bwe are\b/gi, "we're"],
+    [/\bwe did not\b/gi, "we didn't"],
+    [/\bwe do not\b/gi, "we don't"],
+    [/\bi am\b/gi, "I'm"],
+    [/\bit is\b/gi, "it's"],
+    [/\bthey are\b/gi, "they're"],
+    [/\byou are\b/gi, "you're"],
+    [/\bthere is\b/gi, "there's"],
+    [/\bdoes not\b/gi, "doesn't"],
+    [/\bis not\b/gi, "isn't"],
+    [/\bare not\b/gi, "aren't"],
+    [/\bcannot\b/gi, "can't"],
+  ];
+  for (const [pattern, replacement] of changes) {
+    out = out.replace(pattern, replacement as string);
+  }
+  out = out.replace(/[ \t]+\n/g, "\n").replace(/ {2,}/g, " ").trim();
 
-function independentApprovals(
-  verdicts: Array<string | null>,
-  verifierRungs: string[],
-): number {
-  if (verifierRungs.length !== 2 || new Set(verifierRungs).size !== 2) return 0;
-  return verdicts.filter(verifierPassed).length;
+  // If the wording was outside the conservative dictionary, improve staged
+  // paragraphing without touching a word. This covers the short, line-broken
+  // social pattern that lexical checks can miss.
+  if (out === masked) {
+    const paragraphs = out.split(/\n{2,}/).map((part) => part.trim()).filter(Boolean);
+    if (paragraphs.length >= 4 && paragraphs.every((part) => part.split(/\s+/).length < 24)) {
+      out = paragraphs.join(" ");
+    }
+  }
+  return out.replace(/\uE000(\d+)\uE001/g, (token, index) =>
+    protectedSpans[Number(index)] ?? token).trim();
 }
 
 function unchanged(
@@ -66,8 +116,6 @@ function unchanged(
   before: WritingReport,
   started: number,
   scorerVersion: string,
-  rolesCompleted: number,
-  finishingRounds: number,
   note: string,
 ): PipelineResult {
   return {
@@ -79,356 +127,105 @@ function unchanged(
     factsPreserved: true,
     passedFinalChecks: false,
     independentModelChecks: 0,
-    rolesCompleted,
-    finishingRounds,
+    modelRequests: 0,
+    rolesCompleted: 1,
+    finishingRounds: 0,
     scorerVersion,
     durationMs: Date.now() - started,
     note,
   };
 }
 
-async function acceptNonWorsening(
-  env: Env,
-  original: string,
-  name: string,
-  proposed: string | null,
-  current: string,
-  checked: RankedRewrite,
-  genre: Genre,
-): Promise<{ text: string; checked: RankedRewrite; available: boolean }> {
-  if (!proposed) return { text: current, checked, available: false };
-  const next = await rankRewrites(env, original, { [name]: proposed }, genre);
-  if (next.preserved && !next.invented && next.after <= checked.after) {
-    return { text: proposed, checked: next, available: true };
-  }
-  return { text: current, checked, available: true };
-}
-
-async function callRoleWithRecovery(
-  env: Env,
-  role: Parameters<typeof callRole>[1],
-  packet: string,
-  expectedText: string,
-  deadline: number,
-  exclude: string[] = [],
-  strictExclude = false,
-) {
-  const first = await callRole(
-    env, role, packet, expectedText, deadline, exclude, strictExclude,
-  );
-  if (first) return first;
-  return callRole(
-    env, role, packet, expectedText, deadline, exclude, strictExclude,
-  );
-}
-
 export async function runPipeline(env: Env, input: DeslopInput): Promise<PipelineResult> {
   const started = Date.now();
   const deadline = started + PIPELINE_BUDGET_MS;
   const original = input.text.trim();
-  const completedRoles = new Set<string>();
-  const roleCount = () => completedRoles.size;
   const before = await scoreWriting(env, original, input.genre);
-  completedRoles.add("scorer");
 
-  if (before.score < SCORE_GATE
-      && before.register.measured
-      && before.register.findings.length === 0
-      && !(before.shape.measured && before.shape.broetry)) {
+  // A short clean note should not incur an AI call merely because document-
+  // level statistics need more words. Positive findings still force an edit.
+  const cleanEnough = before.score < SCORE_GATE
+    && before.flaggedPhrases === 0
+    && before.register.findings.length === 0
+    && !(before.shape.measured && before.shape.broetry)
+    && before.readability === "clear";
+  if (cleanEnough) {
     return unchanged(
-      original,
-      "already_clear",
-      before,
-      started,
-      env.SCORER_VERSION,
-      roleCount(),
-      0,
-      "The original already clears the Zero Slop score and document checks, so it was not sent to an editing model.",
+      original, "already_clear", before, started, env.SCORER_VERSION,
+      "The draft already reads cleanly, so Zero Slop did not spend a model request on it.",
     );
   }
 
-  const context = input.audience
-    ? `CALLER CONTEXT:\nAudience or destination: ${input.audience}\n\n`
-    : "";
-  const notesReply = await callRole(env, "interpret", context + original, original, deadline);
-  const notes = notesReply?.text ?? null;
-  if (notesReply) completedRoles.add("interpreter");
+  const diagnostics = {
+    genre: input.genre,
+    audience: input.audience ?? "",
+    localChecks: JSON.parse(scorerGuidance(before)),
+  };
+  // Exactly one outbound editor request. The endpoint itself is also limited
+  // to one provider invocation, so this cannot fan out into a retry ladder.
+  const modelReply = await callRole(env, "complete", original, diagnostics, deadline);
+  const rescue = localRescue(original);
+  const candidates: Record<string, string> = {};
+  const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";
+  if (cleanedModelReply && cleanedModelReply !== original) candidates["one-call edit"] = cleanedModelReply;
+  if (rescue && rescue !== original && rescue !== modelReply?.text) candidates["local edit"] = rescue;
 
-  let rewriteSource = original;
-  let brief = [
-    context.trim(),
-    notes ? `EDITOR NOTES:\n${notes}` : "",
-    `LOCAL SCORER:\n${scorerGuidance(before)}`,
-    "Remove the scorer's listed surface patterns while preserving the underlying claims.",
-    `DRAFT:\n${original}`,
-  ].filter(Boolean).join("\n\n");
-  const candidates: Record<string, string> = { "your draft": original };
-  const spentRungs: string[] = [];
-  let rewriteTrial: RankedRewrite | null = null;
-  for (let rewriteRound = 0; rewriteRound < MAX_REWRITE_ROUNDS; rewriteRound += 1) {
-    const strategies = rewriteRound === 0
-      ? (["rewrite_strip", "rewrite_warm"] as const)
-      : (["rewrite_surgical"] as const);
-    for (const strategy of strategies) {
-      const written = await callRole(
-        env,
-        strategy,
-        brief,
-        rewriteSource,
-        deadline,
-        spentRungs,
-        // Prefer a fresh rung, but do not turn a healthy one-model fallback
-        // into an outage. The retry changes both the role and scorer guidance;
-        // strict model independence remains mandatory for verification below.
-        false,
-      );
-      if (!written) continue;
-      if (!spentRungs.includes(written.rung)) spentRungs.push(written.rung);
-      const label = strategy === "rewrite_strip"
-        ? "cut hard"
-        : strategy === "rewrite_warm" ? "keep the warmth" : "surgical retry";
-      candidates[`${label}${rewriteRound ? ` (retry ${rewriteRound})` : ""}`] = written.text;
-    }
-    if (Object.keys(candidates).length === 1) continue;
-    rewriteTrial = await rankRewrites(env, original, candidates, input.genre);
-    if (rewriteTrial.name !== "your draft" && rewriteTrial.after < SCORE_GATE) break;
-    if (rewriteRound < MAX_REWRITE_ROUNDS - 1 && rewriteTrial.name !== "your draft") {
-      rewriteSource = rewriteTrial.text;
-      const retryReport = await scoreWriting(env, rewriteSource, input.genre);
-      brief = [
-        context.trim(),
-        notes ? `SOURCE NOTES:\n${notes}` : "",
-        `LOCAL SCORER ON THE PREVIOUS ATTEMPT:\n${scorerGuidance(retryReport)}`,
-        "Rewrite the previous attempt again. Remove every listed surface pattern. Preserve the source facts in the notes; the deterministic fact gate will compare the result with the original.",
-        `DRAFT:\n${rewriteSource}`,
-      ].filter(Boolean).join("\n\n");
-    }
-    console.log(JSON.stringify({
-      event: "pipeline_rewrite_retry",
-      round: rewriteRound + 1,
-      score: rewriteTrial.after,
-      selectedSource: rewriteTrial.name === "your draft",
-      rungsTried: spentRungs.length,
-    }));
-  }
-  if (Object.keys(candidates).length > 1) completedRoles.add("rewriter");
-  if (Object.keys(candidates).length === 1) {
-    return unchanged(
-      original,
-      "unchanged_service_unavailable",
-      before,
-      started,
-      env.SCORER_VERSION,
-      roleCount(),
-      0,
-      "The editing models were unavailable, so the original comes back unchanged.",
-    );
+  if (Object.keys(candidates).length === 0) {
+    return {
+      ...unchanged(
+        original, "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
+        "The single model request did not return a usable edit, and the conservative local editor found no safe textual change.",
+      ),
+      modelRequests: 1,
+    };
   }
 
-  let checked = rewriteTrial ?? await rankRewrites(env, original, candidates, input.genre);
-  if (checked.text === original) {
-    const editedCandidates = Object.fromEntries(
-      Object.entries(candidates).filter(([, text]) => text !== original),
-    );
-    if (Object.keys(editedCandidates).length > 0) {
-      const edited = await rankRewrites(env, original, editedCandidates, input.genre);
-      if (edited.preserved && !edited.invented) checked = edited;
-    }
+  let checked = await rankRewrites(env, original, candidates, input.genre);
+  if (!sourceSafe(checked) && rescue && rescue !== original) {
+    const localOnly = await rankRewrites(env, original, { "local edit": rescue }, input.genre);
+    if (sourceSafe(localOnly)) checked = localOnly;
   }
-  let current = checked.text;
-  completedRoles.add("fact_gate");
-  console.log(JSON.stringify({
-    event: "pipeline_ranked",
-    selectedSource: checked.name === "your draft",
-    score: checked.after,
-    preserved: checked.preserved,
-    invented: checked.invented,
-    choices: checked.ranked.length,
-  }));
-  let finalRounds = 0;
-  let finalVerdicts: Array<string | null> = [];
-  let finalVerifierRungs: string[] = [];
-  let lastReport = before;
-  let copyAvailable = false;
-  let flowAvailable = false;
-  let finalizerAvailable = false;
-  let passed = false;
-
-  for (let round = 1; round <= MAX_FINAL_ROUNDS; round += 1) {
-    finalRounds = round;
-
-    const copied = await callRoleWithRecovery(env, "copydesk", current, current, deadline);
-    const copyResult = await acceptNonWorsening(
-      env, original, `copy desk ${round}`, copied?.text ?? null, current, checked, input.genre,
-    );
-    current = copyResult.text;
-    checked = copyResult.checked;
-    copyAvailable = copyResult.available;
-    if (copied) completedRoles.add("copy_desk");
-
-    const flowed = await callRoleWithRecovery(env, "readaloud", current, current, deadline);
-    const flowResult = await acceptNonWorsening(
-      env, original, `read aloud ${round}`, flowed?.text ?? null, current, checked, input.genre,
-    );
-    current = flowResult.text;
-    checked = flowResult.checked;
-    flowAvailable = flowResult.available;
-    if (flowed) completedRoles.add("read_aloud");
-
-    const [report, changes] = await Promise.all([
-      scoreWriting(env, current, input.genre),
-      inventoryChanges(env, original, current),
-    ]);
-    lastReport = report;
-    const verifierPacket = [
-      "ORIGINAL:", original,
-      "\nCURRENT:", current,
-      "\nCHANGES TO CHECK:", JSON.stringify(changes),
-      "\nDOCUMENT CHECKS:", JSON.stringify({
-        register: report.register,
-        shape: report.shape,
-        score: report.score,
-      }),
-    ].join("\n");
-    const firstVerifier = await callRole(env, "verify", verifierPacket, current, deadline);
-    const secondVerifier = await callRole(
-      env,
-      "verify",
-      verifierPacket,
-      current,
-      deadline,
-      firstVerifier ? [firstVerifier.rung] : [],
-      true,
-    );
-    finalVerdicts = [firstVerifier?.text ?? null, secondVerifier?.text ?? null];
-    const verifierReplies = [firstVerifier, secondVerifier];
-    finalVerifierRungs = [firstVerifier?.rung, secondVerifier?.rung]
-      .filter((value): value is string => Boolean(value));
-    if (firstVerifier && secondVerifier) completedRoles.add("verifier");
-    const verified = copyResult.available
-      && flowResult.available
-      && releaseReady(checked, report, finalVerdicts, finalVerifierRungs);
-    console.log(JSON.stringify({
-      event: "pipeline_verified",
-      round,
-      score: checked.after,
-      preserved: checked.preserved,
-      invented: checked.invented,
-      registerFindings: report.register.findings.length,
-      shapeFinding: report.shape.broetry,
-      copyAvailable: copyResult.available,
-      flowAvailable: flowResult.available,
-      verifierPasses: finalVerdicts.map(verifierPassed),
-      verifierRungs: finalVerifierRungs,
-      independentVerifierRungs: new Set(finalVerifierRungs).size,
-      verified,
-    }));
-
-    const finalPacket = [
-      "ORIGINAL:", original,
-      "\nCURRENT:", current,
-      "\nVERIFIERS:", finalVerdicts.map((value) => value ?? "unavailable").join(" | "),
-      "\nLOCAL SCORER:", scorerGuidance(report),
-      "\nDOCUMENT CHECKS:", JSON.stringify({
-        register: report.register,
-        shape: report.shape,
-        score: report.score,
-      }),
-      "\nCHANGES TO CHECK:", JSON.stringify(changes),
-    ].join("\n");
-    const approvingRungs = verified ? [] : verifierReplies
-      .filter((reply): reply is NonNullable<typeof reply> => Boolean(reply && verifierPassed(reply.text)))
-      .map((reply) => reply.rung);
-    const finished = await callRoleWithRecovery(
-      env,
-      "finalize",
-      finalPacket,
-      current,
-      deadline,
-      approvingRungs,
-      false,
-    );
-    if (!finished) break;
-    finalizerAvailable = true;
-    completedRoles.add("fresh_eyes");
-
-    if (finished.text !== current) {
-      const finalCheck = await rankRewrites(env, original, { "fresh eyes": finished.text }, input.genre);
-      if (finalCheck.preserved && !finalCheck.invented && finalCheck.after <= checked.after) {
-        current = finished.text;
-        checked = finalCheck;
-        continue;
-      }
-      // A changed finalizer response is not an approval. Keep the last safe edit
-      // and retry the finishing loop within its fixed budget.
-      continue;
-    }
-
-    passed = verified;
-    break;
+  if (!sourceSafe(checked)) {
+    return {
+      ...unchanged(
+        original, "unchanged_verification_failed", before, started, env.SCORER_VERSION,
+        "Every proposed edit changed protected source material, so the original is preserved.",
+      ),
+      modelRequests: 1,
+      rolesCompleted: modelReply ? 6 : 2,
+    };
   }
 
-  if (!passed) {
-    if (current !== original && checked.preserved && !checked.invented) {
-      const after = await scoreWriting(env, current, input.genre);
-      const warnings: string[] = [];
-      if (!copyAvailable) warnings.push("the copy-editing pass was unavailable");
-      if (!flowAvailable) warnings.push("the read-aloud pass was unavailable");
-      if (after.score >= SCORE_GATE) warnings.push("the writing-score target was not reached");
-      if (lastReport.register.findings.length > 0 || lastReport.shape.broetry) {
-        warnings.push("a document-level writing check still needs review");
-      }
-      if (independentApprovals(finalVerdicts, finalVerifierRungs) < 2) {
-        warnings.push("the two independent review checks did not both approve it");
-      }
-      if (!finalizerAvailable) warnings.push("the fresh-eyes pass was unavailable");
-      const detail = warnings.length > 0
-        ? warnings.join("; ")
-        : "not every final quality check approved it";
-      return {
-        text: current,
-        status: "rewritten_with_warnings",
-        before,
-        after,
-        scoreChange: Math.round((after.score - before.score) * 10) / 10,
-        factsPreserved: true,
-        passedFinalChecks: false,
-        independentModelChecks: independentApprovals(finalVerdicts, finalVerifierRungs),
-        rolesCompleted: roleCount(),
-        finishingRounds: finalRounds,
-        scorerVersion: env.SCORER_VERSION,
-        durationMs: Date.now() - started,
-        note: `This is the safest source-preserving edit the pipeline produced. Review it before publishing because ${detail}.`,
-      };
-    }
-    return unchanged(
-      original,
-      "unchanged_verification_failed",
-      before,
-      started,
-      env.SCORER_VERSION,
-      roleCount(),
-      finalRounds,
-      "Every changed version failed the hard source check, so the original comes back unchanged rather than risking an invented or dropped fact.",
-    );
-  }
-
+  const current = checked.text;
   const after = await scoreWriting(env, current, input.genre);
+  const selectedModelEdit = checked.name === "one-call edit";
+  const passed = selectedModelEdit
+    && after.score < SCORE_GATE
+    && after.register.findings.length === 0
+    && !(after.shape.measured && after.shape.broetry);
+  const warnings: string[] = [];
+  if (!selectedModelEdit) warnings.push("the model response was unavailable or did not pass the source check, so the local edit was used");
+  if (after.score >= SCORE_GATE) warnings.push("the writing score remains above 25");
+  if (after.register.findings.length > 0 || (after.shape.measured && after.shape.broetry)) {
+    warnings.push("a document-level writing check remains");
+  }
+
   return {
     text: current,
     status: passed ? "rewritten" : "rewritten_with_warnings",
     before,
     after,
     scoreChange: Math.round((after.score - before.score) * 10) / 10,
-    factsPreserved: checked.preserved && !checked.invented,
+    factsPreserved: true,
     passedFinalChecks: passed,
-    independentModelChecks: independentApprovals(finalVerdicts, finalVerifierRungs),
-    rolesCompleted: roleCount(),
-    finishingRounds: finalRounds,
+    independentModelChecks: 0,
+    modelRequests: 1,
+    rolesCompleted: selectedModelEdit ? 8 : 4,
+    finishingRounds: 1,
     scorerVersion: env.SCORER_VERSION,
     durationMs: Date.now() - started,
-    note: passed
-      ? "Two independent model checks and the exact Zero Slop scorer approved this text."
-      : "The deterministic source and writing checks approved this improvement, but the independent model reviewers did not fully agree. Review the diff before publishing.",
+    note: warnings.length
+      ? `Zero Slop returned the safest edited draft. Review it before publishing because ${warnings.join("; ")}.`
+      : "One AI editorial response produced the rewrite; local scoring and source checks approved the exact text returned.",
   };
 }

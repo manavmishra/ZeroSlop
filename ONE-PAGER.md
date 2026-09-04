@@ -40,12 +40,12 @@ the way a bug does.
 The local scorer finds exact phrases and problems with rhythm, readability, and
 formatting. The AI assistant acts as interpreter, then rewriter. The local fact gate
 rejects versions that change names, numbers, quotations, links, code, tables, or
-document structure. Fresh AI passes act as the copy desk, then the read-aloud editor.
-Local tools and the assistant share the verifier role, comparing the text with the source.
-A separate fresh-eyes finalizer reads that verified copy as a first-time reader. These are
-eight roles, not eight models. If the finalizer changes anything, the last four roles run
-again. Separating them stops the rewriter from certifying its own work and keeps late edits
-from bypassing the final checks.
+document structure. The assistant also applies copy-desk, read-aloud, and fresh-eyes
+judgment. Local tools perform the final score and source check on the exact text returned.
+These are eight editorial responsibilities, not eight models or eight network requests.
+The free web editor combines all five AI responsibilities in one response and makes one
+model call. If that response misses a target, Zero Slop returns the safest edit with a
+plain warning; it does not enter another model loop.
 
 ## What makes it different
 
@@ -116,7 +116,7 @@ second. These are reproducible checks with stated limits, not universal claims.
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.8.7 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.8.8 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

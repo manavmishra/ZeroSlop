@@ -76,14 +76,11 @@ artifact returned by the read-aloud editor:
 2. Compare it directly with both the original and selected rewrite for preserved
    claims, qualifiers, intended voice, regional spelling, format, and non-prose
    structure. The script cannot detect every semantic or stylistic change.
-3. If any check or comparison requires a repair, apply it, send the repaired
-   text through the copy desk and read-aloud pass again, and repeat all
-   final checks.
+3. If a check requires a repair, apply one targeted correction and rerun the
+   local score, fact, format, and structure checks once.
 
 After verification, send that exact text through the finalizer in
-`references/fresh-eyes.md`. Stop only when the same artifact clears the copy desk,
-read-aloud pass, semantic and format review, scorer, fidelity check, and receives a
-no-change fresh-eyes approval. Limit this repair loop to
-three rounds. If an issue still cannot be resolved without guessing, return the best
-source-preserving version that completed both editorial passes, flag the unresolved
-span and failed check plainly, and do not describe the fallback as fully verified.
+`references/fresh-eyes.md`. Do not restart the model pipeline. If an issue still
+cannot be resolved without guessing after the one local recheck, return the best
+source-preserving version, flag the unresolved span and failed check plainly, and do
+not describe the fallback as fully verified.

@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.8.7-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.8.8-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations"><img alt="Listed in awesome-ai-plugins" src="https://img.shields.io/badge/awesome--ai--plugins-listed-2C6E8F"></a>
   <a href="https://zero-slop.ai/try/"><img alt="This README scores 11.6 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-11.6%2F100-0f7d55"></a>
@@ -14,8 +14,7 @@
 Less slop, more pop in your writing.
 
 Zero Slop finds stock phrasing, mechanical rhythm, vague claims, and canned
-formatting, then gives your AI assistant or agent harness an editing workflow on guardrails. Its
-MIT-licensed local checks run offline; your existing AI assistant or harness does the editing.
+formatting. Local checks run offline; your existing AI assistant does the editing.
 Score a draft at [zero-slop.ai/try](https://zero-slop.ai/try/); benchmark at
 [zero-slop.ai](https://zero-slop.ai).
 
@@ -63,12 +62,12 @@ Writing score: 9.5/100  [clear]
 ## Problem
 
 AI-assisted writing often converges on the same constructions: "It's not X. It's Y."
-"Here's the thing nobody tells you." One emdash is fine. Multiple emdashes, definitely slop. The same effect can come from repetition in the wording or the structure. Mechanical rhythm and overworked formatting can do it too.
+"Here's the thing nobody tells you." Repeated wording, uniform rhythm, and
+overworked formatting can have the same effect.
 
 Zero Slop is an Agent Skill and ships no model. Claude, GPT, or another compatible
-model edits; local tools check names, numbers, quotations, links, code, tables, and
-paths. Your AI compares meaning because matching words cannot catch every changed
-claim. It runs in any harness that reads `SKILL.md`.
+model edits; local tools protect names, numbers, quotations, links, code, tables,
+and paths. Your AI compares meaning that word matching cannot judge.
 
 ## How to install Zero Slop
 
@@ -84,10 +83,7 @@ Or install it with `npx`:
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-Or from the registry, which also installs the scorer as a command. Zero Slop is
-listed in [awesome-ai-plugins](https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations)
-and carries a public profile in the [HOL plugin registry](https://hol.org/guard/plugins),
-where its trust score and scanner results are published:
+Or install from npm, which also adds the scoring command:
 
 ```sh
 npx zero-slop install          # add --harness codex|cursor|opencode|zed
@@ -95,8 +91,7 @@ npx zero-slop score draft.md   # score without installing anything
 ```
 
 ChatGPT users can download [`dist/zero-slop-single-file.md`](dist/zero-slop-single-file.md).
-Claude.ai users can upload the [latest release ZIP](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip).
-`npx skills update zero-slop --global` updates a skills CLI installation later.
+Claude.ai users can upload the [release ZIP](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip).
 
 ## How to use Zero Slop
 
@@ -135,9 +130,8 @@ above.
 9. Synonym cycling: the agent, the assistant, the tool, all one thing.
 10. Marketing riders: "robust" and "leverage" score only beside a marketing trigger, so a runbook stays quiet.
 
-A reading pass covers document-wide problems: repeated shapes, crowded statistics,
-and paragraphs that shuffle without loss. [`references/eval.md`](references/eval.md)
-has all 80 checks.
+A reading pass covers repeated shapes, crowded statistics, and paragraphs that
+shuffle without loss. [`references/eval.md`](references/eval.md) has all 80 checks.
 
 Human writing scored 9 to 21 in [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/);
 unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.json).
@@ -147,7 +141,13 @@ unedited AI drafts averaged 77 across [`bench/examples.json`](bench/examples.jso
 
 ![Eight editorial roles, a private learning loop, and a separate release review](assets/engine.svg)
 
-Eight roles form one workflow. Each is a job rather than a service, run as its own pass so nothing grades its own output. The research supports the checks, not the number eight, which is an engineering choice.
+Eight responsibilities form one workflow. They are jobs, not separate models. An
+installed assistant can isolate them.
+The free web editor combines
+the five AI responsibilities into one model response, then runs the scorer and source
+checks locally. It makes at most one live model call and never describes that response
+as independent review. The research supports the checks, not the number eight, which
+is an engineering choice.
 
 | Role | Who does it | What happens |
 |---|---|---|
@@ -155,14 +155,15 @@ Eight roles form one workflow. Each is a job rather than a service, run as its o
 | 2. Interpreter | Your AI assistant | Reads the claims, purpose, audience, structure, and voice before changing anything. |
 | 3. Rewriter | Your AI assistant | Removes stock language and rebuilds order, rhythm, and tone without inventing detail. |
 | 4. Fact gate | Local tools | Rejects any version that changes names, numbers, quotations, links, code, tables, paths, or structure. |
-| 5. Copy desk | Fresh AI pass | Corrects grammar, spelling, usage, and consistency in the actual deliverable. |
-| 6. Read-aloud editor | Fresh AI pass | Fixes stumbles, repetition, weak transitions, and awkward flow. |
-| 7. Verifier | Local tools and your AI assistant | Compares text with source for facts, meaning, qualifiers, voice, format, structure. |
-| 8. Fresh-eyes finalizer | Fresh AI pass | Reads the verified text as a first-time reader, applying only safe polish. Any final polish restarts the final checks; the same text must return unchanged before release. |
+| 5. Copy desk | Your AI assistant | Corrects grammar, spelling, usage, and consistency in the actual deliverable. |
+| 6. Read-aloud editor | Your AI assistant | Fixes stumbles, repetition, weak transitions, and awkward flow. |
+| 7. Verifier | Local tools and your AI assistant | Compares text with source for facts, meaning, qualifiers, voice, format, structure. In the web editor, source safety is checked locally. |
+| 8. Fresh-eyes finalizer | Your AI assistant | Reads the finished text as a first-time reader and applies only safe polish. Any change receives one final local recheck. |
 
-Missed editorial targets trigger repair, not erasure. After three rounds, Zero Slop
-returns the safest source-preserving edit with a warning. Only a model outage or an
-edit that changes protected material leaves the source untouched.
+Missed editorial targets do not erase a useful edit or start an open-ended loop. Zero
+Slop permits one targeted repair and one local recheck, then returns the safest
+source-preserving edit with a plain warning. On the website, a failed model call falls
+back to a conservative local edit instead of retrying through more providers.
 
 Studies find
 [predictable wording](https://arxiv.org/abs/2301.11305) and
@@ -197,7 +198,7 @@ The saved replay ran Zero Slop, [avoid-ai-writing](https://github.com/conorbrons
 [no-ai-slop](https://github.com/petergyang/no-ai-slop) and
 [humanizer](https://github.com/blader/humanizer) over 18 drafts with GPT-5.4, high
 reasoning, and pinned instructions. Zero Slop's outputs came from v2.5.9; later
-releases rescore those frozen outputs rather than pretend to regenerate them.
+releases only rescore those frozen outputs.
 
 | Method | Mean writing score ↓ | Passed Zero Slop's local gates | Source check passed | Average length change |
 |---|---:|---:|---:|---:|
@@ -213,16 +214,15 @@ releases rescore those frozen outputs rather than pretend to regenerate them.
 
 ![Method-hidden editorial preference on 18 drafts](assets/bench-incumbent-hidden.png)
 
-Cross-checks the tools didn't build: the AIStoryHub checker's clean
-rates, and a method-hidden quality ranking.
+Two cross-checks: AIStoryHub clean rates and a method-hidden quality ranking.
 
 ![External checker clean rates per method](assets/bench-external-checker.png)
 
 ![Method-hidden quality ranking, lower is better](assets/bench-blind-quality.png)
 
-This is a small LLM-reviewed regression study. It measures neither field accuracy nor a
-universal ranking. Drafts, hashes, and limits are in [`bench/README.md`](bench/README.md). The separate method-hidden two-way replay used
-Zero Slop v2.6.0 and is preserved in
+This small LLM-reviewed regression study measures neither field accuracy nor a
+universal ranking. Drafts, hashes, and limits are in [`bench/README.md`](bench/README.md).
+The separate two-way replay used Zero Slop v2.6.0 and is preserved in
 [`bench/incumbent-blind-replay/`](bench/incumbent-blind-replay/).
 
 For the 38-item editorial panel, the current scorer matched the prior 84.2% result.
