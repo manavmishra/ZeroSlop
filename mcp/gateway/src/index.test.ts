@@ -9,7 +9,7 @@ function signingKeyForTests(): string {
 
 function healthEnv(scorerVersion: string): Env {
   return {
-    SCORER_VERSION: "2.8.6",
+    SCORER_VERSION: "2.8.7",
     EDITOR_SHARED_SECRET: signingKeyForTests(),
     SCORER: {
       fetch: async () => Response.json({ ok: true, scorerVersion }),
@@ -32,7 +32,7 @@ test("health fails closed when the private scorer release drifts", async () => {
 test("health passes only for the exact scorer release", async () => {
   const response = await worker.fetch(
     new Request("https://mcp.zero-slop.ai/health"),
-    healthEnv("2.8.6"),
+    healthEnv("2.8.7"),
     {} as ExecutionContext,
   );
 
@@ -41,7 +41,7 @@ test("health passes only for the exact scorer release", async () => {
 });
 
 test("health fails closed when connector signing is not configured", async () => {
-  const env = healthEnv("2.8.6");
+  const env = healthEnv("2.8.7");
   env.EDITOR_SHARED_SECRET = "";
   const response = await worker.fetch(
     new Request("https://mcp.zero-slop.ai/health"),
@@ -53,8 +53,8 @@ test("health fails closed when connector signing is not configured", async () =>
   assert.deepEqual(await response.json(), {
     ok: false,
     service: "zero-slop-mcp",
-    version: "2.8.6",
-    scorer: { ok: true, scorerVersion: "2.8.6" },
+    version: "2.8.7",
+    scorer: { ok: true, scorerVersion: "2.8.7" },
     editorConfigured: false,
   });
 });

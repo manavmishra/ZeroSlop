@@ -60,5 +60,5 @@ changes even one character, apply the complete revision and rerun, in order:
 
 Repeat for at most three rounds. The same exact text must clear all four roles, with
 the fresh-eyes finalizer approving it unchanged. If the remaining issue cannot be
-fixed without guessing, return the best source-preserving text that completed every
-pass, identify the unresolved span, and do not describe it as fully verified.
+fixed without guessing, return the safest source-preserving edit, identify the
+unresolved span or unavailable pass, and do not describe it as fully verified.

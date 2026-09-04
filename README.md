@@ -5,7 +5,7 @@
   <img alt="tests" src="https://img.shields.io/badge/tests-passing-227B5B">
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-227B5B">
   <img alt="privacy" src="https://img.shields.io/badge/learning-private-227B5B">
-  <img alt="version" src="https://img.shields.io/badge/version-2.8.6-72528F">
+  <img alt="version" src="https://img.shields.io/badge/version-2.8.7-72528F">
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://github.com/hashgraph-online/awesome-ai-plugins#tools--integrations"><img alt="Listed in awesome-ai-plugins" src="https://img.shields.io/badge/awesome--ai--plugins-listed-2C6E8F"></a>
   <a href="https://zero-slop.ai/try/"><img alt="This README scores 11.6 out of 100 on the slop score, inside the human range" src="https://img.shields.io/badge/slop%20score-11.6%2F100-0f7d55"></a>
@@ -160,6 +160,10 @@ Eight roles form one workflow. Each is a job rather than a service, run as its o
 | 7. Verifier | Local tools and your AI assistant | Compares text with source for facts, meaning, qualifiers, voice, format, structure. |
 | 8. Fresh-eyes finalizer | Fresh AI pass | Reads the verified text as a first-time reader, applying only safe polish. Any final polish restarts the final checks; the same text must return unchanged before release. |
 
+Missed editorial targets trigger repair, not erasure. After three rounds, Zero Slop
+returns the safest source-preserving edit with a warning. Only a model outage or an
+edit that changes protected material leaves the source untouched.
+
 Studies find
 [predictable wording](https://arxiv.org/abs/2301.11305) and
 [overused vocabulary](https://arxiv.org/abs/2406.07016) in machine text, and authorship
@@ -228,13 +232,11 @@ proof of general accuracy.
 
 ### Speed
 
-One busy Apple silicon Mac. Meter: 1,000 documents in 1.9929 seconds (501.8 per
-second), 15,201 words in 0.3223 seconds, worst stress case 2.2932 seconds.
-Reading pass: 0.7823 seconds for the same 1,000 (1278.3 per
-second), 0.1092 for the same large document, linear to 96,000 words. Learning
-pass, 8,000 words: 0.1592 seconds. Across 24 interleaved runs against 2.7.7 we measured
-0.00% higher median throughput—effectively no difference. Editing
-time is excluded.
+One Apple silicon Mac: the meter scored 1,000 documents in 1.9929 seconds
+(501.8 per second), 15,201 words in 0.3223 seconds, and the worst stress case in 2.2932
+seconds. The reading pass handled the same 1,000 in 0.7823 seconds (1278.3/second);
+learning on 8,000 words took 0.1592 seconds. Across 24 interleaved runs against 2.7.7,
+median throughput was 0.26% lower, effectively no difference. Editing is excluded.
 
 ### Reading-pass accuracy
 
@@ -282,7 +284,7 @@ passes, private learning, portfolio analysis, and release tests.
 
 ![Documented capabilities at pinned repository versions](assets/competitor-capabilities.png)
 
-The chart records which features each project documents. It says nothing about writing quality and is not a claim about which tool writes better. Reproduce by using these tests:
+The chart says nothing about writing quality. Reproduce it with:
 
 ```sh
 python3 tests/test_all.py

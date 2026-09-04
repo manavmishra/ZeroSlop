@@ -28,7 +28,7 @@
     }
   ],
   "vars": {
-    "SCORER_VERSION": "2.8.6",
+    "SCORER_VERSION": "2.8.7",
     "EDITOR_ENDPOINT": "https://zero-slop.ai/api/demo-rewrite",
     "ALLOWED_ORIGINS": "https://zero-slop.ai,https://www.zero-slop.ai,https://chatgpt.com,https://claude.ai"
   },

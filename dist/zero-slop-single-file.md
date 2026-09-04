@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.8.6"
+  version: "2.8.7"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -122,8 +122,9 @@ local and AI responsibilities distinct:
    and directly fix stumbles, repetition, weak transitions, and awkward flow.
 7. **Verifier — local tools plus the AI assistant.** Check the exact final text
    against the source for the writing score, facts, meaning, qualifiers, voice,
-   format, and structure. This is a release gate, not advice: a warning blocks
-   delivery. Any repair returns through roles 5 and 6 before role 7 runs again.
+   format, and structure. A warning starts the repair loop and prevents an
+   unqualified approval; it does not erase the edited draft. Any repair returns
+   through roles 5 and 6 before role 7 runs again.
 8. **Fresh-eyes finalizer — a new AI pass.** Read the verified text as a first-time
    reader, apply only safe final polish, and approve it without changes. A role 8
    edit restarts roles 5 through 8; the finalizer never bypasses verification.
@@ -662,16 +663,25 @@ If verification requires any textual repair, send the repaired text through the 
 desk and final read-aloud pass again, then repeat every final check. Continue until the
 same text clears the copy desk, final read-aloud pass, semantic and format review,
 scorer, and fidelity gate.
+
+If an AI editorial role returns no usable text, retry that role once with a fresh pass.
+Use another available model when the harness supports model choice; otherwise use fresh
+context in the current assistant. Carry the last source-preserving edit forward while a
+role recovers. Do not replay earlier roles unless the text changes: retry the failed role,
+then continue with the remaining checks. Keep every retry bounded and report any role
+that remained unavailable.
+
 A required repair may raise the writing score from the previous draft as long as it
 stays below the release limit. Source meaning, stated emotion, and factual accuracy
 outrank a smaller number. Never discard a necessary semantic repair merely because an
 unsafe version scored lower; rerun every check on the repaired text instead.
 Limit this repair loop to three rounds. If a problem still cannot be resolved
-without guessing, return the best source-preserving version that completed both
-editorial passes and state the unresolved issue and failed check plainly. Outside
-that explicit three-round fallback, nothing reaches the user until the exact text
-being returned has cleared every final check. A fallback still must have completed the
-copy desk and read-aloud pass; never describe it as fully verified.
+without guessing, return the safest source-preserving edit and state the unresolved
+issue, unavailable role, or missed target plainly. Never replace an explicit rewrite
+request with the unchanged source merely because a quality target was missed. A quality
+target controls the confidence label; it does not decide whether the writer receives
+the work. A fallback should complete both editorial passes whenever they are available,
+and it must never be described as fully verified when a check did not complete.
 
 Initial gate failure → rewrite and recheck (max 3 passes). Final verification
 repair → copy desk, read-aloud pass, and every check again (max 3 rounds). If the
@@ -703,8 +713,8 @@ then rerun the copy desk, read-aloud editor, verifier, and fresh-eyes finalizer 
 that order. A role 8 edit therefore restarts roles 5 through 8. Limit the loop to
 three rounds. The same exact text must clear roles 5, 6, and 7 and then receive a
 no-change approval from role 8. If safe approval is impossible without guessing,
-return the best source-preserving version that completed every pass and name the
-unresolved span; do not call it fully verified.
+return the safest source-preserving edit, name the unresolved span or unavailable
+pass, and do not call it fully verified.
 
 ### 9. Report in plain language
 
@@ -1859,7 +1869,10 @@ Answer every check with pass or fail. Where a check asks for a count, write the
 number down; a count is evidence, and a missing count means the pass did not run.
 
 Any fail sends the text back through the copy desk and read-aloud pass, after which
-every check here runs again on the new text. Limit that loop to three rounds.
+every check here runs again on the new text. Limit that loop to three rounds. A failed
+check starts repair and changes the confidence label; it never suppresses the edited
+text. After the bounded loop, return the safest source-preserving edit and name every
+unresolved check plainly.
 
 **This file exists because the meter cannot see most of what is on it.** The scorer
 reads the lexically anchored subset: listed phrases, sentence-length variance,
@@ -2234,8 +2247,8 @@ changes even one character, apply the complete revision and rerun, in order:
 
 Repeat for at most three rounds. The same exact text must clear all four roles, with
 the fresh-eyes finalizer approving it unchanged. If the remaining issue cannot be
-fixed without guessing, return the best source-preserving text that completed every
-pass, identify the unresolved span, and do not describe it as fully verified.
+fixed without guessing, return the safest source-preserving edit, identify the
+unresolved span or unavailable pass, and do not describe it as fully verified.
 
 
 ========================================================================

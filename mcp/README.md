@@ -1,9 +1,9 @@
 # Zero Slop MCP
 
 The Zero Slop MCP exposes one stateless `deslop` tool over Streamable HTTP. It
-accepts prose from any MCP client and returns a verified rewrite, the exact
-before and after writing reports, fact-preservation status, and release-gate
-metadata.
+accepts prose from any MCP client and returns the safest source-preserving edit,
+the exact before and after writing reports, fact-preservation status, and final
+review metadata.
 
 Canonical production endpoint: `https://mcp.zero-slop.ai/mcp`
 
@@ -22,7 +22,7 @@ gateway Worker
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
 private scorer Worker              production editor ladder
-exact Zero Slop 2.8.6              same fixed roles as /try/
+exact Zero Slop 2.8.7              same fixed roles as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
@@ -35,7 +35,7 @@ last editor or the second semantic verifier. The smaller backstop remains
 available for editing but is excluded from semantic certification because it
 failed the exact-token verifier fixture.
 
-The gateway releases a rewrite only when all of these are true:
+The gateway marks a rewrite fully checked only when all of these are true:
 
 - deterministic reranking finds no dropped or invented facts;
 - the final writing score is below 25;
@@ -45,8 +45,12 @@ The gateway releases a rewrite only when all of these are true:
   rungs; and
 - the fresh-eyes pass makes no unsafe or worse edit.
 
-If any condition fails, the source text comes back unchanged. A clean source
-returns immediately after scoring and is never sent to an editing model.
+Missing an editorial target starts bounded repair. If the target still is not met,
+the safest source-preserving edit comes back with a review warning instead of being
+discarded. Only two conditions can return the source unchanged: the editing service
+was unavailable, or every changed version failed the hard source check by adding or
+dropping protected material. A clean source returns immediately after scoring and is
+never sent to an editing model.
 
 ## Connect
 

@@ -35,24 +35,6 @@ export function verifierPassed(verdict: string | null): boolean {
   return typeof verdict === "string" && /^ok[.!]?$/i.test(verdict.trim());
 }
 
-export function styleImprovedEnough(beforeScore: number, afterScore: number): boolean {
-  const reduction = beforeScore - afterScore;
-  return afterScore < SCORE_GATE
-    || (afterScore <= 60 && reduction >= Math.max(10, beforeScore * 0.25));
-}
-
-export function deterministicReleaseReady(
-  checked: RankedRewrite,
-  report: WritingReport,
-  beforeScore: number,
-): boolean {
-  return checked.preserved
-    && !checked.invented
-    && styleImprovedEnough(beforeScore, checked.after)
-    && report.register.findings.length === 0
-    && !report.shape.broetry;
-}
-
 export function releaseReady(
   checked: RankedRewrite,
   report: WritingReport,
@@ -68,6 +50,14 @@ export function releaseReady(
     && verdicts.every(verifierPassed)
     && verifierRungs.length === 2
     && new Set(verifierRungs).size === 2;
+}
+
+function independentApprovals(
+  verdicts: Array<string | null>,
+  verifierRungs: string[],
+): number {
+  if (verifierRungs.length !== 2 || new Set(verifierRungs).size !== 2) return 0;
+  return verdicts.filter(verifierPassed).length;
 }
 
 function unchanged(
@@ -112,6 +102,24 @@ async function acceptNonWorsening(
     return { text: proposed, checked: next, available: true };
   }
   return { text: current, checked, available: true };
+}
+
+async function callRoleWithRecovery(
+  env: Env,
+  role: Parameters<typeof callRole>[1],
+  packet: string,
+  expectedText: string,
+  deadline: number,
+  exclude: string[] = [],
+  strictExclude = false,
+) {
+  const first = await callRole(
+    env, role, packet, expectedText, deadline, exclude, strictExclude,
+  );
+  if (first) return first;
+  return callRole(
+    env, role, packet, expectedText, deadline, exclude, strictExclude,
+  );
 }
 
 export async function runPipeline(env: Env, input: DeslopInput): Promise<PipelineResult> {
@@ -180,7 +188,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
         : strategy === "rewrite_warm" ? "keep the warmth" : "surgical retry";
       candidates[`${label}${rewriteRound ? ` (retry ${rewriteRound})` : ""}`] = written.text;
     }
-    if (Object.keys(candidates).length === 1) break;
+    if (Object.keys(candidates).length === 1) continue;
     rewriteTrial = await rankRewrites(env, original, candidates, input.genre);
     if (rewriteTrial.name !== "your draft" && rewriteTrial.after < SCORE_GATE) break;
     if (rewriteRound < MAX_REWRITE_ROUNDS - 1 && rewriteTrial.name !== "your draft") {
@@ -217,6 +225,15 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
   }
 
   let checked = rewriteTrial ?? await rankRewrites(env, original, candidates, input.genre);
+  if (checked.text === original) {
+    const editedCandidates = Object.fromEntries(
+      Object.entries(candidates).filter(([, text]) => text !== original),
+    );
+    if (Object.keys(editedCandidates).length > 0) {
+      const edited = await rankRewrites(env, original, editedCandidates, input.genre);
+      if (edited.preserved && !edited.invented) checked = edited;
+    }
+  }
   let current = checked.text;
   rolesCompleted += 1;
   console.log(JSON.stringify({
@@ -230,32 +247,38 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
   let finalRounds = 0;
   let finalVerdicts: Array<string | null> = [];
   let finalVerifierRungs: string[] = [];
-  let releasable = false;
+  let lastReport = before;
+  let copyAvailable = false;
+  let flowAvailable = false;
+  let finalizerAvailable = false;
   let passed = false;
 
   for (let round = 1; round <= MAX_FINAL_ROUNDS; round += 1) {
     finalRounds = round;
 
-    const copied = await callRole(env, "copydesk", current, current, deadline);
+    const copied = await callRoleWithRecovery(env, "copydesk", current, current, deadline);
     const copyResult = await acceptNonWorsening(
       env, original, `copy desk ${round}`, copied?.text ?? null, current, checked, input.genre,
     );
     current = copyResult.text;
     checked = copyResult.checked;
+    copyAvailable = copyResult.available;
     rolesCompleted += 1;
 
-    const flowed = await callRole(env, "readaloud", current, current, deadline);
+    const flowed = await callRoleWithRecovery(env, "readaloud", current, current, deadline);
     const flowResult = await acceptNonWorsening(
       env, original, `read aloud ${round}`, flowed?.text ?? null, current, checked, input.genre,
     );
     current = flowResult.text;
     checked = flowResult.checked;
+    flowAvailable = flowResult.available;
     rolesCompleted += 1;
 
     const [report, changes] = await Promise.all([
       scoreWriting(env, current, input.genre),
       inventoryChanges(env, original, current),
     ]);
+    lastReport = report;
     const verifierPacket = [
       "ORIGINAL:", original,
       "\nCURRENT:", current,
@@ -281,10 +304,8 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     finalVerifierRungs = [firstVerifier?.rung, secondVerifier?.rung]
       .filter((value): value is string => Boolean(value));
     rolesCompleted += 1;
-    const deterministicReady = deterministicReleaseReady(checked, report, before.score);
     const verified = copyResult.available
       && flowResult.available
-      && deterministicReady
       && releaseReady(checked, report, finalVerdicts, finalVerifierRungs);
     console.log(JSON.stringify({
       event: "pipeline_verified",
@@ -299,15 +320,8 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       verifierPasses: finalVerdicts.map(verifierPassed),
       verifierRungs: finalVerifierRungs,
       independentVerifierRungs: new Set(finalVerifierRungs).size,
-      deterministicReady,
       verified,
     }));
-
-    // The deterministic gates decide whether the best improvement is safe to
-    // return. Model reviewers decide whether it can be labelled fully verified;
-    // an unavailable or over-cautious reviewer must not erase useful copy.
-    releasable = deterministicReady;
-    passed = verified;
 
     const finalPacket = [
       "ORIGINAL:", original,
@@ -324,7 +338,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     const approvingRungs = verified ? [] : verifierReplies
       .filter((reply): reply is NonNullable<typeof reply> => Boolean(reply && verifierPassed(reply.text)))
       .map((reply) => reply.rung);
-    const finished = await callRole(
+    const finished = await callRoleWithRecovery(
       env,
       "finalize",
       finalPacket,
@@ -335,6 +349,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     );
     rolesCompleted += 1;
     if (!finished) break;
+    finalizerAvailable = true;
 
     if (finished.text !== current) {
       const finalCheck = await rankRewrites(env, original, { "fresh eyes": finished.text }, input.genre);
@@ -343,12 +358,48 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
         checked = finalCheck;
         continue;
       }
+      // A changed finalizer response is not an approval. Keep the last safe edit
+      // and retry the finishing loop within its fixed budget.
+      continue;
     }
 
+    passed = verified;
     break;
   }
 
-  if (!releasable) {
+  if (!passed) {
+    if (current !== original && checked.preserved && !checked.invented) {
+      const after = await scoreWriting(env, current, input.genre);
+      const warnings: string[] = [];
+      if (!copyAvailable) warnings.push("the copy-editing pass was unavailable");
+      if (!flowAvailable) warnings.push("the read-aloud pass was unavailable");
+      if (after.score >= SCORE_GATE) warnings.push("the writing-score target was not reached");
+      if (lastReport.register.findings.length > 0 || lastReport.shape.broetry) {
+        warnings.push("a document-level writing check still needs review");
+      }
+      if (independentApprovals(finalVerdicts, finalVerifierRungs) < 2) {
+        warnings.push("the two independent review checks did not both approve it");
+      }
+      if (!finalizerAvailable) warnings.push("the fresh-eyes pass was unavailable");
+      const detail = warnings.length > 0
+        ? warnings.join("; ")
+        : "not every final quality check approved it";
+      return {
+        text: current,
+        status: "rewritten_with_warnings",
+        before,
+        after,
+        scoreChange: Math.round((after.score - before.score) * 10) / 10,
+        factsPreserved: true,
+        passedFinalChecks: false,
+        independentModelChecks: independentApprovals(finalVerdicts, finalVerifierRungs),
+        rolesCompleted: Math.min(8, rolesCompleted),
+        finishingRounds: finalRounds,
+        scorerVersion: env.SCORER_VERSION,
+        durationMs: Date.now() - started,
+        note: `This is the safest source-preserving edit the pipeline produced. Review it before publishing because ${detail}.`,
+      };
+    }
     return unchanged(
       original,
       "unchanged_verification_failed",
@@ -357,26 +408,11 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       env.SCORER_VERSION,
       Math.min(8, rolesCompleted),
       finalRounds,
-      "A rewrite was attempted, but every required check did not agree. The original comes back unchanged.",
+      "Every changed version failed the hard source check, so the original comes back unchanged rather than risking an invented or dropped fact.",
     );
   }
 
   const after = await scoreWriting(env, current, input.genre);
-  if (!styleImprovedEnough(before.score, after.score)) {
-    return unchanged(
-      original,
-      before.score < SCORE_GATE ? "already_clear" : "unchanged_no_better_version",
-      before,
-      started,
-      env.SCORER_VERSION,
-      8,
-      finalRounds,
-      before.score < SCORE_GATE
-        ? "The original already scored better than every verified edit."
-        : "No verified edit improved the score enough to replace the original.",
-    );
-  }
-
   return {
     text: current,
     status: passed ? "rewritten" : "rewritten_with_warnings",
@@ -385,9 +421,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     scoreChange: Math.round((after.score - before.score) * 10) / 10,
     factsPreserved: checked.preserved && !checked.invented,
     passedFinalChecks: passed,
-    independentModelChecks: finalVerifierRungs.length === 2
-      ? new Set(finalVerifierRungs).size
-      : 0,
+    independentModelChecks: independentApprovals(finalVerdicts, finalVerifierRungs),
     rolesCompleted: 8,
     finishingRounds: finalRounds,
     scorerVersion: env.SCORER_VERSION,

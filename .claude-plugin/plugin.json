@@ -3,7 +3,7 @@
   "name": "zero-slop",
   "displayName": "Zero Slop",
   "description": "Zero Slop is a skill, not an AI model. Claude or another compatible model performs the editorial roles; local tools score the writing and protect facts, then the assistant and tools verify the final text.",
-  "version": "2.8.6",
+  "version": "2.8.7",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"

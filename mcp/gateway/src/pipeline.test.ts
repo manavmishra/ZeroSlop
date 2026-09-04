@@ -3,11 +3,9 @@ import test from "node:test";
 
 import { editorReply, signedEditorHeaders, tooShort } from "./model";
 import {
-  deterministicReleaseReady,
   releaseReady,
   runPipeline,
   scorerGuidance,
-  styleImprovedEnough,
   verifierPassed,
 } from "./pipeline";
 import type { RankedRewrite, WritingReport } from "./types";
@@ -35,27 +33,6 @@ test("release gate requires source safety, clean document checks, two verdicts, 
   assert.equal(releaseReady(checked, { ...report, shape: { ...report.shape, broetry: true } }, ["OK", "OK"], ["a", "b"]), false);
   assert.equal(releaseReady(checked, report, ["OK", "BLOCK: changed scope"], ["a", "b"]), false);
   assert.equal(releaseReady(checked, report, ["OK", "OK"], ["same", "same"]), false);
-});
-
-test("a material deterministic improvement remains returnable when model review is cautious", () => {
-  const checked = {
-    preserved: true,
-    invented: false,
-    after: 55,
-  } as RankedRewrite;
-  const report = {
-    register: { findings: [] },
-    shape: { broetry: false },
-  } as unknown as WritingReport;
-  assert.equal(styleImprovedEnough(100, 55), true);
-  assert.equal(styleImprovedEnough(100, 88), false);
-  assert.equal(styleImprovedEnough(30, 24.9), true);
-  assert.equal(deterministicReleaseReady(checked, report, 100), true);
-  assert.equal(deterministicReleaseReady({ ...checked, invented: true }, report, 100), false);
-  assert.equal(deterministicReleaseReady(checked, {
-    ...report,
-    register: { findings: [{ name: "Stacked negations" }] },
-  } as WritingReport, 100), false);
 });
 
 test("editor response requires a confirmed no-store path", () => {
@@ -137,7 +114,7 @@ test("clean text exits after scoring and never reaches an editor", async () => {
   };
   const result = await runPipeline({
     SCORER: scorer,
-    SCORER_VERSION: "2.8.6",
+    SCORER_VERSION: "2.8.7",
   } as unknown as Env, { text: "The importer now maps CSV headers automatically.", genre: "general" });
 
   assert.equal(result.status, "already_clear");
@@ -149,6 +126,7 @@ test("clean text exits after scoring and never reaches an editor", async () => {
 test("a short low-scoring draft still gets the checks that abstained", async () => {
   const originalFetch = globalThis.fetch;
   let editorCalls = 0;
+  const editorRoles: string[] = [];
   const scorer = {
     fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input));
@@ -163,19 +141,23 @@ test("a short low-scoring draft still gets the checks that abstained", async () 
       return Response.json({ name, text, preserved: true, invented: false, before: 9.5, after: 9.5, ranked: [] });
     },
   };
-  globalThis.fetch = (async () => {
+  globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
     editorCalls += 1;
+    const body = JSON.parse(String(init?.body)) as { role?: unknown };
+    editorRoles.push(String(body.role));
     return Response.json({ rewrite: "OK", provider: "router", model: "editor", stored: false });
   }) as typeof fetch;
   try {
     const result = await runPipeline({
       SCORER: scorer,
-      SCORER_VERSION: "2.8.6",
+      SCORER_VERSION: "2.8.7",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
       EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: "The importer now maps CSV headers automatically.", genre: "general" });
     assert.notEqual(result.rolesCompleted, 1);
     assert.ok(editorCalls > 0);
+    assert.equal(editorRoles.filter((role) => role.startsWith("rewrite_")).length, 4,
+      "a first-round outage must use the remaining bounded rewrite attempts");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -241,7 +223,7 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
   try {
     const result = await runPipeline({
       SCORER: scorer,
-      SCORER_VERSION: "2.8.6",
+      SCORER_VERSION: "2.8.7",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
       EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
@@ -264,4 +246,107 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+async function runWarningScenario(
+  afterScore: number,
+  secondVerdict: string,
+  preferSourceOnMixedRank = false,
+) {
+  const original = "Harbor 4.0 is now available, and it is important to note that search is now up to 40x faster. In conclusion, Harbor 4.0 is now available.";
+  const rewrite = "Harbor 4.0 is now available. Search is now up to 40x faster.";
+  const originalFetch = globalThis.fetch;
+  const scorer = {
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      const body = init?.body ? JSON.parse(String(init.body)) : {};
+      if (url.pathname === "/report") {
+        return Response.json(writingReport(body.text === original ? 88 : afterScore));
+      }
+      if (url.pathname === "/delta") {
+        return Response.json({
+          original_words: 27,
+          rewrite_words: 12,
+          net: -15,
+          inserted_runs: [],
+          deleted_runs: [],
+          cut_emphasis: [],
+        });
+      }
+      const entries = Object.entries(body.candidates as Record<string, string>);
+      const [name, text] = (preferSourceOnMixedRank && entries.length > 1
+        ? entries.find(([candidate]) => candidate === "your draft")
+        : entries.find(([, value]) => value === rewrite))
+        ?? entries[0]
+        ?? ["source", original];
+      return Response.json({
+        name,
+        text,
+        preserved: true,
+        invented: false,
+        before: 88,
+        after: text === original ? 88 : afterScore,
+        ranked: entries.map(([candidate, value]) => ({
+          name: candidate,
+          after: value === original ? 88 : afterScore,
+          preserved: true,
+          invented: false,
+        })),
+      });
+    },
+  };
+  let verifierCalls = 0;
+  globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+    const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    const role = String(body.role);
+    if (role === "interpret") {
+      return Response.json({ rewrite: "Keep Harbor 4.0 and 40x.", provider: "router", model: "notes", stored: false });
+    }
+    if (role === "verify") {
+      verifierCalls += 1;
+      return Response.json({
+        rewrite: verifierCalls % 2 === 0 ? secondVerdict : "OK",
+        provider: "router",
+        model: verifierCalls % 2 === 0 ? "verify-b" : "verify-a",
+        stored: false,
+      });
+    }
+    return Response.json({ rewrite, provider: "router", model: role, stored: false });
+  }) as typeof fetch;
+
+  try {
+    return await runPipeline({
+      SCORER: scorer,
+      SCORER_VERSION: "2.8.7",
+      EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
+      EDITOR_SHARED_SECRET: signingKeyForTests(),
+    } as unknown as Env, { text: original, genre: "general" });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+test("a verifier warning returns the safe edit instead of suppressing it", async () => {
+  const result = await runWarningScenario(14.5, "BLOCK: cadence still feels repetitive");
+  assert.equal(result.status, "rewritten_with_warnings");
+  assert.equal(result.text, "Harbor 4.0 is now available. Search is now up to 40x faster.");
+  assert.equal(result.after.score, 14.5);
+  assert.equal(result.factsPreserved, true);
+  assert.equal(result.passedFinalChecks, false);
+});
+
+test("missing the score target returns the safe edit with a warning", async () => {
+  const result = await runWarningScenario(31, "OK");
+  assert.equal(result.status, "rewritten_with_warnings");
+  assert.equal(result.text, "Harbor 4.0 is now available. Search is now up to 40x faster.");
+  assert.equal(result.after.score, 31);
+  assert.equal(result.factsPreserved, true);
+  assert.equal(result.passedFinalChecks, false);
+});
+
+test("an editorial preference for the source cannot suppress a safe changed draft", async () => {
+  const result = await runWarningScenario(31, "OK", true);
+  assert.equal(result.status, "rewritten_with_warnings");
+  assert.equal(result.text, "Harbor 4.0 is now available. Search is now up to 40x faster.");
+  assert.equal(result.factsPreserved, true);
 });

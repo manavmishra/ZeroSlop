@@ -4,7 +4,10 @@ Answer every check with pass or fail. Where a check asks for a count, write the
 number down; a count is evidence, and a missing count means the pass did not run.
 
 Any fail sends the text back through the copy desk and read-aloud pass, after which
-every check here runs again on the new text. Limit that loop to three rounds.
+every check here runs again on the new text. Limit that loop to three rounds. A failed
+check starts repair and changes the confidence label; it never suppresses the edited
+text. After the bounded loop, return the safest source-preserving edit and name every
+unresolved check plainly.
 
 **This file exists because the meter cannot see most of what is on it.** The scorer
 reads the lexically anchored subset: listed phrases, sentence-length variance,

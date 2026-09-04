@@ -2130,6 +2130,17 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("stays below the release limit", skill)
         self.assertIn("restore a source-stated emotion", brief)
 
+    def test_bounded_recovery_always_returns_the_safest_edit(self):
+        skill = " ".join(self.docs["SKILL.md"].lower().split())
+        evaluation = " ".join(
+            (ROOT / "references" / "eval.md").read_text().lower().split()
+        )
+        self.assertIn("retry that role once with a fresh pass", skill)
+        self.assertIn("do not replay earlier roles unless the text changes", skill)
+        self.assertIn("return the safest source-preserving edit", skill)
+        self.assertIn("a quality target controls the confidence label", skill)
+        self.assertIn("never suppresses the edited text", evaluation)
+
     def test_skill_report_template_speaks_to_the_writer(self):
         skill = self.docs["SKILL.md"]
         summary = re.search(
