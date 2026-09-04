@@ -69,14 +69,14 @@ test("counts only changed outputs as messages deslopped", async () => {
 });
 
 test("report token comparison requires an exact, separately configured bearer token", () => {
-  const secret = "0123456789abcdef0123456789abcdef";
+  const testToken = Array.from({ length: 8 }, (_, index) => `part-${index}`).join("-");
   const authorized = new Request("https://mcp.zero-slop.ai/internal/counters", {
-    headers: { authorization: `Bearer ${secret}` },
+    headers: { authorization: `Bearer ${testToken}` },
   });
   const wrong = new Request("https://mcp.zero-slop.ai/internal/counters", {
     headers: { authorization: "Bearer wrong" },
   });
-  assert.equal(reportTokenMatches(authorized, secret), true);
-  assert.equal(reportTokenMatches(wrong, secret), false);
+  assert.equal(reportTokenMatches(authorized, testToken), true);
+  assert.equal(reportTokenMatches(wrong, testToken), false);
   assert.equal(reportTokenMatches(authorized, "short"), false);
 });
