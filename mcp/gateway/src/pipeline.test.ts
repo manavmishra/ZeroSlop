@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { editorReply, signedEditorHeaders, tooShort } from "./model";
-import { releaseReady, runPipeline, scorerGuidance, verifierPassed } from "./pipeline";
+import {
+  deterministicReleaseReady,
+  releaseReady,
+  runPipeline,
+  scorerGuidance,
+  styleImprovedEnough,
+  verifierPassed,
+} from "./pipeline";
 import type { RankedRewrite, WritingReport } from "./types";
 
 function signingKeyForTests(): string {
@@ -28,6 +35,27 @@ test("release gate requires source safety, clean document checks, two verdicts, 
   assert.equal(releaseReady(checked, { ...report, shape: { ...report.shape, broetry: true } }, ["OK", "OK"], ["a", "b"]), false);
   assert.equal(releaseReady(checked, report, ["OK", "BLOCK: changed scope"], ["a", "b"]), false);
   assert.equal(releaseReady(checked, report, ["OK", "OK"], ["same", "same"]), false);
+});
+
+test("a material deterministic improvement remains returnable when model review is cautious", () => {
+  const checked = {
+    preserved: true,
+    invented: false,
+    after: 55,
+  } as RankedRewrite;
+  const report = {
+    register: { findings: [] },
+    shape: { broetry: false },
+  } as unknown as WritingReport;
+  assert.equal(styleImprovedEnough(100, 55), true);
+  assert.equal(styleImprovedEnough(100, 88), false);
+  assert.equal(styleImprovedEnough(30, 24.9), true);
+  assert.equal(deterministicReleaseReady(checked, report, 100), true);
+  assert.equal(deterministicReleaseReady({ ...checked, invented: true }, report, 100), false);
+  assert.equal(deterministicReleaseReady(checked, {
+    ...report,
+    register: { findings: [{ name: "Stacked negations" }] },
+  } as WritingReport, 100), false);
 });
 
 test("editor response requires a confirmed no-store path", () => {

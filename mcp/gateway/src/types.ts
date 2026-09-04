@@ -68,6 +68,7 @@ export type ChangeInventory = {
 
 export type PipelineStatus =
   | "rewritten"
+  | "rewritten_with_warnings"
   | "already_clear"
   | "unchanged_no_better_version"
   | "unchanged_verification_failed"
