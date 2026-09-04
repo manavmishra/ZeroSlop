@@ -118,6 +118,9 @@ jobs:
           # An npm advisory outage must not suppress lint and tests. Completed
           # audits with findings still fail; release jobs remain fail-closed.
           AUDIT_ALLOW_UNAVAILABLE: "1"
+          AUDIT_MAX_ATTEMPTS: "2"
+          AUDIT_ATTEMPT_TIMEOUT_MS: "30000"
+          AUDIT_RETRY_DELAY_MS: "3000"
         run: node ../.github/scripts/audit-npm.mjs
       - run: npm run lint
       - run: npm test
@@ -154,6 +157,9 @@ jobs:
       - name: Audit gateway dependencies
         env:
           AUDIT_ALLOW_UNAVAILABLE: "1"
+          AUDIT_MAX_ATTEMPTS: "2"
+          AUDIT_ATTEMPT_TIMEOUT_MS: "30000"
+          AUDIT_RETRY_DELAY_MS: "3000"
         run: node ../../.github/scripts/audit-npm.mjs
       - run: npm run check
       - run: npm run dry-run
@@ -167,6 +173,9 @@ jobs:
         working-directory: mcp/scorer
         env:
           AUDIT_ALLOW_UNAVAILABLE: "1"
+          AUDIT_MAX_ATTEMPTS: "2"
+          AUDIT_ATTEMPT_TIMEOUT_MS: "30000"
+          AUDIT_RETRY_DELAY_MS: "3000"
         run: node ../../.github/scripts/audit-npm.mjs
       - name: Package scorer Worker
         working-directory: mcp/scorer
