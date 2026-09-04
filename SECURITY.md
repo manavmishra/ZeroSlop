@@ -29,6 +29,35 @@ repository but are excluded from the installed plugin runtime.
 `scripts/contextual.py` is one of those maintainer-only research utilities; it is
 not a production feature and cannot change a live draft or score.
 
+## Remote MCP boundary
+
+The optional public MCP at `https://mcp.zero-slop.ai/mcp` is a separate remote
+service. A draft sent to that endpoint must leave the client to be edited. It is
+processed in memory, excluded from the demo cache, and routed through model endpoints
+configured for zero retention and no training. The gateway rejects any editor
+response that does not confirm `stored: false`. Zero Slop does not log or retain the
+draft or rewrite.
+
+The gateway writes aggregate product and reliability events to Cloudflare Analytics
+Engine. Recorded fields are limited to JSON-RPC method, tool, normalized client family
+and major version, MCP protocol version, coarse country and data-center code, genre,
+character and word counts, before and after scores and flag counts, result status,
+completed-check counts, duration, and capacity outcome. Drafts, rewrites, prompts,
+detected phrases, IP addresses, raw user agents, cookies, email addresses, and stable
+user or session identifiers are excluded. Initializations are reported as connections,
+not unique people. Analytics Engine retains the dataset for three months.
+
+Telemetry writes are non-blocking and wrapped so an analytics failure cannot fail an
+MCP call. The daily report uses sampling-aware aggregate queries and degrades to a
+clearly labeled missing section if the dataset cannot be read.
+
+A separate SQLite-backed Durable Object keeps lifetime counters for aggregate MCP
+events: initializations, tool calls, completed results, changed messages, warnings,
+failures, and capacity rejects. It stores no request content or stable identity. A
+report-only bearer secret protects the read endpoint; the editor signing secret is
+never reused. Because MCP provides no stable installation identifier, the service
+does not claim that an initialization count is a unique-install count.
+
 ## Online-learning isolation
 
 Reflection evidence, local detector rules, recurring rewrite preferences, logs, and

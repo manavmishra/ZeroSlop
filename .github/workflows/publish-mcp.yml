@@ -1,0 +1,35 @@
+name: Publish MCP registry metadata
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Install the pinned MCP publisher
+        env:
+          PUBLISHER_VERSION: "1.8.1"
+          PUBLISHER_ASSET: "mcp-publisher_linux_amd64.tar.gz"
+        run: |
+          base="https://github.com/modelcontextprotocol/registry/releases/download/v${PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error \
+            --output mcp-publisher.tar.gz "${base}/${PUBLISHER_ASSET}"
+          curl --fail --location --silent --show-error \
+            --output checksums.txt "${base}/registry_${PUBLISHER_VERSION}_checksums.txt"
+          grep " ${PUBLISHER_ASSET}$" checksums.txt | sed "s/${PUBLISHER_ASSET}/mcp-publisher.tar.gz/" | sha256sum --check --strict
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+          ./mcp-publisher --help >/dev/null
+
+      - name: Authenticate with GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish remote server metadata
+        run: ./mcp-publisher publish

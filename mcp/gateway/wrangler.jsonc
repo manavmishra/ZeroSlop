@@ -27,6 +27,26 @@
       }
     }
   ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "MCP_ANALYTICS",
+      "dataset": "zero_slop_mcp_events"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_COUNTER",
+        "class_name": "McpCounter"
+      }
+    ]
+  },
+  "exports": {
+    "McpCounter": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
   "vars": {
     "SCORER_VERSION": "2.8.7",
     "EDITOR_ENDPOINT": "https://zero-slop.ai/api/demo-rewrite",

@@ -4,8 +4,27 @@ import { z } from "zod";
 
 import { runPipeline } from "./pipeline";
 import { scorerHealth } from "./scorer";
+import {
+  McpCounter,
+  countCapacityReject,
+  countMcpRequest,
+  countPipelineFailure,
+  countPipelineResult,
+  readCounterSnapshot,
+  reportTokenMatches,
+} from "./counter";
+import {
+  inspectMcpRequest,
+  trackCapacityLimit,
+  trackMcpRequest,
+  trackPipelineFailure,
+  trackPipelineResult,
+  type McpRequestMeta,
+} from "./telemetry";
 
 preloadSchemas();
+
+export { McpCounter };
 
 const MAX_CHARS = 20_000;
 
@@ -66,7 +85,7 @@ function resultText(result: z.infer<typeof outputSchema>): string {
   ].join("\n");
 }
 
-function createServer(env: Env): McpServer {
+function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext): McpServer {
   const server = new McpServer(
     { name: "zero-slop", version: env.SCORER_VERSION },
     {
@@ -104,6 +123,8 @@ function createServer(env: Env): McpServer {
       const requestStarted = Date.now();
       try {
         const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}) });
+        trackPipelineResult(env, requestMeta, genre, text.length, result);
+        ctx.waitUntil(countPipelineResult(env, result));
         console.log(JSON.stringify({
           event: "deslop_complete",
           status: result.status,
@@ -118,6 +139,8 @@ function createServer(env: Env): McpServer {
           structuredContent: result,
         };
       } catch (error) {
+        trackPipelineFailure(env, requestMeta, genre, text.length, Date.now() - requestStarted);
+        ctx.waitUntil(countPipelineFailure(env));
         console.error(JSON.stringify({
           event: "deslop_failed",
           chars: text.length,
@@ -145,21 +168,6 @@ function withSecurityHeaders(response: Response): Response {
   headers.set("x-content-type-options", "nosniff");
   headers.set("x-frame-options", "DENY");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-}
-
-async function isToolCall(request: Request): Promise<boolean> {
-  if (request.method !== "POST") return false;
-  try {
-    const body: unknown = await request.clone().json();
-    const messages = Array.isArray(body) ? body : [body];
-    return messages.some((message) => {
-      if (!message || typeof message !== "object") return false;
-      const record = message as { method?: unknown; params?: { name?: unknown } };
-      return record.method === "tools/call" && record.params?.name === "deslop";
-    });
-  } catch {
-    return false;
-  }
 }
 
 export default {
@@ -196,13 +204,62 @@ export default {
       }));
     }
 
+    if (url.pathname === "/internal/counters") {
+      if (request.method !== "GET") {
+        return withSecurityHeaders(Response.json({ error: "method_not_allowed" }, {
+          status: 405,
+          headers: { allow: "GET" },
+        }));
+      }
+      if (!reportTokenMatches(request, env.REPORT_SHARED_SECRET)) {
+        return withSecurityHeaders(Response.json({ error: "unauthorized" }, { status: 401 }));
+      }
+      try {
+        return withSecurityHeaders(Response.json(await readCounterSnapshot(env)));
+      } catch {
+        return withSecurityHeaders(Response.json({ error: "counter_unavailable" }, { status: 503 }));
+      }
+    }
+
+    if (url.pathname === "/.well-known/mcp/server-card.json") {
+      return withSecurityHeaders(Response.json({
+        serverInfo: { name: "zero-slop", version: env.SCORER_VERSION },
+        authentication: { required: false, schemes: [] },
+        tools: [{
+          name: "deslop",
+          description: "Rewrite AI-assisted prose while preserving source facts, with before and after writing scores.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              text: { type: "string", minLength: 1, maxLength: MAX_CHARS, description: "The complete draft to edit." },
+              genre: {
+                type: "string",
+                enum: ["general", "social", "email", "research", "professional"],
+                default: "general",
+              },
+              audience: { type: "string", maxLength: 200, description: "Optional intended reader or destination." },
+            },
+            required: ["text"],
+          },
+        }],
+        resources: [],
+        prompts: [],
+      }));
+    }
+
     if (url.pathname !== "/mcp") {
       return withSecurityHeaders(Response.json({ error: "not_found" }, { status: 404 }));
     }
 
-    if (await isToolCall(request)) {
+    const requestStarted = Date.now();
+    const requestMeta = await inspectMcpRequest(request);
+    if (requestMeta.isDeslopCall) {
       const limited = await env.PIPELINE_LIMITER.limit({ key: "deslop-global" });
       if (!limited.success) {
+        trackCapacityLimit(env, requestMeta);
+        ctx.waitUntil(countCapacityReject(env));
+        trackMcpRequest(env, requestMeta, 429, Date.now() - requestStarted);
+        ctx.waitUntil(countMcpRequest(env, requestMeta, 429));
         return withSecurityHeaders(Response.json(
           { error: "capacity_limit", message: "Zero Slop is at its current processing limit. Try again shortly." },
           { status: 429, headers: { "retry-after": "10" } },
@@ -210,13 +267,16 @@ export default {
       }
     }
 
-    const handler = createMcpHandler(() => createServer(env), {
+    const handler = createMcpHandler(() => createServer(env, requestMeta, ctx), {
       route: "/mcp",
       allowedHostnames: ["mcp.zero-slop.ai"],
       allowedOriginHostnames: env.ALLOWED_ORIGINS.split(",").map((origin) => new URL(origin).hostname),
       legacy: "stateless",
       responseMode: "auto",
     });
-    return withSecurityHeaders(await handler(request, env, ctx));
+    const response = await handler(request, env, ctx);
+    trackMcpRequest(env, requestMeta, response.status, Date.now() - requestStarted);
+    ctx.waitUntil(countMcpRequest(env, requestMeta, response.status));
+    return withSecurityHeaders(response);
   },
 } satisfies ExportedHandler<Env>;

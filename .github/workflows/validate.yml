@@ -24,6 +24,21 @@ jobs:
       - name: Validate pattern data
         run: |
           python3 -c "import json; json.load(open('data/patterns.json')); json.load(open('data/learned.json'))"
+      - name: Validate MCP registry metadata
+        run: |
+          python3 - <<'EOF'
+          import json
+          from pathlib import Path
+
+          server = json.loads(Path("server.json").read_text())
+          package = json.loads(Path("package.json").read_text())
+          assert server["$schema"] == "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json"
+          assert server["name"] == "io.github.manavmishra/zero-slop"
+          assert server["version"] == package["version"]
+          assert len(server["description"]) <= 100
+          assert server["remotes"] == [{"type": "streamable-http", "url": "https://mcp.zero-slop.ai/mcp"}]
+          print("server.json release metadata OK")
+          EOF
       - name: Compile all regexes
         run: |
           python3 - <<'EOF'

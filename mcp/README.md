@@ -60,6 +60,21 @@ Codex:
 codex mcp add zero-slop --url https://mcp.zero-slop.ai/mcp
 ```
 
+Claude Code:
+
+```sh
+claude mcp add --transport http zero-slop --scope user https://mcp.zero-slop.ai/mcp
+```
+
+ChatGPT desktop: open **Settings → MCP servers → Add server**, select
+Streamable HTTP, and paste the canonical endpoint. Save, restart, and use
+`/mcp` to verify it.
+
+Claude and Cowork: open **Customize → Connectors → + → Add custom connector**,
+paste the canonical endpoint, then enable Zero Slop from **+ → Connectors** in
+the conversation. A Team or Enterprise owner adds it under organization
+connector settings.
+
 Any other remote MCP client can add `https://mcp.zero-slop.ai/mcp` as a
 Streamable HTTP server with no authentication.
 
@@ -87,6 +102,16 @@ Drafts are capped at 20,000 characters.
 - The editor ladder requests zero-retention, no-training routing. Connector
   drafts and rewrites are not logged by Zero Slop. Operational logs contain
   only status, sizes, scores, timings, and provider metadata.
+- First-party Analytics Engine telemetry records aggregate request, client,
+  region, quality, latency, and capacity fields. It does not record drafts,
+  rewrites, prompts, detected phrases, IP addresses, raw user agents, cookies,
+  email addresses, or stable user or session identifiers. Client
+  initializations are connections, not unique-user counts.
+- The telemetry dataset is retained for three months. The existing daily Zero
+  Slop report receives sampling-aware aggregates for connections, calls,
+  result mix, safe-response rate, before and after scores, p50 and p95 latency,
+  client and genre mix, geography, and capacity rejects. Collector failures do
+  not affect an MCP response or suppress the rest of the report.
 - The private scorer has no public route. It is reachable only through the
   Cloudflare service binding and cannot load a maintainer's private learning
   overlay.
@@ -97,6 +122,16 @@ Drafts are capped at 20,000 characters.
   abuse and cost.
 - Errors never include source text, generated text, stack traces, or provider
   credentials.
+- A SQLite-backed Durable Object keeps lifetime aggregate counters for MCP
+  initializations, tool calls, completed results, delivered rewrites, warnings,
+  failures, and capacity rejects. It stores no draft, rewrite, prompt, IP,
+  cookie, user ID, or raw user agent. MCP clients do not provide a stable
+  installation identifier, so initializations are never presented as unique
+  installs.
+- `GET /internal/counters` exposes those totals only to the daily report. It
+  requires a separate `REPORT_SHARED_SECRET`; do not reuse the editor signing
+  secret. Store the same random value as a Worker secret and as the
+  `MCP_REPORT_TOKEN` GitHub Actions secret in `manavmishra/ZSWebpage`.
 
 The scorer Worker uses Cloudflare's Python Workers runtime, which Cloudflare
 currently labels beta. That risk is isolated behind a private service binding;
@@ -180,17 +215,24 @@ Deploy in this order:
    On the gateway's first deployment, use Wrangler's `--secrets-file` option
    so the custom domain and encrypted secret become active atomically. On later
    rotations, use `wrangler secret put EDITOR_SHARED_SECRET`.
-2. Deploy the website editor endpoint with the signed `noStore` contract.
-3. From `mcp/scorer`, run `npm run deploy`.
-4. Confirm the scorer deployment, then deploy the gateway. A first deployment
-   must include `EDITOR_SHARED_SECRET` in an ephemeral `.env` or JSON secrets
-   file passed to `wrangler deploy --secrets-file`; remove that file
-   immediately afterward. Existing deployments can run `npm run deploy`
-   because Wrangler preserves encrypted secrets omitted from later uploads.
-5. Check `https://mcp.zero-slop.ai/health`, initialize an MCP session, list
+2. Generate a second random secret of at least 32 characters for lifetime
+   counter reads. Store it as the gateway Worker secret `REPORT_SHARED_SECRET`
+   and as the GitHub Actions secret `MCP_REPORT_TOKEN` in
+   `manavmishra/ZSWebpage`. Never reuse `EDITOR_SHARED_SECRET`.
+3. Deploy the website editor endpoint with the signed `noStore` contract.
+4. From `mcp/scorer`, run `npm run deploy`.
+5. Confirm the scorer deployment, then deploy the gateway. A first deployment
+   must include `EDITOR_SHARED_SECRET` and `REPORT_SHARED_SECRET` in an
+   ephemeral `.env` or JSON secrets file passed to
+   `wrangler deploy --secrets-file`; remove that file immediately afterward.
+   Existing deployments can run `npm run deploy` because Wrangler preserves
+   encrypted secrets omitted from later uploads.
+6. Check `https://mcp.zero-slop.ai/health`, initialize an MCP session, list
    tools, and exercise one clear draft plus one deliberately sloppy factual
    draft.
-6. Do not announce the connector until the factual fixture returns a rewritten
+7. Read `GET https://mcp.zero-slop.ai/internal/counters` with the report token
+   and confirm the initialization and call totals increased.
+8. Do not announce the connector until the factual fixture returns a rewritten
    result with two independent model checks and the expected score reduction.
 
 Do not deploy the gateway first. Its explicit `stored: false` requirement makes
