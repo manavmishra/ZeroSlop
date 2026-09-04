@@ -102,7 +102,9 @@ jobs:
 
   mcp:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Two independent npm audits can each wait several minutes on the registry.
+    # Keep the security gates strict without cancelling a healthy packaging run.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: mcp/gateway
