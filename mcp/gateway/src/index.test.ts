@@ -10,7 +10,7 @@ function signingKeyForTests(): string {
 
 function healthEnv(scorerVersion: string): Env {
   return {
-    SCORER_VERSION: "2.8.8",
+    SCORER_VERSION: "2.8.9",
     EDITOR_SHARED_SECRET: signingKeyForTests(),
     REPORT_SHARED_SECRET: signingKeyForTests(),
     SCORER: {
@@ -20,7 +20,7 @@ function healthEnv(scorerVersion: string): Env {
 }
 
 test("lifetime counters require the report-only bearer token", async () => {
-  const env = healthEnv("2.8.8");
+  const env = healthEnv("2.8.9");
   env.MCP_COUNTER = {
     getByName(name: string) {
       return {
@@ -86,7 +86,7 @@ test("health fails closed when the private scorer release drifts", async () => {
 test("health passes only for the exact scorer release", async () => {
   const response = await worker.fetch(
     new Request("https://mcp.zero-slop.ai/health"),
-    healthEnv("2.8.8"),
+    healthEnv("2.8.9"),
     {} as ExecutionContext,
   );
 
@@ -95,7 +95,7 @@ test("health passes only for the exact scorer release", async () => {
 });
 
 test("health fails closed when connector signing is not configured", async () => {
-  const env = healthEnv("2.8.8");
+  const env = healthEnv("2.8.9");
   env.EDITOR_SHARED_SECRET = "";
   const response = await worker.fetch(
     new Request("https://mcp.zero-slop.ai/health"),
@@ -107,8 +107,8 @@ test("health fails closed when connector signing is not configured", async () =>
   assert.deepEqual(await response.json(), {
     ok: false,
     service: "zero-slop-mcp",
-    version: "2.8.8",
-    scorer: { ok: true, scorerVersion: "2.8.8" },
+    version: "2.8.9",
+    scorer: { ok: true, scorerVersion: "2.8.9" },
     editorConfigured: false,
   });
 });
@@ -116,7 +116,7 @@ test("health fails closed when connector signing is not configured", async () =>
 test("publishes a static server card for registry scanners", async () => {
   const response = await worker.fetch(
     new Request("https://mcp.zero-slop.ai/.well-known/mcp/server-card.json"),
-    healthEnv("2.8.8"),
+    healthEnv("2.8.9"),
     {} as ExecutionContext,
   );
   const card = await response.json() as {
@@ -125,14 +125,14 @@ test("publishes a static server card for registry scanners", async () => {
     tools: Array<{ name: string; inputSchema: { properties: { text: { maxLength: number } } } }>;
   };
   assert.equal(response.status, 200);
-  assert.deepEqual(card.serverInfo, { name: "zero-slop", version: "2.8.8" });
+  assert.deepEqual(card.serverInfo, { name: "zero-slop", version: "2.8.9" });
   assert.equal(card.authentication.required, false);
   assert.equal(card.tools[0]?.name, "deslop");
   assert.equal(card.tools[0]?.inputSchema.properties.text.maxLength, 20_000);
 });
 
 test("rejects oversized MCP bodies before parsing or rate limiting", async () => {
-  const env = healthEnv("2.8.8") as Env & { PIPELINE_LIMITER?: unknown };
+  const env = healthEnv("2.8.9") as Env & { PIPELINE_LIMITER?: unknown };
   let limiterCalled = false;
   env.PIPELINE_LIMITER = {
     async limit() {

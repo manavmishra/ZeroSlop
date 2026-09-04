@@ -136,7 +136,7 @@ test("an expired editor deadline makes no request", async () => {
 
 test("clean text exits after scoring without a model request", async () => {
   const scorer = { fetch: async () => Response.json(writingReport(9.5)) };
-  const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.8.8" } as unknown as Env,
+  const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.8.9" } as unknown as Env,
     { text: "The importer now maps CSV headers automatically.", genre: "general" });
   assert.equal(result.status, "already_clear");
   assert.equal(result.modelRequests, 0);
@@ -156,7 +156,7 @@ test("the complete MCP edit uses one remote model request", async () => {
   }) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.8.8",
+      SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.8.9",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(editorRequests, 1);
@@ -179,7 +179,7 @@ test("a model outage still returns a changed local edit after one request", asyn
   globalThis.fetch = (async () => { requests += 1; return Response.json({ error: "busy" }, { status: 503 }); }) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, local, 18), SCORER_VERSION: "2.8.8",
+      SCORER: scorerHarness(original, local, 18), SCORER_VERSION: "2.8.9",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "social" });
     assert.equal(requests, 1);
@@ -200,7 +200,7 @@ test("an unsafe model response loses to the local source-safe edit", async () =>
   globalThis.fetch = (async () => Response.json({ rewrite: invented, provider: "workers-ai", model: "editor", stored: false })) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, local, 18, true), SCORER_VERSION: "2.8.8",
+      SCORER: scorerHarness(original, local, 18, true), SCORER_VERSION: "2.8.9",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "social" });
     assert.equal(result.text, local);
@@ -229,6 +229,13 @@ test("local fallback preserves the launch fixture's protected details", () => {
   assert.equal(
     localRescue("We’re excited to share what’s happened. Onboarding isn’t a checklist—it’s a promise."),
     "We're excited about what’s happened. We see onboarding as a promise.",
+  );
+  assert.equal(
+    localRescue(
+      "We are incredibly excited to share our transformative journey. " +
+      "The results speak for themselves: setup time is down 73 percent for Harbor.",
+    ),
+    "We're sharing our work. Setup time is down 73 percent for Harbor.",
   );
 });
 

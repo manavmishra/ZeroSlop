@@ -22,7 +22,7 @@ gateway Worker
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
 private scorer Worker              one Workers AI editor
-exact Zero Slop 2.8.8              same composite edit as /try/
+exact Zero Slop 2.8.9              same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
