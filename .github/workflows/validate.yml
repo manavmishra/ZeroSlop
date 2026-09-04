@@ -99,7 +99,7 @@ jobs:
 
   website:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: website
@@ -111,7 +111,10 @@ jobs:
           cache: npm
           cache-dependency-path: website/package-lock.json
       - run: npm ci
-      - run: npm audit --audit-level=high
+      - name: Verify dependency audit gate
+        run: node --test ../.github/scripts/audit-npm.test.mjs
+      - name: Audit dependencies
+        run: node ../.github/scripts/audit-npm.mjs
       - run: npm run lint
       - run: npm test
 
@@ -119,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     # Two independent npm audits can each wait several minutes on the registry.
     # Keep the security gates strict without cancelling a healthy packaging run.
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: mcp/gateway
@@ -144,7 +147,8 @@ jobs:
           python3 mcp/scripts/sync_scorer.py --check
           python3 mcp/scripts/test_scorer.py
       - run: npm ci
-      - run: npm audit --audit-level=high
+      - name: Audit gateway dependencies
+        run: node ../../.github/scripts/audit-npm.mjs
       - run: npm run check
       - run: npm run dry-run
       - name: Install scorer Worker dependencies
@@ -155,7 +159,7 @@ jobs:
         run: uv sync --locked
       - name: Audit scorer Worker dependencies
         working-directory: mcp/scorer
-        run: npm audit --audit-level=high
+        run: node ../../.github/scripts/audit-npm.mjs
       - name: Package scorer Worker
         working-directory: mcp/scorer
         run: npm run dry-run
