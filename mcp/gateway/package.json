@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.18.0"
   },
   "scripts": {
-    "check": "wrangler types && tsc --noEmit && tsx --test src/*.test.ts",
+    "check": "wrangler types && tsc --noEmit && tsx --test src/*.test.ts && vitest run",
+    "check:runtime": "vitest run",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "dry-run": "wrangler deploy --dry-run"
@@ -18,9 +19,11 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.1.4",
     "@types/node": "26.4.1",
     "tsx": "4.20.5",
     "typescript": "5.9.3",
+    "vitest": "4.1.11",
     "wrangler": "4.129.0"
   }
 }

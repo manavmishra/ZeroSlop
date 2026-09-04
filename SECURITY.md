@@ -51,12 +51,16 @@ Telemetry writes are non-blocking and wrapped so an analytics failure cannot fai
 MCP call. The daily report uses sampling-aware aggregate queries and degrades to a
 clearly labeled missing section if the dataset cannot be read.
 
-A separate SQLite-backed Durable Object keeps lifetime counters for aggregate MCP
-events: initializations, tool calls, completed results, changed messages, warnings,
-failures, and capacity rejects. It stores no request content or stable identity. A
-report-only bearer secret protects the read endpoint; the editor signing secret is
-never reused. Because MCP provides no stable installation identifier, the service
-does not claim that an initialization count is a unique-install count.
+Thirty-two SQLite-backed Durable Object shards keep lifetime counters for aggregate
+MCP events: initializations, tool calls, completed results, changed messages,
+warnings, failures, and capacity rejects. Each write is an atomic transaction with
+a one-hour idempotency record, so bounded retries cannot double-count an event. The
+protected report aggregates every shard and the legacy `global` object, preserving
+totals recorded before sharding. It stores no request content or stable identity.
+A report-only bearer secret protects
+the read endpoint; the editor signing secret is never reused. Because MCP provides
+no stable installation identifier, the service does not claim that an initialization
+count is a unique-install count.
 
 ## Online-learning isolation
 

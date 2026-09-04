@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import worker from "./index";
+import { COUNTER_METRICS } from "./counter";
 
 function signingKeyForTests(): string {
   return Array.from({ length: 40 }, (_, index) => String.fromCharCode(97 + (index % 26))).join("");
@@ -21,14 +22,21 @@ function healthEnv(scorerVersion: string): Env {
 test("lifetime counters require the report-only bearer token", async () => {
   const env = healthEnv("2.8.7");
   env.MCP_COUNTER = {
-    getByName() {
+    getByName(name: string) {
       return {
         async fetch() {
           return Response.json({
             schema: 1,
-            startedAt: "2026-09-03T20:00:00.000Z",
-            updatedAt: "2026-09-03T20:01:00.000Z",
-            counters: { mcp_tool_calls: 3, messages_deslopped: 2 },
+            startedAt: name === "global" ? "2026-09-03T20:00:00.000Z" : null,
+            updatedAt: name === "global" ? "2026-09-03T20:01:00.000Z" : null,
+            counters: Object.fromEntries(COUNTER_METRICS.map((metric) => [
+              metric,
+              name === "global" && metric === "mcp_tool_calls"
+                ? 3
+                : name === "global" && metric === "messages_deslopped"
+                  ? 2
+                  : 0,
+            ])),
           });
         },
       };
@@ -55,8 +63,12 @@ test("lifetime counters require the report-only bearer token", async () => {
     schema: 1,
     startedAt: "2026-09-03T20:00:00.000Z",
     updatedAt: "2026-09-03T20:01:00.000Z",
-    counters: { mcp_tool_calls: 3, messages_deslopped: 2 },
+    counters: Object.fromEntries(COUNTER_METRICS.map((metric) => [
+      metric,
+      metric === "mcp_tool_calls" ? 3 : metric === "messages_deslopped" ? 2 : 0,
+    ])),
   });
+  assert.equal(denied.headers.get("www-authenticate"), 'Bearer realm="zero-slop-reports"');
 });
 
 test("health fails closed when the private scorer release drifts", async () => {
@@ -117,4 +129,49 @@ test("publishes a static server card for registry scanners", async () => {
   assert.equal(card.authentication.required, false);
   assert.equal(card.tools[0]?.name, "deslop");
   assert.equal(card.tools[0]?.inputSchema.properties.text.maxLength, 20_000);
+});
+
+test("rejects oversized MCP bodies before parsing or rate limiting", async () => {
+  const env = healthEnv("2.8.7") as Env & { PIPELINE_LIMITER?: unknown };
+  let limiterCalled = false;
+  env.PIPELINE_LIMITER = {
+    async limit() {
+      limiterCalled = true;
+      return { success: true };
+    },
+  };
+  const body = JSON.stringify({
+    jsonrpc: "2.0",
+    method: "tools/call",
+    params: { name: "deslop", arguments: { text: "x".repeat(140_000) } },
+    id: 1,
+  });
+  const response = await worker.fetch(
+    new Request("https://mcp.zero-slop.ai/mcp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body,
+    }),
+    env,
+    {} as ExecutionContext,
+  );
+
+  assert.equal(response.status, 413);
+  assert.equal(limiterCalled, false);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+});
+
+test("the request limit permits the full documented Unicode draft size", async () => {
+  const body = JSON.stringify({
+    jsonrpc: "2.0",
+    method: "tools/call",
+    params: { name: "deslop", arguments: { text: "🧭".repeat(20_000) } },
+    id: 1,
+  });
+  const { requestBodyWithinLimit } = await import("./index");
+  assert.equal(await requestBodyWithinLimit(new Request("https://mcp.zero-slop.ai/mcp", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+  })), true);
 });

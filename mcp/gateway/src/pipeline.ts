@@ -126,9 +126,10 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
   const started = Date.now();
   const deadline = started + PIPELINE_BUDGET_MS;
   const original = input.text.trim();
-  let rolesCompleted = 0;
+  const completedRoles = new Set<string>();
+  const roleCount = () => completedRoles.size;
   const before = await scoreWriting(env, original, input.genre);
-  rolesCompleted += 1;
+  completedRoles.add("scorer");
 
   if (before.score < SCORE_GATE
       && before.register.measured
@@ -140,7 +141,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       before,
       started,
       env.SCORER_VERSION,
-      rolesCompleted,
+      roleCount(),
       0,
       "The original already clears the Zero Slop score and document checks, so it was not sent to an editing model.",
     );
@@ -151,7 +152,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     : "";
   const notesReply = await callRole(env, "interpret", context + original, original, deadline);
   const notes = notesReply?.text ?? null;
-  rolesCompleted += 1;
+  if (notesReply) completedRoles.add("interpreter");
 
   let rewriteSource = original;
   let brief = [
@@ -210,7 +211,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       rungsTried: spentRungs.length,
     }));
   }
-  rolesCompleted += 1;
+  if (Object.keys(candidates).length > 1) completedRoles.add("rewriter");
   if (Object.keys(candidates).length === 1) {
     return unchanged(
       original,
@@ -218,7 +219,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       before,
       started,
       env.SCORER_VERSION,
-      rolesCompleted,
+      roleCount(),
       0,
       "The editing models were unavailable, so the original comes back unchanged.",
     );
@@ -235,7 +236,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     }
   }
   let current = checked.text;
-  rolesCompleted += 1;
+  completedRoles.add("fact_gate");
   console.log(JSON.stringify({
     event: "pipeline_ranked",
     selectedSource: checked.name === "your draft",
@@ -263,7 +264,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     current = copyResult.text;
     checked = copyResult.checked;
     copyAvailable = copyResult.available;
-    rolesCompleted += 1;
+    if (copied) completedRoles.add("copy_desk");
 
     const flowed = await callRoleWithRecovery(env, "readaloud", current, current, deadline);
     const flowResult = await acceptNonWorsening(
@@ -272,7 +273,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     current = flowResult.text;
     checked = flowResult.checked;
     flowAvailable = flowResult.available;
-    rolesCompleted += 1;
+    if (flowed) completedRoles.add("read_aloud");
 
     const [report, changes] = await Promise.all([
       scoreWriting(env, current, input.genre),
@@ -303,7 +304,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     const verifierReplies = [firstVerifier, secondVerifier];
     finalVerifierRungs = [firstVerifier?.rung, secondVerifier?.rung]
       .filter((value): value is string => Boolean(value));
-    rolesCompleted += 1;
+    if (firstVerifier && secondVerifier) completedRoles.add("verifier");
     const verified = copyResult.available
       && flowResult.available
       && releaseReady(checked, report, finalVerdicts, finalVerifierRungs);
@@ -347,9 +348,9 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       approvingRungs,
       false,
     );
-    rolesCompleted += 1;
     if (!finished) break;
     finalizerAvailable = true;
+    completedRoles.add("fresh_eyes");
 
     if (finished.text !== current) {
       const finalCheck = await rankRewrites(env, original, { "fresh eyes": finished.text }, input.genre);
@@ -393,7 +394,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
         factsPreserved: true,
         passedFinalChecks: false,
         independentModelChecks: independentApprovals(finalVerdicts, finalVerifierRungs),
-        rolesCompleted: Math.min(8, rolesCompleted),
+        rolesCompleted: roleCount(),
         finishingRounds: finalRounds,
         scorerVersion: env.SCORER_VERSION,
         durationMs: Date.now() - started,
@@ -406,7 +407,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       before,
       started,
       env.SCORER_VERSION,
-      Math.min(8, rolesCompleted),
+      roleCount(),
       finalRounds,
       "Every changed version failed the hard source check, so the original comes back unchanged rather than risking an invented or dropped fact.",
     );
@@ -422,7 +423,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     factsPreserved: checked.preserved && !checked.invented,
     passedFinalChecks: passed,
     independentModelChecks: independentApprovals(finalVerdicts, finalVerifierRungs),
-    rolesCompleted: 8,
+    rolesCompleted: roleCount(),
     finishingRounds: finalRounds,
     scorerVersion: env.SCORER_VERSION,
     durationMs: Date.now() - started,

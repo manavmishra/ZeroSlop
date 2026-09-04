@@ -122,12 +122,15 @@ Drafts are capped at 20,000 characters.
   abuse and cost.
 - Errors never include source text, generated text, stack traces, or provider
   credentials.
-- A SQLite-backed Durable Object keeps lifetime aggregate counters for MCP
+- Thirty-two SQLite-backed Durable Object shards keep lifetime aggregate counters for MCP
   initializations, tool calls, completed results, delivered rewrites, warnings,
   failures, and capacity rejects. It stores no draft, rewrite, prompt, IP,
   cookie, user ID, or raw user agent. MCP clients do not provide a stable
   installation identifier, so initializations are never presented as unique
-  installs.
+  installs. Each increment is atomic and carries a short-lived idempotency key,
+  so a transient retry cannot count the same event twice. The report reads every
+  shard plus the original `global` object, so deployment of the sharded design
+  does not reset or discard earlier totals.
 - `GET /internal/counters` exposes those totals only to the daily report. It
   requires a separate `REPORT_SHARED_SECRET`; do not reuse the editor signing
   secret. Store the same random value as a Worker secret and as the
@@ -173,6 +176,10 @@ npm ci
 uv sync
 npm run dry-run
 ```
+
+`npm run check` includes fast Node tests and a Vitest suite inside the Workers
+runtime. The runtime suite exercises concurrent SQLite increments, input
+rejection, and persistence across Durable Object eviction.
 
 The vendored scorer is release-pinned. A read-only integrity check is safe at
 any time:

@@ -1,8 +1,12 @@
+import { readBoundedJson } from "./bounded-json";
+
 // The editor endpoint reserves up to 15 seconds for its binding-native
 // backstop. Give that last rung time to answer; the separate 52-second
 // pipeline deadline still caps the complete MCP call.
 const ATTEMPT_TIMEOUT_MS = 16_000;
 const MIN_ATTEMPT_MS = 750;
+const MAX_EDITOR_RESPONSE_BYTES = 256 * 1024;
+const MAX_EDITOR_OUTPUT_CHARS = 40_000;
 const encoder = new TextEncoder();
 
 export type ModelRole =
@@ -48,14 +52,22 @@ type EditorResponse = {
   stored?: unknown;
 };
 
+function safeRungPart(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  if (!normalized || normalized.length > 120 || /[\u0000-\u001f\u007f]/.test(normalized)) return null;
+  return normalized;
+}
+
 export function editorReply(value: unknown): ModelReply | null {
   if (!value || typeof value !== "object") return null;
   const data = value as EditorResponse;
   if (data.stored !== false) return null;
   if (typeof data.rewrite !== "string" || !data.rewrite.trim()) return null;
-  if (typeof data.provider !== "string" || !data.provider) return null;
-  if (typeof data.model !== "string" || !data.model) return null;
-  return { text: data.rewrite.trim(), rung: `${data.provider}:${data.model}` };
+  const provider = safeRungPart(data.provider);
+  const model = safeRungPart(data.model);
+  if (!provider || !model) return null;
+  return { text: data.rewrite.trim(), rung: `${provider}:${model}` };
 }
 
 export function tooShort(source: string, output: string, role: ModelRole): boolean {
@@ -70,6 +82,12 @@ export function tooShort(source: string, output: string, role: ModelRole): boole
     return outputWords < Math.min(20, Math.max(3, sourceWords * 0.18));
   }
   return outputWords < Math.min(40, sourceWords * 0.45);
+}
+
+export function tooLong(source: string, output: string, role: ModelRole): boolean {
+  if (role === "verify") return output.length > 200;
+  if (role === "interpret") return output.length > Math.min(12_000, Math.max(1_000, source.length * 1.5));
+  return output.length > Math.min(MAX_EDITOR_OUTPUT_CHARS, Math.max(1_000, source.length * 1.8));
 }
 
 export async function callRole(
@@ -102,6 +120,7 @@ export async function callRole(
     const signatureHeaders = await signedEditorHeaders(env.EDITOR_SHARED_SECRET, body);
     const response = await fetch(env.EDITOR_ENDPOINT, {
       method: "POST",
+      redirect: "error",
       signal: controller.signal,
       headers: {
         "cache-control": "no-store",
@@ -121,7 +140,7 @@ export async function callRole(
       }));
       return null;
     }
-    const payload: unknown = await response.json();
+    const payload = await readBoundedJson(response, MAX_EDITOR_RESPONSE_BYTES);
     const reply = editorReply(payload);
     if (!reply) {
       const shape = payload && typeof payload === "object"
@@ -144,6 +163,18 @@ export async function callRole(
         rung: reply.rung,
         sourceWords: expectedText.match(/\S+/g)?.length ?? 0,
         outputWords: reply.text.match(/\S+/g)?.length ?? 0,
+        durationMs: Date.now() - started,
+      }));
+      return null;
+    }
+    if (tooLong(expectedText, reply.text, role)) {
+      console.warn(JSON.stringify({
+        event: "editor_role_rejected",
+        role,
+        reason: "expanded_beyond_limit",
+        rung: reply.rung,
+        sourceChars: expectedText.length,
+        outputChars: reply.text.length,
         durationMs: Date.now() - started,
       }));
       return null;

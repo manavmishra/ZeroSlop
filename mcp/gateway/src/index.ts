@@ -3,7 +3,7 @@ import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 
 import { runPipeline } from "./pipeline";
-import { scorerHealth } from "./scorer";
+import { scorerHealth, writingReportSchema } from "./scorer";
 import {
   McpCounter,
   countCapacityReject,
@@ -27,25 +27,35 @@ preloadSchemas();
 export { McpCounter };
 
 const MAX_CHARS = 20_000;
+const MAX_MCP_REQUEST_BYTES = 128 * 1024;
 
-const reportSchema = z.object({
-  score: z.number().min(0).max(100),
-  band: z.string(),
-  words: z.number().int().nonnegative(),
-  sentences: z.number().int().nonnegative(),
-  flaggedPhrases: z.number().int().nonnegative(),
-  sentenceVariety: z.enum(["natural", "too even"]),
-  readability: z.enum(["clear", "needs work"]),
-  punctuation: z.object({
-    dashes: z.number().nonnegative(),
-    emoji: z.number().int().nonnegative(),
-    hashtags: z.number().int().nonnegative(),
-  }),
-  register: z.object({
-    twoPartContrasts: z.number().int().nonnegative(),
-    announcements: z.number().int().nonnegative(),
-  }).passthrough(),
-}).passthrough();
+async function requestBodyWithinLimit(request: Request, maximumBytes = MAX_MCP_REQUEST_BYTES): Promise<boolean> {
+  const declared = request.headers.get("content-length");
+  if (declared !== null) {
+    const parsed = Number(declared);
+    if (!Number.isSafeInteger(parsed) || parsed < 0 || parsed > maximumBytes) return false;
+  }
+  if (!request.body) return true;
+
+  const reader = request.clone().body?.getReader();
+  if (!reader) return true;
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return true;
+      bytes += value.byteLength;
+      if (bytes > maximumBytes) {
+        // Do not await cancellation of a cloned/tee'd body. The promise may
+        // wait for the untouched original branch and stall an early 413.
+        void reader.cancel().catch(() => undefined);
+        return false;
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 
 const outputSchema = z.object({
   text: z.string(),
@@ -57,8 +67,8 @@ const outputSchema = z.object({
     "unchanged_verification_failed",
     "unchanged_service_unavailable",
   ]),
-  before: reportSchema,
-  after: reportSchema,
+  before: writingReportSchema,
+  after: writingReportSchema,
   scoreChange: z.number().min(-100).max(100),
   factsPreserved: z.boolean(),
   passedFinalChecks: z.boolean(),
@@ -211,8 +221,11 @@ export default {
           headers: { allow: "GET" },
         }));
       }
-      if (!reportTokenMatches(request, env.REPORT_SHARED_SECRET)) {
-        return withSecurityHeaders(Response.json({ error: "unauthorized" }, { status: 401 }));
+      if (!(await reportTokenMatches(request, env.REPORT_SHARED_SECRET))) {
+        return withSecurityHeaders(Response.json({ error: "unauthorized" }, {
+          status: 401,
+          headers: { "www-authenticate": 'Bearer realm="zero-slop-reports"' },
+        }));
       }
       try {
         return withSecurityHeaders(Response.json(await readCounterSnapshot(env)));
@@ -252,7 +265,19 @@ export default {
     }
 
     const requestStarted = Date.now();
-    const requestMeta = await inspectMcpRequest(request);
+    if (!(await requestBodyWithinLimit(request))) {
+      return withSecurityHeaders(Response.json(
+        { error: "request_too_large", message: "The MCP request exceeds the 128 KiB limit." },
+        { status: 413 },
+      ));
+    }
+
+    let requestMeta: McpRequestMeta;
+    try {
+      requestMeta = await inspectMcpRequest(request);
+    } catch {
+      return withSecurityHeaders(Response.json({ error: "invalid_request" }, { status: 400 }));
+    }
     if (requestMeta.isDeslopCall) {
       const limited = await env.PIPELINE_LIMITER.limit({ key: "deslop-global" });
       if (!limited.success) {
@@ -267,16 +292,32 @@ export default {
       }
     }
 
-    const handler = createMcpHandler(() => createServer(env, requestMeta, ctx), {
-      route: "/mcp",
-      allowedHostnames: ["mcp.zero-slop.ai"],
-      allowedOriginHostnames: env.ALLOWED_ORIGINS.split(",").map((origin) => new URL(origin).hostname),
-      legacy: "stateless",
-      responseMode: "auto",
-    });
-    const response = await handler(request, env, ctx);
-    trackMcpRequest(env, requestMeta, response.status, Date.now() - requestStarted);
-    ctx.waitUntil(countMcpRequest(env, requestMeta, response.status));
-    return withSecurityHeaders(response);
+    try {
+      const allowedOriginHostnames = env.ALLOWED_ORIGINS.split(",").map((origin) => new URL(origin).hostname);
+      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx), {
+        route: "/mcp",
+        allowedHostnames: ["mcp.zero-slop.ai"],
+        allowedOriginHostnames,
+        legacy: "stateless",
+        responseMode: "auto",
+      });
+      const response = await handler(request, env, ctx);
+      trackMcpRequest(env, requestMeta, response.status, Date.now() - requestStarted);
+      ctx.waitUntil(countMcpRequest(env, requestMeta, response.status));
+      return withSecurityHeaders(response);
+    } catch (error) {
+      const durationMs = Date.now() - requestStarted;
+      trackMcpRequest(env, requestMeta, 500, durationMs);
+      ctx.waitUntil(countMcpRequest(env, requestMeta, 500));
+      console.error(JSON.stringify({
+        event: "mcp_request_failed",
+        method: requestMeta.method,
+        durationMs,
+        error: error instanceof Error ? error.name : "unknown",
+      }));
+      return withSecurityHeaders(Response.json({ error: "service_unavailable" }, { status: 503 }));
+    }
   },
 } satisfies ExportedHandler<Env>;
+
+export { requestBodyWithinLimit };

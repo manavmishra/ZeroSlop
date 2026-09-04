@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { editorReply, signedEditorHeaders, tooShort } from "./model";
+import { callRole, editorReply, signedEditorHeaders, tooLong, tooShort } from "./model";
 import {
   releaseReady,
   runPipeline,
@@ -42,6 +42,8 @@ test("editor response requires a confirmed no-store path", () => {
   );
   assert.equal(editorReply({ rewrite: "edited", provider: "router", model: "writer" }), null);
   assert.equal(editorReply({ rewrite: "edited", provider: "router", model: "writer", stored: true }), null);
+  assert.equal(editorReply({ rewrite: "edited", provider: "router\nspoof", model: "writer", stored: false }), null);
+  assert.equal(editorReply({ rewrite: "edited", provider: "r".repeat(121), model: "writer", stored: false }), null);
   assert.equal(editorReply({}), null);
 });
 
@@ -52,6 +54,14 @@ test("truncation guard rejects implausibly short prose", () => {
   const factualCore = Array.from({ length: 18 }, (_, index) => `fact${index}`).join(" ");
   assert.equal(tooShort(hollow, factualCore, "rewrite_strip"), false);
   assert.equal(tooShort(hollow, factualCore, "copydesk"), true);
+});
+
+test("expansion guard bounds every editor role", () => {
+  assert.equal(tooLong("short source", "x".repeat(1_001), "copydesk"), true);
+  assert.equal(tooLong("short source", "x".repeat(201), "verify"), true);
+  assert.equal(tooLong("short source", "OK", "verify"), false);
+  assert.equal(tooLong("x".repeat(20_000), "x".repeat(30_000), "rewrite_strip"), false);
+  assert.equal(tooLong("x".repeat(20_000), "x".repeat(40_001), "rewrite_strip"), true);
 });
 
 test("scorer guidance is bounded and gives rewriters exact targets", () => {
@@ -86,6 +96,34 @@ test("editor requests are signed without exposing the shared secret", async () =
   assert.equal(headers["x-zero-slop-timestamp"], "1700000000000");
   assert.match(headers["x-zero-slop-signature"] ?? "", /^[0-9a-f]{64}$/);
   assert.ok(!Object.values(headers).includes(signingKey));
+});
+
+test("editor calls refuse redirects and reject oversized responses", async () => {
+  const originalFetch = globalThis.fetch;
+  let redirect: RequestRedirect | undefined;
+  globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+    redirect = init?.redirect;
+    return Response.json({ rewrite: "Edited draft.", provider: "router", model: "editor", stored: false });
+  }) as typeof fetch;
+  const env = {
+    EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
+    EDITOR_SHARED_SECRET: signingKeyForTests(),
+  } as unknown as Env;
+  try {
+    const reply = await callRole(env, "copydesk", "Draft.", "Draft.", Date.now() + 5_000);
+    assert.equal(reply?.text, "Edited draft.");
+    assert.equal(redirect, "error");
+
+    globalThis.fetch = (async () => Response.json({
+      rewrite: "x".repeat(300_000),
+      provider: "router",
+      model: "editor",
+      stored: false,
+    })) as typeof fetch;
+    assert.equal(await callRole(env, "copydesk", "Draft.", "Draft.", Date.now() + 5_000), null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 function writingReport(score: number): WritingReport {
@@ -155,6 +193,8 @@ test("a short low-scoring draft still gets the checks that abstained", async () 
       EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: "The importer now maps CSV headers automatically.", genre: "general" });
     assert.notEqual(result.rolesCompleted, 1);
+    assert.equal(result.status, "unchanged_service_unavailable");
+    assert.equal(result.rolesCompleted, 2, "failed model stages must not be reported as completed");
     assert.ok(editorCalls > 0);
     assert.equal(editorRoles.filter((role) => role.startsWith("rewrite_")).length, 4,
       "a first-round outage must use the remaining bounded rewrite attempts");
@@ -168,6 +208,7 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
   const rewrite = "Harbor 4.0 is now available. Search is now up to 40x faster, bulk export supports 50,000 records, and audit logs retain every change for 90 days on every plan.";
   const editorCalls: Array<Record<string, unknown>> = [];
   const originalFetch = globalThis.fetch;
+  let interpreterAvailable = true;
 
   const scorer = {
     fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -211,6 +252,7 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
     editorCalls.push(body);
     const role = String(body.role);
     if (role === "interpret") {
+      if (!interpreterAvailable) return Response.json({ error: "unavailable" }, { status: 503 });
       return Response.json({ rewrite: "Keep Harbor 4.0 and every figure.", provider: "router", model: "notes", stored: false });
     }
     if (role === "verify") {
@@ -234,6 +276,7 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
     assert.equal(result.after.score, 9.5);
     assert.equal(result.independentModelChecks, 2);
     assert.equal(result.passedFinalChecks, true);
+    assert.equal(result.rolesCompleted, 8);
     assert.ok(editorCalls.every((call) => call.noStore === true));
     const rewrites = editorCalls.filter((call) => String(call.role).startsWith("rewrite_"));
     assert.ok(rewrites.every((call) => call.strictExclude === false));
@@ -243,6 +286,17 @@ test("full pipeline releases only a no-store rewrite with two independent verifi
     assert.ok(secondVerifier);
     assert.equal(secondVerifier.strictExclude, true);
     assert.deepEqual(secondVerifier.exclude, ["router:verify-a"]);
+
+    interpreterAvailable = false;
+    const withoutInterpreter = await runPipeline({
+      SCORER: scorer,
+      SCORER_VERSION: "2.8.7",
+      EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
+      EDITOR_SHARED_SECRET: signingKeyForTests(),
+    } as unknown as Env, { text: original, genre: "general" });
+    assert.equal(withoutInterpreter.status, "rewritten");
+    assert.equal(withoutInterpreter.rolesCompleted, 7,
+      "a successful run must not claim that an unavailable interpreter completed");
   } finally {
     globalThis.fetch = originalFetch;
   }
