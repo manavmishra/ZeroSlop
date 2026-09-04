@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { classifyAuditFailure } from "./audit-npm.mjs";
+import { allowsUnavailableAudit, classifyAuditFailure } from "./audit-npm.mjs";
 
 test("retries only transport and retired-endpoint failures", () => {
   for (const message of [
@@ -24,4 +24,13 @@ test("fails immediately when npm returns an audit report with findings", () => {
 
 test("does not disguise local package errors as registry failures", () => {
   assert.equal(classifyAuditFailure("npm error invalid package lock"), "fatal");
+});
+
+test("the unavailable-service escape hatch requires an explicit true value", () => {
+  for (const value of ["1", "true", "TRUE"]) {
+    assert.equal(allowsUnavailableAudit(value), true, value);
+  }
+  for (const value of [undefined, "", "0", "false", "yes", " true later "]) {
+    assert.equal(allowsUnavailableAudit(value), false, String(value));
+  }
 });

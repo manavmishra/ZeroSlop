@@ -16,6 +16,10 @@ export function classifyAuditFailure(output) {
   return "fatal";
 }
 
+export function allowsUnavailableAudit(value) {
+  return /^(?:1|true)$/i.test(String(value || "").trim());
+}
+
 function positiveInteger(value, fallback) {
   const parsed = Number.parseInt(value || "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -89,7 +93,15 @@ async function main() {
       if (classification === "findings") {
         process.stderr.write("The audit completed and found a high-severity dependency vulnerability.\n");
       } else if (classification === "retry") {
-        process.stderr.write("The registry remained unavailable after every bounded retry.\n");
+        const unavailableMessage = "The registry remained unavailable after every bounded retry.";
+        process.stderr.write(`${unavailableMessage}\n`);
+        // Validation still runs the deterministic tests when npm's optional
+        // advisory service is down. Releases do not set this opt-in and remain
+        // fail-closed. A real audit report with findings always fails above.
+        if (allowsUnavailableAudit(process.env.AUDIT_ALLOW_UNAVAILABLE)) {
+          process.stdout.write(`::warning title=Dependency audit unavailable::${unavailableMessage} No vulnerability result was recorded; deterministic checks will continue.\n`);
+          return;
+        }
       } else {
         process.stderr.write("The audit failed for a non-transient reason.\n");
       }
