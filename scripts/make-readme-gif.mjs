@@ -10,7 +10,7 @@ import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {filmHTML,WIDTH,HEIGHT,CAPTIONS,MCP_URL} from '../growth/demo-film.mjs';
-import {studioHTML,studioTimeline,sourceTime,STUDIO_KEY_TIMES,STUDIO_DURATION as DURATION,STUDIO_POSTER_TIME as POSTER_TIME} from '../growth/studio-timeline.mjs';
+import {studioHTML,studioTimeline,studioPreviewTimeline,sourceTime,STUDIO_FPS,STUDIO_KEY_TIMES,STUDIO_DURATION as DURATION,STUDIO_POSTER_TIME as POSTER_TIME} from '../growth/studio-timeline.mjs';
 const require=createRequire(import.meta.url);
 const {chromium}=require('playwright-core'),sharp=require('sharp'),esbuild=require('esbuild');
 const ROOT=fileURLToPath(new URL('../',import.meta.url));
@@ -42,7 +42,7 @@ const build=await esbuild.build({
 const studio=studioHTML({bundle:build.outputFiles[0].text,logo,MCP_URL});
 await writeFile(resolve(frames,'terminal-source.html'),html);
 await writeFile(resolve(frames,'film.html'),studio);
-const evidence={kind:'Reconstructed installed-skill session rendered in a real xterm.js terminal and a three-dimensional studio scene',terminalRenderer:`@xterm/xterm ${xtermVersion}`,sceneRenderer:'Three.js 0.180.0',audio:'none',mcpURL:MCP_URL,durationMs:DURATION,source:'examples/launch-post.before.md',edit:'examples/launch-post.after.md',before,after,beforeScore,afterScore,flags,protectedDetail:'40%',beforeSha256:createHash('sha256').update(before).digest('hex'),afterSha256:createHash('sha256').update(after).digest('hex'),beforeOutput,afterOutput,fidelity,note:'Uses the saved repository example. The studio screen is a capture of a real terminal renderer. This is not a recording of the hosted editor or a real-time capture. Host model outputs vary. Timing is edited for readability, not a latency measurement.'};
+const evidence={kind:'Reconstructed installed-skill session rendered in a real xterm.js terminal and a three-dimensional studio scene',terminalRenderer:`@xterm/xterm ${xtermVersion}`,sceneRenderer:'Three.js 0.180.0',audio:'none',mcpURL:MCP_URL,durationMs:DURATION,outputFPS:STUDIO_FPS,previewMotionFPS:24,source:'examples/launch-post.before.md',edit:'examples/launch-post.after.md',before,after,beforeScore,afterScore,flags,protectedDetail:'40%',beforeSha256:createHash('sha256').update(before).digest('hex'),afterSha256:createHash('sha256').update(after).digest('hex'),beforeOutput,afterOutput,fidelity,note:'Uses the saved repository example. The studio screen is a capture of a real terminal renderer. This is not a recording of the hosted editor or a real-time capture. Host model outputs vary. Timing is edited for readability, not a latency measurement.'};
 await writeFile(resolve(ROOT,'growth/demo-evidence.json'),JSON.stringify(evidence,null,2)+'\n');
 await writeFile(resolve(frames,'captions.txt'),['Zero Slop','Find AI-sounding writing.','Keep the source intact.',...CAPTIONS].join('\n\n')+'\n');
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH??'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
@@ -58,20 +58,22 @@ try{
   await page.setContent(studio);await page.evaluate(()=>window.studioReady);
   const terminal=async t=>{
     const mapped=sourceTime(t);
-    if(sources.has(mapped))return sources.get(mapped);
-    await source.evaluate(t=>window.renderFrame(t),mapped);
+    const key=await source.evaluate(({mapped,t})=>window.filmFrameKey(mapped,{presentationTime:t}),{mapped,t});
+    if(sources.has(key))return sources.get(key);
+    await source.evaluate(({mapped,t})=>window.renderFrame(mapped,{presentationTime:t}),{mapped,t});
     const png=await source.locator('.terminal-shell').screenshot();
     const inspection=await source.evaluate(()=>window.filmInspection());
     const captured={sourceTime:mapped,dataURL:`data:image/png;base64,${png.toString('base64')}`,inspection};
-    sources.set(mapped,captured);return captured;
+    sources.set(key,captured);return captured;
   };
   const frame=async t=>{
     if(saved.has(t))return saved.get(t);
     const captured=await terminal(t);
     await page.evaluate(({t,dataURL})=>window.renderStudio(t,dataURL),{t,dataURL:captured.dataURL});
     const png=await page.screenshot();
-    const path=resolve(frames,`frame-${String(t).padStart(5,'0')}.png`);
-    await writeFile(path,png);const rendered={png,path};saved.set(t,rendered);return rendered;
+    const path=resolve(frames,`frame-${t.toFixed(3).padStart(9,'0')}.png`);
+    const scene=await page.evaluate(()=>window.studioInspection);
+    await writeFile(path,png);const rendered={png,path,scene};saved.set(t,rendered);return rendered;
   };
   const inspections=[];
   for(const t of STUDIO_KEY_TIMES){await frame(t);const captured=await terminal(t);const scene=await page.evaluate(()=>window.studioInspection);inspections.push({t,sourceTime:captured.sourceTime,...captured.inspection,scene});
@@ -83,26 +85,26 @@ try{
   if(!(await page.locator('.closing').innerText()).includes(MCP_URL))throw Error('Closing frame must include the exact MCP endpoint.');
   await sharp((await frame(POSTER_TIME)).png).resize(1280,720).png({palette:true,colours:128,dither:0,effort:10}).toFile(`${base}-poster.png`);
   if(preview){console.log(`Preview frames and source: ${frames}`);}else{
-    const manifest=[];
+    const manifest=[],motionInspections=[];
     const filmTimeline=studioTimeline();
     for(const [index,item] of filmTimeline.entries()){
-      const {path}=await frame(item.t);manifest.push({file:path,durationMs:item.durationMs});
+      const {path,scene}=await frame(item.t);manifest.push({file:path,t:item.t,durationMs:item.durationMs});
+      motionInspections.push({t:item.t,scene});
       if(index%40===0)console.log(`Rendered ${index}/${filmTimeline.length} unique film frames`);
     }
     await writeFile(resolve(frames,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
-    // GIF delays are centiseconds. Merge boundaries closer than 20 ms, preserving time.
-    const candidates=[...new Set(studioTimeline(12).map(f=>Math.round(f.t/10)*10)),DURATION].sort((a,b)=>a-b);
-    const gifTimes=[0];
-    for(const t of candidates)if(t-gifTimes[gifTimes.length-1]>=20&&DURATION-t>=20)gifTimes.push(t);
-    gifTimes.push(DURATION);
-    if(gifTimes.length-1>300)throw Error('The GitHub animation exceeds the 300-frame delivery budget.');
-    for(let i=0;i<gifTimes.length-1;i++){
-      const {png}=await frame(gifTimes[i]);
+    await writeFile(resolve(frames,'motion-inspections.json'),JSON.stringify(motionInspections,null,2)+'\n');
+    // Keep poses on the uniform 24 fps output grid. Quantize cumulative delays
+    // only, so the GIF timebase cannot accumulate timing error.
+    const previewTimeline=studioPreviewTimeline(24);
+    if(previewTimeline.length>300)throw Error('The GitHub animation exceeds the 300-frame delivery budget.');
+    for(const [i,item] of previewTimeline.entries()){
+      const {png}=await frame(item.t);
       gifFrames.push(await sharp(png).resize(960,540).removeAlpha().raw().toBuffer());
-      gifDelay.push(gifTimes[i+1]-gifTimes[i]);
+      gifDelay.push(Math.round((previewTimeline[i+1]?.t??DURATION)/10)*10-Math.round(item.t/10)*10);
     }
     const raw={width:960,height:540*gifFrames.length,channels:3,pageHeight:540},pixels=Buffer.concat(gifFrames);
-    await sharp(pixels,{raw}).gif({loop:0,delay:gifDelay,colours:96,dither:0,effort:10,interFrameMaxError:0}).toFile(`${base}.gif`);
+    await sharp(pixels,{raw}).gif({loop:0,delay:gifDelay,colours:64,dither:0,effort:10,interFrameMaxError:0}).toFile(`${base}.gif`);
     await sharp(pixels,{raw}).webp({loop:0,delay:gifDelay,quality:88,nearLossless:true,mixed:true,effort:6,minSize:true}).toFile(`${base}.webp`);
     for(const ext of ['gif','webp'])console.log(`${ext}: ${(await stat(`${base}.${ext}`)).size} bytes`);
     console.log(`MP4 input manifest: ${resolve(frames,'manifest.json')}`);

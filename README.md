@@ -37,15 +37,15 @@
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-<a href="assets/zero-slop-demo.mp4">
+<a href="assets/zero-slop-demo.mp4?v=smooth-20260905">
   <picture>
-    <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png">
-    <source type="image/webp" srcset="assets/zero-slop-demo.webp">
-    <img src="assets/zero-slop-demo.gif" width="960" alt="Terminal demo: install Zero Slop, ask your AI assistant to edit a draft with /zero-slop, then review the edit and source checks.">
+    <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png?v=smooth-20260905">
+    <source type="image/webp" srcset="assets/zero-slop-demo.webp?v=smooth-20260905">
+    <img src="assets/zero-slop-demo.gif?v=smooth-20260905" width="960" alt="Terminal demo: install Zero Slop, ask your AI assistant to edit a draft with /zero-slop, then review the edit and source checks.">
   </picture>
 </a>
 
-<p align="center"><a href="assets/zero-slop-demo.mp4">Watch the 24-second demo</a> · <sub>Silent reconstructed skill session; hosted outputs vary.</sub></p>
+<p align="center"><a href="assets/zero-slop-demo.mp4?v=smooth-20260905">Watch the 24-second demo</a> · <sub>Silent reconstructed skill session; hosted outputs vary.</sub></p>
 
 ## Before and after
 

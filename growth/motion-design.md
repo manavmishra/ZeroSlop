@@ -3,8 +3,9 @@
 A silent, 24-second studio film of the installed Agent Skill. The supplied
 gold-tile logo opens the film in three dimensions. The camera then moves to a
 white terminal housing for the installation, assistant request, complete draft,
-edit, and local checks. The cut uses quicker transitions while holding on the
-source and result. There is no audio track, music or sound effect.
+edit, and local checks. The opening overlaps the logo and terminal; the camera
+settles before the reading sections. There is no audio track, music or sound
+effect.
 
 Three.js renders the physical materials, lighting, shadows and camera movement.
 The screen texture is captured from a real xterm.js character grid, including its
@@ -21,8 +22,8 @@ shell and the AI assistant.
 
 | Time | Viewer sees |
 |---|---|
-| 0-0.8 s | The gold-tile logo and product promise appear on a white studio set |
-| 0.8-3.6 s | The camera settles on the terminal; the installation command is typed |
+| 0-1.2 s | The gold-tile logo and product promise transition into the terminal, with an overlapping fade |
+| 1.2-3.6 s | The camera settles; the installation command finishes typing |
 | 3.6-5 s | The context changes to the AI assistant; `/zero-slop` is entered |
 | 5-8.6 s | The complete source arrives as a paste and stays readable |
 | 8.6-11.2 s | Four actual phrase flags appear as whole output lines |
@@ -38,8 +39,9 @@ details; it does not establish that the original claim is true.
 `growth/demo-evidence.json` records exact texts, source hashes, and full tool
 output. It also identifies both renderers and the canonical MCP URL.
 `growth/demo-film.mjs` owns the terminal transcript.
-`growth/studio-timeline.mjs` maps it to the studio cut;
-`growth/studio-scene.mjs` owns the three-dimensional set and camera.
+`growth/studio-timeline.mjs` maps the transcript to the studio cut and exposes
+the camera and object motion as a pure function of presentation time.
+`growth/studio-scene.mjs` applies that state to the three-dimensional set.
 Only user commands are typed character by character. Machine output arrives in
 complete lines; the camera holds while the viewer reads. No fabricated
 processing time or check animation implies independent reviews.
@@ -81,9 +83,19 @@ unlit, so a specular highlight cannot hide the draft. Following Three.js's
 the PNG texture is marked as sRGB and the display output uses sRGB. Lighting and
 tone mapping affect the housing, not the source text.
 
-The opening establishes the mark in 0.8 seconds; most of the film is the actual
-editing example. Camera movement marks entry, inspection, the edit and the
-closing view. Static reading holds also keep the GitHub animation compact.
+The opening moves from the mark into the terminal without a visibility cut or
+camera jump. Camera movement is confined to entry and the closing view; the
+reading sections stay steady. Minimum-jerk easing brings each move to rest with
+zero endpoint velocity and acceleration. The terminal scrolls through new
+output over 220 ms instead of jumping whole rows. Static reading holds also
+keep the GitHub animation compact.
+
+The MP4 is rendered at 720 evenly spaced presentation timestamps, one for every
+30 fps output frame. Transcript retiming never changes the camera's clock.
+The previous sparse, source-timed export lost 66 of its 240 rendered samples
+when the encoder quantized their durations. Sampling the final clock removes
+that source of uneven motion; increasing the advertised frame rate alone would
+not have repaired it.
 
 ## Deliverables
 
@@ -104,6 +116,10 @@ WebP, then GIF. Only width is specified: GitHub's maximum-width styling would
 distort a fixed-height image. The MP4 player never autoplays and exposes native
 pause, seek and replay controls. MP4, GIF and WebP are silent. The player's
 transcript explains the source check.
+
+The preferred WebP has a 2 MB budget. The 24 fps GIF fallback has a 2.5 MB
+budget so its motion need not lose frames to meet the previous 12 fps export's
+size cap. Both use still-frame holds between animated intervals.
 
 ## Rebuild
 
@@ -132,18 +148,29 @@ swift -module-cache-path /tmp/zero-slop-swift-cache growth/encode-demo.swift \
 The native encoder uses an 8 Mbps target and refuses to overwrite an existing
 output. Inspect the new MP4 before replacing `assets/zero-slop-demo.mp4`.
 Use `--preview` with the Node command to render key scenes before the complete
-export. PNG frames are 1080p; manifest durations let readable holds reuse a
-frame at 30 fps. The animated image timeline samples movement at 12 fps and
-retains the same 24-second story.
+export. PNG frames are 1080p. The manifest records every frame's exact
+presentation timestamp and 1/30-second duration. Terminal textures can be reused
+when their visible content is unchanged, but the film's frame grid is never
+thinned or retimed. The GIF and WebP timeline samples movement on a separate
+24 fps presentation grid and holds only still scenes. GIF delays are quantized
+cumulatively to its 10 ms timebase, preserving the 24-second duration.
 
 ```sh
 python3 growth/check-motion.py
+node growth/check-studio-cadence.mjs \
+  --manifest /tmp/zero-slop-film-frames/manifest.json \
+  --inspections /tmp/zero-slop-film-frames/motion-inspections.json
 node growth/verify-demo-player.mjs
+ZERO_SLOP_MEDIA_DEPS=/tmp/zero-slop-media-deps node growth/check-studio-scroll.mjs
 python3 -m unittest tests.test_all.DocsMatchReality -q
 ```
 
 CI checks dimensions, duration, size, media fallbacks, the absence of audio and
 manual playback controls.
+The cadence check also verifies the exact output grid, finite and continuous
+motion, easing endpoints, projected screen-corner movement and static preview
+holds. These numerical checks complement visual review of the encoded movie;
+they do not measure production taste.
 The MP4 budget is below GitHub's 10 MB free-plan video attachment limit.
 The image encoders follow the documented [Sharp animation options](https://sharp.pixelplumbing.com/api-output/).
 GitHub's [attachment documentation](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)

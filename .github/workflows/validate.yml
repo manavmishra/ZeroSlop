@@ -92,6 +92,12 @@ jobs:
           python3 scripts/check_svg.py assets/demo.svg
           python3 growth/check-motion.py
 
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22.13.0"
+      - name: Validate studio motion cadence
+        run: node growth/check-studio-cadence.mjs
+
       - name: SKILL.md frontmatter present
         run: |
           head -1 SKILL.md | grep -q '^---$'

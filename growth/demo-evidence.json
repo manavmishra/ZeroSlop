@@ -5,6 +5,8 @@
   "audio": "none",
   "mcpURL": "https://mcp.zero-slop.ai/mcp",
   "durationMs": 24000,
+  "outputFPS": 30,
+  "previewMotionFPS": 24,
   "source": "examples/launch-post.before.md",
   "edit": "examples/launch-post.after.md",
   "before": "We're thrilled to announce that our team has leveraged cutting-edge machine learning to deliver a seamless onboarding experience, reducing setup time by 40%.",

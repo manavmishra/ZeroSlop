@@ -309,7 +309,10 @@ def main():
         require(dimensions == (960, 540), f"Unexpected {suffix} dimensions")
         require(10 <= len(delays) <= 300, f"Unexpected {suffix} frame count")
         require(sum(delays) == 24_000, f"Unexpected {suffix} duration")
-        require(path.stat().st_size <= 2_000_000, f"{suffix} exceeds 2 MB budget")
+        # The preferred WebP stays below 2 MB. The compatible GIF gets 2.5 MB
+        # for the 24 fps motion pass instead of dropping transition frames.
+        budget = 2_500_000 if suffix == "gif" else 2_000_000
+        require(path.stat().st_size <= budget, f"{suffix} exceeds {budget / 1_000_000:g} MB budget")
         print(f"{suffix}: {len(delays)} frames, {sum(delays)} ms, {path.stat().st_size} bytes")
     video = ASSETS / "zero-slop-demo.mp4"
     dimensions, duration, frame_count, fps = mp4_info(video)
@@ -330,7 +333,9 @@ def main():
     require(readme.index('prefers-reduced-motion: reduce') < readme.index('image/webp'), "Static preference must precede animated sources")
     for asset in ('zero-slop-demo-poster.png', 'zero-slop-demo.webp', 'zero-slop-demo.gif'):
         require(asset in readme, f"Missing README fallback: {asset}")
-    image_tag = readme.split('<img src="assets/zero-slop-demo.gif"', 1)[1].split('>', 1)[0]
+    image_match = re.search(r'<img src="assets/zero-slop-demo\.gif(?:\?[^"<>]*)?"([^>]*)>', readme)
+    require(image_match is not None, "Missing README animation image")
+    image_tag = image_match.group(1)
     require('height=' not in image_tag, "GitHub constrains width only; a fixed height distorts the animation")
     player = (ASSETS / "zero-slop-demo.html").read_text()
     parsed = PlayerTags()

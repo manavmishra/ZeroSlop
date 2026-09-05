@@ -44,12 +44,18 @@ const escapeHTML = (value) => String(value)
   .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const scriptJSON = (value) => JSON.stringify(value).replaceAll("<", "\\u003c");
 
-// Called inside the isolated render document. The transcript is rebuilt from
-// scratch at every requested timestamp, so a seek cannot inherit stale state.
+// Called inside the isolated render document. Every timestamp derives from the
+// transcript, so seeking is deterministic; unchanged text can reuse its grid.
 function initialiseFilm(payload) {
   const { before, after, beforeScore, afterScore, flags, install, invocation } = payload;
   const COLS = 76;
   const ROWS = 14;
+  // Three extra genuine xterm rows keep outgoing text present
+  // while a two-line append scrolls through the clipped 14-row viewport.
+  const RENDER_ROWS = ROWS + 3;
+  const SCROLL_MS = 220;
+  const SOURCE_SCROLL_EVENTS = [13400, 14000, 16400, 17200, 22000, 23000, 24000, 25200];
+  const STUDIO_SCROLL_EVENTS = [9900, 10400, 11200, 11600, 15800, 16400, 17000, 17600];
   const ESC = "\u001b[";
   const RESET = ESC + "0m";
   const INK = ESC + "38;2;18;16;12m";
@@ -57,7 +63,7 @@ function initialiseFilm(payload) {
   const RUST = ESC + "38;2;140;63;34m";
   const BOLD = ESC + "1m";
   const terminal = new Terminal({
-    cols: COLS, rows: ROWS,
+    cols: COLS, rows: RENDER_ROWS,
     fontFamily: '"SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace',
     fontSize: 24, lineHeight: 1.1, letterSpacing: 0,
     fontWeight: "400", fontWeightBold: "600",
@@ -121,14 +127,23 @@ function initialiseFilm(payload) {
     return RESET + INK + lines.join("\r\n") + (cursor ? ESC + "?25h" : ESC + "?25l");
   }
 
+  let viewport = { top: 0, target: 0, rowHeight: 0, pixelOffset: 0, progress: 1 };
   function inspect() {
     const buffer = terminal.buffer.active;
     const all = [];
     for (let i = 0; i < buffer.length; i += 1) all.push(buffer.getLine(i)?.translateToString(true) ?? "");
+    const top = Math.floor(viewport.top + 1e-8);
+    const bottom = Math.ceil(viewport.top - 1e-8) + ROWS;
     return {
-      cols: terminal.cols, rows: terminal.rows, cursorX: buffer.cursorX, cursorY: buffer.cursorY,
-      baseY: buffer.baseY, viewportY: buffer.viewportY,
-      visibleLines: all.slice(buffer.viewportY, buffer.viewportY + terminal.rows), allLines: all,
+      cols: terminal.cols, rows: ROWS, cursorX: buffer.cursorX,
+      cursorY: buffer.baseY + buffer.cursorY - top,
+      baseY: viewport.target, viewportY: top,
+      visibleLines: all.slice(top, bottom), allLines: all,
+      fullyVisibleLines: all.slice(Math.ceil(viewport.top - 1e-8), top + ROWS),
+      renderRows: terminal.rows, renderBaseY: buffer.baseY, renderViewportY: buffer.viewportY,
+      scrollTopRows: viewport.top, scrollTargetRows: viewport.target,
+      scrollProgress: viewport.progress, rowHeight: viewport.rowHeight,
+      pixelOffset: viewport.pixelOffset,
     };
   }
   window.filmInspection = inspect;
@@ -137,11 +152,55 @@ function initialiseFilm(payload) {
   const paint = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   const clamp = (x) => Math.max(0, Math.min(1, x));
   const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);
-  async function draw(time) {
+  const scrollEase = (x) => {
+    x = clamp(x);
+    return x * x * x * (x * (x * 6 - 15) + 10);
+  };
+  const targetTop = (text) => Math.max(0, text.split("\r\n").length - ROWS);
+  function sourceState(time, options = {}) {
     const t = Math.max(0, Math.min(35999, Number(time) || 0));
-    terminal.reset();
-    await new Promise((resolve) => terminal.write(transcript(t), resolve));
-    terminal.scrollToBottom();
+    const ansi = transcript(t);
+    const target = targetTop(ansi);
+    const isStudio = Number.isFinite(options.presentationTime);
+    const clock = isStudio ? options.presentationTime : t;
+    const events = options.scrollEvents ?? (isStudio ? STUDIO_SCROLL_EVENTS : SOURCE_SCROLL_EVENTS);
+    let top = target, progress = 1;
+    for (const [index, event] of events.entries()) {
+      const at = typeof event === "number" ? event : event.at;
+      const source = typeof event === "number" ? SOURCE_SCROLL_EVENTS[index] : event.sourceTime;
+      if (!Number.isFinite(at) || !Number.isFinite(source)) throw new Error("Invalid deterministic scroll event");
+      if (clock >= at && clock < at + SCROLL_MS && t >= source) {
+        const from = targetTop(transcript(source - 0.001));
+        const to = targetTop(transcript(source));
+        // A later transcript cannot be represented by an earlier event's range.
+        if (target !== to) continue;
+        progress = scrollEase((clock - at) / SCROLL_MS);
+        top = from + (to - from) * progress;
+      }
+    }
+    const stroke = ease((t - 17600) / 380);
+    const opacity = t >= 17600 && t < 19100 ? 1 - ease((t - 18700) / 400) : 0;
+    return { t, ansi, target, top, progress, stroke, opacity };
+  }
+  // Canonical key for the cropped terminal texture, not the full source film.
+  // Static reading holds share a screenshot even when camera frames are dense.
+  window.filmFrameKey = (time, options) => {
+    const state = sourceState(time, options);
+    return JSON.stringify([state.ansi, Math.round(state.top * 1e6),
+      state.opacity > 0 ? [Math.round(state.stroke * 1e6), Math.round(state.opacity * 1e6)] : null]);
+  };
+  let lastTranscript = null;
+  async function draw(time, options) {
+    const state = sourceState(time, options);
+    const { t } = state;
+    if (state.ansi !== lastTranscript) {
+      terminal.reset();
+      await new Promise((resolve) => terminal.write(state.ansi, resolve));
+      lastTranscript = state.ansi;
+    }
+    // xterm supplies real guard rows; CSS moves the complete grid by a precise
+    // fraction of a cell. No wall-clock smooth-scroll timer is involved.
+    terminal.scrollToLine(Math.min(Math.floor(state.top), terminal.buffer.active.baseY));
     terminal.refresh(0, terminal.rows - 1);
     const closing = ease((t - 30000) / 600);
     document.querySelector(".terminal-shell").style.transform = `translateY(${-28 * closing}px) scale(${1 - 0.17 * closing})`;
@@ -154,23 +213,28 @@ function initialiseFilm(payload) {
       : t < 22000 ? "Your assistant edits. Local tools compare source details."
       : "Review the edit before you use it.";
     document.querySelector(".session-label").textContent = t < 4000 ? "Shell" : "AI assistant";
-    const underline = document.querySelector(".signature");
-    const visible = inspect().visibleLines;
-    const resultRow = visible.findIndex((line) => line.trim().startsWith(after.slice(0, 15)));
+    await paint();
     const xtermRows = document.querySelector(".xterm-rows");
-    const rowHeight = xtermRows ? xtermRows.getBoundingClientRect().height / ROWS / (1 - 0.17 * closing) : 31;
+    const shellTransform = new DOMMatrix(getComputedStyle(document.querySelector(".terminal-shell")).transform);
+    const shellScale = Math.hypot(shellTransform.a, shellTransform.b);
+    const rowHeight = xtermRows ? xtermRows.getBoundingClientRect().height / RENDER_ROWS / shellScale : 31;
+    const pixelOffset = (state.top - terminal.buffer.active.viewportY) * rowHeight;
+    document.querySelector("#terminal > .xterm").style.transform = `translateY(${-pixelOffset}px)`;
+    document.querySelector("#terminal").style.height = `${ROWS * rowHeight}px`;
+    viewport = { top: state.top, target: state.target, rowHeight, pixelOffset, progress: state.progress };
+    const underline = document.querySelector(".signature");
+    const resultLine = inspect().allLines.findIndex((line) => line.trim().startsWith(after.slice(0, 15)));
+    const resultRow = resultLine - state.top;
     underline.style.top = `${57 + (resultRow + 1) * rowHeight}px`;
-    const stroke = ease((t - 17600) / 380);
-    const fade = 1 - ease((t - 18700) / 400);
-    underline.style.opacity = String(resultRow >= 0 && t >= 17600 && t < 19100 ? fade : 0);
-    underline.style.transform = `rotate(-2deg) scaleX(${stroke})`;
+    underline.style.opacity = String(resultRow >= 0 && resultRow < ROWS ? state.opacity : 0);
+    underline.style.transform = `rotate(-2deg) scaleX(${state.stroke})`;
     document.querySelector("#film").dataset.time = String(Math.round(t));
     await paint();
     window.filmState = inspect();
     return window.filmState;
   }
-  window.renderFrame = (t) => {
-    pending = pending.then(() => draw(t));
+  window.renderFrame = (t, options) => {
+    pending = pending.then(() => draw(t, options));
     return pending;
   };
   window.filmReady = document.fonts.ready.then(() => window.renderFrame(0));
@@ -194,7 +258,7 @@ export function filmHTML({ logo, before, after, beforeScore, afterScore, flags, 
     .window-controls { position:absolute; left:20px; display:flex; align-items:center; gap:8px; }
     .window-controls i { width:8px; height:8px; border:1px solid #b8b3ab; border-radius:50%; }
     .session-label { font-size:15px; color:var(--muted); line-height:1; }
-    #terminal { position:absolute; left:27px; top:57px; right:20px; height:438px; background:#fff; }
+    #terminal { position:absolute; left:27px; top:57px; right:20px; height:438px; background:#fff; overflow:hidden; }
     .xterm { background:#fff!important; }
     .xterm-viewport { scrollbar-width:none; }
     .xterm-viewport::-webkit-scrollbar { display:none; }
