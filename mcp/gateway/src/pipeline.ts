@@ -221,7 +221,13 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
     && after.register.findings.length === 0
     && !(after.shape.measured && after.shape.broetry);
   const warnings: string[] = [];
-  if (!selectedModelEdit) warnings.push("the model response was unavailable or did not pass the source check, so the local edit was used");
+  if (!selectedModelEdit) {
+    const safeModelEdit = checked.ranked.some((candidate) =>
+      candidate.name === "one-call edit" && candidate.preserved && !candidate.invented);
+    warnings.push(safeModelEdit
+      ? "the local edit ranked ahead of a source-preserving model edit on the measured writing checks"
+      : "the model response was unavailable or did not pass the source check, so the local edit was used");
+  }
   if (after.score >= SCORE_GATE) warnings.push("the writing score remains above 25");
   if (after.register.findings.length > 0 || (after.shape.measured && after.shape.broetry)) {
     warnings.push("a document-level writing check remains");

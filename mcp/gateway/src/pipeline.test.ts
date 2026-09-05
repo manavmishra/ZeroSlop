@@ -217,6 +217,41 @@ test("an unsafe model response loses to the local source-safe edit", async () =>
   }
 });
 
+test("a preferred local edit is not reported as an unavailable or unsafe model response", async () => {
+  const original = "We are incredibly excited to share some news about our journey with Kairoset over 18 months.";
+  const model = "We are excited about 18 months of work with Kairoset.";
+  const local = localRescue(original);
+  const scorer = scorerHarness(original, local, 18);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () => Response.json({
+    rewrite: model, provider: "workers-ai", model: "editor", stored: false,
+  })) as typeof fetch;
+  try {
+    const result = await runPipeline({
+      SCORER: {
+        fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+          const response = await scorer.fetch(input, init);
+          if (new URL(String(input)).pathname !== "/rank") return response;
+          const ranked = await response.json();
+          assert.ok(ranked && typeof ranked === "object");
+          return Response.json({ ...ranked, name: "local edit", text: local });
+        },
+      },
+      SCORER_VERSION: "2.8.11",
+      EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite",
+      EDITOR_SHARED_SECRET: signingKeyForTests(),
+    } as unknown as Env, { text: original, genre: "social" });
+    assert.equal(result.text, local);
+    assert.equal(result.status, "rewritten_with_warnings");
+    assert.equal(result.passedFinalChecks, false);
+    assert.equal(result.modelRequests, 1);
+    assert.match(result.note, /local edit ranked ahead of a source-preserving model edit/);
+    assert.doesNotMatch(result.note, /unavailable|did not pass the source check/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("local fallback preserves the launch fixture's protected details", () => {
   const input = "We are incredibly excited to share some news about our journey over the past 18 months. " +
     "Our team spoke to 40 customers. The real win was not the time saved. It was watching Kairoset move " +
