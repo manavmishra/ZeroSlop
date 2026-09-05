@@ -31,9 +31,11 @@ Record each idea vertically and horizontally. Keep the final cut between 20 and
 | CI gate | “Fail a docs build when generated copy crosses 25.” | Batch command exits above the threshold | developer newsletters, HN |
 | Hosted MCP | “Add the same writing checks to Codex or Claude with one endpoint.” | Connection command, then one tool call | MCP and coding communities |
 
-The repository's signature animation uses a white background, rust flags,
-the logo's diagonal **Zero Cut**, and a fixed source detail. Use that sequence in
-video thumbnails and short clips so the motion becomes recognizable.
+The repository's 36-second skill demo shows installation, a `/zero-slop` request,
+flagged phrases, the edit, and a readable comparison. Its white background and
+rust **Zero Cut** preserve the existing logo. The MP4 is in
+`assets/zero-slop-demo.mp4`; GIF and WebP versions play inline on GitHub.
+It uses the saved launch-post example, not a recording of the hosted editor.
 
 ## Seven-day launch spike
 

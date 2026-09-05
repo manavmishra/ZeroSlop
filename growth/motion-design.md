@@ -1,52 +1,78 @@
-# Zero Cut motion assets
+# Zero Slop product demo
 
-The GitHub visual is a silent, white-background product film. It uses the
-repository's black Z and rust slash, preserved in `assets/logo/logo-mark.svg`.
-The slash is the transition between the flagged draft and its edit.
+A silent, 36-second walkthrough of the installed Agent Skill. It shows where
+to install it, what to ask an assistant, and how to read the resulting edit.
+The footage is typeset from the repository's saved launch-post example; it is
+not a screen recording of the hosted editor. Different host models can return
+different edits.
 
-The 8.4-second sequence opens on “We're thrilled to…”, reveals the complete
-draft, makes the cut, holds the edited sentence, and ends on the free editor
-at `https://zero-slop.ai/try/`. The 40% result stays fixed during the edit.
-The scores, 99.3 and 9.5, come from the repository's example; playback timing
-does not claim product latency or editing speed.
+## The story
 
-## Exports
-
-| File in `assets/` | Use |
+| Time | Viewer sees |
 |---|---|
-| `zero-slop-demo.webp` | Preferred GitHub image for supporting browsers |
-| `zero-slop-demo.gif` | Compatible animation fallback; existing URL preserved |
-| `zero-slop-demo-poster.png` | Reduced-motion still |
-| `zero-slop-demo.html` | Standalone player with pause/replay and responsive sizing |
-| `logo/logo-300.png` | Exact 300 × 300 logo on white |
-| `logo/logo-mark-300.png` | Exact 300 × 300 logo with transparency |
-| `logo/logo-mark.svg` | Shared vector source |
+| 0–5 s | The product's purpose and the exact installation command |
+| 5–13 s | A `/zero-slop` request with the complete sample draft |
+| 13–16.5 s | Four measured stock-phrase flags in that same draft |
+| 16.5–17.2 s | The logo's rust slash makes the signature cut |
+| 17.2–24 s | The complete edit, with the 40% result retained |
+| 24–29.5 s | Original and edit together, with supporting writing scores |
+| 29.5–36 s | The next-draft prompt, free browser editor, and hosted MCP |
 
-The README makes the whole visual a link to the free editor. Its `<picture>`
-selects the still first for reduced-motion preferences, then WebP, then GIF.
-The image sets only its width: GitHub's maximum-width rule shrinks the frame,
-so an explicit height would distort its aspect ratio in the repository column.
-The player has no external scripts, fonts, requests, or audio. It suspends
-playback in a hidden tab and stops its frame loop when paused or motion is reduced.
+The original's 40% claim is a sample claim, not a Zero Slop performance result.
+The scorer is rerun during rendering: 99.3 becomes 9.5, with four flagged phrases
+becoming zero. The source check is also rerun. Its result concerns tracked
+details; it does not establish that the original claim is true.
 
-## Rebuild and check
+`growth/demo-evidence.json` records exact texts, source hashes, and full tool
+output. `growth/demo-film.mjs` owns the composition and timing. Every transition
+serves an instruction or a change of state; holds leave time to read.
 
-The asset generators need Node.js, Chrome, `playwright-core`, and `sharp` at
-build time. They add no dependencies to the published skill. Use `CHROME_PATH`
-for a non-default Chrome location and `NODE_PATH` for external build packages.
-The logo exporter also accepts `ZERO_SLOP_NODE_MODULES`.
+## Deliverables
+
+| File in `assets/` | Purpose |
+|---|---|
+| `zero-slop-demo.mp4` | 1920 × 1080, 30 fps H.264 film, silent, fast-start |
+| `zero-slop-demo.webp` | 960 × 540 inline GitHub animation |
+| `zero-slop-demo.gif` | Compatible inline fallback, existing URL preserved |
+| `zero-slop-demo-poster.png` | 1280 × 720 before/after still for reduced motion |
+| `zero-slop-demo.html` | Native video player with controls and a text transcript |
+| `logo/logo-300.png` | Existing 300 × 300 logo on white |
+| `logo/logo-mark-300.png` | Existing 300 × 300 transparent logo |
+
+The README's picture selects the still for reduced-motion preferences, then
+WebP, then GIF. Only width is specified: GitHub's maximum-width styling would
+distort a fixed-height image. The MP4 player never autoplays and exposes native
+pause, seek, and replay controls. Its transcript also explains the source check.
+
+## Rebuild
+
+Build-time dependencies are Node.js, Chrome, `playwright-core`, and `sharp`.
+They add nothing to the published skill. `CHROME_PATH` and `NODE_PATH` can
+point to existing build tools. MP4 encoding uses macOS AVFoundation through
+Swift and requires Apple's command-line tools; no codec package is installed.
 
 ```sh
-node growth/make-logo.mjs
-node scripts/make-readme-gif.mjs
-python3 growth/check-motion.py
+node scripts/make-readme-gif.mjs --frames /tmp/zero-slop-film-frames
+swift -module-cache-path /tmp/zero-slop-swift-cache growth/encode-demo.swift \
+  --manifest /tmp/zero-slop-film-frames/manifest.json \
+  --output /tmp/zero-slop-demo-new.mp4 --width 1920 --height 1080 --fps 30
 ```
 
-Long holds cost one frame each; the short transitions use 25 fps. The
-standalone player renders at the display's refresh rate. Both image formats
-have a 400 kB ceiling, checked in CI. Each must encode exactly 8,400 ms.
-Visible scenes and score labels switch without overlapping text.
+The encoder refuses to overwrite an existing output. Inspect the new MP4 before
+replacing `assets/zero-slop-demo.mp4`. Use `--preview` with the Node command to
+render key scenes before the complete export. PNG frames are 1080p; manifest
+durations let readable holds reuse a frame at 30 fps.
 
-The rendering choices follow the documented [Sharp animation options](https://sharp.pixelplumbing.com/api-output/)
-and browser [`picture` source selection](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture).
-No conversion uplift is claimed without a traffic-controlled test.
+```sh
+python3 growth/check-motion.py
+python3 -m unittest tests.test_all.DocsMatchReality -q
+```
+
+CI checks dimensions, duration, size, media fallbacks, and the silent player.
+The MP4 budget is below GitHub's 10 MB free-plan video attachment limit.
+The image encoders follow the documented [Sharp animation options](https://sharp.pixelplumbing.com/api-output/).
+GitHub's [attachment documentation](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)
+describes native video uploads. Repository GIF/WebP previews remain available
+without a separate video attachment.
+
+No conversion lift, universal editing quality, or processing-speed claim is made.

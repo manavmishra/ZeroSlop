@@ -37,15 +37,15 @@
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-<a href="https://zero-slop.ai/try/">
+<a href="assets/zero-slop-demo.mp4">
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png">
     <source type="image/webp" srcset="assets/zero-slop-demo.webp">
-    <img src="assets/zero-slop-demo.gif" width="1040" alt="Zero Slop's Zero Cut: four stock phrases removed; writing score 99.3 to 9.5; 40% result retained. Try it free.">
+    <img src="assets/zero-slop-demo.gif" width="960" alt="Install Zero Slop, paste a slop-filled draft after /zero-slop, then compare the edit. Score 99.3 to 9.5; 40% retained.">
   </picture>
 </a>
 
-<p align="center"><sub>Free · open source · no account · zero runtime dependencies · local checks run offline</sub></p>
+<p align="center"><a href="assets/zero-slop-demo.mp4">Download the 36-second demo</a> · <sub>Saved skill example; hosted outputs vary.</sub></p>
 
 ## Before and after
 
