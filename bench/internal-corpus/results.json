@@ -8,8 +8,8 @@
   "source_committed": false
  },
  "scorer": {
-  "version": "2.8.10",
-  "slopscore_sha256": "8591d73d087ea86a49627e9c0deb322ede680477c8133a1e29c16edfa073c29f",
+  "version": "2.8.11",
+  "slopscore_sha256": "e2f139f932e3dfec5dbd266f252bfd46abfb09eb4c04f5f619cdc00a2cdc5367",
   "patterns_sha256": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
   "generic_gate": 25.0
  },

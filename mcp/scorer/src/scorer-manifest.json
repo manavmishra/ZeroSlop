@@ -4,6 +4,6 @@
   "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
   "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
   "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
-  "scripts/slopscore.py": "8591d73d087ea86a49627e9c0deb322ede680477c8133a1e29c16edfa073c29f",
-  "version": "2.8.10"
+  "scripts/slopscore.py": "e2f139f932e3dfec5dbd266f252bfd46abfb09eb4c04f5f619cdc00a2cdc5367",
+  "version": "2.8.11"
 }

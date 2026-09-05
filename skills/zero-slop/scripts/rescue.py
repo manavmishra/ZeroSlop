@@ -78,7 +78,8 @@ def rescue_text(text: str) -> str:
         (r"\bonboarding isn['’]t a checklist\s*[-—]\s*it['’]s a promise\.",
          "We see onboarding as a promise."),
         (r"\bthe insights were game[-\u2011]changing\.",
-         "Those conversations changed our approach."),
+         lambda m: ("Those" if m.group(0)[0].isupper() else "those")
+         + " conversations changed our approach."),
         (r"\bthe insights were (?:transformative|clear|significant):\s*",
          "Those conversations showed that "),
         (r"\ba platform that leverages intelligent automation to streamline the entire "

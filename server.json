@@ -3,7 +3,7 @@
   "name": "io.github.manavmishra/zero-slop",
   "title": "Zero Slop",
   "description": "Score and rewrite AI-assisted prose while preserving names, numbers, quotes, links, and facts.",
-  "version": "2.8.10",
+  "version": "2.8.11",
   "websiteUrl": "https://zero-slop.ai/#mcp",
   "repository": {
     "url": "https://github.com/manavmishra/ZeroSlop",

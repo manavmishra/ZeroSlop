@@ -1156,6 +1156,18 @@ are artificial bookmark despite hey modern please researchers save unpopular wel
 """.split())
 NOT_NAME_WORDS = {word.lower() for word in NOT_NAMES} | COMMON_WORDS
 
+# These ordinary subjects are capitalised by sentence position. Exempt only
+# the generic construction, not the word everywhere: "Efficiency raised $4M"
+# and "Efficiency Labs" still contain protected names. A quoted construction
+# remains protected by the independent quotation check.
+_ABSTRACT_SUBJECT = re.compile(
+    r"(?:^|(?<=[.!?])\s+|\n[ \t]*)"
+    r"(?P<subject>Efficiency|Productivity|Innovation|Quality|Reliability|Success|Customer)"
+    r"(?: (?:(?:experience|service|support|satisfaction)))?"
+    r" is (?:paramount|crucial|essential|important|key|everything)\b",
+    re.M,
+)
+
 
 def _peel_entity(run, prose, other):
     """The entity inside a title-case run, or None if the run holds no name.
@@ -1217,6 +1229,7 @@ def facts(text, _other=""):
     prose = re.sub(r"(?m)^\s*\d+[.)]\s+", "", prose)
     other = _spell_to_digits(_other)
     other = re.sub(r"(?m)^\s*\d+[.)]\s+", "", other)
+    ordinary_subject_positions = {m.start("subject") for m in _ABSTRACT_SUBJECT.finditer(prose)}
     out = {}
     for kind, rx in FACT_RX:
         found = set()
@@ -1224,6 +1237,8 @@ def facts(text, _other=""):
         for m in re.finditer(rx, urls if kind == "url" else prose, flags):
             v = (m.group(1) if m.lastindex else m.group(0)).strip()
             if kind == "name":
+                if m.start() in ordinary_subject_positions:
+                    continue
                 v = _peel_entity(v, prose, other)
                 if not v:
                     continue

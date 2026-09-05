@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.8.10"
+  version: "2.8.11"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -80,7 +80,22 @@ not eight models or services. In an installed assistant, use role-isolated passe
 the harness can do that without extra network calls. When a service has a one-request
 budget, combine the AI responsibilities into one structured editorial response and
 run the local checks before and after it. Name that consolidation honestly; one model
-response is not independent review. Keep local and AI responsibilities distinct:
+response is not independent review.
+
+Preserve source material rather than sentence count. Delete before rewriting: keep
+a sentence when it adds a fact, position, reason, example, instruction, or necessary
+connection. Delete empty sentences instead of replacing their flagged words with
+milder synonyms. Do not add a takeaway or benefit summary that repeats a nearby
+point. For example, delete “Efficiency is paramount” instead of changing it to
+“Efficiency is crucial.” After a measured improvement in setup time, do not append
+that the change “makes it easier to get started.” Preserve substantive opinions,
+emotion, and useful transitions even when they contain flagged wording. Leave clear
+factual statements and qualifications unchanged where possible. Missing knowledge
+stays missing: “not measured beyond the first month” does not establish that the
+first month was measured, and a missing feature in a new product does not establish
+that the old product had it.
+
+Keep local and AI responsibilities distinct:
 
 1. **Scorer — local tools.** Point to exact phrases and problems with rhythm,
    readability, formatting, and register; explain the writing score.

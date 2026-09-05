@@ -155,7 +155,10 @@ the report even when they are zero.
 
 ## B. Substance
 
-31. **Removal test.** Does every paragraph lose something real when deleted?
+31. **Removal test.** Does every paragraph lose something real when deleted? Check
+    individual sentences too. Replacing “Efficiency is paramount” with “Efficiency
+    is crucial” fails when the whole sentence is empty. Cut sentences that merely
+    restate a nearby benefit; preserve substantive opinions and useful transitions.
 32. **Relevance test.** Does every paragraph serve the brief, audience, and argument?
 33. **Front-loading, applied selectively.** Conclusions arrive early where that helps
     the reader, without forcing every section into the same point-then-detail shape.

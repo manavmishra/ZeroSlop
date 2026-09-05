@@ -25,7 +25,7 @@
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.8.10" src="https://img.shields.io/badge/version-2.8.10-72528F">
+  <img alt="Version 2.8.11" src="https://img.shields.io/badge/version-2.8.11-72528F">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=72528F"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=227B5B"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=b0442a"></a>
@@ -249,7 +249,7 @@ stress case took 2.2932 seconds, and learning from an 8,000-word edit took
 0.1592 seconds. The measurements and machine details are in
 [`bench/performance-results.json`](bench/performance-results.json).
 
-Across 24 interleaved runs against 2.7.7, median throughput was 0.26% lower,
+Across 12 interleaved runs against 2.7.7, we measured 0.54% lower median throughput,
 which is effectively unchanged. The separate two-way replay used
 Zero Slop v2.6.0.
 

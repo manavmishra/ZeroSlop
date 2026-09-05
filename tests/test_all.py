@@ -3305,12 +3305,39 @@ class Fidelity(unittest.TestCase):
     SRC = ("Acme raised $4.2M led by Basis Ventures. Setup time fell 40%. "
            "See https://acme.io/blog for the numbers.")
 
+    def test_local_fallback_keeps_sentence_case_after_a_conjunction(self):
+        import rescue
+        source = "Our team spoke to 40 customers, and the insights were game-changing."
+        self.assertEqual(rescue.rescue_text(source),
+                         "Our team spoke to 40 customers, and those conversations changed our approach.")
+        self.assertEqual(rescue.rescue_text("The insights were game-changing."),
+                         "Those conversations changed our approach.")
+
     def test_faithful_rewrite_passes(self):
         same = ("Acme raised $4.2M, led by Basis Ventures. Setup time fell 40%. "
                 "The numbers are at https://acme.io/blog.")
         r = slopscore.fidelity(self.SRC, same)
         self.assertTrue(r["preserved"], "a faithful rewrite was marked lossy")
         self.assertFalse(r["invented"])
+
+    def test_generic_abstract_openings_do_not_become_protected_names(self):
+        fact = "Setup time fell from 11 hours to 3."
+        for opening in ("Efficiency is paramount.", "Productivity is crucial.",
+                        "Reliability is essential.", "Customer experience is everything."):
+            with self.subTest(opening=opening):
+                result = slopscore.fidelity(opening + " " + fact, fact)
+                self.assertTrue(result["preserved"], result)
+                self.assertFalse(result["invented"])
+
+    def test_abstract_word_names_remain_protected_outside_generic_openings(self):
+        for source in ("Efficiency raised $4M.", "We acquired Efficiency.",
+                       "Efficiency Labs raised $4M.", "Customer Systems raised $4M.",
+                       "Kairoset is essential. We launched today.",
+                       "Efficiency is paramount. We acquired Efficiency."):
+            with self.subTest(source=source):
+                self.assertFalse(slopscore.fidelity(source, "We raised $4M.")["preserved"])
+        quoted = 'The note says "Efficiency is paramount." Setup time fell 40%.'
+        self.assertFalse(slopscore.fidelity(quoted, "Setup time fell 40%.")["preserved"])
 
     def test_dropped_figure_is_caught(self):
         lossy = "Acme raised money led by Basis Ventures. See https://acme.io/blog."
