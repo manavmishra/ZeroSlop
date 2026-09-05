@@ -37,7 +37,13 @@
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-![Zero Slop's signature Zero Cut animation: four stock phrases are marked, the draft is rewritten, and the 40% result is held while the writing score moves from 99.3 to 9.5](assets/zero-slop-demo.gif)
+<a href="https://zero-slop.ai/try/">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png">
+    <source type="image/webp" srcset="assets/zero-slop-demo.webp">
+    <img src="assets/zero-slop-demo.gif" width="1040" height="560" alt="Zero Slop's Zero Cut: four stock phrases removed; writing score 99.3 to 9.5; 40% result retained. Try it free.">
+  </picture>
+</a>
 
 <p align="center"><sub>Free · open source · no account · zero runtime dependencies · local checks run offline</sub></p>
 

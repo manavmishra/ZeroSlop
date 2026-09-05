@@ -90,6 +90,7 @@ jobs:
         run: |
           python3 scripts/check_svg.py assets/engine.svg
           python3 scripts/check_svg.py assets/demo.svg
+          python3 growth/check-motion.py
 
       - name: SKILL.md frontmatter present
         run: |

@@ -31,8 +31,8 @@ Record each idea vertically and horizontally. Keep the final cut between 20 and
 | CI gate | “Fail a docs build when generated copy crosses 25.” | Batch command exits above the threshold | developer newsletters, HN |
 | Hosted MCP | “Add the same writing checks to Codex or Claude with one endpoint.” | Connection command, then one tool call | MCP and coding communities |
 
-The repository's signature animation is the reusable visual system: rust flags,
-the diagonal **Zero Cut**, then a green source check. Use the same sequence in
+The repository's signature animation uses a white background, rust flags,
+the logo's diagonal **Zero Cut**, and a fixed source detail. Use that sequence in
 video thumbnails and short clips so the motion becomes recognizable.
 
 ## Seven-day launch spike
