@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If Zero Slop or its published benchmarks support your work, cite this release."
+type: software
+title: "Zero Slop"
+abstract: >-
+  An open-source Agent Skill and local writing meter for finding AI-shaped
+  prose, editing it with source checks, and learning from approved corrections.
+authors:
+  - family-names: "Mishra"
+    given-names: "Manav"
+version: 2.8.11
+date-released: 2026-09-05
+license: MIT
+repository-code: "https://github.com/manavmishra/ZeroSlop"
+url: "https://zero-slop.ai/"
+keywords:
+  - AI writing
+  - AI slop
+  - Agent Skills
+  - humanize AI text
+  - prose linting
+  - source-preserving editing
