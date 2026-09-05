@@ -1,1 +1,44 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zero Slop | The skill in use</title><style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:32px 20px;background:#fff;color:#12100c;font:16px/1.6 system-ui,sans-serif}main{max-width:1100px;margin:auto}video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#fff}h1{font-size:26px;font-weight:600;letter-spacing:-.6px}a{color:#a64c2c}p{max-width:75ch}summary{cursor:pointer}code{font-size:.94em}.links{display:flex;gap:24px;flex-wrap:wrap}@media(prefers-reduced-motion:reduce){video{scroll-behavior:auto}}</style></head><body><main><h1>Zero Slop: the skill in use</h1><video controls playsinline muted preload="metadata" poster="zero-slop-demo-poster.png"><source src="zero-slop-demo.mp4" type="video/mp4">Your browser cannot play this video. <a href="zero-slop-demo.mp4">Download the MP4</a>.</video><p>A typeset demonstration using the saved launch-post example. Your AI assistant edits; Zero Slop’s local tools score the wording and check source details. The browser editor and MCP use a hosted editor, so their outputs can differ. Sequence edited for readability.</p><div class="links"><a href="https://zero-slop.ai/try/">Try the free editor</a><a href="https://zero-slop.ai/#mcp">Connect the hosted MCP</a><a href="https://github.com/manavmishra/ZeroSlop">Install the skill</a></div><details><summary>Read the demo transcript</summary><p>Install once in your terminal: <code>npx skills add manavmishra/ZeroSlop --global</code>.</p><p>In your AI assistant, paste the draft after <code>/zero-slop</code>.</p><p><strong>Original:</strong> We're thrilled to announce that our team has leveraged cutting-edge machine learning to deliver a seamless onboarding experience, reducing setup time by 40%.</p><p>Four stock phrases are flagged. Writing score: 99.3/100; lower is better.</p><p><strong>Edit:</strong> We used machine learning to reduce onboarding setup time by 40%.</p><p>The writing score is 9.5/100, with zero flagged phrases. The source’s 40% result is retained. The checks do not establish whether that source claim is true.</p></details></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Zero Slop | The skill in your terminal</title>
+  <style>
+    :root{color-scheme:light}*{box-sizing:border-box}
+    body{margin:0;padding:32px 20px;background:#fff;color:#12100c;font:16px/1.6 system-ui,sans-serif}
+    main{max-width:1100px;margin:auto}
+    video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#fff}
+    h1{font-size:26px;font-weight:600;letter-spacing:-.6px}a{color:#a64c2c}
+    p{max-width:75ch}summary{cursor:pointer}code{font-size:.94em;overflow-wrap:anywhere}
+    .links{display:flex;gap:24px;flex-wrap:wrap}
+    @media(prefers-reduced-motion:reduce){video{scroll-behavior:auto}}
+  </style>
+</head>
+<body><main>
+  <h1>Zero Slop: the skill in your terminal</h1>
+  <video controls playsinline muted preload="metadata" poster="zero-slop-demo-poster.png">
+    <source src="zero-slop-demo.mp4" type="video/mp4">
+    Your browser cannot play this video. <a href="zero-slop-demo.mp4">Download the MP4</a>.
+  </video>
+  <p>A reconstructed skill session using the saved launch-post example and a real terminal renderer.
+    Your AI assistant edits; Zero Slop’s local tools score the wording and compare details against the source.
+    Hosted outputs can differ. Timing is edited for readability.</p>
+  <div class="links">
+    <a href="https://zero-slop.ai/try/">Try the free editor</a>
+    <a href="https://zero-slop.ai/#mcp">MCP setup guide</a>
+    <a href="https://github.com/manavmishra/ZeroSlop">Install the skill</a>
+  </div>
+  <p>Hosted MCP endpoint: <code>https://mcp.zero-slop.ai/mcp</code></p>
+  <details><summary>Read the demo transcript</summary>
+    <p>Install in your shell: <code>npx skills add manavmishra/ZeroSlop --global</code>.</p>
+    <p>Restart your assistant. Then paste the draft after <code>/zero-slop</code> inside its session.
+      This is an assistant request, not a shell executable.</p>
+    <p><strong>Original:</strong> We're thrilled to announce that our team has leveraged cutting-edge machine learning to deliver a seamless onboarding experience, reducing setup time by 40%.</p>
+    <p>Four stock phrases are flagged. Writing score: 99.3/100; lower is better.</p>
+    <p><strong>Edit:</strong> We used machine learning to reduce onboarding setup time by 40%.</p>
+    <p>The writing score is 9.5/100, with zero flagged phrases.
+      The source’s 40% figure is retained. The checks do not establish whether that source claim is true.</p>
+    <p>To use the optional hosted MCP, add <code>https://mcp.zero-slop.ai/mcp</code> to your MCP client.</p>
+  </details>
+</main></body></html>

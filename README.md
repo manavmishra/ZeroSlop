@@ -41,11 +41,11 @@ npx skills add manavmishra/ZeroSlop --global
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png">
     <source type="image/webp" srcset="assets/zero-slop-demo.webp">
-    <img src="assets/zero-slop-demo.gif" width="960" alt="Install Zero Slop, paste a slop-filled draft after /zero-slop, then compare the edit. Score 99.3 to 9.5; 40% retained.">
+    <img src="assets/zero-slop-demo.gif" width="960" alt="Terminal demo: install Zero Slop, ask your AI assistant to edit a draft with /zero-slop, then review the edit and source checks.">
   </picture>
 </a>
 
-<p align="center"><a href="assets/zero-slop-demo.mp4">Download the 36-second demo</a> · <sub>Saved skill example; hosted outputs vary.</sub></p>
+<p align="center"><a href="assets/zero-slop-demo.mp4">Download the 36-second demo</a> · <sub>Reconstructed skill session; hosted outputs vary.</sub></p>
 
 ## Before and after
 

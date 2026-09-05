@@ -9,6 +9,8 @@ import struct
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
+MCP_URL = "https://mcp.zero-slop.ai/mcp"
+MCP_GUIDE_URL = "https://zero-slop.ai/#mcp"
 
 
 def require(condition, message):
@@ -174,14 +176,52 @@ class PlayerTags(HTMLParser):
     def __init__(self):
         super().__init__()
         self.tags = []
+        self.visible_text = []
+        self.links = []
+        self._link = None
+        self._noncontent = []
 
     def handle_starttag(self, tag, attrs):
-        self.tags.append((tag, dict(attrs)))
+        attrs = dict(attrs)
+        self.tags.append((tag, attrs))
+        if tag in ("script", "style", "template"):
+            self._noncontent.append(tag)
+        if tag == "a":
+            self._link = {"href": attrs.get("href"), "text": []}
+
+    def handle_endtag(self, tag):
+        if self._noncontent and self._noncontent[-1] == tag:
+            self._noncontent.pop()
+        if tag == "a" and self._link is not None:
+            self.links.append((self._link["href"], " ".join(self._link["text"])))
+            self._link = None
+
+    def handle_data(self, data):
+        if not self._noncontent:
+            self.visible_text.append(data)
+            if self._link is not None:
+                self._link["text"].append(data)
+
+
+def check_mcp_player(parsed):
+    # A URL in an href, script or style is not a user-visible connection address.
+    words = " ".join(parsed.visible_text).split()
+    require(MCP_URL in [word.strip(".,;:()[]{}<>") for word in words],
+            "Player must display the exact MCP connection URL as text or code")
+    guides = [label for href, label in parsed.links if href == MCP_GUIDE_URL]
+    require(guides and all(re.search(r"\bsetup\s+guide\b", label, re.I) for label in guides),
+            "The MCP website link must be labelled as a setup guide, not the endpoint")
 
 
 def check_evidence():
     evidence = json.loads((ROOT / "growth/demo-evidence.json").read_text())
     require(evidence["durationMs"] == 36_000, "Evidence duration is stale")
+    server = json.loads((ROOT / "server.json").read_text())
+    require(evidence.get("mcpURL") == server["remotes"][0]["url"] == MCP_URL,
+            "Evidence MCP URL must match the canonical server.json connection endpoint")
+    renderer = evidence.get("terminalRenderer")
+    require(isinstance(renderer, str) and re.search(r"(?<![\w/@-])@xterm/xterm(?=$|[\s@,;()])", renderer),
+            "Evidence must identify @xterm/xterm as the terminal renderer")
     for field, file_key in (("before", "source"), ("after", "edit")):
         path = (ROOT / evidence[file_key]).resolve()
         require(path.is_relative_to(ROOT), "Evidence source must stay in the repository")
@@ -229,8 +269,9 @@ def main():
     require(any(tag == "source" and attrs.get("src") == "zero-slop-demo.mp4" and attrs.get("type") == "video/mp4" for tag, attrs in parsed.tags), "Missing MP4 player source")
     require(re.search(r"prefers-reduced-motion\s*:\s*reduce", player), "Missing reduced-motion preference")
     require(not any(tag == "audio" or (tag == "script" and "src" in attrs) for tag, attrs in parsed.tags), "Keep playback silent and self-contained")
+    check_mcp_player(parsed)
     check_evidence()
-    print("Poster, 300px logos, media fallbacks, manual-play video and source evidence OK")
+    print("Poster, 300px logos, media fallbacks, manual-play video, MCP endpoint and source evidence OK")
 
 
 if __name__ == "__main__":

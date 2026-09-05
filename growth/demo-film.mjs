@@ -1,221 +1,248 @@
-// A typeset replay of an actual installed-skill example, not a product UI.
-// No external assets, runtime dependencies, sound, or implied latency claim.
+// Deterministic ANSI replay in the real xterm.js renderer. This is a saved
+// installed-skill example, not a screen recording or a claim about latency.
 export const WIDTH = 1280;
 export const HEIGHT = 720;
 export const DURATION = 36000;
-export const POSTER_TIME = 26700;
+export const POSTER_TIME = 26000;
+export const MCP_URL = "https://mcp.zero-slop.ai/mcp";
+
+const INSTALL = "npx skills add manavmishra/ZeroSlop --global";
+const INVOCATION = "/zero-slop";
+const SHELL_TYPE = { start: 350, end: 2050, text: INSTALL };
+const ASSISTANT_TYPE = { start: 4250, end: 5150, text: INVOCATION };
+const OUTPUT_TIMES = [4000, 6000, 12000, 12200, 12800, 13400, 14000, 16400, 17200, 22000, 23000, 24000, 25200, 30000, 30600];
 
 export const CAPTIONS = [
-  "Clean up AI writing.",
-  "Install once, in your terminal.",
-  "npx skills add manavmishra/ZeroSlop --global",
-  "Use it in your AI assistant.",
-  "/zero-slop",
-  "Find the stock phrases.",
-  "Four stock phrases flagged.",
-  "Read the edit.",
-  "Your assistant rewrites. Zero Slop checks the source.",
-  "40% setup-time reduction retained.",
-  "Writing score (lower is better)",
-  "Before and after.",
-  "The draft",
-  "The edit",
-  "Try it on your next draft.",
-  "/zero-slop [your draft]",
-  "Try it free in your browser.",
+  "Zero Slop in your terminal.",
+  "Shell",
+  INSTALL,
+  "Install once. Then restart your assistant.",
+  "AI assistant",
+  INVOCATION,
+  "Paste your draft after /zero-slop.",
+  "Zero Slop",
+  "Writing score: 99.3/100 (lower is better) | 4 flagged phrases",
+  "canned opener",
+  "promotional verb",
+  "unsupported hype",
+  "promotional claim",
+  "Edit",
+  "Your assistant edits. Local tools compare source details.",
+  "Source detail retained: 40%.",
+  "Writing score: 9.5/100 (lower is better)",
+  "Flagged phrases: 0",
+  "Review the edit before you use it.",
+  "Optional hosted MCP",
+  MCP_URL,
+  "Or try the free browser editor",
   "zero-slop.ai/try",
-  "Free. No account needed.",
-  "Or connect the hosted MCP.",
-  "zero-slop.ai/#mcp",
-  "Agent Skill example. Sequence edited for readability.",
+  "Reconstructed skill session. Timing edited for readability.",
 ];
 
 const escapeHTML = (value) => String(value)
-  .replaceAll("&", "&amp;")
-  .replaceAll("<", "&lt;")
-  .replaceAll(">", "&gt;")
-  .replaceAll('"', "&quot;");
+  .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const scriptJSON = (value) => JSON.stringify(value).replaceAll("<", "\\u003c");
 
-function markSource(source, flags) {
-  const matches = [];
-  for (const [index, phrase] of flags.entries()) {
-    const start = source.indexOf(phrase);
-    if (start < 0) throw new Error(`Flag absent from source: ${phrase}`);
-    matches.push({ start, end: start + phrase.length, index });
-  }
-  matches.sort((a, b) => a.start - b.start);
-  let cursor = 0;
-  let output = "";
-  for (const match of matches) {
-    if (match.start < cursor) throw new Error("Overlapping source flags");
-    output += escapeHTML(source.slice(cursor, match.start));
-    output += `<mark data-flag="${match.index}">${escapeHTML(source.slice(match.start, match.end))}</mark>`;
-    cursor = match.end;
-  }
-  output += escapeHTML(source.slice(cursor));
-  return output.replaceAll("40%", '<strong class="fact-number">40%</strong>');
-}
+// Called inside the isolated render document. The transcript is rebuilt from
+// scratch at every requested timestamp, so a seek cannot inherit stale state.
+function initialiseFilm(payload) {
+  const { before, after, beforeScore, afterScore, flags, install, invocation } = payload;
+  const COLS = 76;
+  const ROWS = 14;
+  const ESC = "\u001b[";
+  const RESET = ESC + "0m";
+  const INK = ESC + "38;2;18;16;12m";
+  const MUTED = ESC + "38;2;104;100;94m";
+  const RUST = ESC + "38;2;176;80;44m";
+  const BOLD = ESC + "1m";
+  const terminal = new Terminal({
+    cols: COLS, rows: ROWS,
+    fontFamily: '"SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace',
+    fontSize: 24, lineHeight: 1.1, letterSpacing: 0,
+    fontWeight: "400", fontWeightBold: "600",
+    cursorBlink: false, cursorStyle: "bar", cursorInactiveStyle: "bar", cursorWidth: 2,
+    allowTransparency: false, convertEol: false, disableStdin: true,
+    scrollback: 100, smoothScrollDuration: 0,
+    theme: {
+      background: "#ffffff", foreground: "#12100c", cursor: "#b0502c",
+      cursorAccent: "#ffffff", selectionBackground: "#eae6e0",
+      black: "#12100c", red: "#b0502c", green: "#12100c", yellow: "#68645e",
+      blue: "#12100c", magenta: "#b0502c", cyan: "#68645e", white: "#ffffff",
+      brightBlack: "#68645e", brightRed: "#b0502c", brightGreen: "#12100c",
+      brightYellow: "#68645e", brightBlue: "#12100c", brightMagenta: "#b0502c",
+      brightCyan: "#68645e", brightWhite: "#ffffff",
+    },
+  });
+  terminal.open(document.querySelector("#terminal"));
+  terminal.focus();
+  window.filmTerminal = terminal;
 
-function frame(t) {
-  t = Math.max(0, Math.min(35999, Number(t) || 0));
-  const unit = (x) => Math.max(0, Math.min(1, x));
-  const ease = (x) => 1 - Math.pow(1 - unit(x), 3);
-  const ramp = (start, end) => ease((t - start) / (end - start));
-  const state = (selector, opacity, y = 0) => {
-    for (const element of document.querySelectorAll(selector)) {
-      element.style.opacity = String(opacity);
-      element.style.transform = `translateY(${y}px)`;
-      element.setAttribute("aria-hidden", opacity === 0 ? "true" : "false");
+  const wrap = (text, width = COLS - 4) => {
+    const output = [];
+    let line = "";
+    for (const word of text.split(/\s+/)) {
+      if (line && line.length + word.length + 1 > width) {
+        output.push("  " + line);
+        line = word;
+      } else line += (line ? " " : "") + word;
     }
+    if (line) output.push("  " + line);
+    return output;
   };
-  const scene = (selector, start, entered, leaving, end) => {
-    const incoming = start === 0 ? 1 : ramp(start, entered);
-    const outgoing = end === Infinity ? 0 : ramp(leaving, end);
-    state(selector, incoming * (1 - outgoing), 14 * (1 - incoming) - 8 * outgoing);
+  const type = (text, t, start, end) => text.slice(0,
+    Math.max(0, Math.min(text.length, Math.floor((t - start) / (end - start) * text.length))));
+  const label = (text) => BOLD + text + RESET;
+  const tint = (text, color) => color + text + RESET;
+  const colors = (line, active) => {
+    for (const phrase of flags.slice(0, active)) {
+      line = line.replace(phrase, RUST + phrase + RESET);
+    }
+    return line;
   };
+  const reasons = ["canned opener", "promotional verb", "unsupported hype", "promotional claim"];
 
-  // A scene has left before its successor enters. No double-exposed type.
-  scene(".install", 0, 0, 4800, 5000);
-  scene(".ask", 5000, 5320, 16420, 16600);
-  scene(".result", 16920, 17240, 23760, 24000);
-  scene(".comparison", 24000, 24320, 29260, 29500);
-  scene(".closing", 29500, 29860, Infinity, Infinity);
-
-  state(".ask-title", 1 - ramp(12840, 13000));
-  state(".inspect-title", ramp(13000, 13200));
-  state(".flag-report", ramp(14360, 14600));
-  state(".source-score", ramp(14360, 14600));
-  const flagTimes = [13320, 13640, 13960, 14280];
-  for (const mark of document.querySelectorAll(".source mark")) {
-    mark.classList.toggle("flagged", t >= flagTimes[Number(mark.dataset.flag)]);
+  function transcript(t) {
+    const lines = [tint("$", RUST) + " " + type(install, t, 350, 2050)];
+    if (t >= 4000) lines.push("", label("AI assistant"), "", tint("›", RUST) + " " + type(invocation, t, 4250, 5150));
+    const activeFlags = [12200, 12800, 13400, 14000].filter((at) => t >= at).length;
+    if (t >= 6000) lines.push("", ...wrap(before).map((line) => colors(line, activeFlags)));
+    if (t >= 12000) lines.push("", label("Zero Slop"), tint(`Writing score: ${beforeScore}/100 (lower is better) | 4 flagged phrases`, MUTED));
+    for (let i = 0; i < activeFlags; i += 1) {
+      lines.push("  " + tint('"' + flags[i] + '"', RUST) + " ".repeat(Math.max(2, 21 - flags[i].length)) + tint(reasons[i], MUTED));
+    }
+    if (t >= 16400) lines.push("", label("Edit"));
+    if (t >= 17200) lines.push(...wrap(after).map((line) => INK + line + RESET));
+    if (t >= 22000) lines.push("", "Source detail retained: " + tint("40%.", RUST));
+    if (t >= 23000) lines.push(tint(`Writing score: ${afterScore}/100 (lower is better)`, MUTED));
+    if (t >= 24000) lines.push(tint("Flagged phrases: 0", MUTED));
+    if (t >= 25200) lines.push("", tint("›", RUST) + " ");
+    const cursor = t < 2050 || (t >= 4000 && t < 6000) || t >= 25200;
+    return RESET + INK + lines.join("\r\n") + (cursor ? ESC + "?25h" : ESC + "?25l");
   }
 
-  // The existing logo's angle and rust bar are the single signature gesture.
-  const cut = document.querySelector(".signature-cut");
-  const draw = ramp(16520, 16820);
-  const leave = ramp(16820, 17140);
-  cut.style.opacity = String(t >= 16520 && t < 17140 ? 1 - leave : 0);
-  cut.style.transform = `translate(${leave * 1460}px,${-leave * 205}px) rotate(-8deg) scaleX(${draw})`;
+  function inspect() {
+    const buffer = terminal.buffer.active;
+    const all = [];
+    for (let i = 0; i < buffer.length; i += 1) all.push(buffer.getLine(i)?.translateToString(true) ?? "");
+    return {
+      cols: terminal.cols, rows: terminal.rows, cursorX: buffer.cursorX, cursorY: buffer.cursorY,
+      baseY: buffer.baseY, viewportY: buffer.viewportY,
+      visibleLines: all.slice(buffer.viewportY, buffer.viewportY + terminal.rows), allLines: all,
+    };
+  }
+  window.filmInspection = inspect;
 
-  const proofIn = ramp(19200, 19520);
-  state(".result-proof", proofIn, 7 * (1 - proofIn));
-  document.querySelector("#film").dataset.time = String(Math.round(t));
+  let pending = Promise.resolve();
+  const paint = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const clamp = (x) => Math.max(0, Math.min(1, x));
+  const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);
+  async function draw(time) {
+    const t = Math.max(0, Math.min(35999, Number(time) || 0));
+    terminal.reset();
+    await new Promise((resolve) => terminal.write(transcript(t), resolve));
+    terminal.scrollToBottom();
+    terminal.refresh(0, terminal.rows - 1);
+    const closing = ease((t - 30000) / 600);
+    document.querySelector(".terminal-shell").style.transform = `translateY(${-28 * closing}px) scale(${1 - 0.17 * closing})`;
+    document.querySelector(".closing").style.opacity = String(closing);
+    document.querySelector(".closing").style.transform = `translateY(${10 * (1 - closing)}px)`;
+    document.querySelector(".instruction").style.opacity = String(1 - closing);
+    document.querySelector(".instruction").textContent = t < 4000
+      ? "Install once. Then restart your assistant."
+      : t < 12000 ? "Paste your draft after /zero-slop."
+      : t < 22000 ? "Your assistant edits. Local tools compare source details."
+      : "Review the edit before you use it.";
+    document.querySelector(".session-label").textContent = t < 4000 ? "Shell" : "AI assistant";
+    const underline = document.querySelector(".signature");
+    const visible = inspect().visibleLines;
+    const resultRow = visible.findIndex((line) => line.trim().startsWith(after.slice(0, 15)));
+    const xtermRows = document.querySelector(".xterm-rows");
+    const rowHeight = xtermRows ? xtermRows.getBoundingClientRect().height / ROWS / (1 - 0.17 * closing) : 31;
+    underline.style.top = `${57 + (resultRow + 1) * rowHeight}px`;
+    const stroke = ease((t - 17600) / 380);
+    const fade = 1 - ease((t - 18700) / 400);
+    underline.style.opacity = String(resultRow >= 0 && t >= 17600 && t < 19100 ? fade : 0);
+    underline.style.transform = `rotate(-2deg) scaleX(${stroke})`;
+    document.querySelector("#film").dataset.time = String(Math.round(t));
+    await paint();
+    window.filmState = inspect();
+    return window.filmState;
+  }
+  window.renderFrame = (t) => {
+    pending = pending.then(() => draw(t));
+    return pending;
+  };
+  window.filmReady = document.fonts.ready.then(() => window.renderFrame(0));
 }
 
-export function filmHTML({ logo, before, after, beforeScore, afterScore, flags }) {
-  if (flags.length !== 4) throw new Error("This storyboard requires four measured source flags");
-  const source = markSource(before, flags);
-  const edited = escapeHTML(after).replaceAll("40%", '<strong class="fact-number">40%</strong>');
-  const scoreBefore = escapeHTML(beforeScore);
-  const scoreAfter = escapeHTML(afterScore);
+export function filmHTML({ logo, before, after, beforeScore, afterScore, flags, xtermJS, xtermCSS }) {
+  if (flags.length !== 4 || flags.some((flag) => !before.includes(flag))) throw new Error("Expected four measured source flags");
+  if (!xtermJS || !xtermCSS) throw new Error("The real xterm.js renderer and stylesheet are required");
+  if ([before, after, ...flags].some((text) => /[\u0000-\u001f\u007f]/.test(text))) throw new Error("Unexpected terminal control character in source");
   const css = `
-    :root { color-scheme: light; --ink:#12100c; --rust:#b0502c; --muted:#68645e; --line:#e5e1db; }
+    :root { color-scheme:light; --ink:#12100c; --muted:#68645e; --rust:#b0502c; --line:#e5e1db; }
     * { box-sizing:border-box; }
     html,body { margin:0; width:1280px; height:720px; overflow:hidden; background:#fff; }
-    body { color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; -webkit-font-smoothing:antialiased; }
-    #film { position:relative; width:1280px; height:720px; overflow:hidden; background:#fff; }
-    p,h1,h2 { margin:0; }
-    .brand { position:absolute; top:32px; left:64px; display:flex; align-items:center; gap:12px; height:58px; }
-    .brand svg { display:block; width:58px; height:58px; }
-    .brand span { font-size:29px; font-weight:720; letter-spacing:-1.15px; }
-    .scene { position:absolute; left:72px; top:146px; width:1136px; height:478px; opacity:0; }
-    .scene h1 { font-size:54px; line-height:1.08; letter-spacing:-2.2px; font-weight:620; }
-    .install h1 { font-size:76px; line-height:1.05; letter-spacing:-3.8px; max-width:1040px; }
-    .install .instruction { margin-top:54px; color:var(--muted); font-size:27px; letter-spacing:-.5px; }
-    code { font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
-    .install code { display:block; margin-top:21px; padding:29px 28px; border:1px solid var(--line); border-left:4px solid var(--rust); border-radius:4px; font-size:32px; line-height:1.3; letter-spacing:-.85px; white-space:nowrap; }
-    .ask h1 { position:absolute; top:0; left:0; }
-    .prompt { position:absolute; top:102px; left:0; width:1108px; border-left:3px solid var(--line); padding-left:28px; }
-    .invocation { display:block; margin-bottom:25px; color:var(--rust); font-size:29px; line-height:1.3; letter-spacing:-.5px; }
-    .source { font-size:36px; line-height:1.4; letter-spacing:-1px; font-weight:430; }
-    mark { color:inherit; background:transparent; box-decoration-break:clone; -webkit-box-decoration-break:clone; border-radius:2px; }
-    mark.flagged,.original mark { background:#f8e9e2; color:#823c22; box-shadow:0 2px 0 var(--rust); }
-    .fact-number { font-weight:inherit; color:var(--rust); }
-    .flag-report { position:absolute; left:0; bottom:10px; font-size:22px; color:var(--rust); }
-    .source-score { position:absolute; right:0; bottom:10px; display:flex; align-items:baseline; gap:17px; font-size:19px; color:var(--muted); }
-    .source-score b { font-weight:600; font-size:30px; color:var(--ink); font-variant-numeric:tabular-nums; letter-spacing:-.8px; }
-    .edited { margin-top:53px; max-width:1080px; font-size:58px; line-height:1.21; letter-spacing:-2.2px; font-weight:530; }
-    .result .explanation { position:absolute; bottom:0; left:0; font-size:22px; color:var(--muted); }
-    .result-proof { position:absolute; left:0; right:0; bottom:69px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding-top:19px; border-top:1px solid var(--line); }
-    .preserved { color:var(--rust); font-size:24px; letter-spacing:-.4px; }
-    .result-score { color:var(--muted); font-size:19px; }
-    .result-score b { color:var(--ink); font-size:31px; font-weight:600; letter-spacing:-1px; margin-left:15px; font-variant-numeric:tabular-nums; }
-    .comparison h1 { font-size:48px; }
-    .columns { display:grid; grid-template-columns:1fr 1fr; gap:46px; margin-top:34px; height:354px; }
-    .column { position:relative; min-width:0; }
-    .column + .column { border-left:1px solid var(--line); padding-left:39px; }
-    .column h2 { margin-bottom:21px; font-size:19px; color:var(--muted); font-weight:550; letter-spacing:-.2px; }
-    .original { font-size:27px; line-height:1.43; letter-spacing:-.5px; }
-    .rewritten { font-size:38px; line-height:1.3; letter-spacing:-1.1px; font-weight:500; }
-    .comparison-score { position:absolute; bottom:0; font-size:17px; color:var(--muted); }
-    .comparison-score b { display:inline-block; margin-left:12px; color:var(--ink); font-size:28px; font-weight:600; letter-spacing:-.8px; font-variant-numeric:tabular-nums; }
-    .comparison .preserved { position:absolute; left:0; bottom:-4px; font-size:21px; }
-    .closing h1 { font-size:68px; letter-spacing:-3px; }
-    .next { margin-top:32px; font-size:33px; color:var(--rust); letter-spacing:-1px; line-height:1.4; }
-    .end-links { display:grid; grid-template-columns:1.13fr 1fr; gap:46px; margin-top:52px; padding-top:29px; border-top:1px solid var(--line); }
-    .end-links p { font-size:23px; color:var(--muted); letter-spacing:-.3px; }
-    .end-links a { display:block; margin-top:15px; font-size:37px; letter-spacing:-1.25px; line-height:1.2; color:var(--ink); text-decoration:none; }
-    .end-links .secondary { border-left:1px solid var(--line); padding-left:38px; }
-    .end-links .secondary p { font-size:21px; }
-    .end-links .secondary a { margin-top:18px; font-size:31px; color:var(--rust); letter-spacing:-.8px; }
-    .end-links .free { margin-top:16px; font-size:19px; }
-    .signature-cut { position:absolute; left:-80px; top:425px; width:1400px; height:15px; border-radius:10px; background:var(--rust); transform-origin:left center; opacity:0; }
-    footer { position:absolute; left:72px; right:72px; bottom:27px; display:flex; justify-content:space-between; gap:24px; border-top:1px solid var(--line); padding-top:18px; font-size:15px; line-height:1.3; color:var(--muted); }
-    footer .domain { color:var(--ink); font-size:17px; letter-spacing:-.15px; }
+    body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; }
+    #film { position:relative; width:1280px; height:720px; background:#fff; overflow:hidden; }
+    .brand { position:absolute; top:25px; left:52px; height:70px; display:flex; align-items:center; gap:14px; }
+    .brand svg { width:64px; height:64px; display:block; }
+    h1 { margin:0; font-size:32px; line-height:1.15; font-weight:620; letter-spacing:-1.15px; }
+    .terminal-shell { position:absolute; left:52px; top:119px; width:1176px; height:514px; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 8px 24px rgba(104,100,94,.055); transform-origin:50% 0; overflow:hidden; }
+    .terminal-bar { height:43px; border-bottom:1px solid var(--line); background:#faf9f7; display:flex; align-items:center; justify-content:center; position:relative; }
+    .window-controls { position:absolute; left:20px; display:flex; align-items:center; gap:8px; }
+    .window-controls i { width:8px; height:8px; border:1px solid #b8b3ab; border-radius:50%; }
+    .session-label { font-size:15px; color:var(--muted); line-height:1; }
+    #terminal { position:absolute; left:27px; top:57px; right:20px; height:438px; background:#fff; }
+    .xterm { background:#fff!important; }
+    .xterm-viewport { scrollbar-width:none; }
+    .xterm-viewport::-webkit-scrollbar { display:none; }
+    .xterm .xterm-scrollable-element > .scrollbar { opacity:0!important; }
+    .signature { position:absolute; left:54px; width:104px; height:3px; border-radius:2px; background:var(--rust); transform-origin:0 50%; pointer-events:none; opacity:0; }
+    .instruction { position:absolute; left:57px; top:652px; margin:0; font-size:20px; line-height:1.25; color:var(--muted); letter-spacing:-.2px; }
+    .closing { position:absolute; left:104px; right:104px; top:545px; display:grid; grid-template-columns:1.7fr 1fr; gap:38px; opacity:0; }
+    .closing p { margin:0 0 12px; color:var(--muted); font-size:20px; line-height:1.2; }
+    .closing a { color:var(--rust); text-decoration:none; font-size:32px; font-weight:520; letter-spacing:-.85px; white-space:nowrap; }
+    .closing .secondary { padding-left:31px; border-left:1px solid var(--line); }
+    .closing .secondary a { color:var(--ink); font-size:28px; letter-spacing:-.5px; }
+    footer { position:absolute; left:57px; right:57px; bottom:16px; display:flex; justify-content:space-between; font-size:14px; color:var(--muted); line-height:1.25; }
     @media (prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important; } }
   `;
+  const payload = { before, after, beforeScore, afterScore, flags, install: INSTALL, invocation: INVOCATION };
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zero Slop: installed skill demo</title><style>${css}</style></head>
-<body><main id="film" aria-label="Zero Slop installed skill example: install, ask your assistant, review the edit, and compare the source.">
-  <header class="brand">${logo}<span>Zero Slop</span></header>
-  <section class="scene install">
-    <h1>Clean up AI writing.</h1>
-    <p class="instruction">Install once, in your terminal.</p>
-    <code>npx skills add manavmishra/ZeroSlop --global</code>
-  </section>
-  <section class="scene ask">
-    <h1 class="ask-title">Use it in your AI assistant.</h1>
-    <h1 class="inspect-title">Find the stock phrases.</h1>
-    <div class="prompt"><code class="invocation">/zero-slop</code><p class="source">${source}</p></div>
-    <p class="flag-report">Four stock phrases flagged.</p>
-    <p class="source-score"><span>Writing score (lower is better)</span><b>${scoreBefore}</b></p>
-  </section>
-  <section class="scene result">
-    <h1>Read the edit.</h1>
-    <p class="edited">${edited}</p>
-    <div class="result-proof"><p class="preserved">40% setup-time reduction retained.</p><p class="result-score">Writing score (lower is better)<b>${scoreAfter}</b></p></div>
-    <p class="explanation">Your assistant rewrites. Zero Slop checks the source.</p>
-  </section>
-  <section class="scene comparison">
-    <h1>Before and after.</h1>
-    <div class="columns">
-      <div class="column"><h2>The draft</h2><p class="original">${source}</p><p class="comparison-score">Writing score (lower is better)<b>${scoreBefore}</b></p></div>
-      <div class="column"><h2>The edit</h2><p class="rewritten">${edited}</p><p class="comparison-score">Writing score (lower is better)<b>${scoreAfter}</b></p></div>
-    </div>
-    <p class="preserved">40% setup-time reduction retained.</p>
-  </section>
-  <section class="scene closing">
-    <h1>Try it on your next draft.</h1>
-    <p class="next"><code>/zero-slop [your draft]</code></p>
-    <div class="end-links">
-      <div><p>Try it free in your browser.</p><a href="https://zero-slop.ai/try/">zero-slop.ai/try</a><p class="free">Free. No account needed.</p></div>
-      <div class="secondary"><p>Or connect the hosted MCP.</p><a href="https://zero-slop.ai/#mcp">zero-slop.ai/#mcp</a></div>
-    </div>
-  </section>
-  <i class="signature-cut" aria-hidden="true"></i>
-  <footer><span>Agent Skill example. Sequence edited for readability.</span><span class="domain">zero-slop.ai</span></footer>
-</main><script>const renderFrame = ${frame.toString()}; window.renderFrame = renderFrame; renderFrame(matchMedia('(prefers-reduced-motion: reduce)').matches ? ${POSTER_TIME} : 0);</script></body></html>`;
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zero Slop: terminal skill demo</title>
+<style>${xtermCSS}</style><style>${css}</style></head>
+<body><main id="film" aria-label="Reconstructed Zero Slop skill session: install in a shell, invoke in your AI assistant, and review a source-checked edit.">
+<header class="brand">${logo}<h1>Zero Slop in your terminal.</h1></header>
+<section class="terminal-shell" aria-label="Zero Slop terminal session">
+  <div class="terminal-bar"><span class="window-controls" aria-hidden="true"><i></i><i></i><i></i></span><span class="session-label">Shell</span></div>
+  <div id="terminal"></div><i class="signature" aria-hidden="true"></i>
+</section>
+<p class="instruction">Install once. Then restart your assistant.</p>
+<section class="closing" aria-label="Optional ways to use Zero Slop">
+  <div><p>Optional hosted MCP</p><a href="${escapeHTML(MCP_URL)}">${escapeHTML(MCP_URL)}</a></div>
+  <div class="secondary"><p>Or try the free browser editor</p><a href="https://zero-slop.ai/try/">zero-slop.ai/try</a></div>
+</section>
+<footer><span>Reconstructed skill session. Timing edited for readability.</span><span>zero-slop.ai</span></footer>
+</main><script>${xtermJS.replaceAll("</script", "<\\/script")}</script>
+<script>(${initialiseFilm.toString()})(${scriptJSON(payload)});</script></body></html>`;
 }
 
+// Dense frames only while a command is typed or a motivated state gesture is
+// moving. All reading holds are a single frame with its own duration.
 export function timeline(fps = 30) {
-  if (!Number.isFinite(fps) || fps < 1 || fps > 120) throw new Error("fps must be 1–120");
-  const points = new Set([0, 4800, 5000, 5320, 12840, 13000, 13200, 13320, 13640, 13960, 14280, 14360, 14600, 16420, 16520, 16600, 16820, 16920, 17140, 17240, 19200, 19520, 23760, 24000, 24320, 29260, 29500, 29860, DURATION]);
-  const transitions = [[4800, 5320], [12840, 13200], [14360, 14600], [16420, 17240], [19200, 19520], [23760, 24320], [29260, 29860]];
-  for (const [start, end] of transitions) {
-    for (let tick = 0; start + tick * 1000 / fps < end; tick++) {
-      points.add(Math.round(start + tick * 1000 / fps));
+  if (!(fps > 0 && fps <= 120)) throw new Error("fps must be between 0 and 120");
+  const times = new Set([0, ...OUTPUT_TIMES]);
+  for (const typing of [SHELL_TYPE, ASSISTANT_TYPE]) {
+    for (let n = 0; n <= typing.text.length; n += 1) {
+      times.add(Math.round(typing.start + (typing.end - typing.start) * n / typing.text.length));
     }
   }
-  const times = [...points].sort((a, b) => a - b);
-  return times.slice(0, -1).map((t, index) => ({ t, durationMs: times[index + 1] - t }));
+  for (const [start, end] of [[17600, 17980], [18700, 19100], [30000, 30600]]) {
+    for (let t = start; t < end; t += 1000 / fps) times.add(Math.round(t));
+    times.add(end);
+  }
+  const ordered = [...times].filter((t) => t >= 0 && t < DURATION).sort((a, b) => a - b);
+  return ordered.map((t, i) => ({ t, durationMs: (ordered[i + 1] ?? DURATION) - t }));
 }

@@ -1,22 +1,27 @@
 # Zero Slop product demo
 
-A silent, 36-second walkthrough of the installed Agent Skill. It shows where
-to install it, what to ask an assistant, and how to read the resulting edit.
-The footage is typeset from the repository's saved launch-post example; it is
-not a screen recording of the hosted editor. Different host models can return
-different edits.
+A silent, 36-second terminal demo of the installed Agent Skill. It shows the
+installation command, an assistant request with a complete draft, the edit, and
+the local checks. xterm.js renders the character grid, ANSI styling, cursor and
+scrollback. The transcript reconstructs the saved launch-post example; it is
+not a screen recording or a latency measurement. Different host models can
+return different edits.
+
+This returns to the shell direction in commit `91ee2fc1`, with larger type,
+the current example's measurements, and a clear distinction between the shell
+and the AI assistant. The logo and white background remain unchanged.
 
 ## The story
 
 | Time | Viewer sees |
 |---|---|
-| 0–5 s | The product's purpose and the exact installation command |
-| 5–13 s | A `/zero-slop` request with the complete sample draft |
-| 13–16.5 s | Four measured stock-phrase flags in that same draft |
-| 16.5–17.2 s | The logo's rust slash makes the signature cut |
-| 17.2–24 s | The complete edit, with the 40% result retained |
-| 24–29.5 s | Original and edit together, with supporting writing scores |
-| 29.5–36 s | The next-draft prompt, free browser editor, and hosted MCP |
+| 0-4 s | The installation command is typed at the shell prompt |
+| 4-6 s | The context changes to the AI assistant; `/zero-slop` is entered |
+| 6-12 s | The complete source arrives as a paste and stays readable |
+| 12-16.4 s | Four actual phrase flags appear as whole output lines |
+| 16.4-22 s | The edit arrives; the rust signature briefly underlines it |
+| 22-30 s | Source-detail and writing checks finish beneath the full edit |
+| 30-36 s | The session recedes to reveal the exact MCP endpoint and browser option |
 
 The original's 40% claim is a sample claim, not a Zero Slop performance result.
 The scorer is rerun during rendering: 99.3 becomes 9.5, with four flagged phrases
@@ -24,8 +29,38 @@ becoming zero. The source check is also rerun. Its result concerns tracked
 details; it does not establish that the original claim is true.
 
 `growth/demo-evidence.json` records exact texts, source hashes, and full tool
-output. `growth/demo-film.mjs` owns the composition and timing. Every transition
-serves an instruction or a change of state; holds leave time to read.
+output. It also identifies the terminal renderer and canonical MCP URL.
+`growth/demo-film.mjs` owns the composition and timing. Only user commands are
+typed character by character. Machine output arrives in complete lines; holds
+leave time to read. No decorative spinner, fabricated processing time, or
+eight-green-check animation implies independent reviews.
+
+## MCP connection
+
+The ending displays **`https://mcp.zero-slop.ai/mcp`**. Live read-only checks on
+September 5, 2026 returned HTTP 200 for MCP initialization and `tools/list`;
+the server identified itself as `zero-slop` 2.8.10 and listed `deslop`.
+No tool was executed and no draft was sent during that check.
+
+`https://zero-slop.ai/#mcp` is a setup guide, not the endpoint. Build and CI
+checks compare the film's URL with `server.json` and require the player to
+display the endpoint separately from its setup-guide link.
+
+## Research behind the treatment
+
+[Charm VHS](https://github.com/charmbracelet/vhs) makes commands, typing,
+pauses, geometry and exports reproducible. [asciinema's player options](https://docs.asciinema.org/manual/player/options/)
+recommend matching the recording's terminal dimensions and trimming idle gaps
+instead of accelerating the whole session. Those practices informed the fixed
+76-column grid, quick input and generous reading holds.
+
+[xterm.js](https://xtermjs.org/docs/api/terminal/interfaces/iterminaloptions/)
+supplies actual terminal layout and cursor behavior. Its opaque rendering keeps
+the capture simple. The white shell uses 24px monospace text, a quiet title bar
+and one rust accent. [Gum](https://github.com/charmbracelet/gum) and
+[Lazygit](https://github.com/jesseduffield/lazygit) demonstrate specific terminal
+jobs near the beginning of their READMEs; this film likewise completes one job.
+These are observed documentation patterns, not evidence of a causal conversion lift.
 
 ## Deliverables
 
@@ -34,7 +69,7 @@ serves an instruction or a change of state; holds leave time to read.
 | `zero-slop-demo.mp4` | 1920 × 1080, 30 fps H.264 film, silent, fast-start |
 | `zero-slop-demo.webp` | 960 × 540 inline GitHub animation |
 | `zero-slop-demo.gif` | Compatible inline fallback, existing URL preserved |
-| `zero-slop-demo-poster.png` | 1280 × 720 before/after still for reduced motion |
+| `zero-slop-demo-poster.png` | 1280 × 720 result-and-checks still for reduced motion |
 | `zero-slop-demo.html` | Native video player with controls and a text transcript |
 | `logo/logo-300.png` | Existing 300 × 300 logo on white |
 | `logo/logo-mark-300.png` | Existing 300 × 300 transparent logo |
@@ -46,13 +81,16 @@ pause, seek, and replay controls. Its transcript also explains the source check.
 
 ## Rebuild
 
-Build-time dependencies are Node.js, Chrome, `playwright-core`, and `sharp`.
+Build-time dependencies are Node.js, Chrome, `playwright-core`, `sharp`, and `@xterm/xterm` 6.0.0.
 They add nothing to the published skill. `CHROME_PATH` and `NODE_PATH` can
 point to existing build tools. MP4 encoding uses macOS AVFoundation through
 Swift and requires Apple's command-line tools; no codec package is installed.
 
 ```sh
-node scripts/make-readme-gif.mjs --frames /tmp/zero-slop-film-frames
+# Keep the terminal renderer outside the skill's dependency-free runtime.
+npm install --prefix /tmp/zero-slop-media-deps @xterm/xterm@6.0.0 --ignore-scripts
+ZERO_SLOP_MEDIA_DEPS=/tmp/zero-slop-media-deps \
+  node scripts/make-readme-gif.mjs --frames /tmp/zero-slop-film-frames
 swift -module-cache-path /tmp/zero-slop-swift-cache growth/encode-demo.swift \
   --manifest /tmp/zero-slop-film-frames/manifest.json \
   --output /tmp/zero-slop-demo-new.mp4 --width 1920 --height 1080 --fps 30
