@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage questions
+    url: https://github.com/manavmishra/ZeroSlop/discussions
+    about: Ask for setup or workflow help in Discussions.
+  - name: Hosted MCP guide
+    url: https://zero-slop.ai/mcp/
+    about: Connect Zero Slop to a supported MCP client.
+  - name: Security report
+    url: https://github.com/manavmishra/ZeroSlop/security/policy
+    about: Read the private vulnerability reporting policy.

@@ -1,0 +1,35 @@
+name: Feature proposal
+description: Propose a focused improvement with a concrete use case.
+title: "[Proposal] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What writing or workflow problem cannot be handled today?
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Concrete example
+      description: Show the input, desired behavior, and any important source details.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Suggested scope
+      description: Note which runtime or documentation surface would change.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checks
+      options:
+        - label: This proposal does not require sending local drafts to a new service.
+          required: true
+        - label: I have removed private or confidential text from this issue.
+          required: true

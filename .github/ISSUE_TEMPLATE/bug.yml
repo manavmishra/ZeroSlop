@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible problem in the skill, CLI, or local tools.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for making Zero Slop better. Do not paste confidential drafts, credentials, or private voice profiles.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Agent Skill
+        - slopscore.py
+        - register.py
+        - npm installer
+        - hosted MCP
+        - documentation
+        - other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "For example: 2.8.10 or a commit SHA"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include the command and the smallest safe, redacted input that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "OS, Python or Node version, and assistant or harness"
+    validations:
+      required: true

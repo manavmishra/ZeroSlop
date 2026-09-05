@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Renders the GitHub repo social preview card (1280x640).
+// Renders the GitHub repository social preview (1280x640).
 //
-// GitHub exposes no API for repo social previews, so this only produces the
-// file; uploading it is a manual step in Settings -> General -> Social preview.
+// Usage: node growth/make-social-preview.mjs [outfile]
 //
-// Usage: node scripts/make-social-preview.mjs [outfile]
+// The asset is deterministic, uses no network resources, and stays under
+// GitHub's 1 MB recommendation. Upload the output in Settings → General →
+// Social preview.
 
 import { chromium } from "playwright-core";
 import { writeFile } from "node:fs/promises";
@@ -14,94 +15,169 @@ const chromePath =
   process.env.CHROME_PATH ??
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
-// Site palette, dark variant: background #17150e, paper #faf5e0, green #227B5B,
-// violet #72528F. Kept in sync with ZSWebpage/app/globals.css by hand.
-// Terracotta rust on paper white. The score is drawn as a measurement scale
-// rather than a pair of coloured chips: the product measures writing, so the
-// card should look like a measurement, not a promotion.
-const RUST = "#b0442a";
-const DRAFT = 77;
-const EDITED = 14;
-
-// Positions on a 0-100 axis, inset so the end dots never clip the track.
-const pos = (n) => `${4 + (n / 100) * 92}%`;
-
 const html = `<!doctype html>
-<html><head><meta charset="utf-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<html>
+<head>
+<meta charset="utf-8">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --ink: #f7f0dd;
+    --paper: #17150f;
+    --panel: #211e17;
+    --line: #3b362a;
+    --muted: #aaa18f;
+    --rust: #d76545;
+    --green: #66c69a;
+  }
+  * { box-sizing: border-box; }
   body {
-    width:1280px; height:640px; display:flex; flex-direction:column;
-    justify-content:space-between; padding:60px 80px 56px;
-    background:#ffffff; color:#1a1714;
-    font-family:'Manrope',system-ui,sans-serif;
+    width: 1280px;
+    height: 640px;
+    margin: 0;
+    overflow: hidden;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 79% 17%, rgba(167,139,195,.15), transparent 27%),
+      linear-gradient(rgba(255,255,255,.024) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.024) 1px, transparent 1px),
+      var(--paper);
+    background-size: auto, 40px 40px, 40px 40px, auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  header { display:flex; justify-content:space-between; align-items:center; }
-  .mark { display:flex; align-items:center; gap:12px; font-size:19px; font-weight:800;
-          letter-spacing:.13em; text-transform:uppercase; color:${RUST}; }
-  .mark i { width:11px; height:11px; background:${RUST}; border-radius:2px; display:block; }
-  .site { font-family:'IBM Plex Mono',monospace; font-size:16px; color:#8a8178; }
-
-  h1 { font-size:66px; font-weight:800; letter-spacing:-.033em; line-height:1.08; }
-  h1 span { color:#a9a099; }
-
-  .scale { margin-top:76px; }
-  .track { position:relative; height:3px; background:#e9e4de; border-radius:2px; }
-  .fill  { position:absolute; top:0; bottom:0; background:${RUST}; opacity:.16; border-radius:2px; }
-  .node  { position:absolute; top:50%; transform:translate(-50%,-50%); }
-  .node b { display:block; width:15px; height:15px; border-radius:50%; }
-  .node.draft  b { background:#ffffff; border:3px solid #c8c1b9; }
-  .node.edited b { background:${RUST}; box-shadow:0 0 0 6px rgba(176,68,42,.13); }
-  .node u {
-    position:absolute; left:50%; transform:translateX(-50%); top:30px;
-    text-decoration:none; white-space:nowrap; text-align:center;
+  main {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 70px;
+    padding: 58px 72px 52px;
   }
-  .node u em { display:block; font-family:'IBM Plex Mono',monospace; font-size:12px;
-               letter-spacing:.15em; text-transform:uppercase; color:#8a8178;
-               font-style:normal; margin-bottom:3px; }
-  .node u strong { font-size:38px; font-weight:600; letter-spacing:-.02em; line-height:1; }
-  .node.draft u strong  { color:#a9a099; }
-  .node.edited u strong { color:${RUST}; }
-  .axis { display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace;
-          font-size:12px; color:#c6bfb7; margin-top:96px; }
-
-  footer { display:flex; justify-content:space-between; align-items:baseline;
-           border-top:1px solid #ece7e1; padding-top:20px; }
-  .meta { font-family:'IBM Plex Mono',monospace; font-size:15px; color:#8a8178; }
-  .meta b { color:#1a1714; font-weight:500; }
-</style></head>
+  .left { display: flex; flex-direction: column; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .mark {
+    width: 31px; height: 31px; border: 2px solid var(--rust);
+    border-radius: 8px; position: relative; transform: rotate(45deg);
+  }
+  .mark::before {
+    content: ""; position: absolute; width: 13px; height: 2px;
+    background: var(--rust); left: 7px; top: 7px;
+    box-shadow: 0 11px 0 var(--rust); transform: rotate(-45deg);
+  }
+  .wordmark {
+    font-size: 20px; line-height: 1; font-weight: 750;
+    letter-spacing: .16em; text-transform: uppercase;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    color: var(--green); font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .12em; text-transform: uppercase; margin-bottom: 20px;
+  }
+  .eyebrow::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 0 5px rgba(102,198,154,.12);
+  }
+  h1 {
+    margin: 0; max-width: 690px; font-size: 69px; line-height: .99;
+    letter-spacing: -.045em; font-weight: 760;
+  }
+  h1 em { color: var(--rust); font-style: normal; }
+  .sub {
+    max-width: 650px; margin-top: 24px; color: var(--muted);
+    font-size: 21px; line-height: 1.42; letter-spacing: -.01em;
+  }
+  .install {
+    width: fit-content; padding: 14px 18px; border: 1px solid var(--line);
+    border-radius: 11px; background: rgba(33,30,23,.78);
+    color: #ddd4c0; font: 15px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .install span { color: var(--green); }
+  .proof {
+    align-self: center; width: 400px; min-height: 452px; padding: 28px;
+    border: 1px solid var(--line); border-radius: 24px;
+    background: linear-gradient(145deg, rgba(39,35,27,.95), rgba(27,25,19,.94));
+    box-shadow: 0 28px 70px rgba(0,0,0,.24);
+  }
+  .proof-top {
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .1em; text-transform: uppercase;
+  }
+  .status { color: var(--green); }
+  .score-row {
+    display: grid; grid-template-columns: 1fr 56px 1fr;
+    align-items: center; margin-top: 34px;
+  }
+  .score small {
+    display: block; color: var(--muted); margin-bottom: 5px;
+    font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  .score strong { font-size: 56px; letter-spacing: -.06em; font-weight: 680; }
+  .score.before strong { color: #b0a895; }
+  .score.after { text-align: right; }
+  .score.after strong { color: var(--green); }
+  .arrow { color: var(--rust); font-size: 25px; text-align: center; }
+  .rail {
+    height: 8px; margin: 30px 0 32px; border-radius: 99px;
+    background: #39342a; overflow: hidden; position: relative;
+  }
+  .rail::before {
+    content: ""; position: absolute; inset: 0 82% 0 0;
+    background: var(--green); border-radius: inherit;
+  }
+  .check {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 17px 0; border-top: 1px solid var(--line); color: var(--muted);
+    font: 14px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .check b { color: var(--ink); font-weight: 600; }
+  .tick {
+    width: 23px; height: 23px; display: grid; place-items: center;
+    border-radius: 50%; background: rgba(102,198,154,.12); color: var(--green);
+    font: 700 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .foot {
+    display: flex; gap: 18px; margin-top: 22px; color: var(--muted);
+    font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .foot span + span::before { content: "·"; margin-right: 18px; color: #5f5849; }
+</style>
+</head>
 <body>
-  <header>
-    <div class="mark"><i></i>Zero Slop</div>
-    <div class="site">zero-slop.ai</div>
-  </header>
-
-  <div>
-    <h1>Less slop, more pop.<br><span>No rewrites.</span></h1>
-    <div class="scale">
-      <div class="track">
-        <div class="fill" style="left:${pos(EDITED)};right:${100 - parseFloat(pos(DRAFT))}%"></div>
-        <div class="node draft"  style="left:${pos(DRAFT)}"><b></b><u><em>draft</em><strong>${DRAFT}</strong></u></div>
-        <div class="node edited" style="left:${pos(EDITED)}"><b></b><u><em>edited</em><strong>${EDITED}</strong></u></div>
+  <main>
+    <section class="left">
+      <div class="brand"><i class="mark"></i><span class="wordmark">Zero Slop</span></div>
+      <div>
+        <div class="eyebrow">Free, open-source Agent Skill</div>
+        <h1>Find AI slop.<br><em>Keep the source intact.</em></h1>
+        <p class="sub">Score the draft, edit with your existing assistant, then check names, numbers, links, and quotations locally.</p>
       </div>
-      <div class="axis"><span>0</span><span>writing score</span><span>100</span></div>
-    </div>
-  </div>
-
-  <footer>
-    <div class="meta"><b>Agent Skill</b> &middot; MIT &middot; zero dependencies &middot; runs locally</div>
-    <div class="meta">npx skills add manavmishra/ZeroSlop</div>
-  </footer>
-</body></html>`;
+      <div class="install"><span>$</span> npx skills add manavmishra/ZeroSlop --global</div>
+    </section>
+    <aside class="proof">
+      <div class="proof-top"><span>Saved 18-draft replay</span><span class="status">verified</span></div>
+      <div class="score-row">
+        <div class="score before"><small>Draft</small><strong>76.3</strong></div>
+        <div class="arrow">→</div>
+        <div class="score after"><small>Edited</small><strong>12.8</strong></div>
+      </div>
+      <div class="rail"></div>
+      <div class="check"><span>Source checks</span><b>18 / 18</b><i class="tick">✓</i></div>
+      <div class="check"><span>Runtime dependencies</span><b>0</b><i class="tick">✓</i></div>
+      <div class="check"><span>Local scorer</span><b>offline</b><i class="tick">✓</i></div>
+      <div class="foot"><span>MIT</span><span>zero-slop.ai</span></div>
+    </aside>
+  </main>
+</body>
+</html>`;
 
 const browser = await chromium.launch({ executablePath: chromePath, headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
-  await page.setContent(html, { waitUntil: "networkidle" });
-  await page.evaluate(() => document.fonts.ready);
+  const page = await browser.newPage({
+    viewport: { width: 1280, height: 640 },
+    deviceScaleFactor: 1,
+  });
+  await page.setContent(html);
   const buffer = await page.screenshot({ type: "png" });
   await writeFile(out, buffer);
   console.log(`wrote ${out} (${(buffer.length / 1024).toFixed(0)} KB, 1280x640)`);

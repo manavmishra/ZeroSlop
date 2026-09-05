@@ -1,0 +1,37 @@
+name: Scoring false positive
+description: Show a phrase or construction that should not have been flagged.
+title: "[False positive] "
+labels: ["scoring"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use a short, public or redacted example. Never paste a confidential draft or private learning data.
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal example
+      description: Include enough surrounding text to preserve the intended meaning.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Scorer output
+      description: Paste the relevant lines from slopscore.py --explain.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why the phrase belongs
+      description: Explain the register, audience, or technical meaning that makes the flag incorrect.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
