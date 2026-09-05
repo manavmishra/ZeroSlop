@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://zero-slop.ai">
-    <img src="assets/logo/logo-mark-512.png" width="112" alt="Zero Slop">
+    <img src="assets/logo/studio/zero-slop-mark-300-transparent.png" width="112" alt="Zero Slop">
   </a>
 </p>
 
@@ -45,7 +45,7 @@ npx skills add manavmishra/ZeroSlop --global
   </picture>
 </a>
 
-<p align="center"><a href="assets/zero-slop-demo.mp4">Download the 36-second demo</a> · <sub>Reconstructed skill session; hosted outputs vary.</sub></p>
+<p align="center"><a href="assets/zero-slop-demo.mp4">Watch the 24-second demo</a> · <sub>Silent reconstructed skill session; hosted outputs vary.</sub></p>
 
 ## Before and after
 

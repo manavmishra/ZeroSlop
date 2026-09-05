@@ -28,7 +28,7 @@ export const CAPTIONS = [
   "promotional claim",
   "Edit",
   "Your assistant edits. Local tools compare source details.",
-  "Source detail retained: 40%.",
+  "Source figure retained: 40%.",
   "Writing score: 9.5/100 (lower is better)",
   "Flagged phrases: 0",
   "Review the edit before you use it.",
@@ -54,7 +54,7 @@ function initialiseFilm(payload) {
   const RESET = ESC + "0m";
   const INK = ESC + "38;2;18;16;12m";
   const MUTED = ESC + "38;2;104;100;94m";
-  const RUST = ESC + "38;2;176;80;44m";
+  const RUST = ESC + "38;2;140;63;34m";
   const BOLD = ESC + "1m";
   const terminal = new Terminal({
     cols: COLS, rows: ROWS,
@@ -65,12 +65,12 @@ function initialiseFilm(payload) {
     allowTransparency: false, convertEol: false, disableStdin: true,
     scrollback: 100, smoothScrollDuration: 0,
     theme: {
-      background: "#ffffff", foreground: "#12100c", cursor: "#b0502c",
+      background: "#ffffff", foreground: "#12100c", cursor: "#8c3f22",
       cursorAccent: "#ffffff", selectionBackground: "#eae6e0",
-      black: "#12100c", red: "#b0502c", green: "#12100c", yellow: "#68645e",
-      blue: "#12100c", magenta: "#b0502c", cyan: "#68645e", white: "#ffffff",
-      brightBlack: "#68645e", brightRed: "#b0502c", brightGreen: "#12100c",
-      brightYellow: "#68645e", brightBlue: "#12100c", brightMagenta: "#b0502c",
+      black: "#12100c", red: "#8c3f22", green: "#12100c", yellow: "#68645e",
+      blue: "#12100c", magenta: "#8c3f22", cyan: "#68645e", white: "#ffffff",
+      brightBlack: "#68645e", brightRed: "#8c3f22", brightGreen: "#12100c",
+      brightYellow: "#68645e", brightBlue: "#12100c", brightMagenta: "#8c3f22",
       brightCyan: "#68645e", brightWhite: "#ffffff",
     },
   });
@@ -113,7 +113,7 @@ function initialiseFilm(payload) {
     }
     if (t >= 16400) lines.push("", label("Edit"));
     if (t >= 17200) lines.push(...wrap(after).map((line) => INK + line + RESET));
-    if (t >= 22000) lines.push("", "Source detail retained: " + tint("40%.", RUST));
+    if (t >= 22000) lines.push("", "Source figure retained: " + tint("40%.", RUST));
     if (t >= 23000) lines.push(tint(`Writing score: ${afterScore}/100 (lower is better)`, MUTED));
     if (t >= 24000) lines.push(tint("Flagged phrases: 0", MUTED));
     if (t >= 25200) lines.push("", tint("›", RUST) + " ");
@@ -181,7 +181,7 @@ export function filmHTML({ logo, before, after, beforeScore, afterScore, flags, 
   if (!xtermJS || !xtermCSS) throw new Error("The real xterm.js renderer and stylesheet are required");
   if ([before, after, ...flags].some((text) => /[\u0000-\u001f\u007f]/.test(text))) throw new Error("Unexpected terminal control character in source");
   const css = `
-    :root { color-scheme:light; --ink:#12100c; --muted:#68645e; --rust:#b0502c; --line:#e5e1db; }
+    :root { color-scheme:light; --ink:#12100c; --muted:#68645e; --rust:#8c3f22; --line:#e5e1db; }
     * { box-sizing:border-box; }
     html,body { margin:0; width:1280px; height:720px; overflow:hidden; background:#fff; }
     body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; }

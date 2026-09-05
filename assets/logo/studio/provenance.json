@@ -1,0 +1,14 @@
+{
+  "source": "User-supplied logo-email.png, preserved unchanged as zero-slop-logo-original.png",
+  "sourceDimensions": { "width": 192, "height": 192 },
+  "sourceSha256": "fc6bd1dfb8f0c38ddc63dd12abd0e4d2d9cd2049de54885ed5bef3acf7a9e7c3",
+  "colors": {
+    "gold": "#e2a500",
+    "ink": "#12100c",
+    "rust": "#8c3f22"
+  },
+  "vectorMethod": "Gold tile reconstructed at radius 17 on a 64-unit canvas. Z uses the original repository path without enlargement. Rounded stroke dimensions and rotation were fitted to the supplied raster.",
+  "pngExports": "Rendered from the faithful vector reconstruction. Transparent exports retain the gold tile and remove only the corner exterior.",
+  "identityChange": false,
+  "optionalWordmark": "Secondary outlined lettering created for a horizontal lockup. It is not present in the original supplied logo."
+}

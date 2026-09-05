@@ -14,13 +14,15 @@ authorship detector.
 
 **Developer CTA:** `npx skills add manavmishra/ZeroSlop --global`.
 
-**Hosted CTA:** Connect the MCP at `https://zero-slop.ai/#mcp` when a user wants
-one managed endpoint instead of a local installation.
+**Hosted CTA:** Connect `https://mcp.zero-slop.ai/mcp` when a user wants one
+managed endpoint instead of a local installation. The
+[MCP setup guide](https://zero-slop.ai/#mcp) explains the connection.
 
 ## One launch, several demonstrations
 
 Record each idea vertically and horizontally. Keep the final cut between 20 and
-40 seconds. Start on the bad sentence, not the logo.
+40 seconds. Lead with the writing problem. If a cut opens with the brand, start
+the demonstration within two seconds.
 
 | Demo | Hook | Visible proof | Best channels |
 |---|---|---|---|
@@ -31,12 +33,22 @@ Record each idea vertically and horizontally. Keep the final cut between 20 and
 | CI gate | “Fail a docs build when generated copy crosses 25.” | Batch command exits above the threshold | developer newsletters, HN |
 | Hosted MCP | “Add the same writing checks to Codex or Claude with one endpoint.” | Connection command, then one tool call | MCP and coding communities |
 
-The repository's 36-second terminal demo shows installation, a `/zero-slop` request,
-flagged phrases, the complete edit, and source-detail checks. Its white shell and
-brief rust underline preserve the existing logo. The ending displays the exact
-MCP endpoint, `https://mcp.zero-slop.ai/mcp`. The MP4 is in
-`assets/zero-slop-demo.mp4`; GIF and WebP versions play inline on GitHub.
-It reconstructs the saved launch-post example in xterm.js, not a live recording.
+The repository's silent 24-second studio film shows installation, a `/zero-slop`
+request, flagged phrases, the complete edit, and source-detail checks. Its
+0.8-second opening gives the supplied gold-tile logo from `assets/logo/studio/`
+depth on a white set. Quick transitions lead into the shell, with reading holds
+and a brief rust underline on the edit.
+Three.js renders the physical materials, lighting and camera; the screen is
+captured from the saved example running in a real xterm.js renderer. It is a
+reconstruction, not a live recording or a Blender render.
+
+The MP4 at `assets/zero-slop-demo.mp4` has no audio track, music or sound effects.
+Native player controls let the viewer start, pause or replay it. Silent GIF and
+WebP versions play inline on GitHub. The five-second closing view displays the exact MCP endpoint,
+`https://mcp.zero-slop.ai/mcp`, alongside the free browser editor.
+See [motion design and rebuild notes](motion-design.md) for the timed cut,
+research sources and reproducible export commands. Treat this as a launch
+asset to measure, not proof of a conversion lift.
 
 ## Seven-day launch spike
 

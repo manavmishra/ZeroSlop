@@ -2,6 +2,7 @@
 """Read-only, dependency-free checks for the GitHub motion and logo exports."""
 from pathlib import Path
 from html.parser import HTMLParser
+from fractions import Fraction
 import hashlib
 import json
 import re
@@ -130,6 +131,35 @@ def mp4_info(path):
         require(scale > 0, "Invalid MP4 timescale")
         return scale, duration
 
+    def presentation(track_children):
+        """Return edited track duration and its start on the media timeline.
+
+        MP4 may retain reordered H.264 decode samples outside
+        the presented interval. A single rate-1 edit maps that interval onto
+        the movie timeline; mdhd alone is not the displayed film duration.
+        """
+        header = payload(one(track_children, b"tkhd"), 24)
+        require(header[0] in (0, 1), "Unsupported MP4 track-header version")
+        offset, number_format = (20, ">I") if header[0] == 0 else (28, ">Q")
+        require(len(header) >= offset + struct.calcsize(number_format),
+                "Truncated MP4 track duration")
+        track_ticks = struct.unpack_from(number_format, header, offset)[0]
+        edits = [item for item in track_children if item[0] == b"edts"]
+        require(len(edits) <= 1, "Unexpected duplicate MP4 edit container")
+        media_start = 0
+        if edits:
+            edit = payload(one(children(edits[0]), b"elst"), 8)
+            require(edit[0] in (0, 1), "Unsupported MP4 edit-list version")
+            require(struct.unpack_from(">I", edit, 4)[0] == 1,
+                    "Expected one continuous MP4 presentation edit")
+            edit_format = ">Iihh" if edit[0] == 0 else ">Qqhh"
+            require(len(edit) == 8 + struct.calcsize(edit_format), "Invalid MP4 edit list")
+            segment_ticks, media_start, rate_integer, rate_fraction = struct.unpack_from(edit_format, edit, 8)
+            require(segment_ticks == track_ticks and media_start >= 0,
+                    "MP4 presentation edit differs from track duration or contains a gap")
+            require((rate_integer, rate_fraction) == (1, 0), "MP4 presentation must play at normal speed")
+        return Fraction(track_ticks, movie_scale), media_start
+
     top = boxes(0, len(data))
     one(top, b"ftyp")
     movie = one(top, b"moov")
@@ -140,10 +170,10 @@ def mp4_info(path):
     tracks = [box for box in movie_children if box[0] == b"trak"]
     require(len(tracks) == 1, "Expected exactly one MP4 video track and no audio")
     track_children = children(tracks[0])
+    media = children(one(track_children, b"mdia"))
+    require(payload(one(media, b"hdlr"), 12)[8:12] == b"vide", "MP4 track must be video, not audio")
     track_header = payload(one(track_children, b"tkhd"), 8)
     track_dimensions = tuple(value / 65536 for value in struct.unpack(">II", track_header[-8:]))
-    media = children(one(track_children, b"mdia"))
-    require(payload(one(media, b"hdlr"), 12)[8:12] == b"vide", "MP4 track is not video")
     scale, ticks = timing(one(media, b"mdhd"))
     samples = children(one(children(one(media, b"minf")), b"stbl"))
     description_box = one(samples, b"stsd")
@@ -158,8 +188,9 @@ def mp4_info(path):
     time_table = payload(one(samples, b"stts"), 8)
     entry_count = struct.unpack_from(">I", time_table, 4)[0]
     require(len(time_table) == 8 + entry_count * 8, "Invalid MP4 sample time table")
+    decode_runs = list(struct.iter_unpack(">II", time_table[8:]))
     frame_count, sample_ticks = 0, 0
-    for count, delta in struct.iter_unpack(">II", time_table[8:]):
+    for count, delta in decode_runs:
         require(count > 0 and delta > 0, "Invalid MP4 sample timing")
         frame_count += count
         sample_ticks += count * delta
@@ -167,8 +198,40 @@ def mp4_info(path):
     size_table = payload(one(samples, b"stsz"), 12)
     require(struct.unpack_from(">I", size_table, 8)[0] == frame_count, "MP4 sample counts disagree")
     require(ticks > 0, "MP4 has no duration")
-    duration = ticks / scale
-    require(abs(movie_ticks / movie_scale - duration) < 0.000001, "MP4 movie and media durations differ")
+    presented_duration, video_start = presentation(track_children)
+    require(presented_duration == Fraction(movie_ticks, movie_scale),
+            "MP4 movie and presented video durations differ")
+    # Validate visible cadence, not decode cadence. B-frame reordering can
+    # produce nonuniform DTS deltas even when every displayed frame is 1/30 s.
+    # Composition offsets may extend the visible span beyond mdhd's decode
+    # span; the complete presentation grid below is the coverage check.
+    require(0 < frame_count <= 100_000, "Unexpected video sample count")
+    composition_boxes = [item for item in samples if item[0] == b"ctts"]
+    require(len(composition_boxes) <= 1, "Duplicate MP4 composition-offset table")
+    offsets = [0] * frame_count
+    if composition_boxes:
+        composition = payload(composition_boxes[0], 8)
+        require(composition[0] in (0, 1), "Unsupported MP4 composition-offset version")
+        composition_count = struct.unpack_from(">I", composition, 4)[0]
+        require(len(composition) == 8 + composition_count * 8,
+                "Invalid MP4 composition-offset table")
+        offset_runs = list(struct.iter_unpack(">II" if composition[0] == 0 else ">Ii", composition[8:]))
+        require(all(count > 0 for count, _ in offset_runs)
+                and sum(count for count, _ in offset_runs) == frame_count,
+                "Composition offsets do not match video sample count")
+        offsets = [offset for count, offset in offset_runs for _ in range(count)]
+    decode_time, sample_index, presentation_times = 0, 0, []
+    for count, delta in decode_runs:
+        for _ in range(count):
+            presentation_times.append(decode_time + offsets[sample_index])
+            decode_time += delta
+            sample_index += 1
+    presented_ticks = presented_duration * scale
+    require(all(Fraction(time - video_start) == index * presented_ticks / frame_count
+                for index, time in enumerate(sorted(presentation_times))),
+            "Video presentation timestamps are not a complete, evenly spaced frame grid")
+    duration = float(presented_duration)
+
     return dimensions, duration, frame_count, frame_count / duration
 
 
@@ -215,13 +278,18 @@ def check_mcp_player(parsed):
 
 def check_evidence():
     evidence = json.loads((ROOT / "growth/demo-evidence.json").read_text())
-    require(evidence["durationMs"] == 36_000, "Evidence duration is stale")
+    require(evidence["durationMs"] == 24_000, "Evidence duration is stale")
+    require(evidence.get("audio") == "none" and "originalScore" not in evidence,
+            "Evidence must identify a silent film without a score")
     server = json.loads((ROOT / "server.json").read_text())
     require(evidence.get("mcpURL") == server["remotes"][0]["url"] == MCP_URL,
             "Evidence MCP URL must match the canonical server.json connection endpoint")
     renderer = evidence.get("terminalRenderer")
     require(isinstance(renderer, str) and re.search(r"(?<![\w/@-])@xterm/xterm(?=$|[\s@,;()])", renderer),
             "Evidence must identify @xterm/xterm as the terminal renderer")
+    scene_renderer = evidence.get("sceneRenderer")
+    require(isinstance(scene_renderer, str) and re.search(r"\bThree\.js\b", scene_renderer, re.I),
+            "Evidence must identify Three.js as the 3D scene renderer")
     for field, file_key in (("before", "source"), ("after", "edit")):
         path = (ROOT / evidence[file_key]).resolve()
         require(path.is_relative_to(ROOT), "Evidence source must stay in the repository")
@@ -240,19 +308,25 @@ def main():
         dimensions, delays = reader(path)
         require(dimensions == (960, 540), f"Unexpected {suffix} dimensions")
         require(10 <= len(delays) <= 300, f"Unexpected {suffix} frame count")
-        require(sum(delays) == 36_000, f"Unexpected {suffix} duration")
+        require(sum(delays) == 24_000, f"Unexpected {suffix} duration")
         require(path.stat().st_size <= 2_000_000, f"{suffix} exceeds 2 MB budget")
         print(f"{suffix}: {len(delays)} frames, {sum(delays)} ms, {path.stat().st_size} bytes")
     video = ASSETS / "zero-slop-demo.mp4"
     dimensions, duration, frame_count, fps = mp4_info(video)
     require(dimensions == (1920, 1080), "Unexpected MP4 dimensions")
-    require(abs(duration - 36) < 0.000001 and frame_count == 1080 and abs(fps - 30) < 0.000001, "Expected a 36-second, 30 fps MP4")
+    require(abs(duration - 24) < 0.000001 and frame_count == 720 and abs(fps - 30) < 0.000001, "Expected a 24-second, 30 fps MP4")
     require(video.stat().st_size <= 9_000_000, "MP4 exceeds 9 MB budget")
     print(f"mp4: H.264, {dimensions[0]}×{dimensions[1]}, {fps:g} fps, {duration:g} s, {video.stat().st_size} bytes; silent, fast-start")
     require(png_info(ASSETS / "zero-slop-demo-poster.png")[0] == (1280, 720), "Poster dimensions")
     for name, colour_type in (("logo-300.png", 2), ("logo-mark-300.png", 6)):
         require(png_info(ASSETS / "logo" / name) == ((300, 300), colour_type), f"Logo dimensions/alpha: {name}")
+    for name, colour_type in (("zero-slop-mark-300-white.png", 2), ("zero-slop-mark-300-transparent.png", 6)):
+        require(png_info(ASSETS / "logo/studio" / name) == ((300, 300), colour_type), f"Gold logo dimensions/alpha: {name}")
+    require(png_info(ASSETS / "logo/studio/zero-slop-mark-3d-1200.png")[0] == (1200, 1200), "3D logo dimensions")
+    logo_svg = (ASSETS / "logo/studio/zero-slop-mark.svg").read_text()
+    require(all(color in logo_svg for color in ("#e2a500", "#12100c", "#8c3f22")), "Supplied logo palette must survive")
     readme = (ROOT / "README.md").read_text()
+    require('src="assets/logo/studio/zero-slop-mark-300-transparent.png"' in readme, "README must use the supplied gold logo")
     require(readme.index('prefers-reduced-motion: reduce') < readme.index('image/webp'), "Static preference must precede animated sources")
     for asset in ('zero-slop-demo-poster.png', 'zero-slop-demo.webp', 'zero-slop-demo.gif'):
         require(asset in readme, f"Missing README fallback: {asset}")
@@ -263,12 +337,14 @@ def main():
     parsed.feed(player)
     videos = [attrs for tag, attrs in parsed.tags if tag == "video"]
     require(len(videos) == 1, "Expected one native video player")
-    require(all(attr in videos[0] for attr in ("controls", "playsinline", "muted")), "Missing native video controls")
+    # Native controls provide manual playback. A muted attribute is optional
+    # because the MP4 itself must contain no audio track.
+    require(all(attr in videos[0] for attr in ("controls", "playsinline")), "Missing native playback and mute controls")
     require("autoplay" not in videos[0] and videos[0].get("preload") == "metadata", "Video must wait for manual play and preload metadata only")
     require(videos[0].get("poster") == "zero-slop-demo-poster.png", "Missing native video poster")
     require(any(tag == "source" and attrs.get("src") == "zero-slop-demo.mp4" and attrs.get("type") == "video/mp4" for tag, attrs in parsed.tags), "Missing MP4 player source")
     require(re.search(r"prefers-reduced-motion\s*:\s*reduce", player), "Missing reduced-motion preference")
-    require(not any(tag == "audio" or (tag == "script" and "src" in attrs) for tag, attrs in parsed.tags), "Keep playback silent and self-contained")
+    require(not any(tag == "audio" or (tag == "script" and "src" in attrs) for tag, attrs in parsed.tags), "Keep the silent player self-contained")
     check_mcp_player(parsed)
     check_evidence()
     print("Poster, 300px logos, media fallbacks, manual-play video, MCP endpoint and source evidence OK")

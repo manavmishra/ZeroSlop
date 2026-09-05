@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Zero Slop</title>
+  <desc id="desc">Vector reconstruction of the supplied Zero Slop logo: a gold rounded square, black Z, and rust editorial stroke.</desc>
+  <rect id="gold-tile" width="64" height="64" rx="17" fill="#e2a500"/>
+  <path id="z" fill="#12100c" d="M18.7 17.3L45.3 17.3L45.3 24L29.3 40L45.3 40L45.3 46.7L18.7 46.7L18.7 40L34.7 24L18.7 24Z"/>
+  <rect id="editorial-stroke" x="8.7125" y="29.0125" width="46.575" height="5.625" rx="2.8125" transform="rotate(-8.05 32 32)" fill="#8c3f22"/>
+</svg>
