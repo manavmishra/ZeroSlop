@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -86,6 +87,7 @@ def report(text: Any, genre: Any = "general") -> dict[str, Any]:
     source = _text(text)
     kind = _genre(genre)
     raw = slopscore.score_text(source, PATTERNS, formal=kind in {"research", "professional"})
+    measured_text, _normalization = slopscore.normalize_for_detection(slopscore.strip_noise(source))
     hits = _unique_hits(raw)
     shape = slopscore.shape_metrics(source, genre=kind)
     register_report = _register_report(source)
@@ -98,7 +100,10 @@ def report(text: Any, genre: Any = "general") -> dict[str, Any]:
         "sentenceVariety": "natural" if raw["burstiness"] >= 0.45 else "too even",
         "readability": "needs work" if raw["followability_penalty"] > 2 else "clear",
         "punctuation": {
-            "dashes": round(float(raw["emdash_per_100w"]), 2),
+            # The public report promises counts. The scorer's density is a
+            # fractional value per 100 words and fails the gateway's integer
+            # schema on ordinary drafts containing a dash or CLI flag.
+            "dashes": len(re.findall(r"—|--", measured_text)),
             "emoji": int(raw["emoji_count"]),
             "hashtags": int(raw["hashtags"]),
         },

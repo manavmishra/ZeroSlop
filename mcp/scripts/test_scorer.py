@@ -53,6 +53,11 @@ def main() -> int:
     after = core.report(clean, "general")
     assert before["score"] > after["score"]
     assert before["flags"]
+    punctuation = core.report("Maya owns pricing — Omar owns the review. Keep --dry-run enabled.", "professional")["punctuation"]
+    assert punctuation["dashes"] == 2, "the public dash field is a count, not a density"
+    assert all(isinstance(value, int) and value >= 0 for value in punctuation.values())
+    fenced = core.report("Run the command below.\n\n```sh\necho --dry-run\n```", "professional")
+    assert fenced["punctuation"]["dashes"] == 0, "fenced code is outside prose punctuation counts"
 
     ranked = core.rank(sloppy, {"source": sloppy, "clean": clean}, "general")
     assert ranked["name"] == "clean"

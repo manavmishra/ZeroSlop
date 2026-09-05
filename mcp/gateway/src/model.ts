@@ -20,7 +20,7 @@ function hex(bytes: ArrayBuffer): string {
 }
 
 export async function signedEditorHeaders(secret: string, body: string, now = Date.now()): Promise<Record<string, string>> {
-  if (secret.length < 32) throw new Error("editor_secret_unavailable");
+  if (typeof secret !== "string" || secret.length < 32) throw new Error("editor_secret_unavailable");
   const timestamp = String(now);
   const key = await crypto.subtle.importKey(
     "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
@@ -93,7 +93,10 @@ export async function callRole(
     const signatureHeaders = await signedEditorHeaders(env.EDITOR_SHARED_SECRET, body);
     const response = await fetch(env.EDITOR_ENDPOINT, {
       method: "POST",
-      redirect: "error",
+      // workerd rejects redirect: "error" during Request construction.
+      // Manual mode keeps signed drafts on this endpoint; !ok below rejects
+      // every redirect without forwarding its body or signature elsewhere.
+      redirect: "manual",
       signal: controller.signal,
       headers: {
         "cache-control": "no-store",
@@ -125,7 +128,9 @@ export async function callRole(
   } catch (error) {
     console.warn(JSON.stringify({
       event: "editor_request_unavailable", role,
-      reason: error instanceof Error ? error.name : "unknown",
+      reason: error instanceof Error
+        ? error.message === "editor_secret_unavailable" ? "editor_secret_unavailable" : error.name
+        : "unknown",
       durationMs: Date.now() - started,
     }));
     return null;

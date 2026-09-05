@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { inventoryChanges, rankRewrites, scoreWriting, scorerHealth } from "./scorer";
 
@@ -46,6 +48,24 @@ test("accepts a complete writing report from the private scorer", async () => {
   const report = await scoreWriting(scorerEnv(validReport()), "A complete draft.", "general");
   assert.equal(report.score, 12.5);
   assert.equal(report.shape.measured, true);
+});
+
+test("the real Python scorer satisfies the gateway contract for punctuation and protected Markdown", async () => {
+  const source = [
+    "# Release instructions",
+    "It is important to note that Maya owns pricing — Omar owns the review.",
+    "Run `deploy --dry-run` first.",
+    '```sh\necho "leverage the synergy"\n```',
+    "Read [the checklist](https://example.com/release?version=4.2).",
+  ].join("\n\n");
+  const payload = JSON.parse(execFileSync("python3", [
+    "-c",
+    "import sys,json;sys.path.insert(0,sys.argv[1]);import scorer_core;print(json.dumps(scorer_core.report(sys.stdin.read(),'professional')))",
+    fileURLToPath(new URL("../../scorer/src", import.meta.url)),
+  ], { input: source, encoding: "utf8" }));
+  const report = await scoreWriting(scorerEnv(payload), source, "professional");
+  assert.equal(report.punctuation.dashes, 2);
+  assert.ok(report.flags.length > 0);
 });
 
 test("rejects incomplete or impossible writing reports at the service boundary", async () => {

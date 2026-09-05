@@ -96,6 +96,8 @@ test("editor requests are signed without exposing the secret", async () => {
   assert.equal(headers["x-zero-slop-timestamp"], "1700000000000");
   assert.match(headers["x-zero-slop-signature"] ?? "", /^[0-9a-f]{64}$/);
   assert.ok(!Object.values(headers).includes(signingKey));
+  await assert.rejects(Reflect.apply(signedEditorHeaders, undefined, [undefined, "body"]), /editor_secret_unavailable/);
+  await assert.rejects(signedEditorHeaders("short", "body"), /editor_secret_unavailable/);
 });
 
 test("callRole makes one bounded, no-store, non-redirecting request", async () => {
@@ -115,7 +117,7 @@ test("callRole makes one bounded, no-store, non-redirecting request", async () =
     } as unknown as Env, "complete", source, { genre: "general" }, Date.now() + 5_000);
     assert.ok(reply);
     assert.equal(calls, 1);
-    assert.equal(captured?.redirect, "error");
+    assert.equal(captured?.redirect, "manual");
     const body = JSON.parse(String(captured?.body));
     assert.equal(body.role, "complete");
     assert.equal(body.noStore, true);
@@ -221,7 +223,8 @@ test("local fallback preserves the launch fixture's protected details", () => {
     "from day nine to day two while keeping its 4.8 score and serving 200 teams.";
   const output = localRescue(input);
   assert.notEqual(output, input);
-  assert.doesNotMatch(output, /incredibly excited|excited to share|our journey|real win was not/i);
+  assert.doesNotMatch(output, /incredibly excited|excited to share|our journey/i);
+  assert.ok(output.includes("The real win was not the time saved."));
   for (const detail of ["18", "40", "Kairoset", "day nine", "day two", "4.8", "200"]) {
     assert.ok(output.includes(detail), `lost ${detail}`);
   }
@@ -286,6 +289,12 @@ test("gateway fallback matches the installed skill byte for byte", () => {
     "Our cutting‑edge editor handles 50 000 words.",
     'The customer wrote, "We are incredibly excited to share about Kairoset." See [our journey](https://example.com/our-journey).',
     "The update is available today. Search is up to 40 times faster.",
+    "It is important to note that the release is ready. It is worth noting that iOS is supported.",
+    "Our two tools seamlessly integrate. The agent seamlessly integrates with the queue.",
+    "The real win was not the money. It was the time saved.",
+    "It is worth noting that we are keeping the review. At the end of the day, Maya approves it.",
+    "We are ready. It is available. They are waiting. We did not change the deadline.",
+    "We are leveraging automation to unlock the full potential of our team.",
   ];
   for (const source of samples) {
     const installed = execFileSync("python3", [rescueScript, "-"], {

@@ -43,6 +43,11 @@ export function localRescue(text: string): string {
     },
   );
   let out = masked.replace(/[\u00A0\u202F]/g, " ");
+  out = out.replace(
+    /(^|[.!?][ \t]+|\n[ \t]*)(?:it is important to note that|it is worth noting that)[ \t]+([A-Za-z][A-Za-z0-9_-]*)/gi,
+    (_match, prefix: string, word: string) => prefix + (word === word.toLowerCase()
+      ? word.charAt(0).toUpperCase() + word.slice(1) : word),
+  );
   const changes: Array<[RegExp, string | ((...args: string[]) => string)]> = [
     [/\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that redefines what is possible in ([^.]+)\./gi,
       (_match: string, name: string, topic: string) => name + " updates " + topic + "."],
@@ -63,8 +68,8 @@ export function localRescue(text: string): string {
     [/\bour journey\b/gi, "our work"],
     [/\bour transformative journey\b/gi, "our work"],
     [/\bin today'?s rapidly evolving (?:landscape|world)\b/gi, "Today"],
-    [/\bit is important to note that\b/gi, ""],
-    [/\bit is worth noting that\b/gi, ""],
+    [/\bit is important to note that\b[ \t]*/gi, ""],
+    [/\bit is worth noting that\b[ \t]*/gi, ""],
     [/\bwhat we did not realize was just how deeply it impacted everything downstream\./gi,
       "We underestimated its effect on the work that followed."],
     [/\bonboarding is not a checklist\.\s*it is a promise\./gi, "We see onboarding as a promise."],
@@ -79,36 +84,33 @@ export function localRescue(text: string): string {
       (_match: string, first: string) => first.toUpperCase()],
     [/\bthe results speak for themselves\.\s*/gi, ""],
     [/\bbut here is the thing nobody talks about\.\s*/gi, ""],
-    [/\bthe real win was not ([^.]+)\.\s*it was ([^.]+)\./gi,
-      (_match: string, first: string, second: string) =>
-        `${first.charAt(0).toUpperCase()}${first.slice(1)} mattered. More important was ${second}.`],
-    [/\bthe real win isn['’]t just ([^.]+)\.\s*it['’]s ([^.]+)\./gi,
-      (_match: string, first: string, second: string) =>
-        `${first.charAt(0).toUpperCase()}${first.slice(1)} matters. The larger gain is ${second}.`],
+    // A contrast can carry a substantive position. Do not infer that the
+    // thing rejected in the source nevertheless mattered.
     [/\bthat is the kind of impact that keeps us going\b/gi, "That result keeps us going"],
-    [/\bunlock(?:ing)? the full potential of\b/gi, "use"],
-    [/\bseamlessly integrates?\b/gi, "integrates"],
+    [/\bseamlessly (integrates?)\b/gi,
+      (match: string, verb: string) => match.charAt(0) === match.charAt(0).toUpperCase()
+        ? verb.charAt(0).toUpperCase() + verb.slice(1).toLowerCase() : verb],
     [/\bjust how deeply\b/gi, "how much"],
     [/\bgame[-\u2011]changing\b/gi, "useful"],
     [/\bcutting[-\u2010\u2011 ]edge\b/gi, "current"],
     [/\bredefines what(?:['’]s| is) possible in\b/gi, "updates"],
     [/\bin order to\b/gi, "to"],
     [/\bat the end of the day\b/gi, "ultimately"],
-    [/\bwe are\b/gi, "we're"],
-    [/\bwe did not\b/gi, "we didn't"],
-    [/\bwe do not\b/gi, "we don't"],
-    [/\bi am\b/gi, "I'm"],
-    [/\bit is\b/gi, "it's"],
-    [/\bthey are\b/gi, "they're"],
-    [/\byou are\b/gi, "you're"],
-    [/\bthere is\b/gi, "there's"],
-    [/\bdoes not\b/gi, "doesn't"],
-    [/\bis not\b/gi, "isn't"],
-    [/\bare not\b/gi, "aren't"],
-    [/\bcannot\b/gi, "can't"],
+    // Contractions alone do not improve clean prose. Keep those sentences.
   ];
   for (const [pattern, replacement] of changes) {
-    out = out.replace(pattern, replacement as string);
+    if (typeof replacement === "function") {
+      out = out.replace(pattern, replacement);
+    } else {
+      out = out.replace(pattern, (match) => {
+        if (!replacement) return replacement;
+        if (match.charAt(0) === match.charAt(0).toUpperCase()) {
+          return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+        }
+        return replacement.startsWith("I'") ? replacement
+          : replacement.charAt(0).toLowerCase() + replacement.slice(1);
+      });
+    }
   }
   out = out.replace(/[ \t]+\n/g, "\n").replace(/ {2,}/g, " ").trim();
 

@@ -7,6 +7,8 @@ review metadata.
 
 Canonical production endpoint: `https://mcp.zero-slop.ai/mcp`
 
+<small>Try and MCP use our hosted Zero Slop agent harness; results and speed may differ across Codex, Claude Code, Cowork, ChatGPT Work, and other hosts or skills.</small>
+
 ## Architecture
 
 ```text
@@ -236,8 +238,10 @@ Deploy in this order:
    draft.
 7. Read `GET https://mcp.zero-slop.ai/internal/counters` with the report token
    and confirm the initialization and call totals increased.
-8. Do not announce the connector until the factual fixture returns a rewritten
-   result with two independent model checks and the expected score reduction.
+8. Confirm that the factual fixture returns a rewritten result with one model
+   request, source-preservation checks, and the expected score reduction. The
+   one editorial response is not independent model review; a local fallback
+   must remain labelled `rewritten_with_warnings`.
 
 Do not deploy the gateway first. Its explicit `stored: false` requirement makes
 that ordering fail closed, but it would leave all rewrites unavailable until
