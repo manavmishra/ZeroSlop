@@ -24,12 +24,13 @@ PROTECTED = re.compile(
 TOKEN = re.compile(r"\ue000(\d+)\ue001")
 
 
-def _sentence_pair(match: re.Match[str], *, past: bool) -> str:
-    first, second = match.group(1), match.group(2)
-    lead = first[:1].upper() + first[1:]
-    return f"{lead} {'mattered' if past else 'matters'}. " + (
-        f"More important was {second}." if past else f"The larger gain is {second}."
-    )
+def _without_wrapper(match: re.Match[str]) -> str:
+    prefix, word = match.group(1), match.group(2)
+    # Capitalize the exposed sentence, but leave names such as iOS and eBay
+    # byte-for-byte. This applies only where a sentence wrapper was removed.
+    if word.islower():
+        word = word[:1].upper() + word[1:]
+    return prefix + word
 
 
 def rescue_text(text: str) -> str:
@@ -43,6 +44,11 @@ def rescue_text(text: str) -> str:
 
     masked = PROTECTED.sub(mask, original)
     out = re.sub(r"[\u00a0\u202f]", " ", masked)
+    out = re.sub(
+        r"(^|[.!?][ \t]+|\n[ \t]*)(?:it is important to note that|it is worth noting that)"
+        r"[ \t]+([A-Za-z][A-Za-z0-9_-]*)",
+        _without_wrapper, out, flags=re.IGNORECASE,
+    )
     rules: list[tuple[str, str | object]] = [
         (
             r"\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that "
@@ -69,8 +75,8 @@ def rescue_text(text: str) -> str:
         (r"\bour journey\b", "our work"),
         (r"\bour transformative journey\b", "our work"),
         (r"\bin today'?s rapidly evolving (?:landscape|world)\b", "Today"),
-        (r"\bit is important to note that\b", ""),
-        (r"\bit is worth noting that\b", ""),
+        (r"\bit is important to note that\b[ \t]*", ""),
+        (r"\bit is worth noting that\b[ \t]*", ""),
         (r"\bwhat we did not realize was just how deeply it impacted everything downstream\.",
          "We underestimated its effect on the work that followed."),
         (r"\bonboarding is not a checklist\.\s*it is a promise\.",
@@ -88,34 +94,33 @@ def rescue_text(text: str) -> str:
          lambda m: m.group(1).upper()),
         (r"\bthe results speak for themselves\.\s*", ""),
         (r"\bbut here is the thing nobody talks about\.\s*", ""),
-        (r"\bthe real win was not ([^.]+)\.\s*it was ([^.]+)\.",
-         lambda m: _sentence_pair(m, past=True)),
-        (r"\bthe real win isn['’]t just ([^.]+)\.\s*it['’]s ([^.]+)\.",
-         lambda m: _sentence_pair(m, past=False)),
+        # A contrast may carry a substantive position. A local rule cannot
+        # infer that the thing rejected in the source nevertheless mattered.
         (r"\bthat is the kind of impact that keeps us going\b", "That result keeps us going"),
-        (r"\bunlock(?:ing)? the full potential of\b", "use"),
-        (r"\bseamlessly integrates?\b", "integrates"),
+        (r"\bseamlessly (integrates?)\b",
+         lambda m: m.group(1).capitalize() if m.group(0)[0].isupper() else m.group(1)),
         (r"\bjust how deeply\b", "how much"),
         (r"\bgame[-\u2011]changing\b", "useful"),
         (r"\bcutting[-\u2010\u2011 ]edge\b", "current"),
         (r"\bredefines what(?:['’]s| is) possible in\b", "updates"),
         (r"\bin order to\b", "to"),
         (r"\bat the end of the day\b", "ultimately"),
-        (r"\bwe are\b", "we're"),
-        (r"\bwe did not\b", "we didn't"),
-        (r"\bwe do not\b", "we don't"),
-        (r"\bi am\b", "I'm"),
-        (r"\bit is\b", "it's"),
-        (r"\bthey are\b", "they're"),
-        (r"\byou are\b", "you're"),
-        (r"\bthere is\b", "there's"),
-        (r"\bdoes not\b", "doesn't"),
-        (r"\bis not\b", "isn't"),
-        (r"\bare not\b", "aren't"),
-        (r"\bcannot\b", "can't"),
+        # Contractions alone are not evidence of better writing. Leave clean
+        # source sentences unchanged instead of manufacturing an edit.
     ]
     for pattern, replacement in rules:
-        out = re.sub(pattern, replacement, out, flags=re.IGNORECASE)
+        def replace(match: re.Match[str]) -> str:
+            if callable(replacement):
+                return replacement(match)
+            value = replacement
+            if not value:
+                return value
+            if match.group(0)[0].isupper():
+                return value[:1].upper() + value[1:]
+            if not value.startswith("I'"):
+                return value[:1].lower() + value[1:]
+            return value
+        out = re.sub(pattern, replace, out, flags=re.IGNORECASE)
     out = re.sub(r"[ \t]+\n", "\n", out)
     out = re.sub(r" {2,}", " ", out).strip()
 

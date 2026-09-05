@@ -164,6 +164,40 @@ class AvailabilityEditor(unittest.TestCase):
         source = "The update is available today. Search is up to 40 times faster."
         self.assertEqual(rescue(source), source)
 
+    def test_clean_sentences_are_not_rewritten_only_for_contractions(self):
+        source = ("We saved 11 hours a week, but the new search cannot filter archived messages. "
+                  "It is an aid. We are building tools for teams.")
+        self.assertEqual(rescue(source), source)
+
+    def test_ambiguous_positions_are_left_for_the_model(self):
+        for source in (
+            "The real win was not the money. It was getting home safely.",
+            "The real win isn't just saving money. It's preventing injuries.",
+            "The plan can unlock the full potential of our team.",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(rescue(source), source)
+
+    def test_removing_an_adverb_keeps_subject_verb_agreement(self):
+        self.assertEqual(rescue("The two tools seamlessly integrate with the archive."),
+                         "The two tools integrate with the archive.")
+        self.assertEqual(rescue("The tool seamlessly integrates with the archive."),
+                         "The tool integrates with the archive.")
+
+    def test_removed_wrappers_preserve_sentence_case_and_names(self):
+        self.assertEqual(
+            rescue("We expected the change to help. It is worth noting that the trial failed."),
+            "We expected the change to help. The trial failed.",
+        )
+        self.assertEqual(rescue("It is important to note that eBay is excluded."),
+                         "eBay is excluded.")
+        self.assertEqual(rescue("The trial ended.\n\nIt is worth noting that the trial failed."),
+                         "The trial ended.\n\nThe trial failed.")
+
+    def test_wrapper_case_matches_its_place_in_a_sentence(self):
+        self.assertEqual(rescue("Our journey continues, and our cutting-edge tool ships today."),
+                         "Our work continues, and our tool ships today.")
+
 
 # --------------------------------------------------------------------------
 class Detector(unittest.TestCase):
