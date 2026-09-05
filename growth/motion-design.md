@@ -24,6 +24,8 @@ does not claim product latency or editing speed.
 
 The README makes the whole visual a link to the free editor. Its `<picture>`
 selects the still first for reduced-motion preferences, then WebP, then GIF.
+The image sets only its width: GitHub's maximum-width rule shrinks the frame,
+so an explicit height would distort its aspect ratio in the repository column.
 The player has no external scripts, fonts, requests, or audio. It suspends
 playback in a hidden tab and stops its frame loop when paused or motion is reduced.
 

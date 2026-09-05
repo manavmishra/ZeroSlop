@@ -41,7 +41,7 @@ npx skills add manavmishra/ZeroSlop --global
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png">
     <source type="image/webp" srcset="assets/zero-slop-demo.webp">
-    <img src="assets/zero-slop-demo.gif" width="1040" height="560" alt="Zero Slop's Zero Cut: four stock phrases removed; writing score 99.3 to 9.5; 40% result retained. Try it free.">
+    <img src="assets/zero-slop-demo.gif" width="1040" alt="Zero Slop's Zero Cut: four stock phrases removed; writing score 99.3 to 9.5; 40% result retained. Try it free.">
   </picture>
 </a>
 

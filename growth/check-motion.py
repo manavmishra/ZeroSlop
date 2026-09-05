@@ -96,6 +96,8 @@ def main():
     require(readme.index('prefers-reduced-motion: reduce') < readme.index('image/webp'), "Static preference must precede animated sources")
     for asset in ('zero-slop-demo-poster.png', 'zero-slop-demo.webp', 'zero-slop-demo.gif'):
         require(asset in readme, f"Missing README fallback: {asset}")
+    image_tag = readme.split('<img src="assets/zero-slop-demo.gif"', 1)[1].split('>', 1)[0]
+    require('height=' not in image_tag, "GitHub constrains width only; a fixed height distorts the animation")
     player = (ASSETS / "zero-slop-demo.html").read_text()
     require('prefers-reduced-motion: reduce' in player and 'id="toggle"' in player, "Player motion controls")
     require('<audio' not in player and '<script src=' not in player, "Keep playback silent and self-contained")
