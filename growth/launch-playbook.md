@@ -14,7 +14,7 @@ authorship detector.
 
 **Developer CTA:** `npx skills add manavmishra/ZeroSlop --global`.
 
-**Hosted CTA:** Connect the MCP at `https://zero-slop.ai/mcp/` when a user wants
+**Hosted CTA:** Connect the MCP at `https://zero-slop.ai/#mcp` when a user wants
 one managed endpoint instead of a local installation.
 
 ## One launch, several demonstrations

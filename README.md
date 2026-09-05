@@ -47,7 +47,7 @@ A launch post, as AI wrote it:
 
 > We're thrilled to announce that our team has leveraged cutting-edge machine learning to deliver a seamless onboarding experience, reducing setup time by 40%.
 
-The meter scores that draft 99.3/100 and flags four phrases: “We're thrilled
+The scorer rates that draft 99.3/100 and flags four phrases: “We're thrilled
 to,” “leveraged,” “cutting-edge,” and “seamless.”
 
 The rewrite, limited to the draft's stated claims:
@@ -71,13 +71,9 @@ The rewrite retains the draft's stated result. See four complete, reproducible p
 
 Zero Slop is a writing tool. It does not detect authorship; its score describes the text.
 
-## Start here
+## Install
 
-### Try it without installing
-
-Paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free editor returns the edit, the before-and-after scores, and the exact phrases that triggered the meter.
-
-### Install
+To try Zero Slop first, paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free editor returns the edit, the before-and-after scores, and the exact phrases that triggered the scorer.
 
 The portable installer works with Claude Code, Codex, Cursor, OpenCode, Warp, Zed, and other Agent Skills-compatible tools:
 
@@ -106,7 +102,7 @@ npx zero-slop install --harness codex
 | Claude.ai | Upload the [latest skill ZIP](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip) |
 | ChatGPT or another MCP client | Connect the optional [hosted MCP server](mcp/README.md) |
 
-### Use it
+Once installed, ask your AI assistant to edit a draft:
 
 ```text
 /zero-slop (your writing)
@@ -118,18 +114,23 @@ Inspect a draft without changing it:
 /zero-slop inspect (your writing)
 ```
 
-Score or gate files locally:
+Score a file locally:
 
 ```sh
 npx zero-slop score draft.md
+```
+
+From a cloned checkout, gate a folder:
+
+```sh
 python3 scripts/slopscore.py --batch drafts/ --gate 25
 ```
 
-The installed skill is the private, offline-first route. The hosted MCP endpoint is optional and remote; its [privacy and setup details](mcp/README.md) are documented separately.
+Installed checks run locally; editing follows your AI assistant's privacy settings. The optional hosted MCP processes drafts remotely. See its [privacy details](mcp/README.md).
 
 ### Prefer one hosted connection? Use the MCP
 
-The [Zero Slop MCP](https://zero-slop.ai/mcp/) puts the scorer and source-checking tools behind one endpoint, so supported clients can use them without cloning the repository or managing local updates.
+Connect the [Zero Slop MCP](https://zero-slop.ai/#mcp) once to edit drafts inside your MCP client. Its `deslop` tool returns the edit, before-and-after scores, and review status. Zero Slop requires no account or API key; server updates are managed for you.
 
 ```text
 https://mcp.zero-slop.ai/mcp
@@ -143,7 +144,7 @@ codex mcp add zero-slop --url https://mcp.zero-slop.ai/mcp
 claude mcp add --transport http zero-slop --scope user https://mcp.zero-slop.ai/mcp
 ```
 
-Use the [hosted MCP setup guide](https://zero-slop.ai/mcp/) for ChatGPT and other clients. Draft text sent to the hosted endpoint is processed remotely; choose the installed skill when local-only processing is the priority.
+Follow the [MCP setup guide](https://zero-slop.ai/#mcp) for ChatGPT and other clients.
 
 ## What the workflow adds
 
@@ -154,13 +155,13 @@ Use the [hosted MCP setup guide](https://zero-slop.ai/mcp/) for ChatGPT and othe
 | The model tends to overcorrect into fragments or forced casualness. | An overcorrection pass checks readability, rhythm, grammar, and voice. |
 | Each session starts from scratch. | Optional, reason-labelled preferences can be learned privately. |
 
-Zero Slop ships no model. Your AI assistant does the editing: Claude, GPT, or
-another compatible model reads the draft in context. The repository supplies
-the workflow and local tools for scoring and source checks.
+Zero Slop ships no model. Your AI assistant reads and edits the draft in context,
+using Claude, GPT, or another compatible model. The repository supplies the
+workflow and local tools for scoring and source checks.
 
 ## What it catches
 
-The current meter combines 294 weighted patterns with a 96-term lexicon. Examples include:
+The current scorer combines 294 weighted patterns with a 96-term lexicon. Examples include:
 
 - binary contrast formulas: “It's not X. It's Y.”
 - canned openers: “We're thrilled to…” and “Here's the thing…”
@@ -174,7 +175,7 @@ Marketing terms are scored in context, so an ordinary technical use of a word ne
 Unedited AI drafts averaged 77 in [`bench/examples.json`](bench/examples.json).
 Human writing scored 9 to 21 in
 [`data/corpus/must-not-flag/`](data/corpus/must-not-flag/). These are reference
-points for the meter, not authorship boundaries.
+points for the scorer, not authorship boundaries.
 
 ## How it works
 
@@ -196,7 +197,7 @@ choice.
 | 8. Fresh-eyes finalizer | Apply only safe final polish, then run one last local check. |
 
 The free web editor combines the five AI responsibilities into one response and
-makes at most one live model call. One model response is not independent review.
+makes at most one live model call. A single response does not provide independent review.
 Any final change receives one final local recheck.
 
 If a repair still misses the target, Zero Slop returns the safest source-preserving edit with a plain warning. It does not enter an open-ended rewrite loop.
@@ -234,13 +235,33 @@ saved outputs. The current scorer matched the prior 84.2% result on the fixed
 
 On the 75 labelled antithesis pairs, the current reading pass reached 91.2% recall across the full set, 100% recall on shapes in reach, and 100% precision. The labels are maintainer-authored and the pairs are constructed, so this is a regression floor rather than field accuracy.
 
-On one Apple silicon Mac, the local meter scored 1,000 documents in 1.9929 seconds. Editing time is excluded.
-Across 24 interleaved runs against 2.7.7, median throughput was 0.26% lower,
-which is effectively unchanged. The separate two-way replay used Zero Slop
-v2.6.0.
+Local speed measurements cover the checks, with editing time excluded. On one
+Apple silicon Mac, the scorer processed 1,000 documents in a median of 1.9929
+seconds (501.8 per second); the five runs ranged from 1.9614 to 2.0945 seconds.
+It scored a 15,201-word document in a median of 0.3223 seconds. The slowest
+stress case took 2.2932 seconds, and learning from an 8,000-word edit took
+0.1592 seconds. The measurements and machine details are in
+[`bench/performance-results.json`](bench/performance-results.json).
 
-The pinned RAID+ sample contains 7,627 usable generations. Its labels record
-which model produced each text; they do not grade writing quality.
+Across 24 interleaved runs against 2.7.7, median throughput was 0.26% lower,
+which is effectively unchanged. The separate two-way replay used
+Zero Slop v2.6.0.
+
+The [RAID+ audit](bench/raid-plus-corpus/README.md) checks how the scorer responds
+to output from different models. Its pinned sample contains 7,627 usable
+generations:
+
+| Model | Texts scored | Mean writing score ↓ | At or above 25 |
+|---|---:|---:|---:|
+| DeepSeek V3 | 1,995 | 14.5 | 10.1% |
+| Gemini 3.1 Pro | 1,998 | 17.0 | 18.2% |
+| Gemma 3 27B | 1,634 | 21.6 | 30.4% |
+| Llama 3.3 70B | 2,000 | 25.5 | 41.7% |
+
+RAID+ labels record which model produced each text; they do not grade writing
+quality. The [Beemo paired-edit audit](bench/beemo-corpus/README.md) checks how
+scores change after human editing: raw responses averaged 30.2, expert edits
+25.3, and human answers 20.0. Beemo also lacks writing-quality labels.
 
 </details>
 
@@ -281,7 +302,7 @@ For setup help and responsible disclosure, see [`SUPPORT.md`](SUPPORT.md) and [`
 
 ## Credits
 
-Zero Slop builds on ideas from [no-ai-slop](https://github.com/petergyang/no-ai-slop), [humanizer](https://github.com/blader/humanizer), [de-slop](https://github.com/gregorymilon/De-Slop), [stop-slop](https://github.com/hardikpandya/stop-slop), [unslop-text](https://github.com/kyletownsend/unslop-text), and [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing).
+Zero Slop builds on ideas from [no-ai-slop](https://github.com/petergyang/no-ai-slop), [humanizer](https://github.com/blader/humanizer), [de-slop](https://github.com/isatimur/de-slop), [stop-slop](https://github.com/hardikpandya/stop-slop), [unslop-text](https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text), and [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing).
 
 ## License
 

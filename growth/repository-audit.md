@@ -57,10 +57,10 @@ problem was hierarchy:
 
 - Search language now appears naturally: AI writing, AI editor, writing
   assistant, humanizer, Agent Skill, Claude Code, Codex, ChatGPT, and MCP.
-- The repository description and 20 topics have a single recommended spec
-  below.
-- Dynamic npm, download, CI, star, and license badges replace manual release
-  metadata.
+- The repository description and all 20 topics below were saved and verified
+  on GitHub on 5 September 2026.
+- Dynamic npm, download, CI, star, and license badges sit beside the release
+  version badge, which remains part of the repository's version contract.
 - Permanent `releases/latest` asset links remove release-number churn. GitHub
   documents both the latest-release URL and direct latest-asset URLs:
   [Linking to releases](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases).
@@ -150,7 +150,7 @@ Use one weekly snapshot and one launch-day sheet. Track:
 | Interest | README-to-site clicks, demo completion where the platform reports it |
 | Activation | npm downloads, release downloads, successful install reports |
 | Hosted intent | MCP guide visits and copied setup commands, if measured without draft telemetry |
-| Retention | Repeat npm usage, returning site visitors, substantive issues and discussions |
+| Retention | Returning site visitors and voluntary repeat-use reports; npm downloads alone do not measure retention |
 | Advocacy | Stars, forks, mentions, directory inclusions, creator posts |
 
 Do not optimize stars alone. The primary outcome is a successful first use; a
