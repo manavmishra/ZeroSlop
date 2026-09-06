@@ -1,18 +1,17 @@
 # Zero Slop product demo
 
-A silent, 24-second Blender product film of the installed Agent Skill. The
-supplied gold-tile logo opens the film in three dimensions. A physical terminal
-housing then carries the installation, assistant request, complete draft, edit,
-and local checks. The opening is a depth-occluded handoff: the bezel passes in
-front of the mark instead of using a translucent crossfade. There is no audio
-track, music or sound effect.
+A silent, 24-second studio film of the installed Agent Skill. The supplied
+gold-tile logo opens the film in three dimensions. The camera then moves to a
+white terminal housing for the installation, assistant request, complete draft,
+edit, and local checks. The opening overlaps the logo and terminal; the camera
+settles before the reading sections. There is no audio track, music or sound
+effect.
 
-Blender 5.2.1 LTS (Eevee) renders the physical materials, lighting, shadows,
-camera movement and transitions. The screen texture is captured from a real
-xterm.js character grid, including its ANSI styling and scrollback. This is a
-reconstruction of the saved launch-post example, not a recording of the hosted
-editor or a latency measurement. Different host models can return different
-edits.
+Three.js renders the physical materials, lighting, shadows and camera movement.
+The screen texture is captured from a real xterm.js character grid, including its
+ANSI styling, cursor and scrollback. This is a reconstruction of the saved
+launch-post example, not a screen recording, a Blender render, or a latency
+measurement. Different host models can return different edits.
 
 The shell direction comes from commit `91ee2fc1`. The current treatment keeps
 the supplied gold-tile logo from `assets/logo/studio/`, white studio background
@@ -23,14 +22,14 @@ shell and the AI assistant.
 
 | Time | Viewer sees |
 |---|---|
-| 0-1.8 s | The gold-tile logo rests on white; the terminal enters from depth and physically occludes it |
-| 1.8-2.8 s | The camera settles; the installation state holds in the terminal |
-| 2.8-5.0 s | The context changes to the AI assistant; `/zero-slop` is entered |
-| 5.0-8.5 s | The complete source arrives as a paste and stays readable |
-| 8.5-13.0 s | Four actual phrase flags appear as whole output lines |
-| 13.0-17.0 s | The edit arrives and the rust accent carries the eye to the retained `40%` detail |
-| 17.0-20.7 s | Source-detail and writing checks hold beneath the full edit |
-| 20.7-24.0 s | The terminal recedes beside the logo; the exact MCP endpoint and browser option remain on screen |
+| 0-1.2 s | The gold-tile logo and product promise transition into the terminal, with an overlapping fade |
+| 1.2-3.6 s | The camera settles; the installation command finishes typing |
+| 3.6-5 s | The context changes to the AI assistant; `/zero-slop` is entered |
+| 5-8.6 s | The complete source arrives as a paste and stays readable |
+| 8.6-11.2 s | Four actual phrase flags appear as whole output lines |
+| 11.2-15.8 s | The edit arrives; the rust signature briefly underlines it |
+| 15.8-19 s | Source-detail and writing checks finish beneath the full edit |
+| 19-24 s | The terminal recedes beside the logo; the exact MCP endpoint and browser option remain on screen |
 
 The original's 40% claim is a sample claim, not a Zero Slop performance result.
 The scorer is rerun during rendering: 99.3 becomes 9.5, with four flagged phrases
@@ -38,13 +37,14 @@ becoming zero. The source check is also rerun. Its result concerns tracked
 details; it does not establish that the original claim is true.
 
 `growth/demo-evidence.json` records exact texts, source hashes, and full tool
-output. It also identifies the Blender renderer and the canonical MCP URL.
-`growth/blender-readme-film.py` owns the deterministic scene and presentation
-clock. `growth/blender-screens/` contains the exact xterm plates used by the
-screen material. Only user commands are typed character by character in the
-source capture; machine output arrives in complete lines, and Blender holds the
-camera while the viewer reads. No fabricated processing time or check animation
-implies independent reviews.
+output. It also identifies both renderers and the canonical MCP URL.
+`growth/demo-film.mjs` owns the terminal transcript.
+`growth/studio-timeline.mjs` maps the transcript to the studio cut and exposes
+the camera and object motion as a pure function of presentation time.
+`growth/studio-scene.mjs` applies that state to the three-dimensional set.
+Only user commands are typed character by character. Machine output arrives in
+complete lines; the camera holds while the viewer reads. No fabricated
+processing time or check animation implies independent reviews.
 
 ## MCP connection
 
@@ -73,31 +73,35 @@ and one rust accent. [Gum](https://github.com/charmbracelet/gum) and
 jobs near the beginning of their READMEs; this film likewise completes one job.
 These are observed documentation patterns, not evidence of a causal conversion lift.
 
-The terminal housing and logo use Blender Principled materials for controlled
-roughness, metallic reflections, bevel response and a light clear coat. A warm
-soft key, cool fill and edge reflection shape a white cyc; the floor keeps only a
-soft contact shadow. The terminal face stays opaque/emissive so a highlight
-cannot hide the draft. The imported screen plates remain sRGB image textures and
-are never recreated with Blender fonts.
+The terminal housing and logo use Three.js
+[physical materials](https://threejs.org/docs/pages/MeshPhysicalMaterial.html)
+for controlled roughness, metallic reflections and a light clear coat.
+[RoomEnvironment](https://threejs.org/docs/pages/RoomEnvironment.html)
+provides environment lighting through a prefiltered map. The terminal face stays
+unlit, so a specular highlight cannot hide the draft. Following Three.js's
+[color-management guidance](https://threejs.org/manual/en/color-management.html),
+the PNG texture is marked as sRGB and the display output uses sRGB. Lighting and
+tone mapping affect the housing, not the source text.
 
-The opening moves from the mark into the terminal with real depth ordering and
-no visibility cut or camera jump. Camera movement is confined to entry and the
-closing view; the reading sections stay steady. Bezier easing brings each move
-to rest, and the screen swaps through a short 12-frame handoff while preserving
-whole readable states. Static reading holds keep the GitHub animation compact.
+The opening moves from the mark into the terminal without a visibility cut or
+camera jump. Camera movement is confined to entry and the closing view; the
+reading sections stay steady. Minimum-jerk easing brings each move to rest with
+zero endpoint velocity and acceleration. The terminal scrolls through new
+output over 220 ms instead of jumping whole rows. Static reading holds also
+keep the GitHub animation compact.
 
-The MP4 is encoded from 720 evenly spaced Blender frames, one for every 30 fps
-output frame. Transcript timing never changes the camera's clock. The bundled
-Blender build has no FFmpeg encoder, so Blender writes the PNG sequence and the
-maintainer-only `growth/encode-blender-film.py` wrapper performs the silent H.264
-mux with imageio-ffmpeg. This keeps scene authorship and delivery encoding
-separate and verifiable.
+The MP4 is rendered at 720 evenly spaced presentation timestamps, one for every
+30 fps output frame. Transcript retiming never changes the camera's clock.
+The previous sparse, source-timed export lost 66 of its 240 rendered samples
+when the encoder quantized their durations. Sampling the final clock removes
+that source of uneven motion; increasing the advertised frame rate alone would
+not have repaired it.
 
 ## Deliverables
 
 | File in `assets/` | Purpose |
 |---|---|
-| `zero-slop-demo.mp4` | Silent 24-second, 1920 × 1080, 30 fps H.264 Blender film, fast-start |
+| `zero-slop-demo.mp4` | Silent 24-second, 1920 × 1080, 30 fps H.264 film, fast-start |
 | `zero-slop-demo.webp` | 960 × 540 inline GitHub animation |
 | `zero-slop-demo.gif` | Compatible inline fallback, existing URL preserved |
 | `zero-slop-demo-poster.png` | 1280 × 720 result-and-checks still for reduced motion |
@@ -113,41 +117,43 @@ distort a fixed-height image. The MP4 player never autoplays and exposes native
 pause, seek and replay controls. MP4, GIF and WebP are silent. The player's
 transcript explains the source check.
 
-The preferred WebP is a silent 6 fps, 960 × 540 export under the 2 MB budget.
-The compatible GIF is a silent 4 fps, 28-colour, 960 × 540 fallback under the
-2.5 MB budget; WebP carries the smoother inline presentation. Both preserve the
-24-second timeline and still-frame holds between animated intervals.
+The preferred WebP has a 2 MB budget. The 24 fps GIF fallback has a 2.5 MB
+budget so its motion need not lose frames to meet the previous 12 fps export's
+size cap. Both use still-frame holds between animated intervals.
 
 ## Rebuild
 
-Build-time dependencies for the original terminal plate capture are Node.js,
-Chrome, `playwright-core` 1.55.0, `sharp` 0.34.5, `esbuild` 0.28.0 and
-`@xterm/xterm` 6.0.0. They add nothing to the published skill. Blender 5.2.1
-LTS is required for scene rendering. MP4 encoding uses the maintainer's
-`imageio-ffmpeg` binary (or `ffmpeg` on PATH); no encoder is shipped in the
-repository.
+Build-time dependencies are Node.js, Chrome, `playwright-core` 1.55.0, `sharp`
+0.34.5, `esbuild` 0.28.0, `@xterm/xterm` 6.0.0, and `three` 0.180.0.
+They add nothing to the published skill. `CHROME_PATH` can select an existing
+Chrome installation. `NODE_PATH` resolves the capture tools;
+`ZERO_SLOP_MEDIA_DEPS` resolves the terminal renderer and Three.js bundle.
+MP4 encoding uses macOS AVFoundation through Swift and requires Apple's
+command-line tools; no codec package is installed.
 
 ```sh
 # Keep media dependencies outside the skill's dependency-free runtime.
 npm install --prefix /tmp/zero-slop-media-deps --ignore-scripts \
-  @xterm/xterm@6.0.0 esbuild@0.28.0 \
+  @xterm/xterm@6.0.0 three@0.180.0 esbuild@0.28.0 \
   playwright-core@1.55.0 sharp@0.34.5
 NODE_PATH=/tmp/zero-slop-media-deps/node_modules \
 ZERO_SLOP_MEDIA_DEPS=/tmp/zero-slop-media-deps \
-  node growth/export-terminal-screens.mjs
-
-# In Blender's Python Console or Text Editor, run the scene builder:
-#   growth/blender-readme-film.py -- --frames /tmp/zero-slop-blender-frames
-python3 growth/encode-blender-film.py \
-  --frames /tmp/zero-slop-blender-frames \
-  --output /tmp/zero-slop-demo-new.mp4
+  node scripts/make-readme-gif.mjs --frames /tmp/zero-slop-film-frames
+swift -module-cache-path /tmp/zero-slop-swift-cache growth/encode-demo.swift \
+  --manifest /tmp/zero-slop-film-frames/manifest.json \
+  --output /tmp/zero-slop-demo-new.mp4 \
+  --width 1920 --height 1080 --fps 30 --bitrate 8000000
 ```
 
-The encoder refuses an incomplete sequence. Inspect the new MP4 before replacing
-`assets/zero-slop-demo.mp4`. Use the Blender script's `--preview` flag to render
-frame 390 before the complete export. PNG frames are 1080p. The six screen
-plates can be regenerated with the capture helper; they are never retyped in
-Blender. The GIF and WebP timeline samples the finished MP4 and stays silent.
+The native encoder uses an 8 Mbps target and refuses to overwrite an existing
+output. Inspect the new MP4 before replacing `assets/zero-slop-demo.mp4`.
+Use `--preview` with the Node command to render key scenes before the complete
+export. PNG frames are 1080p. The manifest records every frame's exact
+presentation timestamp and 1/30-second duration. Terminal textures can be reused
+when their visible content is unchanged, but the film's frame grid is never
+thinned or retimed. The GIF and WebP timeline samples movement on a separate
+24 fps presentation grid and holds only still scenes. GIF delays are quantized
+cumulatively to its 10 ms timebase, preserving the 24-second duration.
 
 ```sh
 python3 growth/check-motion.py
