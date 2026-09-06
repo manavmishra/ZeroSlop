@@ -1,0 +1,160 @@
+name: Deploy the released MCP runtime
+
+on:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+      release_sha:
+        description: Commit used to publish assets; omitted for manual recovery of an existing release
+        required: false
+        default: ""
+        type: string
+    secrets:
+      CF_WORKERS_DEPLOY_TOKEN:
+        required: false
+      CF_ACCOUNT_ID:
+        required: false
+    outputs:
+      status:
+        value: ${{ jobs.deploy.outputs.status }}
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing latest stable release tag, for example v2.9.1
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# A queued older release must not overwrite a newer deployment. Never cancel
+# after the scorer has changed: finish the pair before the next release runs.
+concurrency:
+  group: deploy-mcp-production
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+    env:
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+      CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false"
+    steps:
+      - name: Require dedicated deployment credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || ! [[ "$CLOUDFLARE_ACCOUNT_ID" =~ ^[0-9a-f]{32}$ ]]; then
+            echo "::error::Configure CF_WORKERS_DEPLOY_TOKEN and CF_ACCOUNT_ID for MCP deployment. No interactive authentication is used."
+            exit 1
+          fi
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          path: automation
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - name: Resolve the immutable latest release
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=(--tag "$RELEASE_TAG" --github-output "$GITHUB_OUTPUT")
+          if [ -n "$RELEASE_SHA" ]; then args+=(--expected-sha "$RELEASE_SHA"); fi
+          timeout 90s python3 automation/.github/scripts/deploy_mcp.py guard "${args[@]}"
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        if: steps.release.outputs.status == 'current'
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+          path: release
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require the release commit to belong to trusted main
+        if: steps.release.outputs.status == 'current'
+        working-directory: release
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: git merge-base --is-ancestor "$RELEASE_SHA" origin/main
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        if: steps.release.outputs.status == 'current'
+        with:
+          node-version: "24"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        if: steps.release.outputs.status == 'current'
+        with:
+          version: "0.12.5"
+      - name: Verify the exact packaged scorer
+        if: steps.release.outputs.status == 'current'
+        working-directory: release
+        run: |
+          python3 scripts/check_distribution_manifests.py
+          python3 mcp/scripts/sync_scorer.py --check
+          python3 mcp/scripts/test_scorer.py
+      - name: Validate the locked gateway
+        if: steps.release.outputs.status == 'current'
+        working-directory: release/mcp/gateway
+        run: |
+          npm ci
+          npm run check
+          npm run dry-run
+      - name: Validate the locked scorer Worker
+        if: steps.release.outputs.status == 'current'
+        working-directory: release/mcp/scorer
+        run: |
+          npm ci
+          uv sync --locked
+          npm run dry-run
+      - name: Recheck release identity immediately before deployment
+        if: steps.release.outputs.status == 'current'
+        id: current
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: timeout 90s python3 automation/.github/scripts/deploy_mcp.py guard --tag "$RELEASE_TAG" --expected-sha "$RELEASE_SHA" --github-output "$GITHUB_OUTPUT"
+      - name: Deploy the private scorer
+        if: steps.current.outputs.status == 'current'
+        id: scorer
+        working-directory: release/mcp/scorer
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: timeout 300s npm run deploy
+      - name: Deploy the gateway
+        if: steps.current.outputs.status == 'current'
+        working-directory: release/mcp/gateway
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        # Omitted encrypted secrets stay on the existing Worker.
+        run: timeout 300s npm run deploy
+      - name: Verify only the deployed MCP runtime
+        if: steps.current.outputs.status == 'current'
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: timeout 150s python3 automation/.github/scripts/deploy_mcp.py health --version "$RELEASE_VERSION" --wait-seconds 90
+      - name: Report deployment status separately from publication propagation
+        id: result
+        env:
+          CURRENT_STATUS: ${{ steps.current.outputs.status }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          if [ "$CURRENT_STATUS" = "current" ]; then
+            echo "status=deployed" >> "$GITHUB_OUTPUT"
+            echo "MCP deployed and healthy at $RELEASE_VERSION. npm, registry and website propagation are checked separately." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "status=superseded" >> "$GITHUB_OUTPUT"
+            echo "MCP deployment skipped: a newer source version or published release superseded this tag." >> "$GITHUB_STEP_SUMMARY"
+          fi

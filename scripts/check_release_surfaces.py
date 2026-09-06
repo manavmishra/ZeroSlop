@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Confirm that GitHub and npm serve the version in this repository.
+"""Confirm that published packages, the website, and live MCP match this repository.
 
 The check distinguishes an unreachable service from a reachable service with a
 missing or stale artifact. Offline developer runs may skip unreachable hosts;
@@ -16,11 +16,75 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urldefrag, urljoin, urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 REPO = "manavmishra/ZeroSlop"
 TIMEOUT = 20
+MAX_METADATA_BYTES = 2 * 1024 * 1024
+MAX_DOWNLOAD_BYTES = 32 * 1024 * 1024
+MAX_SKILL_BYTES = 256 * 1024
+WEBSITE = "https://zero-slop.ai/"
+MCP = "https://mcp.zero-slop.ai"
+WEBSITE_DOWNLOAD_HOSTS = {"zero-slop.ai", "www.zero-slop.ai", "github.com"}
+
+
+def _zip_skill_version(blob):
+    """Read the packaged skill's frontmatter without extracting archive files."""
+    with zipfile.ZipFile(io.BytesIO(blob)) as archive:
+        names = [name for name in archive.namelist() if Path(name).name == "SKILL.md"]
+        if len(names) != 1:
+            raise ValueError(f"expected one SKILL.md, found {len(names)}")
+        if archive.getinfo(names[0]).file_size > MAX_SKILL_BYTES:
+            raise ValueError("SKILL.md exceeds the uncompressed size limit")
+        with archive.open(names[0]) as member:
+            skill_bytes = member.read(MAX_SKILL_BYTES + 1)
+        if len(skill_bytes) > MAX_SKILL_BYTES:
+            raise ValueError("SKILL.md exceeds the uncompressed size limit")
+        skill = skill_bytes.decode()
+    frontmatter = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", skill, re.S)
+    versions = re.findall(r'^\s*version:\s*"([^"\r\n]+)"[ \t]*$',
+                          frontmatter.group(1), re.M) if frontmatter else []
+    if len(versions) != 1:
+        raise ValueError("SKILL.md must have one quoted version in its frontmatter")
+    return versions[0]
+
+
+class _DownloadLinks(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+        self.base = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        href = attrs.get("href")
+        if not href:
+            return
+        if tag == "base" and self.base is None:
+            self.base = href
+        if tag == "a" and urlsplit(href).path.lower().endswith(".zip"):
+            self.links.append(href)
+
+
+def _website_zip_url(html):
+    """Follow the installer offered by the page, not an assumed release URL."""
+    parser = _DownloadLinks()
+    parser.feed(html)
+    parser.close()
+    base = urljoin(WEBSITE, parser.base or "")
+    links = {urldefrag(urljoin(base, href))[0] for href in parser.links}
+    if len(links) != 1:
+        raise ValueError(f"expected one distinct ZIP download link, found {len(links)}")
+    url = links.pop()
+    parsed = urlsplit(url)
+    if (parsed.scheme != "https" or parsed.hostname not in WEBSITE_DOWNLOAD_HOSTS
+            or parsed.port not in (None, 443)
+            or parsed.username is not None or parsed.password is not None):
+        raise ValueError("the ZIP download link must use HTTPS on an approved host without credentials")
+    return url
 
 
 def fetch(url, *, binary=False):
@@ -29,9 +93,12 @@ def fetch(url, *, binary=False):
     for _attempt in range(3):
         try:
             with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
-                body = response.read()
+                limit = MAX_DOWNLOAD_BYTES if binary else MAX_METADATA_BYTES
+                body = response.read(limit + 1)
+                if len(body) > limit:
+                    raise ValueError(f"response exceeds the {limit}-byte size limit")
                 return body if binary else body.decode()
-        except urllib.error.HTTPError:
+        except (urllib.error.HTTPError, ValueError):
             # A server response is authoritative. Retrying a 404 and later
             # calling it "offline" hid the missing v2.8.4 release ZIP.
             raise
@@ -71,16 +138,7 @@ def check_once(*, fetch_fn=fetch, emit=print, skip_website=False):
     zip_url = f"https://github.com/{REPO}/releases/latest/download/zero-slop.zip"
     try:
         blob = fetch_fn(zip_url, binary=True)
-        with zipfile.ZipFile(io.BytesIO(blob)) as archive:
-            names = [name for name in archive.namelist() if name.endswith("SKILL.md")]
-            if len(names) != 1:
-                raise ValueError(f"expected one SKILL.md, found {len(names)}")
-            match = re.search(
-                r'version:\s*"([0-9.]+)"', archive.read(names[0]).decode()
-            )
-            if not match:
-                raise ValueError("SKILL.md has no version")
-            inside = match.group(1)
+        inside = _zip_skill_version(blob)
         emit(f"inside that release's ZIP {inside}")
         if inside != shipped:
             problems.append(
@@ -170,12 +228,15 @@ def check_once(*, fetch_fn=fetch, emit=print, skip_website=False):
 
     try:
         registry = json.loads(fetch_fn(
-            "https://registry.modelcontextprotocol.io/v0.1/servers?"
-            "search=io.github.manavmishra%2Fzero-slop"
+            "https://registry.modelcontextprotocol.io/v0.1/servers/"
+            "io.github.manavmishra%2Fzero-slop/versions/latest"
         ))
-        records = [item.get("server", {}) for item in registry.get("servers", [])]
-        record = next((item for item in records
-                       if item.get("name") == "io.github.manavmishra/zero-slop"), {})
+        record = registry.get("server") if isinstance(registry, dict) else None
+        if not isinstance(record, dict) or record.get("name") != "io.github.manavmishra/zero-slop":
+            raise ValueError("the latest record does not identify the Zero Slop server")
+        official = registry.get("_meta", {}).get("io.modelcontextprotocol.registry/official", {})
+        if official.get("status") != "active" or official.get("isLatest") is not True:
+            raise ValueError("the latest record is not marked active and latest")
         registry_version = record.get("version")
         emit(f"official MCP Registry    {registry_version}")
         if registry_version != shipped:
@@ -189,6 +250,50 @@ def check_once(*, fetch_fn=fetch, emit=print, skip_website=False):
             skipped.append(f"MCP Registry ({exc})")
         else:
             problems.append(f"the MCP Registry response is invalid ({exc}).")
+
+    try:
+        health = json.loads(fetch_fn(f"{MCP}/health"))
+        if not isinstance(health, dict) or health.get("service") != "zero-slop-mcp":
+            raise ValueError("expected zero-slop-mcp health metadata")
+        scorer = health.get("scorer")
+        if not isinstance(scorer, dict):
+            raise ValueError("missing scorer health metadata")
+        for label, version in (("gateway", health.get("version")),
+                               ("scorer", scorer.get("scorerVersion"))):
+            emit(f"live MCP {label:16} {version}")
+            if version != shipped:
+                problems.append(
+                    f"the live MCP {label} serves {version or 'no version'}, not {shipped}."
+                )
+        if (health.get("ok") is not True or scorer.get("ok") is not True
+                or health.get("editorConfigured") is not True):
+            problems.append("the live MCP health is degraded or missing healthy readiness flags.")
+    except urllib.error.HTTPError as exc:
+        problems.append(f"the live MCP health endpoint returned HTTP {exc.code}.")
+    except Exception as exc:
+        if _unreachable(exc):
+            skipped.append(f"live MCP health ({exc})")
+        else:
+            problems.append(f"the live MCP health response is invalid ({exc}).")
+
+    try:
+        card = json.loads(fetch_fn(f"{MCP}/.well-known/mcp/server-card.json"))
+        info = card.get("serverInfo") if isinstance(card, dict) else None
+        if not isinstance(info, dict) or info.get("name") != "zero-slop":
+            raise ValueError("expected zero-slop serverInfo metadata")
+        version = info.get("version")
+        emit(f"live MCP server-card     {version}")
+        if version != shipped:
+            problems.append(
+                f"the live MCP server-card serves {version or 'no version'}, not {shipped}."
+            )
+    except urllib.error.HTTPError as exc:
+        problems.append(f"the live MCP server-card returned HTTP {exc.code}.")
+    except Exception as exc:
+        if _unreachable(exc):
+            skipped.append(f"live MCP server-card ({exc})")
+        else:
+            problems.append(f"the live MCP server-card response is invalid ({exc}).")
 
     if not skip_website:
         try:
@@ -209,6 +314,32 @@ def check_once(*, fetch_fn=fetch, emit=print, skip_website=False):
             else:
                 problems.append(f"the live website manifest is invalid ({exc}).")
 
+        website_zip_url = None
+        try:
+            website_zip_url = _website_zip_url(fetch_fn(WEBSITE))
+            emit(f"website download URL     {website_zip_url}")
+        except urllib.error.HTTPError as exc:
+            problems.append(f"the website download page returned HTTP {exc.code}.")
+        except Exception as exc:
+            if _unreachable(exc):
+                skipped.append(f"website download page ({exc})")
+            else:
+                problems.append(f"the website download link is invalid ({exc}).")
+
+        if website_zip_url:
+            try:
+                inside = _zip_skill_version(fetch_fn(website_zip_url, binary=True))
+                emit(f"inside website's ZIP     {inside}")
+                if inside != shipped:
+                    problems.append(f"the website ZIP contains {inside}, not {shipped}.")
+            except urllib.error.HTTPError as exc:
+                problems.append(f"the website ZIP returned HTTP {exc.code}.")
+            except Exception as exc:
+                if _unreachable(exc):
+                    skipped.append(f"website ZIP ({exc})")
+                else:
+                    problems.append(f"the website ZIP is invalid ({exc}).")
+
     return problems, skipped
 
 
@@ -220,7 +351,7 @@ def main(argv=None) -> int:
     )
     parser.add_argument(
         "--wait-seconds", type=int, default=0, metavar="N",
-        help="wait up to N seconds for GitHub and npm publication to converge",
+        help="wait up to N seconds for the published release surfaces to converge",
     )
     parser.add_argument(
         "--skip-website", action="store_true",

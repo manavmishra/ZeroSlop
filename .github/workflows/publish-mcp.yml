@@ -48,16 +48,18 @@ jobs:
         run: |
           set -euo pipefail
           expected=$(python3 -c 'import json; print(json.load(open("server.json"))["version"])')
-          for attempt in $(seq 1 20); do
-            current=$(curl --fail --silent --show-error \
-              'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.manavmishra%2Fzero-slop' \
-              | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next((x["server"]["version"] for x in d.get("servers",[]) if x.get("server",{}).get("name")=="io.github.manavmishra/zero-slop"), ""))')
+          for attempt in $(seq 1 12); do
+            # Read the named latest record, never the first historical search
+            # result. A temporary HTTP/metadata failure retries but cannot pass.
+            current=$(curl --fail --silent --show-error --connect-timeout 5 --max-time 10 \
+              'https://registry.modelcontextprotocol.io/v0.1/servers/io.github.manavmishra%2Fzero-slop/versions/latest' \
+              | python3 -c 'import json,sys; d=json.load(sys.stdin); s=d.get("server", {}); m=d.get("_meta", {}).get("io.modelcontextprotocol.registry/official", {}); assert s.get("name")=="io.github.manavmishra/zero-slop" and isinstance(s.get("version"), str) and s["version"] and m.get("status")=="active" and m.get("isLatest") is True; print(s["version"])') || current=""
             if [ "$current" = "$expected" ]; then
               echo "MCP Registry now serves Zero Slop $current"
               exit 0
             fi
-            echo "attempt $attempt/20: MCP Registry serves ${current:-nothing}, waiting for $expected"
-            sleep 15
+            echo "attempt $attempt/12: MCP Registry serves ${current:-nothing}, waiting for $expected"
+            if [ "$attempt" -lt 12 ]; then sleep 10; fi
           done
           echo "::error::MCP Registry did not converge to $expected"
           exit 1

@@ -70,6 +70,31 @@ def score(text):
     return slopscore.score_text(text, data)["ai_likelihood"]
 
 
+def live_release_fixture(url, version):
+    """Healthy deployed metadata for release tests targeting another surface."""
+    if url == "https://mcp.zero-slop.ai/health":
+        return json.dumps({
+            "ok": True, "service": "zero-slop-mcp", "version": version,
+            "scorer": {"ok": True, "scorerVersion": version},
+            "editorConfigured": True,
+        })
+    if url == "https://mcp.zero-slop.ai/.well-known/mcp/server-card.json":
+        return json.dumps({"serverInfo": {"name": "zero-slop", "version": version}})
+    if url == "https://zero-slop.ai/":
+        return ('<a href="https://github.com/manavmishra/ZeroSlop/releases/'
+                'latest/download/zero-slop.zip">Claude.ai zip</a>')
+    return None
+
+
+def registry_release_fixture(version):
+    return json.dumps({
+        "server": {"name": "io.github.manavmishra/zero-slop", "version": version},
+        "_meta": {"io.modelcontextprotocol.registry/official": {
+            "status": "active", "isLatest": True,
+        }},
+    })
+
+
 # --------------------------------------------------------------------------
 class Taxonomy(unittest.TestCase):
     """The pattern database itself has to be well-formed to be trustworthy."""
@@ -2459,6 +2484,41 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn('tags: ["v*"]', registry)
         self.assertIn("mcp-publisher publish", registry)
 
+    def test_registry_publisher_verifies_the_named_latest_active_record(self):
+        workflow = (ROOT / ".github/workflows/publish-mcp.yml").read_text()
+        self.assertIn(
+            "https://registry.modelcontextprotocol.io/v0.1/servers/"
+            "io.github.manavmishra%2Fzero-slop/versions/latest", workflow,
+        )
+        self.assertNotIn("servers?search=", workflow)
+        verifier = re.search(r"python3 -c '([^']*io\.modelcontextprotocol\.registry/official[^']*)'",
+                             workflow)
+        self.assertIsNotNone(verifier, "publisher must validate the registry's active/latest identity")
+        current = json.loads(registry_release_fixture("2.9.1"))
+        invalid = (
+            {**current, "server": {"name": "other-server", "version": "2.9.1"}},
+            {**current, "server": {"name": "io.github.manavmishra/zero-slop"}},
+            {**current, "_meta": {}},
+            {**current, "_meta": {"io.modelcontextprotocol.registry/official": {
+                "status": "deprecated", "isLatest": True,
+            }}},
+            {**current, "_meta": {"io.modelcontextprotocol.registry/official": {
+                "status": "active", "isLatest": "true",
+            }}},
+            {}, [],
+        )
+        for payload in (current, *invalid):
+            with self.subTest(payload=payload):
+                result = subprocess.run([sys.executable, "-c", verifier.group(1)],
+                                        input=json.dumps(payload), text=True, capture_output=True)
+                if payload is current:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout.strip(), "2.9.1")
+                else:
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("--connect-timeout", workflow)
+        self.assertIn("--max-time", workflow)
+
     def test_release_path_classifier_covers_runtime_but_not_marketing_copy(self):
         spec = importlib.util.spec_from_file_location(
             "release_version", ROOT / "scripts" / "check_release_version.py")
@@ -2516,6 +2576,9 @@ class DocsMatchReality(unittest.TestCase):
                 archive.addfile(info, io.BytesIO(content))
 
         def fake_fetch(url, *, binary=False):
+            extra = live_release_fixture(url, shipped)
+            if extra is not None:
+                return extra
             if url.endswith("/releases/latest"):
                 return json.dumps({"tag_name": f"v{shipped}"})
             if url.endswith("/zero-slop.zip"):
@@ -2528,9 +2591,7 @@ class DocsMatchReality(unittest.TestCase):
             if url.endswith("/zero-slop.tgz"):
                 return package.getvalue()
             if "registry.modelcontextprotocol.io" in url:
-                return json.dumps({"servers": [{"server": {
-                    "name": "io.github.manavmishra/zero-slop", "version": shipped,
-                }}]})
+                return registry_release_fixture(shipped)
             if "zero-slop.ai/try-runtime/manifest.json" in url:
                 return json.dumps({"skillVersion": shipped})
             raise AssertionError(url)
@@ -2556,6 +2617,9 @@ class DocsMatchReality(unittest.TestCase):
             return blob.getvalue()
 
         def fake_fetch(url, *, binary=False):
+            extra = live_release_fixture(url, shipped)
+            if extra is not None:
+                return extra
             if url.endswith("/releases/latest"):
                 return json.dumps({"tag_name": f"v{shipped}"})
             if url.endswith("/zero-slop.zip"):
@@ -2568,9 +2632,7 @@ class DocsMatchReality(unittest.TestCase):
             if url.endswith("/zero-slop.tgz"):
                 raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
             if "registry.modelcontextprotocol.io" in url:
-                return json.dumps({"servers": [{"server": {
-                    "name": "io.github.manavmishra/zero-slop", "version": shipped,
-                }}]})
+                return registry_release_fixture(shipped)
             if "zero-slop.ai/try-runtime/manifest.json" in url:
                 return json.dumps({"skillVersion": shipped})
             raise AssertionError(url)
@@ -2621,6 +2683,9 @@ class DocsMatchReality(unittest.TestCase):
         for label, package_blob in cases.items():
             with self.subTest(label=label):
                 def fake_fetch(url, *, binary=False):
+                    extra = live_release_fixture(url, shipped)
+                    if extra is not None:
+                        return extra
                     if url.endswith("/releases/latest"):
                         return json.dumps({"tag_name": f"v{shipped}"})
                     if url.endswith("/zero-slop.zip"):
@@ -2633,9 +2698,7 @@ class DocsMatchReality(unittest.TestCase):
                     if url.endswith("/zero-slop.tgz"):
                         return package_blob
                     if "registry.modelcontextprotocol.io" in url:
-                        return json.dumps({"servers": [{"server": {
-                            "name": "io.github.manavmishra/zero-slop", "version": shipped,
-                        }}]})
+                        return registry_release_fixture(shipped)
                     if "zero-slop.ai/try-runtime/manifest.json" in url:
                         return json.dumps({"skillVersion": shipped})
                     raise AssertionError(url)
@@ -2669,6 +2732,9 @@ class DocsMatchReality(unittest.TestCase):
                 archive.addfile(info, io.BytesIO(content))
 
         def fake_fetch(url, *, binary=False):
+            extra = live_release_fixture(url, shipped)
+            if extra is not None:
+                return extra
             if url.endswith("/releases/latest"):
                 return json.dumps({"tag_name": f"v{shipped}"})
             if url.endswith("/zero-slop.zip"):
@@ -2681,9 +2747,7 @@ class DocsMatchReality(unittest.TestCase):
             if url.endswith("/zero-slop.tgz"):
                 return package_blob.getvalue()
             if "registry.modelcontextprotocol.io" in url:
-                return json.dumps({"servers": [{"server": {
-                    "name": "io.github.manavmishra/zero-slop", "version": "0.0.0",
-                }}]})
+                return registry_release_fixture("0.0.0")
             if "zero-slop.ai/try-runtime/manifest.json" in url:
                 return json.dumps({"skillVersion": "0.0.0"})
             raise AssertionError(url)
@@ -2718,6 +2782,11 @@ class DocsMatchReality(unittest.TestCase):
                 archive.addfile(info, io.BytesIO(content))
 
         def fake_fetch(url, *, binary=False):
+            if url == "https://zero-slop.ai/":
+                raise AssertionError("website should not be requested")
+            extra = live_release_fixture(url, shipped)
+            if extra is not None:
+                return extra
             if url.endswith("/releases/latest"):
                 return json.dumps({"tag_name": f"v{shipped}"})
             if url.endswith("/zero-slop.zip"):
@@ -2730,9 +2799,7 @@ class DocsMatchReality(unittest.TestCase):
             if url.endswith("/zero-slop.tgz"):
                 return package_blob.getvalue()
             if "registry.modelcontextprotocol.io" in url:
-                return json.dumps({"servers": [{"server": {
-                    "name": "io.github.manavmishra/zero-slop", "version": shipped,
-                }}]})
+                return registry_release_fixture(shipped)
             if "zero-slop.ai" in url:
                 raise AssertionError("website should not be requested")
             raise AssertionError(url)
@@ -2772,6 +2839,381 @@ class DocsMatchReality(unittest.TestCase):
                     if banned in path.read_text(errors="ignore").lower():
                         hits.append(str(path.relative_to(ROOT)))
         self.assertEqual(hits, [], f"retired optimizer still ships: {hits}")
+
+
+class ReleaseSurfaceChecks(unittest.TestCase):
+    """Live endpoint metadata and the website's actual installer must converge."""
+
+    HEALTH = "https://mcp.zero-slop.ai/health"
+    CARD = "https://mcp.zero-slop.ai/.well-known/mcp/server-card.json"
+    SITE = "https://zero-slop.ai/"
+    DOWNLOAD = "https://zero-slop.ai/downloads/current-skill.zip?source=site&format=zip"
+    REGISTRY = "https://registry.modelcontextprotocol.io/v0.1/servers/" \
+               "io.github.manavmishra%2Fzero-slop/versions/latest"
+
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location(
+            "release_surfaces_live", ROOT / "scripts" / "check_release_surfaces.py")
+        self.module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.module)
+        self.shipped = json.loads((ROOT / "package.json").read_text())["version"]
+        package = io.BytesIO()
+        with tarfile.open(fileobj=package, mode="w:gz") as archive:
+            files = {
+                "package/package.json": json.dumps({
+                    "version": self.shipped, "bin": {"zero-slop": "bin/zero-slop.mjs"},
+                }).encode(),
+                "package/SKILL.md": f'---\nversion: "{self.shipped}"\n---\n'.encode(),
+                "package/bin/zero-slop.mjs": b"#!/usr/bin/env node\n",
+            }
+            for name, content in files.items():
+                info = tarfile.TarInfo(name)
+                info.size = len(content)
+                archive.addfile(info, io.BytesIO(content))
+        self.responses = {
+            "https://api.github.com/repos/manavmishra/ZeroSlop/releases/latest":
+                json.dumps({"tag_name": f"v{self.shipped}"}),
+            "https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip":
+                self.make_zip(),
+            "https://registry.npmjs.org/zero-slop/latest": json.dumps({
+                "version": self.shipped,
+                "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
+            }),
+            "https://registry.example/zero-slop.tgz": package.getvalue(),
+            "https://registry.modelcontextprotocol.io/v0.1/servers?"
+            "search=io.github.manavmishra%2Fzero-slop": json.dumps({"servers": [{"server": {
+                "name": "io.github.manavmishra/zero-slop", "version": self.shipped,
+            }}]}),
+            self.REGISTRY: registry_release_fixture(self.shipped),
+            "https://zero-slop.ai/try-runtime/manifest.json":
+                json.dumps({"skillVersion": self.shipped}),
+            self.HEALTH: live_release_fixture(self.HEALTH, self.shipped),
+            self.CARD: live_release_fixture(self.CARD, self.shipped),
+            self.SITE: '<a href="/downloads/current-skill.zip?source=site&amp;format=zip">'
+                       'Claude.ai zip</a>',
+            self.DOWNLOAD: self.make_zip(),
+        }
+        self.requests = []
+
+    def make_zip(self, version=None, *, files=None):
+        blob = io.BytesIO()
+        with zipfile.ZipFile(blob, "w") as archive:
+            for name, content in (files if files is not None else {
+                "zero-slop/SKILL.md":
+                    f'---\nmetadata:\n  version: "{version or self.shipped}"\n---\n',
+            }).items():
+                archive.writestr(name, content)
+        return blob.getvalue()
+
+    def fake_fetch(self, url, *, binary=False):
+        self.requests.append((url, binary))
+        key = url.split("?", 1)[0] if "/try-runtime/manifest.json?" in url else url
+        self.assertIn(key, self.responses, f"unexpected release request: {url}")
+        response = self.responses[key]
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    def check(self, **kwargs):
+        return self.module.check_once(fetch_fn=self.fake_fetch, emit=lambda _: None, **kwargs)
+
+    def test_current_surfaces_include_live_mcp_and_discovered_website_zip(self):
+        self.assertEqual(self.check(), ([], []))
+        for url in (self.HEALTH, self.CARD, self.SITE):
+            self.assertIn((url, False), self.requests)
+        self.assertIn((self.DOWNLOAD, True), self.requests)
+
+    def test_registry_latest_lookup_ignores_historical_search_order(self):
+        search = "https://registry.modelcontextprotocol.io/v0.1/servers?" \
+                 "search=io.github.manavmishra%2Fzero-slop"
+        self.responses[search] = json.dumps({"servers": [
+            {"server": {"name": "io.github.manavmishra/zero-slop", "version": version}}
+            for version in ("0.0.0", self.shipped)
+        ]})
+        self.assertEqual(self.check(), ([], []))
+        self.assertIn((self.REGISTRY, False), self.requests)
+        self.assertNotIn((search, False), self.requests)
+
+    def test_registry_latest_metadata_must_identify_an_active_exact_release(self):
+        valid = json.loads(self.responses[self.REGISTRY])
+        cases = (
+            registry_release_fixture("0.0.0"), "not JSON", "[]", "{}",
+            json.dumps({**valid, "server": {"name": "another-server", "version": self.shipped}}),
+            json.dumps({**valid, "server": {"name": "io.github.manavmishra/zero-slop"}}),
+            json.dumps({"server": valid["server"]}),
+            json.dumps({**valid, "_meta": {"io.modelcontextprotocol.registry/official": {
+                "status": "deprecated", "isLatest": True,
+            }}}),
+            json.dumps({**valid, "_meta": {"io.modelcontextprotocol.registry/official": {
+                "status": "active", "isLatest": "true",
+            }}}),
+        )
+        for payload in cases:
+            with self.subTest(payload=payload):
+                self.responses[self.REGISTRY] = payload
+                problems, skipped = self.check()
+                self.assertEqual(skipped, [])
+                self.assertEqual(len(problems), 1, problems)
+                self.assertIn("MCP Registry", problems[0])
+
+    def test_each_deployed_mcp_version_is_checked_independently(self):
+        cases = ((self.HEALTH, "gateway"), (self.HEALTH, "scorer"), (self.CARD, "server-card"))
+        for url, label in cases:
+            with self.subTest(surface=label):
+                original = self.responses[url]
+                data = json.loads(original)
+                if label == "gateway":
+                    data["version"] = "0.0.0"
+                elif label == "scorer":
+                    data["scorer"]["scorerVersion"] = "0.0.0"
+                else:
+                    data["serverInfo"]["version"] = "0.0.0"
+                self.responses[url] = json.dumps(data)
+                problems, skipped = self.check()
+                self.responses[url] = original
+                self.assertEqual(skipped, [])
+                self.assertEqual(len(problems), 1, problems)
+                self.assertIn(label, problems[0])
+                self.assertIn("0.0.0", problems[0])
+
+    def test_mcp_metadata_fails_closed_when_missing_malformed_or_degraded(self):
+        health = json.loads(self.responses[self.HEALTH])
+        cases = [
+            (self.HEALTH, "not JSON"), (self.HEALTH, "[]"),
+            (self.HEALTH, json.dumps({**health, "ok": False})),
+            (self.HEALTH, json.dumps({**health, "ok": "true"})),
+            (self.HEALTH, json.dumps({**health, "version": None})),
+            (self.HEALTH, json.dumps({**health, "scorer": None})),
+            (self.HEALTH, json.dumps({**health, "scorer": {"ok": True}})),
+            (self.HEALTH, json.dumps({**health, "scorer": {
+                "ok": False, "scorerVersion": self.shipped,
+            }})),
+            (self.HEALTH, json.dumps({**health, "scorer": {
+                "ok": 1, "scorerVersion": self.shipped,
+            }})),
+            (self.HEALTH, json.dumps({**health, "editorConfigured": False})),
+            (self.HEALTH, json.dumps({k: v for k, v in health.items() if k != "editorConfigured"})),
+            (self.CARD, "not JSON"), (self.CARD, "[]"), (self.CARD, "{}"),
+            (self.CARD, json.dumps({"serverInfo": {"name": "zero-slop"}})),
+            (self.CARD, json.dumps({"serverInfo": {
+                "name": "some-other-server", "version": self.shipped,
+            }})),
+        ]
+        for url, payload in cases:
+            with self.subTest(url=url, payload=payload):
+                original = self.responses[url]
+                self.responses[url] = payload
+                problems, skipped = self.check()
+                self.responses[url] = original
+                self.assertEqual(skipped, [])
+                self.assertTrue(problems, "invalid live metadata must not pass")
+
+    def test_website_zip_is_checked_even_when_github_zip_and_manifest_are_current(self):
+        self.responses[self.DOWNLOAD] = self.make_zip("0.0.0")
+        problems, skipped = self.check()
+        self.assertEqual(skipped, [])
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("website ZIP", problems[0])
+        self.assertIn("0.0.0", problems[0])
+
+    def test_website_download_must_be_a_unique_https_anchor(self):
+        cases = (
+            "<p>No download yet</p>",
+            '<script>const zip = "/downloads/zero-slop.zip";</script>',
+            '<a href="http://zero-slop.ai/zero-slop.zip">Download</a>',
+            '<a href="/one.zip">One</a><a href="/two.zip">Two</a>',
+        )
+        for html in cases:
+            with self.subTest(html=html):
+                self.responses[self.SITE] = html
+                problems, skipped = self.check()
+                self.assertEqual(skipped, [])
+                self.assertEqual(len(problems), 1, problems)
+                self.assertIn("website download", problems[0])
+        self.responses[self.SITE] = live_release_fixture(self.SITE, self.shipped) * 2
+        self.assertEqual(self.check(), ([], []), "repeated links to the same ZIP are unambiguous")
+
+    def test_website_zip_rejects_corrupt_or_ambiguous_skill_metadata(self):
+        cases = (
+            b"not a ZIP",
+            self.make_zip(files={}),
+            self.make_zip(files={"NOTSKILL.md": f'version: "{self.shipped}"'}),
+            self.make_zip(files={"a/SKILL.md": "", "b/SKILL.md": ""}),
+            self.make_zip(files={"SKILL.md": "---\nname: zero-slop\n---\n"}),
+            self.make_zip(files={"SKILL.md": f'# Example\nversion: "{self.shipped}"\n'}),
+        )
+        for blob in cases:
+            with self.subTest(blob=blob[:30]):
+                self.responses[self.DOWNLOAD] = blob
+                problems, skipped = self.check()
+                self.assertEqual(skipped, [])
+                self.assertEqual(len(problems), 1, problems)
+                self.assertIn("website ZIP is invalid", problems[0])
+
+    def test_website_zip_discovery_rejects_unapproved_hosts_and_ports(self):
+        for href in ("https://localhost/zero-slop.zip", "https://127.0.0.1/zero-slop.zip",
+                     "https://unrelated.example/zero-slop.zip", "https://zero-slop.ai:8443/zero-slop.zip",
+                     "https://user@github.com/zero-slop.zip", "https://@github.com/zero-slop.zip"):
+            with self.subTest(href=href):
+                with self.assertRaises(ValueError):
+                    self.module._website_zip_url(f'<a href="{href}">Download</a>')
+        for host in ("zero-slop.ai", "www.zero-slop.ai", "github.com"):
+            self.assertEqual(self.module._website_zip_url(
+                f'<a href="https://{host}/zero-slop.zip">Download</a>'),
+                f"https://{host}/zero-slop.zip")
+
+    def test_zip_skill_uncompressed_size_is_bounded(self):
+        content = f'---\nversion: "{self.shipped}"\n---\n' + "x" * (256 * 1024)
+        with self.assertRaises(ValueError):
+            self.module._zip_skill_version(self.make_zip(files={"SKILL.md": content}))
+
+    def test_fetch_bounds_response_reads_without_retrying_oversized_metadata(self):
+        for binary, setting in ((False, "MAX_METADATA_BYTES"), (True, "MAX_DOWNLOAD_BYTES")):
+            with self.subTest(binary=binary), \
+                    mock.patch.object(self.module, setting, 8, create=True), \
+                    mock.patch.object(self.module.urllib.request, "urlopen",
+                                      side_effect=lambda *a, **k: io.BytesIO(b"123456789")) as opened:
+                with self.assertRaisesRegex(ValueError, "exceeds"):
+                    self.module.fetch("https://github.com/example/large.zip", binary=binary)
+                self.assertEqual(opened.call_count, 1)
+
+    def test_new_surface_http_errors_are_drift_and_network_failures_remain_skips(self):
+        for url in (self.HEALTH, self.CARD, self.SITE, self.DOWNLOAD):
+            for offline in (False, True):
+                with self.subTest(url=url, offline=offline):
+                    original = self.responses[url]
+                    self.responses[url] = (urllib.error.URLError("offline") if offline else
+                        urllib.error.HTTPError(url, 503, "Unavailable", {}, None))
+                    problems, skipped = self.check()
+                    self.responses[url] = original
+                    self.assertEqual(len(problems), 0 if offline else 1, problems)
+                    self.assertEqual(len(skipped), 1 if offline else 0, skipped)
+
+    def test_skipping_website_never_skips_live_mcp(self):
+        self.assertEqual(self.check(skip_website=True), ([], []))
+        self.assertIn((self.HEALTH, False), self.requests)
+        self.assertIn((self.CARD, False), self.requests)
+        self.assertFalse(any(url.startswith(self.SITE) for url, _ in self.requests))
+
+
+class McpDeploymentChecks(unittest.TestCase):
+    def setUp(self):
+        script = ROOT / ".github/scripts/deploy_mcp.py"
+        self.assertTrue(script.is_file(), "deployment guards need a testable maintainer helper")
+        spec = importlib.util.spec_from_file_location("deploy_mcp_checks", script)
+        self.module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.module)
+        self.sha = "a" * 40
+        self.tag = "v2.9.1"
+        self.responses = {
+            "https://api.github.com/repos/manavmishra/ZeroSlop/releases/latest": {
+                "tag_name": self.tag, "draft": False, "prerelease": False,
+            },
+            "https://api.github.com/repos/manavmishra/ZeroSlop/git/ref/tags/v2.9.1": {
+                "ref": "refs/tags/v2.9.1", "object": {"type": "commit", "sha": self.sha},
+            },
+            f"https://raw.githubusercontent.com/manavmishra/ZeroSlop/{self.sha}/package.json":
+                {"version": "2.9.1"},
+            "https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/package.json":
+                {"version": "2.9.1"},
+        }
+
+    def fetch(self, url):
+        self.assertIn(url, self.responses)
+        return self.responses[url]
+
+    def test_only_latest_tag_with_unchanged_sha_is_eligible(self):
+        expected = {"status": "current", "sha": self.sha, "version": "2.9.1"}
+        self.assertEqual(self.module.release_guard(self.tag, fetch_fn=self.fetch), expected)
+        self.assertEqual(self.module.release_guard(
+            self.tag, expected_sha=self.sha, fetch_fn=self.fetch), expected)
+        with self.assertRaises(ValueError):
+            self.module.release_guard(self.tag, expected_sha="b" * 40, fetch_fn=self.fetch)
+        with self.assertRaises(ValueError):
+            self.module.release_guard("main;echo unsafe", fetch_fn=self.fetch)
+
+    def test_superseded_release_is_skipped_before_any_deployment(self):
+        for url, payload in (
+            ("https://api.github.com/repos/manavmishra/ZeroSlop/releases/latest", {
+                "tag_name": "v2.9.2", "draft": False, "prerelease": False,
+            }),
+            ("https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/package.json",
+             {"version": "2.9.2"}),
+        ):
+            with self.subTest(url=url):
+                original = self.responses[url]
+                self.responses[url] = payload
+                self.assertEqual(self.module.release_guard(
+                    self.tag, fetch_fn=self.fetch)["status"], "superseded")
+                self.responses[url] = original
+
+    def test_annotated_tags_are_resolved_to_the_immutable_commit(self):
+        url = "https://api.github.com/repos/manavmishra/ZeroSlop/git/ref/tags/v2.9.1"
+        self.responses[url]["object"] = {"type": "tag", "sha": "b" * 40}
+        self.responses["https://api.github.com/repos/manavmishra/ZeroSlop/git/tags/" + "b" * 40] = {
+            "object": {"type": "commit", "sha": self.sha},
+        }
+        self.assertEqual(self.module.release_guard(self.tag, fetch_fn=self.fetch)["sha"], self.sha)
+
+    def test_malformed_release_identity_fails_closed(self):
+        for url, payload in (
+            ("https://api.github.com/repos/manavmishra/ZeroSlop/releases/latest", {}),
+            ("https://api.github.com/repos/manavmishra/ZeroSlop/releases/latest", {
+                "tag_name": self.tag, "draft": False, "prerelease": True,
+            }),
+            ("https://api.github.com/repos/manavmishra/ZeroSlop/git/ref/tags/v2.9.1", {
+                "ref": "refs/tags/other", "object": {"type": "commit", "sha": self.sha},
+            }),
+            (f"https://raw.githubusercontent.com/manavmishra/ZeroSlop/{self.sha}/package.json",
+             {"version": "2.9.2"}),
+            ("https://raw.githubusercontent.com/manavmishra/ZeroSlop/main/package.json", {}),
+        ):
+            with self.subTest(url=url):
+                original = self.responses[url]
+                self.responses[url] = payload
+                with self.assertRaises(ValueError):
+                    self.module.release_guard(self.tag, fetch_fn=self.fetch)
+                self.responses[url] = original
+
+    def test_runtime_gate_checks_both_versions_readiness_and_server_identity(self):
+        health = json.loads(live_release_fixture("https://mcp.zero-slop.ai/health", "2.9.1"))
+        card = json.loads(live_release_fixture(
+            "https://mcp.zero-slop.ai/.well-known/mcp/server-card.json", "2.9.1"))
+        self.module.validate_runtime("2.9.1", health, card)
+        for bad_health, bad_card in (
+            ({**health, "version": "2.9.0"}, card),
+            ({**health, "scorer": {"ok": True, "scorerVersion": "2.9.0"}}, card),
+            ({**health, "ok": "true"}, card),
+            ({**health, "editorConfigured": False}, card),
+            (health, {"serverInfo": {"name": "other", "version": "2.9.1"}}),
+            (health, {"serverInfo": {"name": "zero-slop", "version": "2.9.0"}}),
+            ({}, card), (health, {}),
+        ):
+            with self.subTest(health=bad_health, card=bad_card):
+                with self.assertRaises(ValueError):
+                    self.module.validate_runtime("2.9.1", bad_health, bad_card)
+
+    def test_workflow_serializes_pinned_deployments_without_copying_runtime_secrets(self):
+        workflow = (ROOT / ".github/workflows/deploy-mcp.yml").read_text()
+        for required in (
+            "workflow_call:", "workflow_dispatch:", "group: deploy-mcp-production",
+            "cancel-in-progress: false", "queue: max", "CF_WORKERS_DEPLOY_TOKEN", "CF_ACCOUNT_ID",
+            "ref: ${{ steps.release.outputs.sha }}", "persist-credentials: false",
+            "git merge-base --is-ancestor", "--expected-sha", "uv sync --locked",
+            "timeout 300s npm run deploy", "timeout 150s python3",
+            "RELEASE_SHA: ${{ inputs.release_sha }}",
+            'if [ -n "$RELEASE_SHA" ]; then args+=(--expected-sha "$RELEASE_SHA"); fi',
+        ):
+            self.assertIn(required, workflow)
+        self.assertLess(workflow.index("Deploy the private scorer"), workflow.index("Deploy the gateway"))
+        for forbidden in ("secret put", "--secrets-file", "CF_PAGES_TOKEN", "wrangler login",
+                          "check_release_surfaces.py", "EDITOR_SHARED_SECRET:"):
+            self.assertNotIn(forbidden, workflow)
+        release = (ROOT / ".github/workflows/release-on-tag.yml").read_text()
+        self.assertIn("uses: ./.github/workflows/deploy-mcp.yml", release)
+        self.assertIn("needs: publish", release)
+        self.assertIn("needs: [publish, deploy_mcp]", release)
+        self.assertIn("release_sha: ${{ github.sha }}", release)
 
 
 class Discrimination(unittest.TestCase):

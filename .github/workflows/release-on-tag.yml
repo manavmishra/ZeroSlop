@@ -60,7 +60,39 @@ jobs:
             gh api --method POST repos/manavmishra/ZSWebpage/dispatches \
               -f event_type=zero-slop-release
           fi
-      - name: Confirm the public release surfaces
+  deploy_mcp:
+    needs: publish
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-mcp.yml
+    with:
+      release_tag: ${{ github.ref_name }}
+      release_sha: ${{ github.sha }}
+    secrets:
+      CF_WORKERS_DEPLOY_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+  public_surfaces:
+    needs: [publish, deploy_mcp]
+    if: needs.deploy_mcp.outputs.status == 'deployed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+      - name: Skip verification of a superseded release
+        id: latest
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: timeout 90s python3 .github/scripts/deploy_mcp.py guard --tag "$RELEASE_TAG" --expected-sha "$RELEASE_SHA" --github-output "$GITHUB_OUTPUT"
+      - name: Wait for public release surfaces to converge
+        if: steps.latest.outputs.status == 'current'
         env:
           WEBSITE_SYNC_TOKEN: ${{ secrets.WEBSITE_SYNC_TOKEN }}
         run: |
@@ -69,4 +101,4 @@ jobs:
             echo "::warning::Website verification is owned by its hourly sync until WEBSITE_SYNC_TOKEN is configured"
             args+=(--skip-website)
           fi
-          python3 scripts/check_release_surfaces.py "${args[@]}"
+          timeout 840s python3 scripts/check_release_surfaces.py "${args[@]}"
