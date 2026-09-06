@@ -1,13 +1,12 @@
 name: synchronize release
 
-# A validated change to main becomes one versioned release. GitHub suppresses
-# workflow triggers caused by GITHUB_TOKEN, so this job creates the tag and then
-# dispatches the two tag-owned publication workflows explicitly.
+# The validation workflow calls this reusable workflow only after its code,
+# website, and MCP jobs pass on main. GitHub suppresses workflow triggers caused
+# by GITHUB_TOKEN, so this job creates the tag and dispatches the two tag-owned
+# publication workflows explicitly.
 
 on:
-  workflow_run:
-    workflows: [validate]
-    types: [completed]
+  workflow_call: {}
   workflow_dispatch: {}
 
 permissions:
@@ -20,19 +19,13 @@ concurrency:
 
 jobs:
   synchronize:
-    if: >-
-      github.event_name == 'workflow_dispatch'
-      || (github.event.workflow_run.conclusion == 'success'
-          && github.event.workflow_run.event == 'push'
-          && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          # Always check out the trusted main ref. workflow_run metadata can
-          # describe a pull-request head and must never become executable input
-          # in this write-enabled release job.
+          # Never turn event metadata into an executable checkout ref. The
+          # caller admits only a successful push to trusted main.
           ref: refs/heads/main
           fetch-depth: 0
 
@@ -43,8 +36,7 @@ jobs:
       - name: Confirm the validated commit is still main
         id: head
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          VALIDATED_SHA: ${{ github.event.workflow_run.head_sha }}
+          VALIDATED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           current=$(git ls-remote origin refs/heads/main | cut -f1)
@@ -52,7 +44,7 @@ jobs:
           if [ "$current" != "$checked" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "main advanced from $checked to $current; the newer validation run owns publication"
-          elif [ "$EVENT_NAME" = "workflow_run" ] && [ "$VALIDATED_SHA" != "$checked" ]; then
+          elif [ "$VALIDATED_SHA" != "$checked" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "the successful validation covered $VALIDATED_SHA, not trusted main $checked"
           else

@@ -2444,10 +2444,13 @@ class DocsMatchReality(unittest.TestCase):
     def test_validated_version_bumps_dispatch_every_release_surface(self):
         workflows = ROOT / ".github" / "workflows"
         sync = (workflows / "sync-release.yml").read_text()
+        validate = (workflows / "validate.yml").read_text()
         release = (workflows / "release-on-tag.yml").read_text()
         registry = (workflows / "publish-mcp.yml").read_text()
-        self.assertIn("workflow_run:", sync)
-        self.assertIn("workflows: [validate]", sync)
+        self.assertIn("workflow_call:", sync)
+        self.assertNotIn("workflow_run:", sync)
+        self.assertIn("needs: [validate, website, mcp]", validate)
+        self.assertIn("uses: ./.github/workflows/sync-release.yml", validate)
         self.assertIn('git tag "$tag"', sync)
         self.assertIn("gh workflow run release-on-tag.yml", sync)
         self.assertIn("gh workflow run publish-mcp.yml", sync)

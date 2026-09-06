@@ -208,3 +208,11 @@ jobs:
       - name: Package scorer Worker
         working-directory: mcp/scorer
         run: npm run dry-run
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [validate, website, mcp]
+    permissions:
+      actions: write
+      contents: write
+    uses: ./.github/workflows/sync-release.yml
