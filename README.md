@@ -225,7 +225,7 @@ stress case took 2.2932 seconds, and learning from an 8,000-word edit took
 0.1592 seconds. The measurements and machine details are in
 [`bench/performance-results.json`](bench/performance-results.json).
 
-Across 12 interleaved runs against 2.7.7, we measured 0.02% lower median throughput,
+Across 12 interleaved runs against 2.7.7, we measured 0.17% lower median throughput,
 which is effectively unchanged. The separate two-way replay used
 Zero Slop v2.6.0.
 
