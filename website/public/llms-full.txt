@@ -3,7 +3,7 @@
 Canonical website: https://zero-slop.ai/
 Source and documentation: https://github.com/manavmishra/ZeroSlop
 Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
-Current version: 2.9.0
+Current version: 2.9.1
 
 ## Direct answer
 

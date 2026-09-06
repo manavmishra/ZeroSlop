@@ -27,7 +27,7 @@ Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.9.0" src="https://img.shields.io/badge/version-2.9.0-72528F">
+  <img alt="Version 2.9.1" src="https://img.shields.io/badge/version-2.9.1-72528F">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=72528F"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=227B5B"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=b0442a"></a>

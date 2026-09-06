@@ -165,7 +165,7 @@ return it unchanged as already clear, without spending a model call.
 
 ## Store-specific release notes
 
-Version 2.9.0 packages the Agent Skill and hosted MCP as one portable Agent
+Version 2.9.1 packages the Agent Skill and hosted MCP as one portable Agent
 Plugin, adds a Gemini CLI extension manifest, publishes MCP metadata through
 the official Registry, and checks that every public release surface serves the
 same version. The hosted connector still makes at most one editing-model call
