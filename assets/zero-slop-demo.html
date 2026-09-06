@@ -8,7 +8,7 @@
     :root{color-scheme:light}*{box-sizing:border-box}
     body{margin:0;padding:32px 20px;background:#fff;color:#12100c;font:16px/1.6 system-ui,sans-serif}
     main{max-width:1100px;margin:auto}
-    video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#fff}
+    video{display:block;width:100%;height:auto;aspect-ratio:45/29;background:#1b1a18}
     h1{font-size:26px;font-weight:600;letter-spacing:-.6px}a{color:#8c3f22}
     p{max-width:75ch}summary{cursor:pointer}code{font-size:.94em;overflow-wrap:anywhere}
     .links{display:flex;gap:24px;flex-wrap:wrap}
@@ -21,10 +21,9 @@
     <source src="zero-slop-demo.mp4" type="video/mp4">
     Your browser cannot play this video. <a href="zero-slop-demo.mp4">Download the MP4</a>.
   </video>
-  <p>A silent, 24-second demo. No audio track.</p>
-  <p>A reconstructed skill session using the saved launch-post example and a real terminal renderer.
-    Your AI assistant edits; Zero Slop’s local tools score the wording and compare details against the source.
-    Hosted outputs can differ. Timing is edited for readability.</p>
+  <p>The original 15-second dark-shell demo, restored from the September 4 README. No audio track.</p>
+  <p>This reconstruction shows the original, longer launch-post sample.
+    Your AI assistant edits; Zero Slop’s local tools score the wording and compare details against the source.</p>
   <div class="links">
     <a href="https://zero-slop.ai/try/">Try the free editor</a>
     <a href="https://zero-slop.ai/#mcp">MCP setup guide</a>
@@ -32,14 +31,16 @@
   </div>
   <p>Hosted MCP endpoint: <code>https://mcp.zero-slop.ai/mcp</code></p>
   <details><summary>Read the demo transcript</summary>
-    <p>Install in your shell: <code>npx skills add manavmishra/ZeroSlop --global</code>.</p>
-    <p>Restart your assistant. Then paste the draft after <code>/zero-slop</code> inside its session.
-      This is an assistant request, not a shell executable.</p>
-    <p><strong>Original:</strong> We're thrilled to announce that our team has leveraged cutting-edge machine learning to deliver a seamless onboarding experience, reducing setup time by 40%.</p>
-    <p>Four stock phrases are flagged. Writing score: 99.3/100; lower is better.</p>
-    <p><strong>Edit:</strong> We used machine learning to reduce onboarding setup time by 40%.</p>
+    <p>Install in your shell: <code>npx zero-slop install</code>.</p>
+    <p>Score the draft: <code>zero-slop score post.md</code>.</p>
+    <p>The original sample scores 100.0/100, with 11 flagged phrases across 83 scored words.
+      The shell lists stock openings, promotional language, and a formulaic contrast.</p>
+    <p>Ask your AI assistant to edit the file with <code>/zero-slop post.md</code>.
+      Enter this request in the assistant session.</p>
+    <p>The demo displays <code>fact gate: 40% held</code>, then the edited score.</p>
     <p>The writing score is 9.5/100, with zero flagged phrases.
       The source’s 40% figure is retained. The checks do not establish whether that source claim is true.</p>
+    <p>The saved rewrite is: “We used machine learning to reduce onboarding setup time by 40%.”</p>
     <p>To use the optional hosted MCP, add <code>https://mcp.zero-slop.ai/mcp</code> to your MCP client.</p>
   </details>
 </main></body></html>

@@ -12,7 +12,7 @@ try{
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.waitForFunction(()=>document.querySelector('video').readyState>=1);
   const initial=await page.locator('video').evaluate(v=>({duration:v.duration,paused:v.paused,controls:v.controls,muted:v.muted,width:v.videoWidth,height:v.videoHeight,error:v.error}));
-  if(initial.duration!==24||!initial.paused||!initial.controls||initial.width!==1920||initial.height!==1080||initial.error)throw Error(JSON.stringify(initial));
+  if(Math.abs(initial.duration-15.15)>0.000001||!initial.paused||!initial.controls||initial.width!==900||initial.height!==580||initial.error)throw Error(JSON.stringify(initial));
   await page.locator('video').click();
   await page.evaluate(async()=>{const v=document.querySelector('video');v.currentTime=10;await v.play();});
   await page.waitForFunction(()=>document.querySelector('video').currentTime>12);

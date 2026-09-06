@@ -12,6 +12,22 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 MCP_URL = "https://mcp.zero-slop.ai/mcp"
 MCP_GUIDE_URL = "https://zero-slop.ai/#mcp"
+SHELL_DIMENSIONS = (900, 580)
+SHELL_DURATION_MS = 15_150
+SHELL_GIF_BLOB = "dd642cbe7b73d06ceff3e2511a553bcfd244e369"
+SHELL_SOURCE_COMMIT = "5b9ef28f5807e5d8cbf577f1a514920e3970f116"
+SHELL_INTRODUCED_COMMIT = "91ee2fc15e18ceea484daf2beb3e72ce6c234a2d"
+SHELL_SOURCE_HASHES = {
+    "before": "bb276a80c09c16eebd4f4ecb32842413828a52ef16272b4a554b88b993cbff8a",
+    "after": "4fa6dbbb40d2d7dfa3349be679a6a6aff393772d5f11995e81ecea83c80e2472",
+}
+SHELL_FLAGS = [
+    "In today's fast-paced",
+    "We're thrilled to",
+    "It's not just a redesign, it's",
+    "cutting-edge",
+    "leveraged",
+]
 
 
 def require(condition, message):
@@ -82,7 +98,16 @@ def webp_info(path):
         if tag == b"VP8X":
             dimensions = tuple(int.from_bytes(payload[i:i + 3], "little") + 1 for i in (4, 7))
         elif tag == b"ANMF":
+            require(len(payload) >= 24, "Truncated WebP animation frame")
             delays.append(int.from_bytes(payload[12:15], "little"))
+            frame_pos, frame_tags = 16, []
+            while frame_pos + 8 <= len(payload):
+                frame_tag = payload[frame_pos:frame_pos + 4]
+                frame_size = int.from_bytes(payload[frame_pos + 4:frame_pos + 8], "little")
+                require(frame_pos + 8 + frame_size <= len(payload), "Truncated WebP frame image")
+                frame_tags.append(frame_tag)
+                frame_pos += 8 + frame_size + (frame_size % 2)
+            require(frame_tags == [b"VP8L"], "Every WebP frame must use lossless encoding")
         pos += 8 + size + (size % 2)
     return dimensions, delays
 
@@ -202,7 +227,7 @@ def mp4_info(path):
     require(presented_duration == Fraction(movie_ticks, movie_scale),
             "MP4 movie and presented video durations differ")
     # Validate visible cadence, not decode cadence. B-frame reordering can
-    # produce nonuniform DTS deltas even when every displayed frame is 1/30 s.
+    # produce nonuniform DTS deltas even when displayed frames are evenly spaced.
     # Composition offsets may extend the visible span beyond mdhd's decode
     # span; the complete presentation grid below is the coverage check.
     require(0 < frame_count <= 100_000, "Unexpected video sample count")
@@ -278,49 +303,64 @@ def check_mcp_player(parsed):
 
 def check_evidence():
     evidence = json.loads((ROOT / "growth/demo-evidence.json").read_text())
-    require(evidence["durationMs"] == 24_000, "Evidence duration is stale")
+    require(evidence["kind"] == "Restored dark-shell README animation",
+            "Evidence must identify the restored historical shell animation")
+    require(evidence["durationMs"] == SHELL_DURATION_MS, "Evidence duration is stale")
     require(evidence.get("audio") == "none" and "originalScore" not in evidence,
             "Evidence must identify a silent film without a score")
+    require(evidence.get("sourceCommit") == SHELL_SOURCE_COMMIT
+            and evidence.get("masterIntroducedCommit") == SHELL_INTRODUCED_COMMIT
+            and evidence.get("gifGitBlob") == SHELL_GIF_BLOB,
+            "Evidence must identify the exact restored GIF and its historical commits")
     server = json.loads((ROOT / "server.json").read_text())
     require(evidence.get("mcpURL") == server["remotes"][0]["url"] == MCP_URL,
             "Evidence MCP URL must match the canonical server.json connection endpoint")
-    renderer = evidence.get("terminalRenderer")
-    require(isinstance(renderer, str) and re.search(r"(?<![\w/@-])@xterm/xterm(?=$|[\s@,;()])", renderer),
-            "Evidence must identify @xterm/xterm as the terminal renderer")
-    scene_renderer = evidence.get("sceneRenderer")
-    require(isinstance(scene_renderer, str) and re.search(r"\bThree\.js\b", scene_renderer, re.I),
-            "Evidence must identify Three.js as the 3D scene renderer")
+    require(evidence.get("terminalRenderer") == "HTML/CSS terminal reconstruction"
+            and "sceneRenderer" not in evidence,
+            "Evidence must identify the historical HTML/CSS shell renderer")
     for field, file_key in (("before", "source"), ("after", "edit")):
+        require(evidence[file_key] == f"growth/shell-demo.{field}.md",
+                f"Evidence {field} must use the historical shell example")
         path = (ROOT / evidence[file_key]).resolve()
         require(path.is_relative_to(ROOT), "Evidence source must stay in the repository")
         text = path.read_text().strip()
         require(evidence[field] == text, f"Evidence {field} text is stale")
-        require(hashlib.sha256(text.encode()).hexdigest() == evidence[f"{field}Sha256"], f"Evidence {field} hash is stale")
+        require(hashlib.sha256(text.encode()).hexdigest() == evidence[f"{field}Sha256"] == SHELL_SOURCE_HASHES[field],
+                f"Evidence {field} hash differs from the historical shell example")
         require("40%" in text, f"Missing protected detail in {field}")
-    require((evidence["beforeScore"], evidence["afterScore"]) == (99.3, 9.5), "Review changed example scores")
-    require(len(evidence["flags"]) == 4 and all(flag in evidence["before"] for flag in evidence["flags"]), "Evidence flag list is stale")
+    require((evidence["beforeScore"], evidence["afterScore"]) == (100, 9.5),
+            "Evidence must retain the historical displayed scores")
+    require(evidence["flags"] == SHELL_FLAGS and all(flag in evidence["before"] for flag in SHELL_FLAGS),
+            "Evidence must retain the five source-bound historical flags")
     require(evidence["protectedDetail"] == "40%", "Evidence protected detail is stale")
 
 
 def main():
+    gif_bytes = (ASSETS / "zero-slop-demo.gif").read_bytes()
+    git_blob = hashlib.sha1(f"blob {len(gif_bytes)}\0".encode() + gif_bytes).hexdigest()
+    require(len(gif_bytes) == 45_862 and git_blob == SHELL_GIF_BLOB,
+            "The GIF master must be the exact historical dark-shell Git blob")
+    master_delays = gif_info(ASSETS / "zero-slop-demo.gif")[1]
     for suffix, reader in (("gif", gif_info), ("webp", webp_info)):
         path = ASSETS / f"zero-slop-demo.{suffix}"
         dimensions, delays = reader(path)
-        require(dimensions == (960, 540), f"Unexpected {suffix} dimensions")
-        require(10 <= len(delays) <= 300, f"Unexpected {suffix} frame count")
-        require(sum(delays) == 24_000, f"Unexpected {suffix} duration")
-        # The preferred WebP stays below 2 MB. The compatible GIF gets 2.5 MB
-        # for the 24 fps motion pass instead of dropping transition frames.
-        budget = 2_500_000 if suffix == "gif" else 2_000_000
+        require(dimensions == SHELL_DIMENSIONS, f"Unexpected {suffix} dimensions")
+        require(len(delays) == 34, f"Unexpected {suffix} frame count")
+        require(sum(delays) == SHELL_DURATION_MS, f"Unexpected {suffix} duration")
+        require(delays == master_delays, f"The {suffix} frame holds must match the GIF master")
+        # Preserve the compact original and a lossless animated WebP derivative.
+        budget = 45_862 if suffix == "gif" else 2_000_000
         require(path.stat().st_size <= budget, f"{suffix} exceeds {budget / 1_000_000:g} MB budget")
         print(f"{suffix}: {len(delays)} frames, {sum(delays)} ms, {path.stat().st_size} bytes")
     video = ASSETS / "zero-slop-demo.mp4"
     dimensions, duration, frame_count, fps = mp4_info(video)
-    require(dimensions == (1920, 1080), "Unexpected MP4 dimensions")
-    require(abs(duration - 24) < 0.000001 and frame_count == 720 and abs(fps - 30) < 0.000001, "Expected a 24-second, 30 fps MP4")
+    require(dimensions == SHELL_DIMENSIONS, "Unexpected MP4 dimensions")
+    require(abs(duration - SHELL_DURATION_MS / 1000) < 0.000001
+            and frame_count == 303 and abs(fps - 20) < 0.000001,
+            "Expected the complete 15.15-second historical animation at 20 fps")
     require(video.stat().st_size <= 9_000_000, "MP4 exceeds 9 MB budget")
     print(f"mp4: H.264, {dimensions[0]}×{dimensions[1]}, {fps:g} fps, {duration:g} s, {video.stat().st_size} bytes; silent, fast-start")
-    require(png_info(ASSETS / "zero-slop-demo-poster.png")[0] == (1280, 720), "Poster dimensions")
+    require(png_info(ASSETS / "zero-slop-demo-poster.png")[0] == SHELL_DIMENSIONS, "Poster dimensions")
     for name, colour_type in (("logo-300.png", 2), ("logo-mark-300.png", 6)):
         require(png_info(ASSETS / "logo" / name) == ((300, 300), colour_type), f"Logo dimensions/alpha: {name}")
     for name, colour_type in (("zero-slop-mark-300-white.png", 2), ("zero-slop-mark-300-transparent.png", 6)):
