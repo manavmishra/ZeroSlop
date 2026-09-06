@@ -66,8 +66,15 @@ are examples, not limits.
   `data/learned-log.md`. Private reflect-loop tells and false-positive overrides
   stay under `$ZERO_SLOP_HOME`; never copy them into the repository without the
   explicit export, review, and merge path.
-- `SKILL.md`, `README.md`, `package.json`, `.claude-plugin/plugin.json`, and
-  `.codex-plugin/plugin.json` versions bump together.
+- `package.json` is the release version. `SKILL.md`, `README.md`,
+  `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `plugin.json`,
+  `gemini-extension.json`, and `server.json` bump with it. Run
+  `python3 scripts/check_distribution_manifests.py` before publishing.
+- A packaged runtime change requires a new version. After validation passes on
+  `main`, `sync-release.yml` creates the matching tag and dispatches the GitHub
+  release and official MCP Registry jobs. npm publishes from the same commit.
+  The separate website repository then imports and verifies that release; its
+  hourly reconciliation is the no-secret recovery path.
 - `package.json` publishes the skill to npm for registry discovery. Its `files`
   allowlist must ship exactly what `scripts/build_plugin.py` mirrors into
   `skills/zero-slop/` — same runtime, same exclusions. When you add or remove a

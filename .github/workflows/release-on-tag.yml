@@ -7,6 +7,7 @@ name: release on tag
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -49,5 +50,23 @@ jobs:
               dist/zero-slop.zip dist/zero-slop-single-file.md \
               assets/Zero-Slop-One-Pager.pdf
           fi
-      - name: confirm GitHub and npm serve this release
-        run: python3 scripts/check_release_surfaces.py --require-network --wait-seconds 600
+      - name: Wake the website sync
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_SYNC_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::WEBSITE_SYNC_TOKEN is not configured; the hourly reconciliation remains active"
+          else
+            gh api --method POST repos/manavmishra/ZSWebpage/dispatches \
+              -f event_type=zero-slop-release
+          fi
+      - name: Confirm the public release surfaces
+        env:
+          WEBSITE_SYNC_TOKEN: ${{ secrets.WEBSITE_SYNC_TOKEN }}
+        run: |
+          args=(--require-network --wait-seconds 600)
+          if [ -z "$WEBSITE_SYNC_TOKEN" ]; then
+            echo "::warning::Website verification is owned by its hourly sync until WEBSITE_SYNC_TOKEN is configured"
+            args+=(--skip-website)
+          fi
+          python3 scripts/check_release_surfaces.py "${args[@]}"

@@ -1,7 +1,13 @@
 name: Publish MCP registry metadata
 
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch: {}
+
+concurrency:
+  group: publish-mcp-${{ github.ref_name }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -13,6 +19,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
 
       - name: Install the pinned MCP publisher
         env:
@@ -33,3 +43,21 @@ jobs:
 
       - name: Publish remote server metadata
         run: ./mcp-publisher publish
+
+      - name: Confirm the registry serves this version
+        run: |
+          set -euo pipefail
+          expected=$(python3 -c 'import json; print(json.load(open("server.json"))["version"])')
+          for attempt in $(seq 1 20); do
+            current=$(curl --fail --silent --show-error \
+              'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.manavmishra%2Fzero-slop' \
+              | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next((x["server"]["version"] for x in d.get("servers",[]) if x.get("server",{}).get("name")=="io.github.manavmishra/zero-slop"), ""))')
+            if [ "$current" = "$expected" ]; then
+              echo "MCP Registry now serves Zero Slop $current"
+              exit 0
+            fi
+            echo "attempt $attempt/20: MCP Registry serves ${current:-nothing}, waiting for $expected"
+            sleep 15
+          done
+          echo "::error::MCP Registry did not converge to $expected"
+          exit 1

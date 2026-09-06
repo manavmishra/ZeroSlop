@@ -36,7 +36,7 @@ Zero Slop is a free Agent Skill that scores your writing 0-100 for AI-sounding
 language, names the exact phrases behind the score, and rewrites them with your
 existing assistant. Local checks protect names, numbers, quotations, links,
 code, tables, and paths. It works with Claude Code, Codex, Cursor, Warp, Zed,
-and OpenCode.
+OpenCode, and Gemini CLI.
 
 ## Description, about 150 words
 
@@ -56,6 +56,9 @@ supported clients. On a public 18-draft replay, Zero Slop moved the mean writing
 score from 76.3 to 12.8 with 18 of 18 source checks passing.
 
 Free and MIT-licensed. Install with one command.
+
+Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12
+days. Those are lifetime launch milestones, not a weekly growth rate.
 
 ## Description, about 300 words
 
@@ -105,6 +108,12 @@ npx skills add manavmishra/ZeroSlop --global
 - Free checker page: https://zero-slop.ai/ai-slop-checker/
 - Benchmark detail: https://github.com/manavmishra/ZeroSlop/tree/main/bench
 - Press assets: https://zero-slop.ai/press/
+- Privacy: https://zero-slop.ai/privacy/
+- Security: https://github.com/manavmishra/ZeroSlop/security/policy
+- Support: https://github.com/manavmishra/ZeroSlop/discussions
+- Hosted MCP: https://mcp.zero-slop.ai/mcp
+- MCP server card: https://mcp.zero-slop.ai/.well-known/mcp/server-card.json
+- Official MCP Registry: https://registry.modelcontextprotocol.io/?q=io.github.manavmishra%2Fzero-slop
 
 ## Pricing
 
@@ -126,6 +135,42 @@ offers one and it would win traffic. See "What not to claim" below.
 Manav Mishra. Machine learning in production, from Microsoft's first ML spam
 filtering and SmartScreen anti-phishing to agentic AI.
 https://zero-slop.ai/about/
+
+## Reviewer setup
+
+- Repository: `https://github.com/manavmishra/ZeroSlop`
+- MCP endpoint: `https://mcp.zero-slop.ai/mcp`
+- Authentication: none
+- Tool: `deslop`
+- Input limit: 20,000 characters per draft
+- Data handling: drafts are processed in memory and are not stored, logged, or
+  used for training
+
+### Test 1: ordinary rewrite
+
+Ask the tool to edit: “We are incredibly excited to announce a transformative
+new dashboard that leverages cutting-edge automation.” The result should change
+the wording, return before-and-after scores, and preserve the dashboard claim.
+
+### Test 2: protected details
+
+Ask the tool to edit: “Northstar cut setup time by 40% for 200 teams. Details:
+https://example.com/report”. The result must retain Northstar, 40%, 200, and the
+exact URL.
+
+### Test 3: already-clear text
+
+Ask the tool to edit: “The cache expires after 15 minutes.” The service may
+return it unchanged as already clear, without spending a model call.
+
+## Store-specific release notes
+
+Version 2.9.0 packages the Agent Skill and hosted MCP as one portable Agent
+Plugin, adds a Gemini CLI extension manifest, publishes MCP metadata through
+the official Registry, and checks that every public release surface serves the
+same version. The hosted connector still makes at most one editing-model call
+per request and returns a source-preserving local edit with a warning when that
+call is unavailable.
 
 ## Facts a reviewer may check
 

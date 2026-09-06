@@ -16,5 +16,5 @@ Do not open a public issue for a vulnerability. Follow the private reporting
 instructions in [`SECURITY.md`](SECURITY.md).
 
 The local skill and hosted MCP have different data paths. Read the
-[MCP privacy notes](mcp/README.md) before sending a sensitive draft to a remote
+[MCP privacy notes](https://zero-slop.ai/#mcp) before sending a sensitive draft to a remote
 endpoint.

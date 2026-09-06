@@ -16,11 +16,30 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.11"
       - name: Compile Python sources
         run: python3 -m compileall -q scripts tests bench
+      - name: Released code requires a new version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            git fetch --no-tags origin "$BASE_REF"
+            base="origin/$BASE_REF"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            base="$BEFORE"
+          else
+            echo "No stable base commit; skipping the release-delta check"
+            exit 0
+          fi
+          python3 scripts/check_release_version.py "$base"
       - name: Validate pattern data
         run: |
           python3 -c "import json; json.load(open('data/patterns.json')); json.load(open('data/learned.json'))"
@@ -39,6 +58,8 @@ jobs:
           assert server["remotes"] == [{"type": "streamable-http", "url": "https://mcp.zero-slop.ai/mcp"}]
           print("server.json release metadata OK")
           EOF
+      - name: Validate plugin and extension manifests
+        run: python3 scripts/check_distribution_manifests.py
       - name: Compile all regexes
         run: |
           python3 - <<'EOF'

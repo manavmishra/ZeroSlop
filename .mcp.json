@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "zero-slop": {
+      "type": "http",
+      "url": "https://mcp.zero-slop.ai/mcp"
+    }
+  }
+}

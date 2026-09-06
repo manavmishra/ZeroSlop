@@ -35,6 +35,7 @@ EXCLUDE = {
     "build_onepager_pdf.py", "build_skill_zip.py", "check_svg.py",
     # A maintainer check against GitHub and npm, not something an installed
     # skill should carry or run.
+    "check_distribution_manifests.py", "check_release_version.py",
     "check_release_surfaces.py",
     "contextual.py", "contextual-signals.md", ".DS_Store",
     "make-readme-gif.mjs",

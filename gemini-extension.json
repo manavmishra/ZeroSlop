@@ -1,0 +1,12 @@
+{
+  "name": "zero-slop",
+  "version": "2.9.0",
+  "description": "Find and fix canned AI writing while preserving the facts, voice, and format.",
+  "mcpServers": {
+    "zero-slop": {
+      "httpUrl": "https://mcp.zero-slop.ai/mcp",
+      "includeTools": ["deslop"],
+      "timeout": 45000
+    }
+  }
+}

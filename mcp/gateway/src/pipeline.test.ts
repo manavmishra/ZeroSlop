@@ -4,7 +4,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { callRole, editorReply, signedEditorHeaders, tooLong, tooShort } from "./model";
-import { localRescue, runPipeline, scorerGuidance } from "./pipeline";
+import { localRescue, meetsReleaseGate, runPipeline, scorerGuidance } from "./pipeline";
 import type { WritingReport } from "./types";
 
 const rescueScript = fileURLToPath(new URL("../../../scripts/rescue.py", import.meta.url));
@@ -142,11 +142,22 @@ test("an expired editor deadline makes no request", async () => {
 
 test("clean text exits after scoring without a model request", async () => {
   const scorer = { fetch: async () => Response.json(writingReport(9.5)) };
-  const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.8.11" } as unknown as Env,
+  const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.9.0" } as unknown as Env,
     { text: "The importer now maps CSV headers automatically.", genre: "general" });
   assert.equal(result.status, "already_clear");
   assert.equal(result.modelRequests, 0);
   assert.equal(result.rolesCompleted, 1);
+});
+
+test("the release gate rejects low scores with unresolved high-weight, readability, or rhythm findings", () => {
+  assert.equal(meetsReleaseGate(writingReport(9.5)), true);
+  assert.equal(meetsReleaseGate(writingReport(9.5, { highWeightFlags: 1 })), false);
+  assert.equal(meetsReleaseGate(writingReport(9.5, { readability: "needs work" })), false);
+  assert.equal(meetsReleaseGate(writingReport(9.5, { sentences: 8, sentenceVariety: "too even" })), false);
+});
+
+test("short drafts do not fail the rhythm gate when there is too little text to measure", () => {
+  assert.equal(meetsReleaseGate(writingReport(9.5, { sentences: 3, sentenceVariety: "too even" })), true);
 });
 
 test("the complete MCP edit uses one remote model request", async () => {
@@ -162,7 +173,7 @@ test("the complete MCP edit uses one remote model request", async () => {
   }) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.8.11",
+      SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.9.0",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(editorRequests, 1);
@@ -185,7 +196,7 @@ test("a model outage still returns a changed local edit after one request", asyn
   globalThis.fetch = (async () => { requests += 1; return Response.json({ error: "busy" }, { status: 503 }); }) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, local, 18), SCORER_VERSION: "2.8.11",
+      SCORER: scorerHarness(original, local, 18), SCORER_VERSION: "2.9.0",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "social" });
     assert.equal(requests, 1);
@@ -206,7 +217,7 @@ test("an unsafe model response loses to the local source-safe edit", async () =>
   globalThis.fetch = (async () => Response.json({ rewrite: invented, provider: "workers-ai", model: "editor", stored: false })) as typeof fetch;
   try {
     const result = await runPipeline({
-      SCORER: scorerHarness(original, local, 18, true), SCORER_VERSION: "2.8.11",
+      SCORER: scorerHarness(original, local, 18, true), SCORER_VERSION: "2.9.0",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "social" });
     assert.equal(result.text, local);

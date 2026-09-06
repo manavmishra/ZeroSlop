@@ -24,7 +24,7 @@ gateway Worker
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
 private scorer Worker              one Workers AI editor
-exact Zero Slop 2.8.11              same composite edit as /try/
+exact Zero Slop 2.9.0               same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
@@ -238,10 +238,10 @@ Deploy in this order:
    draft.
 7. Read `GET https://mcp.zero-slop.ai/internal/counters` with the report token
    and confirm the initialization and call totals increased.
-8. Confirm that the factual fixture returns a rewritten result with one model
-   request, source-preservation checks, and the expected score reduction. The
-   one editorial response is not independent model review; a local fallback
-   must remain labelled `rewritten_with_warnings`.
+8. Do not announce the connector until the factual fixture returns a rewritten
+   result with one model request, source-preservation checks, and the expected
+   score reduction. The one editorial response is not independent model review;
+   a local fallback must remain labelled `rewritten_with_warnings`.
 
 Do not deploy the gateway first. Its explicit `stored: false` requirement makes
 that ordering fail closed, but it would leave all rewrites unavailable until

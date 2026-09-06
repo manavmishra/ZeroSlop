@@ -4,6 +4,8 @@
   </a>
 </p>
 
+Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
+
 <h1 align="center">Zero Slop</h1>
 
 <p align="center"><strong>Find AI-sounding writing. Keep the source intact.</strong></p>
@@ -25,7 +27,7 @@
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.8.11" src="https://img.shields.io/badge/version-2.8.11-72528F">
+  <img alt="Version 2.9.0" src="https://img.shields.io/badge/version-2.9.0-72528F">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=72528F"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=227B5B"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=b0442a"></a>
@@ -81,32 +83,14 @@ Zero Slop is a writing tool. It does not detect authorship; its score describes 
 
 To try Zero Slop first, paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free editor returns the edit, the before-and-after scores, and the exact phrases that triggered the scorer.
 
-The portable installer works with Claude Code, Codex, Cursor, OpenCode, Warp, Zed, and other Agent Skills-compatible tools:
-
-```sh
-npx skills add manavmishra/ZeroSlop --global
-```
-
-Or use the package-specific installer and scoring command:
-
-```sh
-npx zero-slop install
-npx zero-slop score draft.md
-```
-
-Choose a harness explicitly when needed:
-
-```sh
-npx zero-slop install --harness codex
-# claude | codex | cursor | opencode | zed
-```
-
 | Environment | Fastest route |
 |---|---|
 | Claude Code, Codex, Cursor, OpenCode, Warp, Zed | `npx skills add manavmishra/ZeroSlop --global` |
+| Gemini CLI | `gemini extensions install https://github.com/manavmishra/ZeroSlop --auto-update` |
+| Claude Code plugin | `/plugin marketplace add manavmishra/ZeroSlop`, then `/plugin install zero-slop@zero-slop` |
 | Any assistant with file uploads | Download the [single-file bundle](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop-single-file.md) |
 | Claude.ai | Upload the [latest skill ZIP](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip) |
-| ChatGPT or another MCP client | Connect the optional [hosted MCP server](mcp/README.md) |
+| ChatGPT, Claude, Grok, Gemini, Cursor, or another MCP client | Connect the optional [hosted MCP server](mcp/README.md) |
 
 Once installed, ask your AI assistant to edit a draft:
 
@@ -142,15 +126,7 @@ Connect the [Zero Slop MCP](https://zero-slop.ai/#mcp) once to edit drafts insid
 https://mcp.zero-slop.ai/mcp
 ```
 
-```sh
-# Codex
-codex mcp add zero-slop --url https://mcp.zero-slop.ai/mcp
-
-# Claude Code
-claude mcp add --transport http zero-slop --scope user https://mcp.zero-slop.ai/mcp
-```
-
-Follow the [MCP setup guide](https://zero-slop.ai/#mcp) for ChatGPT and other clients.
+See [`DISTRIBUTION.md`](DISTRIBUTION.md) for direct connector commands and directory status.
 
 ## What the workflow adds
 
@@ -249,7 +225,7 @@ stress case took 2.2932 seconds, and learning from an 8,000-word edit took
 0.1592 seconds. The measurements and machine details are in
 [`bench/performance-results.json`](bench/performance-results.json).
 
-Across 12 interleaved runs against 2.7.7, we measured 0.54% lower median throughput,
+Across 12 interleaved runs against 2.7.7, we measured 0.02% lower median throughput,
 which is effectively unchanged. The separate two-way replay used
 Zero Slop v2.6.0.
 
@@ -299,6 +275,7 @@ learn cadence, tone, or a complete writing style.
 | [`examples/`](examples/) | Reproducible before-and-after edits |
 | [`bench/`](bench/) | Frozen benchmarks, provenance, and limitations |
 | [`mcp/`](mcp/) | Optional hosted MCP server documentation |
+| [`DISTRIBUTION.md`](DISTRIBUTION.md) | Direct installs, marketplace submissions, and release synchronization |
 
 ## Contributing and support
 

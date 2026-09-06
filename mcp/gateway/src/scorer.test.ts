@@ -109,11 +109,11 @@ test("validates ranking and change-inventory payloads", async () => {
 
 test("validates health payloads instead of trusting the service binding", async () => {
   assert.deepEqual(
-    await scorerHealth(scorerEnv({ ok: true, scorerVersion: "2.8.11" })),
-    { ok: true, scorerVersion: "2.8.11" },
+    await scorerHealth(scorerEnv({ ok: true, scorerVersion: "2.9.0" })),
+    { ok: true, scorerVersion: "2.9.0" },
   );
   await assert.rejects(
-    scorerHealth(scorerEnv({ ok: "yes", scorerVersion: "2.8.11" })),
+    scorerHealth(scorerEnv({ ok: "yes", scorerVersion: "2.9.0" })),
     /scorer_invalid_response/,
   );
   await assert.rejects(

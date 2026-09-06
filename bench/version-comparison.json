@@ -1,6 +1,6 @@
 {
  "result_kind": "interleaved_local_version_comparison",
- "measured_at": "2026-09-05T21:12:08+00:00",
+ "measured_at": "2026-09-06T17:02:07+00:00",
  "environment": {
   "platform": "Darwin",
   "architecture": "arm64",
@@ -12,7 +12,7 @@
   "slopscore_sha256": "e96c607189a1763d2ce26c2380edb777c26caadb7f264e6993f7d78ff2bfe1ce"
  },
  "candidate": {
-  "version": "2.8.11",
+  "version": "2.9.0",
   "slopscore_sha256": "e2f139f932e3dfec5dbd266f252bfd46abfb09eb4c04f5f619cdc00a2cdc5367"
  },
  "workload": {
@@ -24,38 +24,38 @@
  },
  "timing_seconds": {
   "baseline": [
-   0.958,
-   0.9673,
-   0.9572,
-   0.9564,
-   0.9556,
-   0.9634,
-   0.9487,
-   1.0154,
-   0.9472,
-   0.9552,
-   0.9492,
-   0.948
+   0.9387,
+   0.9409,
+   0.9473,
+   0.9433,
+   0.9496,
+   0.9473,
+   0.9526,
+   0.9438,
+   0.946,
+   0.9479,
+   0.9507,
+   0.9519
   ],
   "candidate": [
-   0.9515,
-   0.9777,
-   0.9554,
-   0.9654,
-   1.1059,
-   0.9707,
-   0.9675,
-   0.9687,
-   0.9547,
-   0.957,
-   0.9533,
-   0.9539
+   0.9366,
+   0.9362,
+   0.9446,
+   0.9477,
+   0.9462,
+   0.9478,
+   0.9473,
+   0.9446,
+   0.9491,
+   0.9491,
+   0.9544,
+   0.9501
   ],
-  "median_baseline": 0.956,
-  "median_candidate": 0.9612,
-  "documents_per_second_baseline": 627.6,
-  "documents_per_second_candidate": 624.2,
-  "median_speed_change_pct": -0.54
+  "median_baseline": 0.9473,
+  "median_candidate": 0.9475,
+  "documents_per_second_baseline": 633.4,
+  "documents_per_second_candidate": 633.2,
+  "median_speed_change_pct": -0.02
  },
  "frozen_regression": {
   "score_changes": 0,

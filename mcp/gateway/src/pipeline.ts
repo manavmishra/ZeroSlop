@@ -28,6 +28,15 @@ function sourceSafe(checked: RankedRewrite): boolean {
   return checked.preserved && !checked.invented && Boolean(checked.text.trim());
 }
 
+export function meetsReleaseGate(report: WritingReport): boolean {
+  return report.score < SCORE_GATE
+    && report.highWeightFlags === 0
+    && report.register.findings.length === 0
+    && !(report.shape.measured && report.shape.broetry)
+    && report.readability === "clear"
+    && (report.sentences < 8 || report.sentenceVariety === "natural");
+}
+
 // Availability fallback for the single-call service. Every transform is a
 // bounded line edit: it removes a stock wrapper, contracts a phrase, or
 // changes paragraphing. Names, figures, links, examples, and claims remain.
@@ -161,11 +170,8 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
 
   // A short clean note should not incur an AI call merely because document-
   // level statistics need more words. Positive findings still force an edit.
-  const cleanEnough = before.score < SCORE_GATE
-    && before.flaggedPhrases === 0
-    && before.register.findings.length === 0
-    && !(before.shape.measured && before.shape.broetry)
-    && before.readability === "clear";
+  const cleanEnough = meetsReleaseGate(before)
+    && before.flaggedPhrases === 0;
   if (cleanEnough) {
     return unchanged(
       original, "already_clear", before, started, env.SCORER_VERSION,
@@ -216,10 +222,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
   const current = checked.text;
   const after = await scoreWriting(env, current, input.genre);
   const selectedModelEdit = checked.name === "one-call edit";
-  const passed = selectedModelEdit
-    && after.score < SCORE_GATE
-    && after.register.findings.length === 0
-    && !(after.shape.measured && after.shape.broetry);
+  const passed = selectedModelEdit && meetsReleaseGate(after);
   const warnings: string[] = [];
   if (!selectedModelEdit) {
     const safeModelEdit = checked.ranked.some((candidate) =>
@@ -229,6 +232,11 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
       : "the model response was unavailable or did not pass the source check, so the local edit was used");
   }
   if (after.score >= SCORE_GATE) warnings.push("the writing score remains above 25");
+  if (after.highWeightFlags > 0) warnings.push("a strong stock-writing signal remains");
+  if (after.readability !== "clear") warnings.push("the writing is still harder to follow than it should be");
+  if (after.sentences >= 8 && after.sentenceVariety !== "natural") {
+    warnings.push("the sentence rhythm still sounds too even");
+  }
   if (after.register.findings.length > 0 || (after.shape.measured && after.shape.broetry)) {
     warnings.push("a document-level writing check remains");
   }

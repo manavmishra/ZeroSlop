@@ -1,0 +1,88 @@
+name: synchronize release
+
+# A validated change to main becomes one versioned release. GitHub suppresses
+# workflow triggers caused by GITHUB_TOKEN, so this job creates the tag and then
+# dispatches the two tag-owned publication workflows explicitly.
+
+on:
+  workflow_run:
+    workflows: [validate]
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: synchronize-release
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.event == 'push'
+          && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || 'main' }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+
+      - name: Confirm the validated commit is still main
+        id: head
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          checked=$(git rev-parse HEAD)
+          if [ "$current" != "$checked" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "main advanced from $checked to $current; the newer validation run owns publication"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Confirm every package names the same version
+        if: steps.head.outputs.publish == 'true'
+        run: python3 scripts/check_distribution_manifests.py
+
+      - name: Create the immutable version tag
+        if: steps.head.outputs.publish == 'true'
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version=$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')
+          tag="v$version"
+          remote=$(git ls-remote --tags origin "refs/tags/$tag" | cut -f1)
+          if [ -n "$remote" ]; then
+            echo "$tag already exists; this commit does not create another release"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag "$tag"
+            git push origin "$tag"
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "name=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch the release and MCP Registry publishers
+        if: steps.head.outputs.publish == 'true' && steps.tag.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.name }}
+        run: |
+          set -euo pipefail
+          gh workflow run release-on-tag.yml --ref "$TAG"
+          gh workflow run publish-mcp.yml --ref "$TAG"
+          echo "dispatched GitHub release and MCP Registry publication for $TAG"

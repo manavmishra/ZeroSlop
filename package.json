@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.8.11",
+  "version": "2.9.0",
   "description": "An Agent Skill that scores AI-sounding prose locally, guides the host AI through an editorial rewrite, and checks changed source details. The local tools run offline with zero dependencies.",
   "bin": {
     "zero-slop": "bin/zero-slop.mjs"
@@ -42,11 +42,17 @@
     "data/",
     "README.md",
     "LICENSE",
+    "plugin.json",
+    "mcp.json",
+    ".mcp.json",
+    "gemini-extension.json",
     "!scripts/build_bundle.py",
     "!scripts/build_onepager_pdf.py",
     "!scripts/build_plugin.py",
     "!scripts/build_skill_zip.py",
     "!scripts/check_svg.py",
+    "!scripts/check_distribution_manifests.py",
+    "!scripts/check_release_version.py",
     "!scripts/check_release_surfaces.py",
     "!scripts/contextual.py",
     "!scripts/contextual-signals.md",

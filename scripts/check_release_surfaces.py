@@ -45,7 +45,7 @@ def _unreachable(exc):
         and not isinstance(exc, urllib.error.HTTPError)
 
 
-def check_once(*, fetch_fn=fetch, emit=print):
+def check_once(*, fetch_fn=fetch, emit=print, skip_website=False):
     """Return ``(problems, skipped)`` for one external-state snapshot."""
     shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
     emit(f"this repo ships           {shipped}")
@@ -168,6 +168,47 @@ def check_once(*, fetch_fn=fetch, emit=print):
             else:
                 problems.append(f"the npm package tarball is invalid ({exc}).")
 
+    try:
+        registry = json.loads(fetch_fn(
+            "https://registry.modelcontextprotocol.io/v0.1/servers?"
+            "search=io.github.manavmishra%2Fzero-slop"
+        ))
+        records = [item.get("server", {}) for item in registry.get("servers", [])]
+        record = next((item for item in records
+                       if item.get("name") == "io.github.manavmishra/zero-slop"), {})
+        registry_version = record.get("version")
+        emit(f"official MCP Registry    {registry_version}")
+        if registry_version != shipped:
+            problems.append(
+                f"the official MCP Registry serves {registry_version or 'no version'}, not {shipped}."
+            )
+    except urllib.error.HTTPError as exc:
+        problems.append(f"the MCP Registry returned HTTP {exc.code}.")
+    except Exception as exc:
+        if _unreachable(exc):
+            skipped.append(f"MCP Registry ({exc})")
+        else:
+            problems.append(f"the MCP Registry response is invalid ({exc}).")
+
+    if not skip_website:
+        try:
+            live = json.loads(fetch_fn(
+                f"https://zero-slop.ai/try-runtime/manifest.json?release-check={int(time.time())}"
+            ))
+            live_version = live.get("skillVersion")
+            emit(f"served by zero-slop.ai  {live_version}")
+            if live_version != shipped:
+                problems.append(
+                    f"zero-slop.ai serves {live_version or 'no version'}, not {shipped}."
+                )
+        except urllib.error.HTTPError as exc:
+            problems.append(f"the live website manifest returned HTTP {exc.code}.")
+        except Exception as exc:
+            if _unreachable(exc):
+                skipped.append(f"zero-slop.ai ({exc})")
+            else:
+                problems.append(f"the live website manifest is invalid ({exc}).")
+
     return problems, skipped
 
 
@@ -181,6 +222,10 @@ def main(argv=None) -> int:
         "--wait-seconds", type=int, default=0, metavar="N",
         help="wait up to N seconds for GitHub and npm publication to converge",
     )
+    parser.add_argument(
+        "--skip-website", action="store_true",
+        help="leave website convergence to the website repository's own release gate",
+    )
     args = parser.parse_args(argv)
     if args.wait_seconds < 0 or args.wait_seconds > 900:
         parser.error("--wait-seconds must be between 0 and 900")
@@ -191,7 +236,7 @@ def main(argv=None) -> int:
         attempt += 1
         if attempt > 1:
             print(f"\npublication check {attempt}")
-        problems, skipped = check_once()
+        problems, skipped = check_once(skip_website=args.skip_website)
         effective = list(problems)
         if args.require_network:
             effective.extend(f"required service was unreachable: {item}" for item in skipped)

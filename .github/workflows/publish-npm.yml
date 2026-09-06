@@ -55,13 +55,17 @@ jobs:
           skill=$(sed -n 's/^[[:space:]]*version:[[:space:]]*"\{0,1\}\([0-9.]*\)"\{0,1\}.*/\1/p' SKILL.md | head -1)
           claude=$(node -p "require('./.claude-plugin/plugin.json').version")
           codex=$(node -p "require('./.codex-plugin/plugin.json').version")
-          echo "package.json=$pkg SKILL.md=$skill claude=$claude codex=$codex"
-          for other in "$skill" "$claude" "$codex"; do
+          agent=$(node -p "require('./plugin.json').version")
+          gemini=$(node -p "require('./gemini-extension.json').version")
+          mcp=$(node -p "require('./server.json').version")
+          echo "package.json=$pkg SKILL.md=$skill claude=$claude codex=$codex agent=$agent gemini=$gemini mcp=$mcp"
+          for other in "$skill" "$claude" "$codex" "$agent" "$gemini" "$mcp"; do
             if [ "$other" != "$pkg" ]; then
               echo "::error::version drift: package.json is $pkg but a manifest says $other"
               exit 1
             fi
           done
+          python3 scripts/check_distribution_manifests.py
 
       - name: Tests must pass
         run: |
@@ -112,6 +116,8 @@ jobs:
               "references/contextual-signals.md", "scripts/build_plugin.py",
               "scripts/build_bundle.py", "scripts/build_skill_zip.py",
               "scripts/build_onepager_pdf.py", "scripts/check_svg.py",
+              "scripts/check_distribution_manifests.py",
+              "scripts/check_release_version.py",
               "scripts/check_release_surfaces.py",
             ];
             const files = require("/tmp/pack.json")[0].files.map((f) => f.path);

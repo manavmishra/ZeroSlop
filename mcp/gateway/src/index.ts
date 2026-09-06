@@ -127,7 +127,7 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: false,
-        openWorldHint: true,
+        openWorldHint: false,
       },
     },
     async ({ text, genre, audience }) => {
