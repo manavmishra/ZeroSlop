@@ -1,0 +1,18 @@
+{
+  "source": "assets/zero-slop-demo.mp4 · verified xterm.js screen region",
+  "renderer": "@xterm/xterm 6.0.0 capture reused as an opaque Blender screen plate",
+  "crop": {
+    "left": 118,
+    "top": 157,
+    "width": 1698,
+    "height": 744
+  },
+  "states": {
+    "install": "growth/blender-screens/install.png",
+    "assistant": "growth/blender-screens/assistant.png",
+    "source": "growth/blender-screens/source.png",
+    "flags": "growth/blender-screens/flags.png",
+    "edit": "growth/blender-screens/edit.png",
+    "checks": "growth/blender-screens/checks.png"
+  }
+}

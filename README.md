@@ -37,15 +37,15 @@
 npx skills add manavmishra/ZeroSlop --global
 ```
 
-<a href="assets/zero-slop-demo.mp4?v=smooth-20260905">
+<a href="assets/zero-slop-demo.mp4?v=blender-20260906">
   <picture>
-    <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png?v=smooth-20260905">
-    <source type="image/webp" srcset="assets/zero-slop-demo.webp?v=smooth-20260905">
-    <img src="assets/zero-slop-demo.gif?v=smooth-20260905" width="960" alt="Terminal demo: install Zero Slop, ask your AI assistant to edit a draft with /zero-slop, then review the edit and source checks.">
+    <source media="(prefers-reduced-motion: reduce)" srcset="assets/zero-slop-demo-poster.png?v=blender-20260906">
+    <source type="image/webp" srcset="assets/zero-slop-demo.webp?v=blender-20260906">
+    <img src="assets/zero-slop-demo.gif?v=blender-20260906" width="960" alt="Blender-rendered terminal demo: install Zero Slop, ask your AI assistant to edit a draft with /zero-slop, then review the edit and source checks.">
   </picture>
 </a>
 
-<p align="center"><a href="assets/zero-slop-demo.mp4?v=smooth-20260905">Watch the 24-second demo</a> · <sub>Silent reconstructed skill session; hosted outputs vary.</sub></p>
+<p align="center"><a href="assets/zero-slop-demo.mp4?v=blender-20260906">Watch the 24-second demo</a> · <sub>Silent Blender-rendered product film; hosted outputs vary.</sub></p>
 
 ## Before and after
 

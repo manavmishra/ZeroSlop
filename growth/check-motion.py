@@ -288,8 +288,8 @@ def check_evidence():
     require(isinstance(renderer, str) and re.search(r"(?<![\w/@-])@xterm/xterm(?=$|[\s@,;()])", renderer),
             "Evidence must identify @xterm/xterm as the terminal renderer")
     scene_renderer = evidence.get("sceneRenderer")
-    require(isinstance(scene_renderer, str) and re.search(r"\bThree\.js\b", scene_renderer, re.I),
-            "Evidence must identify Three.js as the 3D scene renderer")
+    require(isinstance(scene_renderer, str) and re.search(r"\bBlender\b", scene_renderer, re.I),
+            "Evidence must identify Blender as the 3D scene renderer")
     for field, file_key in (("before", "source"), ("after", "edit")):
         path = (ROOT / evidence[file_key]).resolve()
         require(path.is_relative_to(ROOT), "Evidence source must stay in the repository")
@@ -310,7 +310,8 @@ def main():
         require(10 <= len(delays) <= 300, f"Unexpected {suffix} frame count")
         require(sum(delays) == 24_000, f"Unexpected {suffix} duration")
         # The preferred WebP stays below 2 MB. The compatible GIF gets 2.5 MB
-        # for the 24 fps motion pass instead of dropping transition frames.
+        # for a compact 4 fps, 28-colour fallback while WebP carries the
+        # smoother inline presentation.
         budget = 2_500_000 if suffix == "gif" else 2_000_000
         require(path.stat().st_size <= budget, f"{suffix} exceeds {budget / 1_000_000:g} MB budget")
         print(f"{suffix}: {len(delays)} frames, {sum(delays)} ms, {path.stat().st_size} bytes")
