@@ -8,6 +8,7 @@ No submission, resubmission, cancellation, publication, or account change was ma
 | OpenAI Plugins | **Review**, version **2.9.2**; name **Zero Slop**, subtitle **Edit AI-assisted writing** | Authenticated [Plugins dashboard](https://platform.openai.com/plugins). The version detail says “Viewing the review version. Only draft versions can be edited.” |
 | Cursor Directory | Public **Zero Slop** page is live; links to the correct website and source repository; shows one MCP server and one skill | [Public listing](https://cursor.directory/plugins/zero-slop) |
 | Skills.sh | Public **zero-slop** page is live; displayed 27 installs and first seen **Aug 22, 2026** | [Public listing](https://www.skills.sh/manavmishra/zeroslop/zero-slop) |
+| HOL AI Plugin Registry | Public **Zero Slop** page is accessible without signing in; links to the correct source repository and shows **Owner verified**; live fetch displayed version **2.9.2** | [Public listing](https://hol.org/registry/plugins/manav-mishra%2Fzero-slop), checked **Sep 7, 2026** |
 | Claude public plugin directory | Searches for **Zero Slop** and **slop**, without product filters, returned “No plugins for those filters” | [Public directory](https://claude.com/plugins). This does not establish whether a private submission exists. |
 
 ## OpenAI review
@@ -23,6 +24,11 @@ action. Review status is not approval or a public-directory listing.
 [Review and approval guidance](https://developers.openai.com/plugins/deploy/app-review#review-and-approval)
 
 ## Public-listing scope
+
+HOL's public profile verifies the HOL listing and its owner-verification label.
+It does not establish OpenAI Plugins approval or a security audit. The observed
+HOL version, **2.9.2**, lags the repository's **2.10.0** release. The README badge
+links to this public profile; `/guard/plugins` is the owner dashboard.
 
 The Cursor evidence establishes a **cursor.directory** listing, not acceptance
 into **cursor.com/marketplace**. The page loaded in the connected browser even
