@@ -1,0 +1,42 @@
+name: Homebrew release acceptance
+
+# Opt-in release acceptance only. This creates an ephemeral runner-local tap;
+# it never creates a GitHub repository, publishes a tap, or sends a draft.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  homebrew:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    env:
+      HOMEBREW_NO_ANALYTICS: "1"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      ZERO_SLOP_NO_NOTES: "1"
+      ZS_NO_UPDATE_CHECK: "1"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24"
+      - name: Verify the published npm tarball and generate the formula
+        run: |
+          node --test distribution/homebrew/prepare-formula.test.mjs
+          node distribution/homebrew/prepare-formula.mjs "$RUNNER_TEMP/zero-slop.rb"
+      - name: Create a runner-local acceptance tap
+        run: |
+          brew tap-new --no-git zero-slop/acceptance
+          tap_path="$(brew --repo zero-slop/acceptance)"
+          install -m 644 "$RUNNER_TEMP/zero-slop.rb" "$tap_path/Formula/zero-slop.rb"
+      - name: Audit the formula without relaxing the rules
+        run: brew audit --strict zero-slop/acceptance/zero-slop
+      - name: Install the exact release through Homebrew
+        run: brew install --build-from-source zero-slop/acceptance/zero-slop
+      - name: Test the installed CLI, scorer and isolated skill installation
+        run: brew test zero-slop/acceptance/zero-slop
