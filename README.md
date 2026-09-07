@@ -32,7 +32,7 @@ Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.9.1" src="https://img.shields.io/badge/version-2.9.1-72528F?color=C15732">
+  <img alt="Version 2.9.2" src="https://img.shields.io/badge/version-2.9.2-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -230,7 +230,7 @@ stress case took 2.2932 seconds, and learning from an 8,000-word edit took
 0.1592 seconds. The measurements and machine details are in
 [`bench/performance-results.json`](bench/performance-results.json).
 
-Across 12 interleaved runs against 2.7.7, we measured 0.17% lower median throughput,
+Across 12 interleaved runs against 2.7.7, we measured 2.57% higher median throughput,
 which is effectively unchanged. The separate two-way replay used
 Zero Slop v2.6.0.
 

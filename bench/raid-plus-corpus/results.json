@@ -18,7 +18,7 @@
   "license": "MIT"
  },
  "scorer": {
-  "version": "2.9.1",
+  "version": "2.9.2",
   "slopscore_sha256": "e2f139f932e3dfec5dbd266f252bfd46abfb09eb4c04f5f619cdc00a2cdc5367",
   "patterns_sha256": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
   "learned_sha256": "8427cf1f2b3aa45494db94c0ce30969dbc7368174138c5b771c15951ca12f483",

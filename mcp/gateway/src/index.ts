@@ -124,7 +124,8 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
       }),
       outputSchema,
       annotations: {
-        readOnlyHint: true,
+        // Calls persist aggregate usage counters and operational metrics, not drafts.
+        readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: false,
         openWorldHint: false,

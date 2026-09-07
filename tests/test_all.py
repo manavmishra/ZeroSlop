@@ -2527,13 +2527,41 @@ class DocsMatchReality(unittest.TestCase):
         for path in (
             "SKILL.md", "scripts/slopscore.py", "references/tells.md",
             "data/patterns.json", "mcp/gateway/src/index.ts", "plugin.json",
-            "gemini-extension.json", "server.json",
+            "gemini-extension.json", "server.json", ".codex-plugin/plugin.json",
+            "mcp/gateway/src/check_release_surfaces.py", "scripts/new_runtime.py",
         ):
             with self.subTest(path=path):
                 self.assertTrue(module.is_release_path(path))
-        for path in ("README.md", "growth/submission-copy.md", "assets/demo.svg"):
+        for path in (
+            "README.md", "growth/submission-copy.md", "assets/demo.svg",
+            "scripts/check_release_surfaces.py", "scripts/check_release_version.py",
+            "scripts/check_distribution_manifests.py", "scripts/build_plugin.py",
+            "scripts/contextual.py", "references/contextual-signals.md",
+        ):
             with self.subTest(path=path):
                 self.assertFalse(module.is_release_path(path))
+
+    def test_release_gate_reuses_packaging_exclusions_without_ignoring_runtime(self):
+        import build_plugin
+        spec = importlib.util.spec_from_file_location(
+            "release_version_exclusions", ROOT / "scripts/check_release_version.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        for name in build_plugin.EXCLUDE:
+            with self.subTest(name=name):
+                self.assertFalse(module.is_release_path(f"scripts/{name}"))
+        current = json.loads((ROOT / "package.json").read_text())["version"]
+        for paths, expected in (
+            (["scripts/check_release_surfaces.py", ".github/workflows/deploy-mcp.yml"], 0),
+            (["scripts/check_release_surfaces.py", "scripts/slopscore.py"], 1),
+            (["scripts/check_release_surfaces.py", ".codex-plugin/plugin.json"], 1),
+        ):
+            with self.subTest(paths=paths), \
+                    mock.patch.object(module, "version_at", return_value=current), \
+                    mock.patch.object(module, "changed_paths", return_value=paths), \
+                    contextlib.redirect_stdout(io.StringIO()), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(module.main(["base"]), expected)
 
     def test_tag_release_builds_and_attaches_assets_without_a_chained_workflow(self):
         """A workflow-created release cannot trigger another workflow when it

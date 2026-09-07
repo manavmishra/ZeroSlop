@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path, PurePosixPath
 
+from build_plugin import EXCLUDE as PLUGIN_EXCLUDE, ITEMS as PLUGIN_ITEMS
+
 
 ROOT = Path(__file__).resolve().parent.parent
 EXACT_RELEASE_PATHS = {
@@ -32,7 +34,14 @@ RELEASE_PREFIXES = (
 
 
 def is_release_path(path: str) -> bool:
-    normalized = PurePosixPath(path).as_posix()
+    parsed = PurePosixPath(path)
+    normalized = parsed.as_posix()
+    # Match the packaged skill's exclusions, without applying them to MCP code
+    # or distribution manifests outside that mirror. New runtime files still
+    # require a bump unless packaging explicitly excludes them.
+    if (parsed.parts and parsed.parts[0] in PLUGIN_ITEMS
+            and any(part in PLUGIN_EXCLUDE for part in parsed.parts[1:])):
+        return False
     return normalized in EXACT_RELEASE_PATHS or normalized.startswith(RELEASE_PREFIXES)
 
 
