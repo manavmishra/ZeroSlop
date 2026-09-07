@@ -9,7 +9,7 @@ export const VERSION = "2.10.0";
 export const METADATA_URL = `https://registry.npmjs.org/zero-slop/${VERSION}`;
 export const TARBALL_URL = `https://registry.npmjs.org/zero-slop/-/zero-slop-${VERSION}.tgz`;
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const TOKEN = "__NPM_TARBALL_SHA256__";
+const CHECKSUM_PLACEHOLDER = "__NPM_TARBALL_SHA256__";
 
 export async function prepareFormula(output, fetchRelease = fetch) {
   const options = { redirect: "error", signal: AbortSignal.timeout(30_000) };
@@ -35,8 +35,8 @@ export async function prepareFormula(output, fetchRelease = fetch) {
   }
   const sha256 = createHash("sha256").update(tarball).digest("hex");
   const template = await readFile(resolve(ROOT, "zero-slop.rb.in"), "utf8");
-  if (template.split(TOKEN).length !== 2) throw new Error("Formula template must contain exactly one checksum token.");
-  const formula = template.replace(TOKEN, sha256).replace(/^# Release template\..*\n/, "");
+  if (template.split(CHECKSUM_PLACEHOLDER).length !== 2) throw new Error("Formula template must contain exactly one checksum placeholder.");
+  const formula = template.replace(CHECKSUM_PLACEHOLDER, sha256).replace(/^# Release template\..*\n/, "");
   await mkdir(dirname(resolve(output)), { recursive: true });
   await writeFile(output, formula, { flag: "wx" });
   return { version: VERSION, tarball: TARBALL_URL, sha256, output: resolve(output) };
