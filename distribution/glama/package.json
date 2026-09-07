@@ -1,0 +1,15 @@
+{
+  "name": "zero-slop-glama-adapter",
+  "version": "2.10.0",
+  "private": true,
+  "type": "module",
+  "description": "Glama-only transport bridge to the existing hosted Zero Slop MCP server.",
+  "license": "MIT",
+  "dependencies": {
+    "mcp-proxy": "6.4.3",
+    "mcp-remote": "0.8.3"
+  },
+  "overrides": {
+    "qs": "6.16.0"
+  }
+}
