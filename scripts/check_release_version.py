@@ -36,6 +36,13 @@ RELEASE_PREFIXES = (
 def is_release_path(path: str) -> bool:
     parsed = PurePosixPath(path)
     normalized = parsed.as_posix()
+    # These are the separate `tsx --test src/*.test.ts` entry points, not
+    # inputs to Wrangler's src/index.ts deployment bundle or the npm package.
+    # Keep the exception local to that exact test layout: other MCP source,
+    # dependency manifests and deployment configuration still require a bump.
+    if (parsed.parts[:3] == ("mcp", "gateway", "src")
+            and len(parsed.parts) == 4 and parsed.name.endswith(".test.ts")):
+        return False
     # Match the packaged skill's exclusions, without applying them to MCP code
     # or distribution manifests outside that mirror. New runtime files still
     # require a bump unless packaging explicitly excludes them.

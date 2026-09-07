@@ -2529,6 +2529,11 @@ class DocsMatchReality(unittest.TestCase):
             "data/patterns.json", "mcp/gateway/src/index.ts", "plugin.json",
             "gemini-extension.json", "server.json", ".codex-plugin/plugin.json",
             "mcp/gateway/src/check_release_surfaces.py", "scripts/new_runtime.py",
+            "mcp/gateway/src/model.ts", "mcp/gateway/src/budget.ts",
+            "mcp/gateway/wrangler.jsonc", "mcp/gateway/package.json",
+            "mcp/gateway/package-lock.json", "mcp/scorer/src/worker.py",
+            "mcp/gateway/src/nested/model.test.ts", "mcp/other/src/model.test.ts",
+            "mcp/gateway/src/model.test.ts.json", "scripts/model.test.ts",
         ):
             with self.subTest(path=path):
                 self.assertTrue(module.is_release_path(path))
@@ -2537,6 +2542,7 @@ class DocsMatchReality(unittest.TestCase):
             "scripts/check_release_surfaces.py", "scripts/check_release_version.py",
             "scripts/check_distribution_manifests.py", "scripts/build_plugin.py",
             "scripts/contextual.py", "references/contextual-signals.md",
+            "mcp/gateway/src/budget.test.ts", "mcp/gateway/src/model.test.ts",
         ):
             with self.subTest(path=path):
                 self.assertFalse(module.is_release_path(path))
@@ -2555,6 +2561,37 @@ class DocsMatchReality(unittest.TestCase):
             (["scripts/check_release_surfaces.py", ".github/workflows/deploy-mcp.yml"], 0),
             (["scripts/check_release_surfaces.py", "scripts/slopscore.py"], 1),
             (["scripts/check_release_surfaces.py", ".codex-plugin/plugin.json"], 1),
+        ):
+            with self.subTest(paths=paths), \
+                    mock.patch.object(module, "version_at", return_value=current), \
+                    mock.patch.object(module, "changed_paths", return_value=paths), \
+                    contextlib.redirect_stdout(io.StringIO()), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(module.main(["base"]), expected)
+
+    def test_gateway_unit_test_only_edits_do_not_require_a_runtime_release(self):
+        spec = importlib.util.spec_from_file_location(
+            "release_version_gateway_tests", ROOT / "scripts" / "check_release_version.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        gateway = ROOT / "mcp" / "gateway"
+        # The exemption follows the existing test runner, not a broad test-name
+        # rule across packaged scripts or arbitrary MCP directories.
+        scripts = json.loads((gateway / "package.json").read_text())["scripts"]
+        self.assertIn("tsx --test src/*.test.ts", scripts["check"])
+        self.assertIn('"main": "src/index.ts"', (gateway / "wrangler.jsonc").read_text())
+        tests = list((gateway / "src").glob("*.test.ts"))
+        self.assertTrue(tests)
+        for path in tests:
+            self.assertFalse(module.is_release_path(path.relative_to(ROOT).as_posix()))
+        current = json.loads((ROOT / "package.json").read_text())["version"]
+        for paths, expected in (
+            (["mcp/gateway/src/budget.test.ts"], 0),
+            (["mcp/gateway/src/budget.test.ts", "tests/test_all.py"], 0),
+            (["mcp/gateway/src/model.ts"], 1),
+            (["mcp/gateway/src/budget.test.ts", "mcp/gateway/src/model.ts"], 1),
+            (["mcp/gateway/src/budget.test.ts", "mcp/gateway/wrangler.jsonc"], 1),
+            (["mcp/gateway/src/budget.test.ts", "mcp/gateway/package-lock.json"], 1),
         ):
             with self.subTest(paths=paths), \
                     mock.patch.object(module, "version_at", return_value=current), \
