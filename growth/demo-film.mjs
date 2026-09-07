@@ -241,6 +241,12 @@ function initialiseFilm(payload) {
 }
 
 export function filmHTML({ logo, before, after, beforeScore, afterScore, flags, xtermJS, xtermCSS }) {
+  throw new Error(
+    "This gold-logo studio renderer is archived and must not overwrite the " +
+    "active dark-shell demo. See growth/motion-design.md for the preserved film " +
+    "and its derivative exporter, and https://zero-slop.ai/brand/ for current logos."
+  );
+
   if (flags.length !== 4 || flags.some((flag) => !before.includes(flag))) throw new Error("Expected four measured source flags");
   if (!xtermJS || !xtermCSS) throw new Error("The real xterm.js renderer and stylesheet are required");
   if ([before, after, ...flags].some((text) => /[\u0000-\u001f\u007f]/.test(text))) throw new Error("Unexpected terminal control character in source");

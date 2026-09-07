@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 // Maintainer-only faithful export of the supplied logo. No runtime assets change.
 // Run: node assets/logo/studio/build.mjs
+throw new Error(
+  "This gold-logo exporter is retired. Use node growth/make-logo.mjs --all " +
+  "for the current official assets, or download them at https://zero-slop.ai/brand/. " +
+  "The archived studio files have not been changed."
+);
+
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

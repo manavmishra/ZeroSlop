@@ -1,4 +1,15 @@
-# Zero Slop logo kit
+# Archived gold-logo studio references
+
+This directory preserves the earlier logo and its production files for historical
+inspection. It is not the current logo kit. Use the exact supplied assets in
+[`assets/logo/`](../README.md) or download them at
+[zero-slop.ai/brand](https://zero-slop.ai/brand/).
+
+`build.mjs` and `growth/export-studio-logo.mjs` now stop before writing files.
+The old commands below document the historical process only. The vectors, PNGs,
+and studio film sources remain intact; no film content or direction changed.
+
+## Historical documentation
 
 The supplied logo is the source of truth: a gold rounded square, black Z, and rust stroke. The vector master reconstructs that logo without redesigning it. The original uploaded PNG is preserved unchanged as `zero-slop-logo-original.png`.
 

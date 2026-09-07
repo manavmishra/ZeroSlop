@@ -1,4 +1,10 @@
 // Export the vector identity in the same physically based studio used by the film.
+throw new Error(
+  "This gold-logo studio renderer is retired. The current official logo is at " +
+  "assets/logo/ and https://zero-slop.ai/brand/. The historical studio scene and " +
+  "film direction remain archived unchanged."
+);
+
 import {createRequire} from 'node:module';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';

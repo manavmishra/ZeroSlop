@@ -107,7 +107,7 @@ npx skills add manavmishra/ZeroSlop --global
 - Latest release: https://github.com/manavmishra/ZeroSlop/releases/latest
 - Free checker page: https://zero-slop.ai/ai-slop-checker/
 - Benchmark detail: https://github.com/manavmishra/ZeroSlop/tree/main/bench
-- Press assets: https://zero-slop.ai/press/
+- Official brand assets: https://zero-slop.ai/brand/
 - Privacy: https://zero-slop.ai/privacy/
 - Security: https://github.com/manavmishra/ZeroSlop/security/policy
 - Support: https://github.com/manavmishra/ZeroSlop/discussions

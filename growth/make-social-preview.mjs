@@ -8,12 +8,14 @@
 // Social preview.
 
 import { chromium } from "playwright-core";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 
 const out = process.argv[2] ?? "assets/social-preview.png";
 const chromePath =
   process.env.CHROME_PATH ??
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const logo = await readFile(new URL("../assets/logo/zero-slop-logo-primary.svg", import.meta.url));
+const logoURL = `data:image/svg+xml;base64,${logo.toString("base64")}`;
 
 const html = `<!doctype html>
 <html>
@@ -21,13 +23,13 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <style>
   :root {
-    --ink: #f7f0dd;
-    --paper: #17150f;
-    --panel: #211e17;
-    --line: #3b362a;
-    --muted: #aaa18f;
-    --rust: #d76545;
-    --green: #66c69a;
+    --ink: #141412;
+    --paper: #FBFAF7;
+    --panel: #ffffff;
+    --line: #ddded7;
+    --muted: #65655f;
+    --rust: #C15732;
+    --green: #17634F;
   }
   * { box-sizing: border-box; }
   body {
@@ -36,12 +38,7 @@ const html = `<!doctype html>
     margin: 0;
     overflow: hidden;
     color: var(--ink);
-    background:
-      radial-gradient(circle at 79% 17%, rgba(167,139,195,.15), transparent 27%),
-      linear-gradient(rgba(255,255,255,.024) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.024) 1px, transparent 1px),
-      var(--paper);
-    background-size: auto, 40px 40px, 40px 40px, auto;
+    background: var(--paper);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
@@ -54,19 +51,7 @@ const html = `<!doctype html>
   }
   .left { display: flex; flex-direction: column; justify-content: space-between; }
   .brand { display: flex; align-items: center; gap: 14px; }
-  .mark {
-    width: 31px; height: 31px; border: 2px solid var(--rust);
-    border-radius: 8px; position: relative; transform: rotate(45deg);
-  }
-  .mark::before {
-    content: ""; position: absolute; width: 13px; height: 2px;
-    background: var(--rust); left: 7px; top: 7px;
-    box-shadow: 0 11px 0 var(--rust); transform: rotate(-45deg);
-  }
-  .wordmark {
-    font-size: 20px; line-height: 1; font-weight: 750;
-    letter-spacing: .16em; text-transform: uppercase;
-  }
+  .brand img { display: block; width: 290px; height: auto; }
   .eyebrow {
     display: inline-flex; align-items: center; gap: 9px;
     color: var(--green); font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -74,7 +59,7 @@ const html = `<!doctype html>
   }
   .eyebrow::before {
     content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green);
-    box-shadow: 0 0 0 5px rgba(102,198,154,.12);
+    box-shadow: 0 0 0 5px rgba(23,99,79,.1);
   }
   h1 {
     margin: 0; max-width: 690px; font-size: 69px; line-height: .99;
@@ -87,15 +72,15 @@ const html = `<!doctype html>
   }
   .install {
     width: fit-content; padding: 14px 18px; border: 1px solid var(--line);
-    border-radius: 11px; background: rgba(33,30,23,.78);
-    color: #ddd4c0; font: 15px ui-monospace, SFMono-Regular, Menlo, monospace;
+    border-radius: 11px; background: var(--panel);
+    color: var(--ink); font: 15px ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   .install span { color: var(--green); }
   .proof {
     align-self: center; width: 400px; min-height: 452px; padding: 28px;
     border: 1px solid var(--line); border-radius: 24px;
-    background: linear-gradient(145deg, rgba(39,35,27,.95), rgba(27,25,19,.94));
-    box-shadow: 0 28px 70px rgba(0,0,0,.24);
+    background: var(--panel);
+    box-shadow: 0 18px 50px rgba(20,20,18,.06);
   }
   .proof-top {
     display: flex; align-items: center; justify-content: space-between;
@@ -113,13 +98,13 @@ const html = `<!doctype html>
     letter-spacing: .08em; text-transform: uppercase;
   }
   .score strong { font-size: 56px; letter-spacing: -.06em; font-weight: 680; }
-  .score.before strong { color: #b0a895; }
+  .score.before strong { color: var(--muted); }
   .score.after { text-align: right; }
   .score.after strong { color: var(--green); }
   .arrow { color: var(--rust); font-size: 25px; text-align: center; }
   .rail {
     height: 8px; margin: 30px 0 32px; border-radius: 99px;
-    background: #39342a; overflow: hidden; position: relative;
+    background: var(--line); overflow: hidden; position: relative;
   }
   .rail::before {
     content: ""; position: absolute; inset: 0 82% 0 0;
@@ -133,20 +118,20 @@ const html = `<!doctype html>
   .check b { color: var(--ink); font-weight: 600; }
   .tick {
     width: 23px; height: 23px; display: grid; place-items: center;
-    border-radius: 50%; background: rgba(102,198,154,.12); color: var(--green);
+    border-radius: 50%; background: rgba(23,99,79,.1); color: var(--green);
     font: 700 13px ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   .foot {
     display: flex; gap: 18px; margin-top: 22px; color: var(--muted);
     font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
   }
-  .foot span + span::before { content: "·"; margin-right: 18px; color: #5f5849; }
+  .foot span + span::before { content: "·"; margin-right: 18px; color: var(--muted); }
 </style>
 </head>
 <body>
   <main>
     <section class="left">
-      <div class="brand"><i class="mark"></i><span class="wordmark">Zero Slop</span></div>
+      <div class="brand"><img src="${logoURL}" alt="Zero Slop"></div>
       <div>
         <div class="eyebrow">Free, open-source Agent Skill</div>
         <h1>Find AI slop.<br><em>Keep the source intact.</em></h1>
@@ -178,6 +163,7 @@ try {
     deviceScaleFactor: 1,
   });
   await page.setContent(html);
+  await page.locator(".brand img").evaluate(image => image.decode());
   const buffer = await page.screenshot({ type: "png" });
   await writeFile(out, buffer);
   console.log(`wrote ${out} (${(buffer.length / 1024).toFixed(0)} KB, 1280x640)`);

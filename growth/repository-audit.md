@@ -136,9 +136,22 @@ attract the wrong expectation and conflict with the project's stated limits.
 
 ### Social preview
 
-Upload `assets/social-preview.png`. It is 1280×640, uses a solid dark base, and
+Upload `assets/social-preview.png`. It is 1280×640, uses the official rust logo
+on warm paper, and
 stays below 1 MB, matching GitHub's recommended size and format:
 [Customizing a social preview](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview).
+
+Regenerate it with `node growth/make-social-preview.mjs`. The supplied SVG in
+`assets/logo/zero-slop-logo-primary.svg` is the source; use
+[the official brand page](https://zero-slop.ai/brand/) for press and directory assets.
+
+### Directory screenshots
+
+`assets/screenshots/01-hero.png` through `05-engine.png` copy the website's
+canonical press captures. Refresh them with `node growth/make-screenshots.mjs`.
+The command downloads the current `/press/` PNGs from `zero-slop.ai`; it does
+not redraw the logo, terminal, benchmark, or workflow diagram. Before a site
+deploy, use `--source-dir ZSWebpage/public/press` to copy the reviewed local set.
 
 ## Measurement
 

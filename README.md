@@ -1,6 +1,9 @@
 <p align="center">
   <a href="https://zero-slop.ai">
-    <img src="assets/logo/studio/zero-slop-mark-300-transparent.png" width="112" alt="Zero Slop">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/logo/zero-slop-logo-reversed.svg">
+      <img src="assets/logo/zero-slop-logo-primary.svg" width="360" alt="Zero Slop">
+    </picture>
   </a>
 </p>
 
@@ -23,15 +26,17 @@ Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
   <a href="#evidence-and-limits">See the evidence</a>
   ·
   <a href="https://github.com/manavmishra/ZeroSlop/releases/latest">Latest release</a>
+  ·
+  <a href="https://zero-slop.ai/brand/">Brand assets</a>
 </p>
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.9.1" src="https://img.shields.io/badge/version-2.9.1-72528F">
-  <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=72528F"></a>
-  <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=227B5B"></a>
-  <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=b0442a"></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-202521"></a>
+  <img alt="Version 2.9.1" src="https://img.shields.io/badge/version-2.9.1-72528F?color=C15732">
+  <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
+  <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
+  <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-141412"></a>
   <a href="https://hol.org/guard/plugins"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
 </p>
 
@@ -81,7 +86,7 @@ Zero Slop is a writing tool. It does not detect authorship; its score describes 
 
 ## Install
 
-To try Zero Slop first, paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free editor returns the edit, the before-and-after scores, and the exact phrases that triggered the scorer.
+Paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free editor returns the edit, the before-and-after scores, and the exact phrases that triggered the scorer.
 
 | Environment | Fastest route |
 |---|---|
@@ -143,7 +148,7 @@ workflow and local tools for scoring and source checks.
 
 ## What it catches
 
-The current scorer combines 294 weighted patterns with a 96-term lexicon. Examples include:
+The scorer combines 294 weighted patterns with a 96-term lexicon. Examples include:
 
 - binary contrast formulas: “It's not X. It's Y.”
 - canned openers: “We're thrilled to…” and “Here's the thing…”

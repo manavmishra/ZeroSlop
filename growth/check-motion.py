@@ -21,6 +21,15 @@ SHELL_SOURCE_HASHES = {
     "before": "bb276a80c09c16eebd4f4ecb32842413828a52ef16272b4a554b88b993cbff8a",
     "after": "4fa6dbbb40d2d7dfa3349be679a6a6aff393772d5f11995e81ecea83c80e2472",
 }
+OFFICIAL_LOGO_HASHES = {
+    "zero-slop-logo-primary.svg": "800efb95549dbd7d08043b601639a5a5d2f354a54f704f2c140d135f1a9d7e55",
+    "zero-slop-logo-primary.png": "34f9a839ce7f9bb0da63787f02cb922323f5ebc7ea55b932f1c11edfbd4006b9",
+    "zero-slop-logo-reversed.svg": "49f9e46dc25d5b17da34b270d60c4cdfb76c232a8dbda5a73d7e0edacee12b57",
+    "zero-slop-logo-reversed.png": "644615e98281338fdba1b66b6c415561e0601c9dd69807e2296afd9b9451c84f",
+    "zero-slop-mark-orange.svg": "17db12f1d3db5622ff9648bb3f9ed9ac6af714152c03d4e6737e528d83559e05",
+    "zero-slop-app-icon-transparent-512.png": "32985bd074903861f73488bddcdc587f6c0a360ad24db575bf0e5880d4009843",
+    "zero-slop-github-300.png": "40cde47cfc566b4d310f79f33294639ccee3be85813d5dc68e163fd66b7f3daf",
+}
 SHELL_FLAGS = [
     "In today's fast-paced",
     "We're thrilled to",
@@ -367,9 +376,17 @@ def main():
         require(png_info(ASSETS / "logo/studio" / name) == ((300, 300), colour_type), f"Gold logo dimensions/alpha: {name}")
     require(png_info(ASSETS / "logo/studio/zero-slop-mark-3d-1200.png")[0] == (1200, 1200), "3D logo dimensions")
     logo_svg = (ASSETS / "logo/studio/zero-slop-mark.svg").read_text()
-    require(all(color in logo_svg for color in ("#e2a500", "#12100c", "#8c3f22")), "Supplied logo palette must survive")
+    require(all(color in logo_svg for color in ("#e2a500", "#12100c", "#8c3f22")), "Archived studio palette must survive")
+    for name, expected_hash in OFFICIAL_LOGO_HASHES.items():
+        require(hashlib.sha256((ASSETS / "logo" / name).read_bytes()).hexdigest() == expected_hash,
+                f"Official supplied logo must remain unchanged: {name}")
+    require((ASSETS / "logo/logo-mark.svg").read_bytes() == (ASSETS / "logo/zero-slop-mark-orange.svg").read_bytes(),
+            "Compatibility SVG must match the official rust mark")
     readme = (ROOT / "README.md").read_text()
-    require('src="assets/logo/studio/zero-slop-mark-300-transparent.png"' in readme, "README must use the supplied gold logo")
+    require('src="assets/logo/zero-slop-logo-primary.svg"' in readme,
+            "README must use the supplied primary logo")
+    require('media="(prefers-color-scheme: dark)" srcset="assets/logo/zero-slop-logo-reversed.svg"' in readme,
+            "README must use the supplied reversed logo on dark backgrounds")
     require(readme.index('prefers-reduced-motion: reduce') < readme.index('image/webp'), "Static preference must precede animated sources")
     for asset in ('zero-slop-demo-poster.png', 'zero-slop-demo.webp', 'zero-slop-demo.gif'):
         require(asset in readme, f"Missing README fallback: {asset}")

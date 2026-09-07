@@ -69,8 +69,10 @@ GIF. It specifies width without a fixed height so the terminal retains its
 original aspect ratio. The player exposes native pause, seek and replay
 controls and waits for the viewer to start playback.
 
-The supplied gold logo and its local exports remain available in
-`assets/logo/studio/`. They are separate assets from this restored animation.
+The current official logo kit is in `assets/logo/`, with primary and reversed
+wordmarks and a rust mark. See [the brand page](https://zero-slop.ai/brand/).
+The old gold-logo exports in `assets/logo/studio/` are archived references,
+separate from this restored animation; they are not current brand assets.
 
 ## Rebuild the derivatives
 
@@ -107,6 +109,11 @@ not generate the active README animation. In particular,
 passing that check says nothing about the restored shell demo. Any future
 studio render should write to separate output paths until deliberately
 selected for publication.
+
+`scripts/make-readme-gif.mjs` now refuses to run because it would overwrite
+the active demo with the archived gold-logo film. The logo-only studio
+exporters are retired too. Use the derivative exporter above to preserve the
+approved shell sequence.
 
 The restored animation makes no claim about conversion lift, universal editing
 quality or processing speed.

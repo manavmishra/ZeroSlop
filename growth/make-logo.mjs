@@ -1,72 +1,44 @@
 #!/usr/bin/env node
-// Renders the Zero Slop logo from the repository-owned vector source.
-//
-// The 300px exports use the established black Z and rust slash. The SVG is
-// shared with the README animation, so its geometry and colors cannot drift.
-//
-//   logo-300.png       black/rust mark on pure white, exact 300x300 canvas.
-//   logo-mark-300.png  same mark with a transparent background.
-//
-// --all also regenerates the historical 512px and 1024px directory assets:
-// dark rounded plate for logo-<n>.png, transparent for logo-mark-<n>.png.
-// Without --all, those existing files are left untouched.
-//
-// Requires playwright-core and Chrome; no network access or remote fonts.
+// Maintainer-only compatibility exports of the official supplied identity.
+// The canonical SVG and PNG files in assets/logo remain byte-for-byte unchanged.
 // Usage: node growth/make-logo.mjs [outdir] [--all]
-// Optional ZERO_SLOP_NODE_MODULES points to an existing dependency directory.
+// Requires Sharp; ZERO_SLOP_NODE_MODULES may select an existing dependency directory.
 
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { copyFile, mkdir } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
-const dependencyRoot = process.env.ZERO_SLOP_NODE_MODULES;
-const { chromium } = await import(dependencyRoot
-  ? pathToFileURL(resolve(dependencyRoot, "playwright-core/index.mjs")).href
-  : "playwright-core");
+const require = createRequire(import.meta.url);
+const sharp = require(process.env.ZERO_SLOP_NODE_MODULES
+  ? resolve(process.env.ZERO_SLOP_NODE_MODULES, "sharp")
+  : "sharp");
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const outDir = resolve(process.argv.slice(2).find((arg) => arg !== "--all")
-  ?? resolve(repoRoot, "assets/logo"));
+const sourceDir = resolve(repoRoot, "assets/logo");
+const outDir = resolve(process.argv.slice(2).find((arg) => arg !== "--all") ?? sourceDir);
 const sizes = process.argv.includes("--all") ? [300, 512, 1024] : [300];
-const chromePath =
-  process.env.CHROME_PATH ??
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-
-const markOnly = await readFile(resolve(repoRoot, "assets/logo/logo-mark.svg"), "utf8");
-
-const darkPlate = markOnly
-  .replace(/(<path\b[^>]*fill=")#12100c"/, '$1#fffdf6"')
-  .replace(/(<svg\b[^>]*>)/, '$1<rect width="64" height="64" rx="17" fill="#12100c"/>')
-  .replace(' transform="translate(-3.84 -3.84) scale(1.12)"', "");
-
-function page(markup, size, background = "transparent") {
-  return `<!doctype html>
-<html><head><meta charset="utf-8"><style>
-  * { margin:0; padding:0; }
-  html, body { width:${size}px; height:${size}px; background:${background}; }
-  svg { width:${size}px; height:${size}px; display:block; }
-</style></head><body>${markup}</body></html>`;
-}
+const mark = resolve(sourceDir, "zero-slop-mark-orange.svg");
 
 await mkdir(outDir, { recursive: true });
+await copyFile(mark, resolve(outDir, "logo-mark.svg"));
 
-const browser = await chromium.launch({ executablePath: chromePath, headless: true });
-try {
-  for (const size of sizes) {
-    for (const [name, markup, background] of [
-      [`logo-${size}.png`, size === 300 ? markOnly : darkPlate, size === 300 ? "#ffffff" : "transparent"],
-      [`logo-mark-${size}.png`, markOnly, "transparent"],
-    ]) {
-      const tab = await browser.newPage({
-        viewport: { width: size, height: size },
-        deviceScaleFactor: 1,
-      });
-      await tab.setContent(page(markup, size, background), { waitUntil: "load" });
-      const buffer = await tab.screenshot({ type: "png", omitBackground: true });
-      await writeFile(`${outDir}/${name}`, buffer);
-      await tab.close();
-      console.log(`wrote ${outDir}/${name} (${(buffer.length / 1024).toFixed(0)} KB, ${size}x${size})`);
+for (const size of sizes) {
+  for (const transparent of [false, true]) {
+    const name = `logo-${transparent ? "mark-" : ""}${size}.png`;
+    const output = resolve(outDir, name);
+    if (size === 300 && !transparent) {
+      await copyFile(resolve(sourceDir, "zero-slop-github-300.png"), output);
+    } else if (size === 512 && transparent) {
+      await copyFile(resolve(sourceDir, "zero-slop-app-icon-transparent-512.png"), output);
+    } else {
+      let raster = sharp(mark, { density: 300 }).resize(size, size);
+      if (!transparent) raster = raster.flatten({ background: "#FBFAF7" });
+      await raster.png({ compressionLevel: 9 }).toFile(output);
     }
+    const metadata = await sharp(output).metadata();
+    if (metadata.width !== size || metadata.height !== size) {
+      throw new Error(`${name}: incorrect dimensions`);
+    }
+    console.log(`wrote ${output} (${size}x${size}, official rust mark)`);
   }
-} finally {
-  await browser.close();
 }
