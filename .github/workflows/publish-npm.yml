@@ -69,6 +69,7 @@ jobs:
 
       - name: Tests must pass
         run: |
+          node --test tests/cli-deslop.test.mjs
           python3 tests/test_all.py
           python3 scripts/calibrate.py --selftest
           python3 scripts/register.py --selftest

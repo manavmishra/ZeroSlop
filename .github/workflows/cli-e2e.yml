@@ -1,0 +1,71 @@
+name: CLI cross-platform acceptance
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cli-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cli:
+    name: ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ["22", "24"]
+    env:
+      ZERO_SLOP_NO_NOTES: "1"
+      ZS_NO_UPDATE_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - name: CLI protocol and process fixtures (no hosted drafts)
+        run: node --test tests/cli-deslop.test.mjs tests/cli-package-tools.test.mjs
+      - name: Pack and install locally; test offline scorer and installed bin
+        # Deliberately omit --live. npm pack/install also enforce --offline;
+        # this workflow never sends a draft, calls an editor, or uses secrets.
+        run: node tests/cli-package-e2e.mjs
+
+  offline-compatibility:
+    name: Offline compatibility / ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ["18", "20"]
+    env:
+      ZERO_SLOP_NO_NOTES: "1"
+      ZS_NO_UPDATE_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - name: Preserve existing offline installs, scoring, and stdin
+        # Compatibility coverage is not a recommendation to use an EOL Node
+        # release for hosted editing. No --live and no remote fixtures here.
+        run: node tests/cli-package-e2e.mjs

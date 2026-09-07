@@ -1,0 +1,118 @@
+{
+  "name": "Review a draft with Zero Slop",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7a95a332-f5d7-43af-adcc-7bbac4407173",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Synthetic example. Replacing this literal with private text saves that text in the workflow definition. For real use, connect an approved input and review your n8n storage policy.\nreturn [{ json: { text: 'It is important to note that Maya owns the pricing review. The team will decide on Friday.', genre: 'professional', audience: 'The product team' } }];"
+      },
+      "id": "57916ee8-4c4b-4425-83bc-afb9bb1af29f",
+      "name": "Synthetic draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mcp.zero-slop.ai/v1/deslop",
+        "authentication": "none",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text, genre: $json.genre, audience: $json.audience }) }}",
+        "options": {
+          "timeout": 75000,
+          "redirect": { "redirect": { "followRedirects": false } },
+          "response": { "response": { "responseFormat": "json", "neverError": false } }
+        }
+      },
+      "id": "7e72a76a-fc57-40f6-b12d-6bb9f8aaf8e3",
+      "name": "Edit through Zero Slop",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "retryOnFail": false,
+      "onError": "stopWorkflow",
+      "notesInFlow": true,
+      "notes": "Sends the draft to the same hosted editing pipeline as MCP. No API key. One request; no automatic retries."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{
+            "id": "9139da3b-072e-4772-8039-151036a551db",
+            "leftValue": "={{ $json.factsPreserved === true && (($json.status === 'already_clear' && $json.modelRequests === 0 && $json.scoreChange === 0 && typeof $json.before?.score === 'number' && $json.before.score === $json.after?.score) || ($json.status === 'rewritten' && $json.passedFinalChecks === true)) }}",
+            "rightValue": true,
+            "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+          }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "327430b3-4d03-4457-bb04-3c58c3f4815b",
+      "name": "Checks passed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": { "jsCode": "return $input.all().map(item => ({ json: { nextStep: 'Review the original and returned text before using this edit. Nothing has been published.', result: item.json } }));" },
+      "id": "c90373a0-94f4-41ce-9914-a55c71c23a62",
+      "name": "Ready for human review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, -100]
+    },
+    {
+      "parameters": { "jsCode": "return $input.all().map(item => ({ json: { nextStep: 'Read status and note. Review warnings or keep the original. Do not publish automatically.', result: item.json } }));" },
+      "id": "203603a6-64a1-4666-a0cb-614724de4404",
+      "name": "Review warnings or keep original",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 120]
+    },
+    {
+      "parameters": {
+        "content": "## Manual review only\nThis workflow sends a synthetic draft to Zero Slop and stops at a review result. It does not post, email, or overwrite documents.\n\nExecution-history saving is disabled in this export. Check your instance, logs, backups, and retention settings before using private writing. Do not pin real drafts or put them into this saved workflow definition.",
+        "height": 220,
+        "width": 760,
+        "color": 4
+      },
+      "id": "aa5d503f-7d11-479d-bf93-45f5b39baa1b",
+      "name": "Privacy and review",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [0, -300]
+    }
+  ],
+  "connections": {
+    "Run manually": { "main": [[{ "node": "Synthetic draft", "type": "main", "index": 0 }]] },
+    "Synthetic draft": { "main": [[{ "node": "Edit through Zero Slop", "type": "main", "index": 0 }]] },
+    "Edit through Zero Slop": { "main": [[{ "node": "Checks passed", "type": "main", "index": 0 }]] },
+    "Checks passed": { "main": [
+      [{ "node": "Ready for human review", "type": "main", "index": 0 }],
+      [{ "node": "Review warnings or keep original", "type": "main", "index": 0 }]
+    ] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "executionTimeout": 120,
+    "callerPolicy": "none"
+  },
+  "pinData": {},
+  "tags": []
+}

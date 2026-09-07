@@ -15,7 +15,8 @@ The installed skill ships eight standard-library Python modules:
 | `scripts/safeio.py` | locks and atomic file replacement | only on behalf of the two writers above | none |
 | `scripts/version_check.py` | optional release check | none | one metadata-only GitHub API request |
 
-Scoring and rewriting do not transmit the draft. The version checker sends only a GET
+These local Python checks do not transmit the draft. Editing inside an assistant
+follows that assistant's privacy settings. The version checker sends only a GET
 for the latest public release tag, times out after 2.5 seconds, fails open, and can be
 disabled with `ZS_NO_UPDATE_CHECK=1`.
 
@@ -29,7 +30,14 @@ repository but are excluded from the installed plugin runtime.
 `scripts/contextual.py` is one of those maintainer-only research utilities; it is
 not a production feature and cannot change a live draft or score.
 
-## Remote MCP boundary
+## Remote service boundary
+
+The npm CLI's explicit `deslop` command is a remote operation. It reads one selected
+file or standard input and sends the text, genre, and optional audience to the public
+MCP endpoint below. It does not transmit file paths or private learning profiles,
+overwrite the source, retry automatically, or follow redirects with draft content.
+The `score` command remains offline. The Node.js transport is separate from the
+stdlib-only Python runtime.
 
 The optional public MCP at `https://mcp.zero-slop.ai/mcp` is a separate remote
 service. A draft sent to that endpoint must leave the client to be edited. It is
@@ -37,6 +45,17 @@ processed in memory, excluded from the demo cache, and routed through model endp
 configured for zero retention and no training. The gateway rejects any editor
 response that does not confirm `stored: false`. Zero Slop does not log or retain the
 draft or rewrite.
+
+The REST endpoint `https://mcp.zero-slop.ai/v1/deslop` calls this same pipeline.
+It accepts at most 128 KiB of UTF-8 JSON and one trimmed draft of 20,000 Unicode code
+points. REST and MCP share the capacity limiter; adding a transport does not create
+an independent allowance. The limiter operates per Cloudflare location and is not
+a strict global quota. REST errors omit request content. Responses use `no-store`,
+and there is no stored response replay or idempotency cache.
+
+REST adds completed results, failures, and capacity rejections to the existing
+aggregate counters. It does not increment MCP initialization or tool-call counts.
+REST logs contain only event name, outcome, character count, and elapsed time.
 
 The gateway writes aggregate product and reliability events to Cloudflare Analytics
 Engine. Recorded fields are limited to JSON-RPC method, tool, normalized client family

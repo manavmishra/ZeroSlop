@@ -119,6 +119,15 @@ jobs:
       - name: Validate studio motion cadence
         run: node growth/check-studio-cadence.mjs
 
+      - name: CLI and distribution integration contracts
+        run: |
+          node --test tests/cli-deslop.test.mjs
+          node --test distribution/homebrew/prepare-formula.test.mjs
+          node --test integrations/github-action/review.test.mjs
+          node --experimental-strip-types --test integrations/raycast/test/review.test.ts
+          node --test integrations/templates.test.mjs
+          node --test mcp/scripts/e2e_rest.test.mjs
+
       - name: SKILL.md frontmatter present
         run: |
           head -1 SKILL.md | grep -q '^---$'

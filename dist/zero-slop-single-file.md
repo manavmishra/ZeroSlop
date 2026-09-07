@@ -28,7 +28,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.9.2"
+  version: "2.10.0"
   author: manavmishra
 description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
 ---
@@ -43,6 +43,11 @@ by Claude, GPT, or another compatible model, reads the draft, understands its
 context, and performs the editorial work. The bundled local tools handle
 repeatable checks. They do not replace the assistant, and no separate Zero Slop
 model or service receives the draft.
+
+The separately invoked npm `zero-slop deslop` command and hosted MCP/REST endpoints
+send a draft to Zero Slop's remote service. They are opt-in alternatives, not local
+checks in this workflow. Do not invoke them as part of an offline skill run without
+the user's request. The npm `score` command continues to run locally.
 
 The science in one paragraph: detectors (and readers) key on the *post-training
 register* — text that sits at the most-probable phrasing, with uniform sentence

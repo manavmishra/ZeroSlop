@@ -1,0 +1,33 @@
+name: Zero Slop Documentation Review
+author: manavmishra
+description: Review changed Markdown with local writing checks, with optional hosted edits for human review.
+branding:
+  icon: edit-3
+  color: green
+inputs:
+  mode:
+    description: 'score (offline, default) or deslop (sends complete changed drafts to the hosted Zero Slop MCP).'
+    default: score
+  base-sha:
+    description: 'Full base commit SHA. Defaults to the pull request base or push before SHA.'
+  head-sha:
+    description: 'Full head commit SHA. Defaults to the pull request head or current event SHA.'
+  max-files:
+    description: 'Maximum Markdown files to review, from 1 to 50. Excess files are reported as skipped.'
+    default: '10'
+  genre:
+    description: 'general, social, email, research, or professional.'
+    default: general
+  fail-above:
+    description: 'Optional local writing-score threshold (0–100). Equality passes. Empty means advisory.'
+    default: ''
+outputs:
+  report-path:
+    description: JSON report in runner temporary storage. Hosted-mode reports contain returned draft text.
+  reviewed:
+    description: Number of files reviewed.
+  skipped:
+    description: Number of files skipped because of limits or unsupported Git object types.
+runs:
+  using: node24
+  main: index.mjs

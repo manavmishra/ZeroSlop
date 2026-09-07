@@ -30,7 +30,7 @@
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.9.2" src="https://img.shields.io/badge/version-2.9.2-72528F?color=C15732">
+  <img alt="Version 2.10.0" src="https://img.shields.io/badge/version-2.10.0-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -80,11 +80,11 @@ The rewrite retains the draft's stated result. See four complete, reproducible p
 - Edit a research summary without flattening its qualifications.
 - Gate a folder of generated copy before it ships.
 
-Zero Slop is a writing tool. It does not detect authorship; its score describes the text.
+The score describes writing patterns, not authorship.
 
 ## Install
 
-Paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free editor returns the edit, the before-and-after scores, and the exact phrases that triggered the scorer.
+[Try the free browser editor](https://zero-slop.ai/try/), or install:
 
 | Environment | Fastest route |
 |---|---|
@@ -95,19 +95,19 @@ Paste a draft into [zero-slop.ai/try](https://zero-slop.ai/try/). The free edito
 | Claude.ai | Upload the [latest skill ZIP](https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip) |
 | ChatGPT, Claude, Grok, Gemini, Cursor, or another MCP client | Connect the optional [hosted MCP server](mcp/README.md) |
 
-Once installed, ask your AI assistant to edit a draft:
+Ask your assistant to edit:
 
 ```text
 /zero-slop (your writing)
 ```
 
-Inspect a draft without changing it:
+Inspect without editing:
 
 ```text
 /zero-slop inspect (your writing)
 ```
 
-Score a file locally:
+Score locally:
 
 ```sh
 npx zero-slop score draft.md
@@ -119,17 +119,43 @@ From a cloned checkout, gate a folder:
 python3 scripts/slopscore.py --batch drafts/ --gate 25
 ```
 
-Installed checks run locally; editing follows your AI assistant's privacy settings. The optional hosted MCP processes drafts remotely. See its [privacy details](mcp/README.md).
+Installed checks run locally. Skill editing follows your assistant's privacy settings; [MCP editing is remote](mcp/README.md).
 
 ### Prefer one hosted connection? Use the MCP
 
-Connect the [Zero Slop MCP](https://zero-slop.ai/#mcp) once to edit drafts inside your MCP client. Its `deslop` tool returns the edit, before-and-after scores, and review status. Zero Slop requires no account or API key; server updates are managed for you.
+Connect the [Zero Slop MCP](https://zero-slop.ai/#mcp) to edit drafts inside your MCP client. No account or API key required.
 
 ```text
 https://mcp.zero-slop.ai/mcp
 ```
 
-See [`DISTRIBUTION.md`](DISTRIBUTION.md) for direct connector commands and directory status.
+[Connection options and listing status](DISTRIBUTION.md).
+
+## CLI
+
+Edit a file through MCP:
+
+```sh
+npx --yes zero-slop@2.10.0 deslop draft.md --genre professional
+```
+
+Use `-` for stdin and `--json` for structured output. `--require-approved` exits nonzero
+when review is needed; the result is still printed. Files stay unchanged. Node.js 22+;
+offline `score` also needs Python 3. [CLI reference and privacy](docs/cli.md).
+
+## REST API
+
+```sh
+curl --fail-with-body --max-time 75 https://mcp.zero-slop.ai/v1/deslop \
+  -H 'Content-Type: application/json' \
+  --data '{"text":"Maya owns the pricing review.","genre":"professional"}'
+```
+
+Same pipeline and result as MCP. Check `status` before using the edit. Free, shared
+capacity; up to 20,000 Unicode code points per draft after trimming. Hosted CLI
+editing and REST process drafts remotely without storing them.
+
+[API reference](docs/rest-api.md) · [OpenAPI contract](https://mcp.zero-slop.ai/openapi.json)
 
 ## What the workflow adds
 

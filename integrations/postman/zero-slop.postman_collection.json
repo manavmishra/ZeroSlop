@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "Zero Slop API",
+    "description": "Edit one draft through the same pipeline as Zero Slop MCP. Free shared capacity; no API key. Use synthetic drafts until you have reviewed your Postman workspace's sharing, history and sync settings. HTTP 200 is a pipeline outcome, not automatic approval. Set request timeout to 75000 ms and disable automatic redirects before sending real writing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "noauth" },
+  "variable": [{ "key": "baseUrl", "value": "https://mcp.zero-slop.ai", "type": "string" }],
+  "item": [
+    {
+      "name": "Read the OpenAPI contract",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/openapi.json",
+        "description": "The running service generates its OpenAPI 3.1.2 contract from the schemas used by MCP and REST. This request sends no draft."
+      },
+      "protocolProfileBehavior": { "followRedirects": false },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('OpenAPI document is available', () => { pm.response.to.have.status(200); });",
+        "const contract = pm.response.json();",
+        "pm.test('OpenAPI exposes the editing operation', () => {",
+        "  pm.expect(contract.openapi).to.match(/^3\\.1\\./);",
+        "  pm.expect(contract.paths['/v1/deslop'].post.operationId).to.eql('deslop');",
+        "  pm.expect(contract.components.schemas.DeslopResult).to.be.an('object');",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "Edit a synthetic draft",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/v1/deslop",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"It is important to note that Maya owns the pricing review. The team will decide on Friday.\",\n  \"genre\": \"professional\",\n  \"audience\": \"The product team\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Synthetic example. Send one UTF-8 JSON body, at most 128 KiB. text is 1–20000 Unicode code points after trimming; audience is optional and at most 200 Unicode code points. Read status and note before using the result. No retries run in this collection."
+      },
+      "protocolProfileBehavior": { "followRedirects": false },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('The pipeline returned a result', () => { pm.response.to.have.status(200); });",
+        "if (pm.response.code === 200) {",
+        "  const result = pm.response.json();",
+        "  const statuses = ['rewritten', 'rewritten_with_warnings', 'already_clear', 'unchanged_no_better_version', 'unchanged_verification_failed', 'unchanged_service_unavailable'];",
+        "  pm.test('Result has the shared MCP fields', () => {",
+        "    for (const key of ['text', 'status', 'before', 'after', 'scoreChange', 'factsPreserved', 'passedFinalChecks', 'independentModelChecks', 'modelRequests', 'rolesCompleted', 'finishingRounds', 'scorerVersion', 'durationMs', 'note']) pm.expect(result).to.have.property(key);",
+        "    pm.expect(result.status).to.be.oneOf(statuses);",
+        "    pm.expect(result.text).to.be.a('string');",
+        "    pm.expect(result.note).to.be.a('string');",
+        "    pm.expect(result.factsPreserved).to.be.a('boolean');",
+        "    pm.expect(result.passedFinalChecks).to.be.a('boolean');",
+        "    pm.expect(result.before.score).to.be.within(0, 100);",
+        "    pm.expect(result.after.score).to.be.within(0, 100);",
+        "    pm.expect(result.modelRequests).to.be.oneOf([0, 1]);",
+        "  });",
+        "  const approved = result.factsPreserved === true && ((result.status === 'already_clear' && result.modelRequests === 0 && result.scoreChange === 0 && typeof result.before?.score === 'number' && result.before.score === result.after?.score) || (result.status === 'rewritten' && result.passedFinalChecks === true));",
+        "  pm.variables.set('reviewRequired', !approved);",
+        "  // This only records whether checks passed; it never publishes or stores the returned draft in a collection variable.",
+        "}"
+      ] } }]
+    },
+    {
+      "name": "Reject an empty draft",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/v1/deslop",
+        "body": { "mode": "raw", "raw": "{\"text\":\"\"}", "options": { "raw": { "language": "json" } } },
+        "description": "Input rejection example. A structured HTTP problem is expected, not a successful rewrite."
+      },
+      "protocolProfileBehavior": { "followRedirects": false },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Empty input is rejected', () => { pm.response.to.have.status(400); });",
+        "pm.test('Error uses a structured HTTP problem', () => {",
+        "  const problem = pm.response.json();",
+        "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+        "  for (const key of ['type', 'title', 'status', 'detail', 'code', 'requestId']) pm.expect(problem).to.have.property(key);",
+        "  pm.expect(problem.status).to.eql(400);",
+        "});"
+      ] } }]
+    }
+  ]
+}

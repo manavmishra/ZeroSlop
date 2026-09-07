@@ -1,7 +1,7 @@
 {
   "name": "zero-slop",
-  "version": "2.9.2",
-  "description": "An Agent Skill that scores AI-sounding prose locally, guides the host AI through an editorial rewrite, and checks changed source details. The local tools run offline with zero dependencies.",
+  "version": "2.10.0",
+  "description": "An editing skill, offline writing checks, and a CLI for the hosted Zero Slop MCP pipeline. Find stock AI phrasing, rewrite, and check source details.",
   "bin": {
     "zero-slop": "bin/zero-slop.mjs"
   },
@@ -21,6 +21,9 @@
     "ai-writing",
     "writing-tools",
     "editing",
+    "cli",
+    "mcp",
+    "rest-api",
     "prose"
   ],
   "homepage": "https://zero-slop.ai",
@@ -41,6 +44,9 @@
     "scripts/",
     "data/",
     "README.md",
+    "docs/cli.md",
+    "docs/rest-api.md",
+    "SECURITY.md",
     "LICENSE",
     "plugin.json",
     "mcp.json",

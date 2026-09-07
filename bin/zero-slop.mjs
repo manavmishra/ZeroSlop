@@ -5,11 +5,13 @@
 // mirrors rather than people. This is the executable half: it installs the same
 // runtime the tarball already carries, and runs the scorer without a checkout.
 
-import { cp, lstat, mkdir, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { cp, lstat, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { constants } from "node:fs";
 import { spawn } from "node:child_process";
 import { homedir } from "node:os";
 import { dirname, join, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { deslop, DeslopError, isApprovedResult, validateInput } from "./lib/deslop.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAYLOAD = ["SKILL.md", "references", "scripts", "data"];
@@ -30,11 +32,13 @@ async function version() {
 }
 
 function usage(v) {
-  return `zero-slop ${v} — score AI-sounding prose 0-100 and edit it out.
+  return `zero-slop ${v} — score locally or edit through the hosted Zero Slop MCP.
 
 Usage
   npx zero-slop install [--harness <name>] [--dir <path>] [--force]
-  npx zero-slop score <file>... [-- <slopscore flags>]
+  npx zero-slop score <file|-> [-- <slopscore flags>]
+  npx zero-slop deslop <file|-> [--genre <name>] [--audience <reader>] [--json]
+                       [--require-approved] [--timeout <seconds>]
   npx zero-slop where
   npx zero-slop --version
 
@@ -43,11 +47,27 @@ Install targets
   --dir       install into an explicit directory instead
   --force     replace a verified Zero Slop installation
 
+Hosted editing (deslop)
+  Sends only the explicit draft, genre and audience to https://mcp.zero-slop.ai/mcp.
+  Zero Slop does not store drafts or rewrites; aggregate usage metrics are recorded.
+  Requires Node.js 22+, network access, and no Python or API key. No automatic retry.
+  One UTF-8 file or stdin (-); 1–20,000 Unicode code points, audience at most 200.
+  --genre     general (default), social, email, research, professional
+  --json      full structured MCP result on stdout; notices stay on stderr
+  --require-approved  exit 3 unless already clear or a checked rewrite; keep the result
+  --timeout   whole remote request timeout in seconds (default: 75; maximum: 300)
+  Text mode prints the returned draft on stdout and the review summary on stderr.
+  No files are changed. A timeout or cancellation may not stop hosted processing.
+  Exits: 0 valid result, 1 request failure, 2 invalid input, 3 approval gate,
+         124 timeout, 130 interrupted, 143 terminated.
+
 Examples
   npx zero-slop install                    # ~/.claude/skills/zero-slop
   npx zero-slop install --harness codex
   npx zero-slop score draft.md
   npx zero-slop score drafts/ -- --batch --gate 25
+  npx zero-slop deslop draft.md --genre email
+  npx zero-slop deslop - --json < draft.md
 
 Docs: https://zero-slop.ai   Source: https://github.com/manavmishra/ZeroSlop`;
 }
@@ -193,12 +213,148 @@ function runScorer(args) {
       console.error(err.message);
       resolvePromise(1);
     });
-    child.on("close", (code) => resolvePromise(code ?? 0));
+    child.on("close", (code, signal) => resolvePromise(code ?? (signal === "SIGINT" ? 130 : signal === "SIGTERM" ? 143 : 1)));
   });
+}
+
+function parseDeslopArgs(argv) {
+  const values = {};
+  const files = [];
+  const allowedValues = new Set(["--genre", "--audience", "--timeout"]);
+  let positionalOnly = false;
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (positionalOnly) { files.push(argument); continue; }
+    if (argument === "--") { positionalOnly = true; continue; }
+    const [flag, ...attached] = argument.split("=");
+    if (allowedValues.has(flag)) {
+      if (Object.hasOwn(values, flag)) throw new DeslopError("invalid_input", `Duplicate option: ${flag}`);
+      const value = attached.length ? attached.join("=") : argv[++index];
+      if (value === undefined || value.startsWith("--")) throw new DeslopError("invalid_input", `${flag} needs a value.`);
+      values[flag] = value;
+    } else if (argument === "--json" || argument === "--require-approved") {
+      if (values[argument]) throw new DeslopError("invalid_input", `Duplicate option: ${argument}`);
+      values[argument] = true;
+    } else if (argument.startsWith("-") && argument !== "-") {
+      throw new DeslopError("invalid_input", "Unknown deslop option. See: zero-slop deslop --help");
+    } else files.push(argument);
+  }
+  if (files.length !== 1) throw new DeslopError("invalid_input", "deslop needs exactly one file or '-' for stdin; directories and batches are not uploaded.");
+  const seconds = values["--timeout"] === undefined ? 75 : Number(values["--timeout"]);
+  const timeoutMs = seconds * 1_000;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300_000) {
+    throw new DeslopError("invalid_input", "--timeout needs 0.001–300 seconds.");
+  }
+  return { file: files[0], genre: values["--genre"], audience: values["--audience"],
+    json: Boolean(values["--json"]), requireApproved: Boolean(values["--require-approved"]), timeoutMs };
+}
+
+async function readDraft(file, signal) {
+  const maximum = 128 * 1024;
+  let bytes;
+  if (file === "-") {
+    const chunks = [];
+    let size = 0;
+    const stop = () => process.stdin.destroy(signal.reason);
+    signal.addEventListener("abort", stop, { once: true });
+    try {
+      signal.throwIfAborted();
+      for await (const chunk of process.stdin) {
+        signal.throwIfAborted();
+        size += chunk.length;
+        if (size > maximum) throw new DeslopError("invalid_input", "The input exceeds 128 KiB; nothing was uploaded.");
+        chunks.push(chunk);
+      }
+      bytes = Buffer.concat(chunks);
+    } finally { signal.removeEventListener("abort", stop); }
+  } else {
+    let handle;
+    try {
+      // Nonblocking open plus fstat rejects directories, devices and named pipes.
+      handle = await open(file, constants.O_RDONLY | constants.O_NONBLOCK);
+      const info = await handle.stat();
+      if (!info.isFile() || info.size > maximum) throw new DeslopError("invalid_input", "Provide one regular UTF-8 file no larger than 128 KiB; nothing was uploaded.");
+      // Keep the read bounded even if a regular file grows after fstat.
+      const buffer = Buffer.alloc(maximum + 1);
+      let size = 0;
+      while (size < buffer.length) {
+        signal.throwIfAborted();
+        const { bytesRead } = await handle.read(buffer, size, buffer.length - size, null);
+        if (!bytesRead) break;
+        size += bytesRead;
+      }
+      if (size > maximum) throw new DeslopError("invalid_input", "The input exceeds 128 KiB; nothing was uploaded.");
+      bytes = buffer.subarray(0, size);
+    } finally { await handle?.close(); }
+  }
+  signal.throwIfAborted();
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch {
+    throw new DeslopError("invalid_input", "The draft must be valid UTF-8; nothing was uploaded.");
+  }
+}
+
+async function runDeslop(argv, v) {
+  const controller = new AbortController();
+  let interrupted;
+  let parsed;
+  const json = argv.slice(0, argv.indexOf("--") < 0 ? undefined : argv.indexOf("--")).includes("--json");
+  const stop = (signal) => {
+    interrupted = signal;
+    controller.abort(new DeslopError("cancelled", "Cancelled locally; hosted processing may still finish."));
+  };
+  const onInterrupt = () => stop("SIGINT");
+  const onTerminate = () => stop("SIGTERM");
+  process.once("SIGINT", onInterrupt);
+  process.once("SIGTERM", onTerminate);
+  try {
+    parsed = parseDeslopArgs(argv);
+    let text;
+    try { text = await readDraft(parsed.file, controller.signal); } catch (error) {
+      if (error instanceof DeslopError || controller.signal.aborted) throw error;
+      throw new DeslopError("invalid_input", "The input file could not be read; nothing was uploaded.");
+    }
+    const input = validateInput({ text, genre: parsed.genre, audience: parsed.audience });
+    console.error("Hosted editing: sending this draft to mcp.zero-slop.ai. Drafts and rewrites are not stored; aggregate usage metrics are recorded.");
+    const result = await deslop(input, { signal: controller.signal, timeoutMs: parsed.timeoutMs,
+      clientName: "zero-slop-cli", clientVersion: v });
+    controller.signal.throwIfAborted();
+    process.stdout.write(parsed.json ? `${JSON.stringify(result)}\n` : result.text);
+    if (!parsed.json) {
+      console.error(`Status: ${result.status}. Writing score: ${result.before.score} before, ${result.after.score} after. Lower is better.`);
+      console.error(`Facts preserved: ${result.factsPreserved ? "yes" : "not confirmed"}. Final checks: ${result.passedFinalChecks ? "passed" : result.status === "already_clear" ? "not needed; already clear" : "did not all pass"}.`);
+      // Notes can contain prose supplied by the service. Render them as text,
+      // without allowing terminal-control sequences to execute.
+      console.error(result.note.replace(/[\u0000-\u001f\u007f-\u009f]/g, " "));
+    }
+    return parsed.requireApproved && !isApprovedResult(result) ? 3 : 0;
+  } catch (error) {
+    const failure = controller.signal.aborted ? controller.signal.reason
+      : error instanceof DeslopError ? error : new DeslopError("request_failed", "The request could not be completed.");
+    const code = interrupted ? (interrupted === "SIGINT" ? 130 : 143)
+      : failure.code === "timeout" ? 124 : failure.code === "invalid_input" ? 2 : 1;
+    const details = { code: failure.code, message: failure.message,
+      ...(failure.httpStatus !== undefined ? { httpStatus: failure.httpStatus } : {}),
+      ...(failure.rpcCode !== undefined ? { rpcCode: failure.rpcCode } : {}),
+      ...(failure.retryAfterSeconds !== undefined ? { retryAfterSeconds: failure.retryAfterSeconds } : {}) };
+    if (json) process.stdout.write(`${JSON.stringify({ error: details })}\n`);
+    console.error(failure.message);
+    if (failure.retryAfterSeconds !== undefined) console.error(`Retry-After: ${failure.retryAfterSeconds} seconds. No retry was sent.`);
+    return code;
+  } finally {
+    process.removeListener("SIGINT", onInterrupt);
+    process.removeListener("SIGTERM", onTerminate);
+  }
 }
 
 async function main() {
   const argv = process.argv.slice(2);
+  // Parse this command separately: no install flags or scorer passthrough can
+  // accidentally become a remote-upload option.
+  if (argv[0] === "deslop") {
+    const v = await version();
+    if (argv.length === 2 && ["--help", "-h"].includes(argv[1])) { console.log(usage(v)); return 0; }
+    return runDeslop(argv.slice(1), v);
+  }
   const { flags, rest, passthrough } = parseArgs(argv);
   const command = rest[0];
   const v = await version();
@@ -236,8 +392,8 @@ async function main() {
 }
 
 main()
-  .then((code) => process.exit(code))
+  .then((code) => { process.exitCode = code; })
   .catch((err) => {
     console.error(err.message);
-    process.exit(1);
+    process.exitCode = 1;
   });
