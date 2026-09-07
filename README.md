@@ -11,10 +11,10 @@ Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
 
 <h1 align="center">Zero Slop</h1>
 
-<p align="center"><strong>Find AI-sounding writing. Keep the source intact.</strong></p>
+<p align="center"><strong>Find AI-sounding tells and slop in your writing.</strong></p>
 
 <p align="center">
-  Zero Slop finds stock phrasing, mechanical rhythm, vague claims, and canned formatting.<br>
+  Zero Slop finds slop- stock phrasing, mechanical rhythm, vague claims, and canned formatting in writing.<br>
   Your existing AI assistant edits the draft; local checks guard its names, numbers, links, quotations, code, tables, and paths.
 </p>
 
