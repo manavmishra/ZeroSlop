@@ -4,14 +4,15 @@ import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { deslop, DeslopError, GENRES, RESULT_STATUSES, isApprovedResult, validateInput, validateResult } from "../bin/lib/deslop.mjs";
 import { mockFetch, result } from "./fixtures/mcp-transport.mjs";
 import { withPath } from "./helpers/npm-command.mjs";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const entry = join(root, "bin/zero-slop.mjs");
-const preload = join(root, "tests/fixtures/mcp-transport.mjs");
+// --import accepts a URL; a Windows drive-letter path is parsed as a protocol.
+const preload = pathToFileURL(join(root, "tests/fixtures/mcp-transport.mjs")).href;
 const source = "Maya will send the €24,800 budget by Friday.";
 
 function run(args, { mode = "json", input = source, signal, waitFor = "tools/call", emptyPath = true } = {}) {

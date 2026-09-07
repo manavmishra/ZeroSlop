@@ -86,7 +86,15 @@ try {
   const bin = process.platform === "win32" ? join(packageRoot, "bin", "zero-slop.mjs") : join(prefix, "node_modules", ".bin", "zero-slop");
   await access(bin);
   if (process.platform === "win32") await access(join(prefix, "node_modules", ".bin", "zero-slop.cmd"));
-  for (const path of ["bin/zero-slop.mjs", "bin/lib/deslop.mjs", "bin/lib/deslop.d.mts"]) assert.deepEqual(await readFile(join(packageRoot, path)), await readFile(join(root, path)));
+  for (const path of ["bin/zero-slop.mjs", "bin/lib/deslop.mjs", "bin/lib/deslop.d.mts"]) {
+    const source = await readFile(join(root, path));
+    // npm's bin linker normalizes only a CRLF shebang, even on Windows.
+    // Keep the rest of the installed source byte-for-byte checked.
+    const expected = path === "bin/zero-slop.mjs"
+      ? Buffer.from(source.toString("utf8").replace(/^(#![^\r\n]*)\r\n/, "$1\n"))
+      : source;
+    assert.deepEqual(await readFile(join(packageRoot, path)), expected, `${path} changed during installation`);
+  }
   const { validateResult, isApprovedResult } = await import(pathToFileURL(join(packageRoot, "bin/lib/deslop.mjs")).href);
   await record("pack and clean offline install", async () => {});
   const cli = (args, options) => command(process.execPath, [bin, ...args], options);
