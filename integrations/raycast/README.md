@@ -41,13 +41,12 @@ service may still finish. There are no automatic retries.
 
 ## Local development
 
-Requires macOS, Raycast, and Node.js 22.22.2 or newer. The extension pins the
-shared client to `zero-slop@2.10.0`; that release must be on npm before a fresh
-registry install or Store submission can succeed.
+Requires macOS, Raycast, and Node.js 22.22.2 or newer. The extension and lockfile
+pin the shared client to the published `zero-slop@2.10.0` npm release.
 
 ```sh
 cd integrations/raycast
-npm install
+npm ci
 npm test
 npm run typecheck
 npm run build
@@ -61,8 +60,8 @@ replace it with a generated approximation.
 
 - Confirm the `author` field matches the publisher's Raycast username. A GitHub
   username alone does not establish the Raycast handle.
-- After npm publication, commit the generated `package-lock.json` with registry
-  dependencies. Do not submit a local `file:` dependency.
+- Keep the committed `package-lock.json` with registry dependencies. Do not
+  replace the shared client with a local `file:` dependency for submission.
 - Run tests, type checking, `npm run lint`, and a distribution build.
 - Test selection, missing Accessibility permission, cancellation, warnings, copy,
   and confirmed paste in Raycast. This extension currently declares macOS only.

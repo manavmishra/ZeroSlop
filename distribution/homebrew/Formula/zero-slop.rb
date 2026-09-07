@@ -1,9 +1,8 @@
-# Release template. Generate the .rb file with prepare-formula.mjs after npm publication.
 class ZeroSlop < Formula
   desc "Edit drafts through MCP, score writing locally, and install the skill"
   homepage "https://zero-slop.ai"
   url "https://registry.npmjs.org/zero-slop/-/zero-slop-2.10.0.tgz"
-  sha256 "__NPM_TARBALL_SHA256__"
+  sha256 "5d691cc19e9d2294d82990f9eeda900063d877c68e6572159ade00198cb43fd1"
   license "MIT"
 
   depends_on "node"

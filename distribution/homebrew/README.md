@@ -3,6 +3,11 @@
 This directory is not a published tap. `zero-slop.rb.in` is a release template,
 not an installable formula. No placeholder checksum may be published.
 
+[Formula/zero-slop.rb](Formula/zero-slop.rb) contains the candidate generated from
+the published 2.10.0 tarball, with its verified SHA-256. The opt-in
+`Homebrew release acceptance` workflow audits, installs and tests it in a
+runner-local tap. That workflow does not create or publish a GitHub repository.
+
 On 2026-09-07, the authenticated owner-repository listing and the paginated public
 GitHub listing found no `manavmishra` repository with `homebrew` or `tap` in its
 name. Homebrew was absent from PATH, `/opt/homebrew/bin/brew`, and
