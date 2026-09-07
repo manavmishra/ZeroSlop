@@ -52,7 +52,7 @@ npx skills add manavmishra/ZeroSlop --global
   </picture>
 </a>
 
-<p align="center"><a href="assets/zero-slop-demo.mp4?v=dark-shell-restored-20260906">Watch the 15-second shell demo</a> · <sub>The original demo uses a longer sample than the example below.</sub></p>
+
 
 ## Before and after
 
