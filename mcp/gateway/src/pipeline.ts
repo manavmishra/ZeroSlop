@@ -162,7 +162,7 @@ function unchanged(
   };
 }
 
-export async function runPipeline(env: Env, input: DeslopInput): Promise<PipelineResult> {
+export async function runPipeline(env: Env, input: DeslopInput, clientAddress = ""): Promise<PipelineResult> {
   const started = Date.now();
   const deadline = started + PIPELINE_BUDGET_MS;
   const original = input.text.trim();
@@ -186,7 +186,7 @@ export async function runPipeline(env: Env, input: DeslopInput): Promise<Pipelin
   };
   // Exactly one outbound editor request. The endpoint itself is also limited
   // to one provider invocation, so this cannot fan out into a retry ladder.
-  const modelReply = await callRole(env, "complete", original, diagnostics, deadline);
+  const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress);
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
   const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";

@@ -191,7 +191,7 @@ function invalidCases() {
   return [
     { name: "OpenAPI rejects POST", path: "/openapi.json", init: { method: "POST" }, status: 405, code: "method_not_allowed", allow: "GET, HEAD" },
     { name: "REST rejects GET", path: "/v1/deslop", init: {}, status: 405, code: "method_not_allowed", allow: "POST" },
-    { name: "Browser preflight stays disabled", path: "/v1/deslop", init: { method: "OPTIONS", headers: { origin: "https://example.invalid", "access-control-request-method": "POST" } }, status: 405, code: "method_not_allowed", allow: "POST" },
+    { name: "Third-party browser preflight is rejected", path: "/v1/deslop", init: { method: "OPTIONS", headers: { origin: "https://example.invalid", "access-control-request-method": "POST" } }, status: 403, code: "forbidden_origin" },
     post("Malformed JSON", '{"text":"e2e-private-canary"', 400, "invalid_json"),
     post("Malformed UTF-8", Buffer.concat([Buffer.from('{"text":"e2e-private-canary'), Buffer.from([0xff]), Buffer.from('"}')]), 400, "invalid_json"),
     post("Missing text", "{}"),

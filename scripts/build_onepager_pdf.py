@@ -55,7 +55,7 @@ def main(argv=None):
                         textColor=INK, alignment=TA_LEFT, spaceAfter=2)
     H2 = ParagraphStyle("H2", fontName="Helvetica-Bold", fontSize=13, leading=16,
                         textColor=BRAND, spaceBefore=13, spaceAfter=5)
-    BODY = ParagraphStyle("Body", fontName="Helvetica", fontSize=9.4, leading=13.4,
+    BODY = ParagraphStyle("Body", fontName="Helvetica", fontSize=9.2, leading=12.8,
                           textColor=INK, spaceAfter=7)
     CODE = ParagraphStyle("Code", fontName="Courier", fontSize=9, leading=12,
                           textColor=INK, backColor=PANEL, borderPadding=(6, 6, 6, 6),

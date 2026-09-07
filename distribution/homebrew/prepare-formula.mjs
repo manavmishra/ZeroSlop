@@ -5,7 +5,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const VERSION = "2.10.0";
+export const VERSION = "2.10.1";
 export const METADATA_URL = `https://registry.npmjs.org/zero-slop/${VERSION}`;
 export const TARBALL_URL = `https://registry.npmjs.org/zero-slop/-/zero-slop-${VERSION}.tgz`;
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -19,7 +19,7 @@ export async function prepareFormula(output, fetchRelease = fetch) {
   }
   const metadata = await metadataResponse.json();
   if (metadata.name !== "zero-slop" || metadata.version !== VERSION || metadata.dist?.tarball !== TARBALL_URL) {
-    throw new Error("npm metadata does not identify the exact zero-slop 2.10.0 tarball.");
+    throw new Error(`npm metadata does not identify the exact zero-slop ${VERSION} tarball.`);
   }
   const integrity = /^sha512-([A-Za-z0-9+/]+={0,2})$/.exec(metadata.dist.integrity ?? "");
   if (!integrity || Buffer.from(integrity[1], "base64").length !== 64) {

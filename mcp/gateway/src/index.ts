@@ -5,6 +5,7 @@ import { runPipeline } from "./pipeline";
 import { scorerHealth } from "./scorer";
 import { deslopInputSchema, deslopOutputSchema as outputSchema, MAX_DRAFT_CHARS as MAX_CHARS, MAX_REQUEST_BYTES } from "./contract";
 import { handleRest } from "./rest";
+import { HostedBudgetError } from "./budget";
 import type { PipelineResult } from "./types";
 import {
   McpCounter,
@@ -71,7 +72,7 @@ function resultText(result: PipelineResult): string {
   ].join("\n");
 }
 
-function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext): McpServer {
+function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext, clientAddress: string): McpServer {
   const server = new McpServer(
     { name: "zero-slop", version: env.SCORER_VERSION },
     {
@@ -102,7 +103,7 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
     async ({ text, genre, audience }) => {
       const requestStarted = Date.now();
       try {
-        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}) });
+        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}) }, clientAddress);
         trackPipelineResult(env, requestMeta, genre, text.length, result);
         ctx.waitUntil(countPipelineResult(env, result));
         console.log(JSON.stringify({
@@ -119,6 +120,15 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
           structuredContent: result,
         };
       } catch (error) {
+        if (error instanceof HostedBudgetError) {
+          trackPipelineFailure(env, requestMeta, genre, text.length, Date.now() - requestStarted, error.code);
+          ctx.waitUntil(error.status === 429 ? countCapacityReject(env) : countPipelineFailure(env));
+          return {
+            isError: true,
+            content: [{ type: "text" as const, text: error.message }],
+            _meta: { "zero-slop/error": { code: error.code, status: error.status, retryAfterSeconds: error.retryAfterSeconds } },
+          };
+        }
         trackPipelineFailure(env, requestMeta, genre, text.length, Date.now() - requestStarted);
         ctx.waitUntil(countPipelineFailure(env));
         console.error(JSON.stringify({
@@ -262,7 +272,7 @@ export default {
         trackMcpRequest(env, requestMeta, 429, Date.now() - requestStarted);
         ctx.waitUntil(countMcpRequest(env, requestMeta, 429));
         return withSecurityHeaders(Response.json(
-          { error: "capacity_limit", message: "Zero Slop is at its current processing limit. Try again shortly." },
+          { error: "capacity_limit", message: "Zero Slop is busy. Please wait at least 10 seconds before trying again." },
           { status: 429, headers: { "retry-after": "10" } },
         ));
       }
@@ -270,7 +280,7 @@ export default {
 
     try {
       const allowedOriginHostnames = env.ALLOWED_ORIGINS.split(",").map((origin) => new URL(origin).hostname);
-      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx), {
+      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx, request.headers.get("cf-connecting-ip") ?? ""), {
         route: "/mcp",
         allowedHostnames: ["mcp.zero-slop.ai"],
         allowedOriginHostnames,

@@ -24,7 +24,7 @@ gateway Worker
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
 private scorer Worker              one Workers AI editor
-exact Zero Slop 2.10.0               same composite edit as /try/
+exact Zero Slop 2.10.1               same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
@@ -111,14 +111,30 @@ Drafts are capped at 20,000 characters.
   result mix, safe-response rate, before and after scores, p50 and p95 latency,
   client and genre mix, geography, and capacity rejects. Collector failures do
   not affect an MCP response or suppress the rest of the report.
+- Channel-tagged events distinguish MCP, CLI, REST, and the direct web editor.
+  The nightly report charts hosted edit attempts and records result approval,
+  model-attempt counts, quota rejections, and per-channel p50/p95 latency.
+  Legacy events are not assigned an invented channel. CLI attribution is
+  self-reported; offline scoring remains untracked. A web model response is not
+  a final browser-approved edit, and internal signed model calls are not counted
+  again as web activity.
 - The private scorer has no public route. It is reachable only through the
   Cloudflare service binding and cannot load a maintainer's private learning
   overlay.
 - Tool input is treated as untrusted data. Callers cannot select a system
   prompt, provider URL, or model.
 - Host and Origin validation, strict schemas, bounded packet sizes, a per-call
-  abort, an end-to-end deadline, and a per-colocation capacity ceiling bound
-  abuse and cost.
+  abort, an end-to-end deadline, and a per-colocation capacity ceiling limit abuse.
+- One atomic `editor-budget-v1` coordinator reserves model capacity across MCP,
+  REST, CLI editing, and `/try/`. Defaults are 8,000 estimated neurons per UTC
+  day, five model calls per client network per day, and two per minute. A
+  reservation uses the complete model input and maximum output allowance; it is
+  never refunded after a timeout or cancellation. New calls pause during the
+  final UTC minute. Missing configuration or an unavailable gate stops inference.
+- The budget stores daily HMAC-derived client keys and counters, not raw IP
+  addresses or drafts. Expiry alarms purge previous-day records. These keys do
+  not join the operational analytics or lifetime counters. Cloudflare's SQLite
+  recovery history can retain prior database states for up to 30 days.
 - Errors never include source text, generated text, stack traces, or provider
   credentials.
 - Thirty-two SQLite-backed Durable Object shards keep lifetime aggregate counters for MCP
@@ -142,9 +158,10 @@ the caller's source unchanged. The production scorer can be moved to another
 private runtime without changing the public MCP schema.
 
 The public no-auth endpoint intentionally optimizes for a one-command install.
-It is still a metered service: keep Cloudflare usage alerts and account-level
-spend controls enabled. The application rate limit is a capacity guard, not a
-substitute for an account billing limit.
+It is still a metered service. Keep it on Cloudflare's Free plan when paid
+overage is not authorized; exhausting provider capacity must stop work, not
+switch providers or upgrade the plan. The project budget does not measure other
+applications' account usage or replace provider-level billing controls.
 
 ## Source layout
 
@@ -225,14 +242,17 @@ Deploy in this order:
    counter reads. Store it as the gateway Worker secret `REPORT_SHARED_SECRET`
    and as the GitHub Actions secret `MCP_REPORT_TOKEN` in
    `manavmishra/ZSWebpage`. Never reuse `EDITOR_SHARED_SECRET`.
-3. Deploy the website editor endpoint with the signed `noStore` contract.
-4. From `mcp/scorer`, run `npm run deploy`.
-5. Confirm the scorer deployment, then deploy the gateway. A first deployment
+3. From `mcp/scorer`, run `npm run deploy`.
+4. Confirm the scorer deployment, then deploy the gateway. A first deployment
    must include `EDITOR_SHARED_SECRET` and `REPORT_SHARED_SECRET` in an
    ephemeral `.env` or JSON secrets file passed to
    `wrangler deploy --secrets-file`; remove that file immediately afterward.
    Existing deployments can run `npm run deploy` because Wrangler preserves
    encrypted secrets omitted from later uploads.
+5. Deploy the live website from `manavmishra/ZSWebpage` with the signed `noStore`
+   editor, `enable_request_signal` compatibility flag, and `EDITOR_BUDGET`
+   Durable Object binding to `McpCounter` in `zero-slop-mcp`. It reuses the
+   gateway's existing SQLite namespace; no new service or migration is required.
 6. Check `https://mcp.zero-slop.ai/health`, initialize an MCP session, list
    tools, and exercise one clear draft plus one deliberately sloppy factual
    draft.
@@ -243,9 +263,10 @@ Deploy in this order:
    score reduction. The one editorial response is not independent model review;
    a local fallback must remain labelled `rewritten_with_warnings`.
 
-Do not deploy the gateway first. Its explicit `stored: false` requirement makes
-that ordering fail closed, but it would leave all rewrites unavailable until
-the website endpoint is current.
+Deploy the new gateway budget method before the website begins requesting grants.
+For an existing installation, preserve the signing secrets and `McpCounter`
+namespace. A new installation remains unavailable until both components are
+configured; it must never bypass the gate to serve a rewrite.
 
 ## Rollback
 

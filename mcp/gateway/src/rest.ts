@@ -1,6 +1,8 @@
 import { countCapacityReject, countPipelineFailure, countPipelineResult } from "./counter";
 import { deslopInputSchema, deslopOutputSchema, MAX_REQUEST_BYTES, openApiDocument } from "./contract";
 import { runPipeline } from "./pipeline";
+import { HostedBudgetError } from "./budget";
+import { inspectRestRequest, trackMcpRequest, trackCapacityLimit, trackPipelineResult, trackPipelineFailure, type McpRequestMeta } from "./telemetry";
 
 const BODY_TIMEOUT_MS = 10_000;
 
@@ -49,7 +51,7 @@ async function readDraft(request: Request): Promise<unknown> {
 
 function problem(status: number, code: string, detail: string, requestId: string, extraHeaders: HeadersInit = {}) {
   const titles: Record<number, string> = {
-    400: "Bad Request", 405: "Method Not Allowed", 408: "Request Timeout", 413: "Content Too Large",
+    400: "Bad Request", 403: "Forbidden", 405: "Method Not Allowed", 408: "Request Timeout", 413: "Content Too Large",
     415: "Unsupported Media Type", 429: "Too Many Requests", 503: "Service Unavailable",
   };
   const headers = new Headers(extraHeaders);
@@ -64,6 +66,31 @@ export async function handleRest(
   ctx: ExecutionContext,
   pipeline: typeof runPipeline = runPipeline,
 ): Promise<Response> {
+  const started = Date.now();
+  const meta = inspectRestRequest(request);
+  const origin = request.headers.get("origin");
+  const forbiddenOrigin = origin !== null && !["https://zero-slop.ai", "https://www.zero-slop.ai"].includes(origin);
+  const response = forbiddenOrigin
+    ? problem(403, "forbidden_origin", "This browser origin is not allowed.", crypto.randomUUID())
+    : await handleRestRequest(request, env, ctx, pipeline, meta);
+  if (request.method === "POST" && new URL(request.url).pathname === "/v1/deslop") {
+    trackMcpRequest(env, meta, response.status, Date.now() - started);
+  }
+  if (origin === null || forbiddenOrigin) return response;
+  const headers = new Headers(response.headers);
+  headers.set("access-control-allow-origin", origin);
+  headers.set("access-control-expose-headers", "Retry-After, X-Request-ID");
+  if (!headers.get("vary")?.split(/\s*,\s*/i).some((value) => value.toLowerCase() === "origin")) headers.append("vary", "Origin");
+  return new Response(response.body, { status: response.status, headers });
+}
+
+async function handleRestRequest(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  pipeline: typeof runPipeline,
+  meta: McpRequestMeta,
+): Promise<Response> {
   const requestId = crypto.randomUUID();
   if (new URL(request.url).pathname === "/openapi.json") {
     if (request.method !== "GET" && request.method !== "HEAD") {
@@ -72,6 +99,13 @@ export async function handleRest(
     return request.method === "HEAD"
       ? new Response(null, { headers: { "content-type": "application/json" } })
       : Response.json(openApiDocument(env.SCORER_VERSION));
+  }
+  if (request.method === "OPTIONS" && request.headers.has("origin")) {
+    const requestedHeaders = (request.headers.get("access-control-request-headers") ?? "").toLowerCase().split(",").map((header) => header.trim()).filter(Boolean);
+    if (request.headers.get("access-control-request-method") !== "POST" || requestedHeaders.some((header) => header !== "content-type")) {
+      return problem(403, "forbidden_preflight", "Only POST with Content-Type is supported.", requestId);
+    }
+    return new Response(null, { status: 204, headers: { "access-control-allow-methods": "POST", "access-control-allow-headers": "Content-Type", vary: "Origin, Access-Control-Request-Method, Access-Control-Request-Headers" } });
   }
   if (request.method !== "POST") return problem(405, "method_not_allowed", "Use POST with a JSON draft.", requestId, { allow: "POST" });
   const mediaType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
@@ -96,16 +130,25 @@ export async function handleRest(
     // The same binding AND key as MCP: adding a transport must not multiply capacity.
     const limited = await env.PIPELINE_LIMITER.limit({ key: "deslop-global" });
     if (!limited.success) {
+      trackCapacityLimit(env, meta);
       ctx.waitUntil(countCapacityReject(env));
-      return problem(429, "capacity_limit", "Zero Slop is at its shared processing limit. Wait before retrying.", requestId, { "retry-after": "10" });
+      return problem(429, "capacity_limit", "Zero Slop is busy. Please wait at least 10 seconds before trying again.", requestId, { "retry-after": "10" });
     }
     const { text, genre, audience } = parsed.data;
-    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}) }));
+    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}) }, request.headers.get("cf-connecting-ip") ?? ""));
+    trackPipelineResult(env, meta, genre, text.length, result);
     ctx.waitUntil(countPipelineResult(env, result));
     console.log(JSON.stringify({ event: "rest_deslop_complete", status: result.status, chars: parsed.data.text.length, durationMs: result.durationMs }));
     return Response.json(result, { headers: { "x-request-id": requestId } });
-  } catch {
+  } catch (error) {
+    if (error instanceof HostedBudgetError) {
+      trackPipelineFailure(env, meta, parsed.data.genre, parsed.data.text.length, Date.now() - started, error.code);
+      ctx.waitUntil(error.status === 429 ? countCapacityReject(env) : countPipelineFailure(env));
+      return problem(error.status, error.code, error.message, requestId,
+        error.retryAfterSeconds === null ? {} : { "retry-after": String(error.retryAfterSeconds) });
+    }
     ctx.waitUntil(countPipelineFailure(env));
+    trackPipelineFailure(env, meta, parsed.data.genre, parsed.data.text.length, Date.now() - started);
     console.error(JSON.stringify({ event: "rest_deslop_failed", durationMs: Date.now() - started }));
     return problem(503, "service_unavailable", "Zero Slop could not produce a safely scored result. Your draft was not changed. Review before retrying.", requestId);
   }

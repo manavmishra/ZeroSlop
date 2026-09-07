@@ -126,6 +126,18 @@ test("shared client initializes, negotiates a session, and calls exactly one too
   assert.equal(requests[2].headers["mcp-protocol-version"], "2025-06-18");
   assert.equal(requests[2].headers["mcp-session-id"], "safe-session-1");
   for (const request of requests) { assert.equal(request.redirect, "manual"); assert.equal(request.headers["cache-control"], "no-store"); }
+  assert.ok(requests.every((request) => request.headers["user-agent"] === undefined), "Raycast is not counted as CLI");
+});
+
+test("CLI attribution adds only coarse application metadata to existing hosted requests", async (t) => {
+  const requests = [];
+  t.mock.method(globalThis, "fetch", mockFetch("json", requests));
+  await deslop({ text: source }, { clientName: "zero-slop-cli", clientVersion: "2.10.1-private-build" });
+  assert.deepEqual(requests.map((item) => item.body.method), ["initialize", "notifications/initialized", "tools/call"]);
+  for (const request of requests) {
+    assert.equal(request.headers["user-agent"], "zero-slop-cli/2");
+    assert.doesNotMatch(JSON.stringify(request.headers), /private|machine|profile|filename/i);
+  }
 });
 
 test("SSE handles split UTF-8, multiline data, notifications and unrelated IDs, then cancels the reader", async (t) => {
@@ -275,6 +287,22 @@ test("CLI timeout returns 124, keeps uncertainty explicit and never replays the 
   assert.equal(JSON.parse(value.stdout).error.code, "timeout");
   assert.match(value.stderr, /outcome is unknown/);
   assert.equal(value.messages.filter((message) => message.body?.method === "tools/call").length, 1);
+});
+
+test("CLI surfaces shared model limits without replaying the tool or leaking provider prose", async () => {
+  for (const [mode, code, httpStatus] of [["usage-limit", "usage_limit", 429], ["budget-unavailable", "budget_unavailable", 503], ["bad-budget", "usage_limit", 429]]) {
+    const value = await run(["deslop", "-", "--json"], { mode });
+    assert.equal(value.code, 1);
+    const error = JSON.parse(value.stdout).error;
+    assert.equal(error.code, code);
+    assert.equal(error.httpStatus, httpStatus);
+    assert.equal(error.retryAfterSeconds, mode === "bad-budget" ? undefined : 86_400);
+    assert.match(error.message, mode === "budget-unavailable" ? /Hosted capacity could not be checked/ : /temporarily busy or at its free usage limit/);
+    assert.match(error.message, /Please (?:wait before trying again|try again later)/);
+    assert.doesNotMatch(value.stdout + value.stderr, /PRIVATE SERVER TEXT/);
+    assert.equal(value.messages.filter(message => message.body?.method === "tools/call").length, 1);
+    if (mode !== "bad-budget") assert.match(value.stderr, /Retry-After: 86400 seconds\. No retry was sent/);
+  }
 });
 
 for (const [signal, exit] of [["SIGINT", 130], ["SIGTERM", 143]]) {

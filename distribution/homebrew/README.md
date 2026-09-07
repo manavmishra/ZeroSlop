@@ -1,23 +1,24 @@
-# Homebrew preparation for 2.10.0
+# Homebrew release preparation
 
-This directory is not a published tap. `zero-slop.rb.in` is a release template,
-not an installable formula. No placeholder checksum may be published.
+The approved public tap is [manavmishra/homebrew-zero-slop](https://github.com/manavmishra/homebrew-zero-slop).
+Install it with `brew install manavmishra/zero-slop/zero-slop`. This directory
+contains its release helper; `zero-slop.rb.in` is a template, not an installable
+formula. No placeholder checksum may be published.
 
 [Formula/zero-slop.rb](Formula/zero-slop.rb) contains the candidate generated from
 the published 2.10.0 tarball, with its verified SHA-256. The opt-in
 `Homebrew release acceptance` workflow audits, installs and tests it in a
 runner-local tap. That workflow does not create or publish a GitHub repository.
 
-On 2026-09-07, the authenticated owner-repository listing and the paginated public
-GitHub listing found no `manavmishra` repository with `homebrew` or `tap` in its
-name. Homebrew was absent from PATH, `/opt/homebrew/bin/brew`, and
-`/usr/local/bin/brew`. No external repository was created.
+The tap's 2.10.0 release passed strict audit, source installation and functional
+tests on macOS on September 7, 2026. Linux Homebrew has not been tested. Update
+the public formula only after the new npm tarball passes the same acceptance.
 
 ## Generate after npm publication
 
 ```sh
 node --test distribution/homebrew/prepare-formula.test.mjs
-node distribution/homebrew/prepare-formula.mjs distribution/homebrew/Formula/zero-slop.rb
+node distribution/homebrew/prepare-formula.mjs /tmp/zero-slop-candidate.rb
 ```
 
 The helper reads only the exact published npm version, downloads its fixed
@@ -27,8 +28,8 @@ different tarball URL, missing integrity, mismatched bytes, or an existing outpu
 file. It does not install or publish anything.
 
 Review the generated formula and copy it into `Formula/zero-slop.rb` in the
-approved tap repository. A tap name and external publication still need approval.
-Do not advertise a working Homebrew install command before that tap is live.
+approved tap repository after its installation tests pass. Do not overwrite an
+existing candidate blindly; choose a new output path for each preparation.
 
 ## Validate with Homebrew before publishing the tap
 

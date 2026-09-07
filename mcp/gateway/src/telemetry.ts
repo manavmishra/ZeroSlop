@@ -13,7 +13,10 @@ export type McpRequestMeta = {
   colo: string;
   origin: string;
   isDeslopCall: boolean;
+  channel?: "mcp" | "cli" | "rest";
 };
+
+export type ResultApproval = "approved_rewrite" | "already_clear" | "review_required" | "failed" | "limited" | "not_measured" | "none";
 
 type JsonRpcMessage = {
   method?: unknown;
@@ -47,6 +50,7 @@ function normalizeMethod(value: unknown): string {
 }
 
 export function classifyClient(name: unknown, userAgent: string | null): string {
+  if (name === "zero-slop-cli" || /^zero-slop-cli\/(?:\d{1,4}(?:\.\d{1,4}){0,2}|unknown)$/.test(userAgent ?? "")) return "zero-slop-cli";
   const source = `${typeof name === "string" ? name : ""} ${userAgent ?? ""}`.toLowerCase();
   if (/claude[ _-]?code/.test(source)) return "claude-code";
   if (/cowork/.test(source)) return "claude-cowork";
@@ -115,19 +119,37 @@ export async function inspectMcpRequest(request: Request): Promise<McpRequestMet
   const clientVersion = initialize?.params?.clientInfo?.version;
   const headerProtocol = request.headers.get("mcp-protocol-version");
   const location = edgeLocation(request);
-  const tool = primary?.method === "tools/call" ? boundedToken(primary.params?.name) : "none";
+  const tool = primary?.method === "tools/call" ? primary.params?.name === "deslop" ? "deslop" : "other" : "none";
+  const client = classifyClient(clientName, request.headers.get("user-agent"));
 
   return {
     method: normalizeMethod(primary?.method),
     tool,
-    client: classifyClient(clientName, request.headers.get("user-agent")),
-    clientVersion: majorVersion(clientVersion),
+    client,
+    clientVersion: majorVersion(clientVersion ?? (client === "zero-slop-cli" ? request.headers.get("user-agent") : undefined)),
     protocolVersion: protocolVersion(initialize?.params?.protocolVersion ?? headerProtocol),
     country: location.country,
     colo: location.colo,
     origin: requestOrigin(request),
     isDeslopCall: primary?.method === "tools/call" && tool === "deslop",
+    channel: client === "zero-slop-cli" ? "cli" : "mcp",
   };
+}
+
+export function inspectRestRequest(request: Request): McpRequestMeta {
+  const location = edgeLocation(request);
+  return {
+    method: "rest/deslop", tool: "deslop", client: "rest-api", clientVersion: UNKNOWN,
+    protocolVersion: "none", country: location.country, colo: location.colo,
+    origin: requestOrigin(request), isDeslopCall: true, channel: "rest",
+  };
+}
+
+export function resultApproval(result: PipelineResult): ResultApproval {
+  if (result.status === "rewritten" && result.factsPreserved && result.passedFinalChecks) return "approved_rewrite";
+  if (result.status === "already_clear" && result.factsPreserved && result.modelRequests === 0
+    && result.scoreChange === 0 && result.before.score === result.after.score) return "already_clear";
+  return "review_required";
 }
 
 type EventFields = {
@@ -153,6 +175,8 @@ type EventFields = {
   factsPreserved?: boolean;
   finalChecks?: boolean;
   httpStatus?: number;
+  modelRequests?: number;
+  approval?: ResultApproval;
 };
 
 export function telemetryPoint(meta: McpRequestMeta, fields: EventFields): AnalyticsEngineDataPoint {
@@ -176,6 +200,8 @@ export function telemetryPoint(meta: McpRequestMeta, fields: EventFields): Analy
       meta.country,
       meta.colo,
       meta.origin,
+      meta.channel ?? (meta.client === "zero-slop-cli" ? "cli" : "mcp"),
+      fields.approval ?? "none",
     ],
     doubles: [
       1,
@@ -195,6 +221,7 @@ export function telemetryPoint(meta: McpRequestMeta, fields: EventFields): Analy
       fields.factsPreserved ? 1 : 0,
       fields.finalChecks ? 1 : 0,
       safeNumber(fields.httpStatus),
+      Number.isSafeInteger(fields.modelRequests) && Number(fields.modelRequests) >= 0 ? Number(fields.modelRequests) : -1,
     ],
   };
 }
@@ -202,11 +229,9 @@ export function telemetryPoint(meta: McpRequestMeta, fields: EventFields): Analy
 function write(env: Env, meta: McpRequestMeta, fields: EventFields): void {
   try {
     env.MCP_ANALYTICS?.writeDataPoint(telemetryPoint(meta, fields));
-  } catch (error) {
-    console.warn(JSON.stringify({
-      event: "mcp_telemetry_write_failed",
-      message: error instanceof Error ? error.message.slice(0, 80) : "unknown",
-    }));
+  } catch {
+    // A binding failure must neither block delivery nor leak arbitrary text.
+    console.warn(JSON.stringify({ event: "mcp_telemetry_write_failed" }));
   }
 }
 
@@ -220,7 +245,7 @@ export function trackMcpRequest(env: Env, meta: McpRequestMeta, status: number, 
 }
 
 export function trackCapacityLimit(env: Env, meta: McpRequestMeta): void {
-  write(env, meta, { event: "capacity", outcome: "limited", httpStatus: 429 });
+  write(env, meta, { event: "capacity", outcome: "limited", httpStatus: 429, approval: "limited", modelRequests: 0 });
 }
 
 export function trackPipelineResult(
@@ -253,6 +278,8 @@ export function trackPipelineResult(
     factsPreserved: result.factsPreserved,
     finalChecks: result.passedFinalChecks,
     httpStatus: 200,
+    modelRequests: result.modelRequests,
+    approval: resultApproval(result),
   });
 }
 
@@ -262,13 +289,16 @@ export function trackPipelineFailure(
   genre: Genre,
   inputChars: number,
   durationMs: number,
+  code: "failed" | "usage_limit" | "budget_unavailable" = "failed",
 ): void {
   write(env, meta, {
     event: "result",
-    outcome: "failed",
+    outcome: code,
     genre,
     inputChars,
     durationMs,
-    httpStatus: 500,
+    httpStatus: code === "usage_limit" ? 429 : 503,
+    approval: code === "usage_limit" ? "limited" : "failed",
+    modelRequests: code === "failed" ? -1 : 0,
   });
 }

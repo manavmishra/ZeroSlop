@@ -1,4 +1,5 @@
 import { readBoundedJson } from "./bounded-json";
+import { dailyBudgetClient, HostedBudgetError } from "./budget";
 
 // The website endpoint owns a 24-second model deadline. This caller allows a
 // small response margin while the whole MCP request remains bounded.
@@ -72,6 +73,7 @@ export async function callRole(
   source: string,
   diagnostics: Record<string, unknown>,
   deadline: number,
+  clientAddress = "",
 ): Promise<ModelReply | null> {
   const started = Date.now();
   const remaining = deadline - Date.now();
@@ -88,6 +90,7 @@ export async function callRole(
       diagnostics,
       genre: diagnostics.genre,
       noStore: true,
+      budgetClient: await dailyBudgetClient(env.EDITOR_SHARED_SECRET, clientAddress),
       website: "",
     });
     const signatureHeaders = await signedEditorHeaders(env.EDITOR_SHARED_SECRET, body);
@@ -106,6 +109,16 @@ export async function callRole(
       body,
     });
     if (!response.ok) {
+      if (response.status === 429 || response.status === 503) {
+        const errorBody = await readBoundedJson(response, 2048).catch(() => null);
+        const code = errorBody && typeof errorBody === "object" && "code" in errorBody ? errorBody.code : null;
+        if (response.status === 429 && code === "usage_limit") {
+          const retry = response.headers.get("retry-after") ?? "";
+          if (!/^\d{1,5}$/.test(retry) || Number(retry) < 1 || Number(retry) > 86400) throw new HostedBudgetError("budget_unavailable");
+          throw new HostedBudgetError("usage_limit", Number(retry));
+        }
+        if (code === "budget_unavailable") throw new HostedBudgetError("budget_unavailable");
+      }
       console.warn(JSON.stringify({
         event: "editor_request_unavailable", role, status: response.status,
         durationMs: Date.now() - started,
@@ -126,6 +139,7 @@ export async function callRole(
     }));
     return reply;
   } catch (error) {
+    if (error instanceof HostedBudgetError) throw error;
     console.warn(JSON.stringify({
       event: "editor_request_unavailable", role,
       reason: error instanceof Error

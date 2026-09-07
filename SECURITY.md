@@ -48,10 +48,24 @@ draft or rewrite.
 
 The REST endpoint `https://mcp.zero-slop.ai/v1/deslop` calls this same pipeline.
 It accepts at most 128 KiB of UTF-8 JSON and one trimmed draft of 20,000 Unicode code
-points. REST and MCP share the capacity limiter; adding a transport does not create
-an independent allowance. The limiter operates per Cloudflare location and is not
-a strict global quota. REST errors omit request content. Responses use `no-store`,
+points. REST and MCP share an edge capacity limiter. That limiter operates per
+Cloudflare location; a separate atomic budget reservation gates every hosted
+editing-model call across REST, MCP, CLI and the browser demo. Adding a transport
+does not create an independent editing allowance. REST errors omit request content. Responses use `no-store`,
 and there is no stored response replay or idempotency cache.
+
+The editor fails closed when its shared daily budget or per-client limit is reached,
+or when budget enforcement is unavailable. Capacity is reserved before inference;
+failed or timed-out model calls are not refunded because their usage may be unknown.
+No automatic model retry or paid-model fallback is used. Local scoring is not metered.
+The service derives a keyed daily hash of the trusted connection IP to coordinate
+abuse limits. This separate counter stores the daily hash and counts, never the raw
+IP or draft, and does not join them to analytics. Shared networks can share a limit.
+Active daily identifiers expire after the UTC day. Cloudflare's SQLite recovery
+history may retain earlier database states for up to 30 days; this history contains
+no drafts or raw IP addresses.
+The project budget bounds Zero Slop's reserved model usage, not other applications'
+usage or the account's existing hosting charges.
 
 REST adds completed results, failures, and capacity rejections to the existing
 aggregate counters. It does not increment MCP initialization or tool-call counts.
@@ -65,6 +79,13 @@ completed-check counts, duration, and capacity outcome. Drafts, rewrites, prompt
 detected phrases, IP addresses, raw user agents, cookies, email addresses, and stable
 user or session identifiers are excluded. Initializations are reported as connections,
 not unique people. Analytics Engine retains the dataset for three months.
+
+Hosted events also record the entry channel (MCP, CLI, REST, or the web editor),
+approval category and model-attempt count. The CLI sends a fixed app-family and
+major-version header on its existing hosted requests; this is self-reported
+attribution, not identity. Offline commands send no analytics. The web endpoint
+does not claim to measure the browser's final source checks. Internal signed
+gateway model calls are excluded from the web channel to prevent double counting.
 
 Telemetry writes are non-blocking and wrapped so an analytics failure cannot fail an
 MCP call. The daily report uses sampling-aware aggregate queries and degrades to a

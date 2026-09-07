@@ -3,7 +3,7 @@
 Use `deslop` for hosted editing with MCP parity. Use `score` for offline checks.
 
 ```sh
-npm install --global zero-slop@2.10.0
+npm install --global zero-slop@2.10.1
 zero-slop deslop draft.md --genre professional
 zero-slop deslop - --genre email < draft.txt
 zero-slop deslop draft.md --json --require-approved
@@ -12,6 +12,16 @@ zero-slop score draft.md -- --json
 
 Use Node.js 22 or newer for hosted editing. Offline scoring also requires Python 3.
 The npm package includes the skill and its local checks; no separate model ships.
+
+On macOS, [Homebrew](https://github.com/manavmishra/homebrew-zero-slop) installs
+the same npm CLI plus Node and Python:
+
+```sh
+brew install manavmishra/zero-slop/zero-slop
+```
+
+The tap pins a tested npm release; a new npm version may arrive before its
+Homebrew update. Linux Homebrew has not been tested.
 
 `deslop` reads exactly one file or standard input, sends the draft to
 `https://mcp.zero-slop.ai/mcp`, and writes the returned text to standard output.
@@ -48,6 +58,18 @@ Inspect the [six result statuses](rest-api.md#read-the-result). In particular,
 
 A timeout or cancellation may not stop hosted processing. The CLI does not replay
 the request. Review any returned status or error before choosing to send the draft again.
+
+Hosted editing shares its free allowance with MCP, REST, and `/try/`. A
+`usage_limit` error exits `1`; JSON errors include `httpStatus: 429` and, when
+provided, `retryAfterSeconds`. Wait at least that long before a manual retry.
+`budget_unavailable` (`503`) means capacity could not be checked, so no new model
+request was started. Offline scoring does not consume this allowance.
+
+Hosted calls are included in aggregate service metrics: channel, result status,
+model attempts, and latency. A fixed CLI-family/major-version header identifies
+the entry channel on the requests already being sent; no extra tracking request
+is made. It does not identify a person or installation. Offline commands send no
+analytics. See the [security policy](../SECURITY.md) for the complete field list.
 
 ## Offline scoring
 

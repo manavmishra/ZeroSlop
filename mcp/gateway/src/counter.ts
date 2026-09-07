@@ -1,5 +1,7 @@
 import type { PipelineResult } from "./types";
 import type { McpRequestMeta } from "./telemetry";
+import { EditorBudgetStore } from "./budget";
+import { readBoundedJson } from "./bounded-json";
 
 const COUNTER_ORIGIN = "https://counter.internal";
 const LEGACY_COUNTER_NAME = "global";
@@ -102,8 +104,9 @@ function writeCounterStub(env: Env): DurableObjectStub {
 export class McpCounter {
   private readonly storage: DurableObjectStorage;
   private readonly sql: SqlStorage;
+  private budget: EditorBudgetStore | undefined;
 
-  constructor(state: DurableObjectState) {
+  constructor(state: DurableObjectState, private readonly env: Env) {
     this.storage = state.storage;
     this.sql = state.storage.sql;
     this.sql.exec(`
@@ -190,6 +193,15 @@ export class McpCounter {
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
+    if (request.method === "POST" && url.pathname === "/reserve-editor") {
+      try {
+        const input = await readBoundedJson(new Response(request.body, { headers: request.headers }), 512);
+        this.budget ??= new EditorBudgetStore(this.storage, this.env);
+        return await this.budget.reserve(input);
+      } catch {
+        return Response.json({ error: "budget_unavailable" }, { status: 503 });
+      }
+    }
     if (request.method === "POST" && url.pathname === "/increment") {
       const body = await request.json().catch(() => null) as { eventId?: unknown; metrics?: unknown } | null;
       if (
@@ -211,6 +223,11 @@ export class McpCounter {
       return Response.json(this.snapshot());
     }
     return Response.json({ error: "not_found" }, { status: 404 });
+  }
+
+  async alarm(): Promise<void> {
+    this.budget ??= new EditorBudgetStore(this.storage, this.env);
+    this.budget.cleanup();
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "description": "An editing skill, offline writing checks, and a CLI for the hosted Zero Slop MCP pipeline. Find stock AI phrasing, rewrite, and check source details.",
   "bin": {
     "zero-slop": "bin/zero-slop.mjs"

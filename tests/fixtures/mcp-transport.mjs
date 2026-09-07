@@ -50,6 +50,11 @@ export function mockFetch(mode = "json", requests = [], send = () => {}) {
     if (mode === "redirect") return new Response("", { status: 307, headers: { location: "https://example.invalid/collect" } });
     if (mode === "rpc-error") return Response.json({ jsonrpc: "2.0", id: body.id, error: { code: -32602, message: "PRIVATE SERVER TEXT" } });
     if (mode === "tool-error") return Response.json(packet({ isError: true, content: [{ type: "text", text: "PRIVATE SERVER TEXT" }] }));
+    if (["usage-limit", "budget-unavailable", "bad-budget"].includes(mode)) return Response.json(packet({ isError: true,
+      content: [{ type: "text", text: "PRIVATE SERVER TEXT" }],
+      _meta: { "zero-slop/error": { code: mode === "budget-unavailable" ? "budget_unavailable" : "usage_limit",
+        status: mode === "budget-unavailable" ? 503 : 429, retryAfterSeconds: mode === "bad-budget" ? "PRIVATE SERVER TEXT" : 86_400 } },
+    }));
     if (mode === "missing-result") return Response.json(packet({ content: [{ type: "text", text: "PRIVATE SERVER TEXT" }] }));
     if (mode === "malformed-json") return new Response("not-json PRIVATE SERVER TEXT", { headers: { "content-type": "application/json" } });
     if (mode === "bad-utf8") return new Response(new Uint8Array([0xff]), { headers: { "content-type": "application/json" } });

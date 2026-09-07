@@ -85,6 +85,7 @@ test("full suite uses real HTTP, strict Unicode boundaries, and exactly two synt
       return send(response, 200, openApi());
     }
     if (request.url !== "/v1/deslop") return send(response, 404, { error: "not_found" });
+    if (request.headers.origin && !["https://zero-slop.ai", "https://www.zero-slop.ai"].includes(request.headers.origin)) return reject(403, "forbidden_origin");
     if (request.method !== "POST") return reject(405, "method_not_allowed", { allow: "POST" });
     if (request.headers["content-type"] !== "application/json" || (request.headers["content-encoding"] && request.headers["content-encoding"] !== "identity")) return reject(415, "unsupported_media_type");
     if (body.length > 128 * 1024) return reject(413, "request_too_large");

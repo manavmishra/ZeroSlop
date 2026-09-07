@@ -183,9 +183,13 @@ export async function deslop(input, options = {}) {
   let protocolVersion = PROTOCOLS[0];
   let session;
   let toolPending = false;
+  // Hosted CLI attribution only: no identifier, machine data, or extra request.
+  // Other integrations retain their existing clientInfo without posing as CLI.
+  const cliMajorVersion = clientVersion.match(/^(\d{1,4})(?:\.|$)/)?.[1] ?? "unknown";
   const headers = () => ({
     "content-type": "application/json", accept: "application/json, text/event-stream",
     "cache-control": "no-store", "mcp-protocol-version": protocolVersion,
+    ...(clientName === "zero-slop-cli" ? { "user-agent": `zero-slop-cli/${cliMajorVersion}` } : {}),
     ...(session ? { "mcp-session-id": session } : {}),
   });
   // A dropped HTTP connection is not an MCP cancellation notification. Request it
@@ -210,7 +214,9 @@ export async function deslop(input, options = {}) {
       void response.body?.cancel().catch(() => {});
       const retry = response.headers.get("retry-after");
       const retryAfterSeconds = retry && /^\d{1,5}$/.test(retry) ? Number(retry) : undefined;
-      throw new DeslopError("http_error", `The MCP service returned HTTP ${response.status}. No retry was sent.`, {
+      throw new DeslopError("http_error", response.status === 429
+        ? "Zero Slop is busy or at a usage limit. Please wait before trying again. No retry was sent."
+        : `The MCP service returned HTTP ${response.status}. No retry was sent.`, {
         httpStatus: response.status, ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
       });
     }
@@ -243,6 +249,17 @@ export async function deslop(input, options = {}) {
       throw new DeslopError("invalid_response", "The MCP service returned an invalid tool result.");
     }
     if (reply.isError === true) {
+      const gate = reply._meta?.["zero-slop/error"];
+      if (gate && (gate.code === "usage_limit" || gate.code === "budget_unavailable") &&
+          gate.status === (gate.code === "usage_limit" ? 429 : 503)) {
+        const retry = gate.retryAfterSeconds;
+        throw new DeslopError(gate.code, gate.code === "usage_limit"
+          ? "Hosted editing is temporarily busy or at its free usage limit. Please wait before trying again. Keep your source; no retry was sent."
+          : "Hosted capacity could not be checked. Please try again later. Keep your source; no retry was sent.", {
+          httpStatus: gate.status,
+          ...(Number.isInteger(retry) && retry > 0 && retry <= 86_400 ? { retryAfterSeconds: retry } : {}),
+        });
+      }
       throw new DeslopError("tool_error", "Zero Slop could not return a safely checked result. The source was not changed locally.");
     }
     return validateResult(reply.structuredContent);
