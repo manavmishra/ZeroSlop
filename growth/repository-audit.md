@@ -136,13 +136,13 @@ attract the wrong expectation and conflict with the project's stated limits.
 
 ### Social preview
 
-Upload `assets/social-preview.png`. It is 1280×640, uses the official rust logo
-on warm paper, and
-stays below 1 MB, matching GitHub's recommended size and format:
+`assets/social-preview.png` is an exact copy of Manav's approved 1280×640
+share artwork. It stays below 1 MB, matching GitHub's recommended size and format:
 [Customizing a social preview](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview).
 
-Regenerate it with `node growth/make-social-preview.mjs`. The supplied SVG in
-`assets/logo/zero-slop-logo-primary.svg` is the source; use
+Restore it with `node growth/make-social-preview.mjs`. The command copies
+`assets/social/zero-slop-github-preview-1280x640.png` unchanged. The approved
+640×320 version is preserved beside it for compact and mobile sharing. Use
 [the official brand page](https://zero-slop.ai/brand/) for press and directory assets.
 
 ### Directory screenshots

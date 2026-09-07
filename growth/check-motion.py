@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only, dependency-free checks for the GitHub motion and logo exports."""
+"""Read-only, dependency-free checks for GitHub motion, logos, and share artwork."""
 from pathlib import Path
 from html.parser import HTMLParser
 from fractions import Fraction
@@ -29,6 +29,10 @@ OFFICIAL_LOGO_HASHES = {
     "zero-slop-mark-orange.svg": "17db12f1d3db5622ff9648bb3f9ed9ac6af714152c03d4e6737e528d83559e05",
     "zero-slop-app-icon-transparent-512.png": "32985bd074903861f73488bddcdc587f6c0a360ad24db575bf0e5880d4009843",
     "zero-slop-github-300.png": "40cde47cfc566b4d310f79f33294639ccee3be85813d5dc68e163fd66b7f3daf",
+}
+APPROVED_SOCIAL_PREVIEWS = {
+    "zero-slop-github-preview-1280x640.png": ((1280, 640), "35037ead8642ac34ae77abde7daafb7d50ddbb975e1450b8878f50d9a526e4f7"),
+    "zero-slop-github-preview-640x320.png": ((640, 320), "dafaa0969dd513a3dd912044871237120ac28ff4aabe4e7c1db8db0b218a3afe"),
 }
 SHELL_FLAGS = [
     "In today's fast-paced",
@@ -382,6 +386,13 @@ def main():
                 f"Official supplied logo must remain unchanged: {name}")
     require((ASSETS / "logo/logo-mark.svg").read_bytes() == (ASSETS / "logo/zero-slop-mark-orange.svg").read_bytes(),
             "Compatibility SVG must match the official rust mark")
+    for name, (dimensions, expected_hash) in APPROVED_SOCIAL_PREVIEWS.items():
+        preview = ASSETS / "social" / name
+        require(png_info(preview)[0] == dimensions, f"Approved share image dimensions: {name}")
+        require(hashlib.sha256(preview.read_bytes()).hexdigest() == expected_hash,
+                f"Approved share artwork must remain unchanged: {name}")
+    require((ASSETS / "social-preview.png").read_bytes() == (ASSETS / "social/zero-slop-github-preview-1280x640.png").read_bytes(),
+            "Repository social preview must match the approved full-size artwork")
     readme = (ROOT / "README.md").read_text()
     require('src="assets/logo/zero-slop-logo-primary.svg"' in readme,
             "README must use the supplied primary logo")
@@ -409,7 +420,7 @@ def main():
     require(not any(tag == "audio" or (tag == "script" and "src" in attrs) for tag, attrs in parsed.tags), "Keep the silent player self-contained")
     check_mcp_player(parsed)
     check_evidence()
-    print("Poster, 300px logos, media fallbacks, manual-play video, MCP endpoint and source evidence OK")
+    print("Poster, logos, approved share artwork, media fallbacks, manual-play video, MCP endpoint and source evidence OK")
 
 
 if __name__ == "__main__":
