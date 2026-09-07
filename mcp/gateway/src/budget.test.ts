@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import test from "node:test";
 import { dailyBudgetClient, HostedBudgetError } from "./budget";
 import { callRole } from "./model";
 
-const secret = "synthetic-shared-editor-secret-at-least-32-characters";
+const secret = randomBytes(32).toString("hex");
 const environment = Object.assign({} as Env, { EDITOR_SHARED_SECRET: secret, EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite" });
 
 test("hosted limit messages explain waiting without inventing a traffic cause", () => {
