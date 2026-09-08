@@ -22,7 +22,7 @@
         "linkedin",
         "prose",
         "style",
-        "ai-detection"
+        "prose-linter"
       ]
     }
   ]

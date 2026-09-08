@@ -40,7 +40,7 @@ score_text("We are thrilled to announce a transformative solution.", data)["ai_l
 ### In CI
 
 ```yaml
-- uses: manavmishra/ZeroSlop@v2.11.2
+- uses: manavmishra/ZeroSlop@v2.11.3
   with:
     path: docs
     gate: "25"
@@ -51,7 +51,7 @@ score_text("We are thrilled to announce a transformative solution.", data)["ai_l
 ```yaml
 repos:
   - repo: https://github.com/manavmishra/ZeroSlop
-    rev: v2.11.2
+    rev: v2.11.3
     hooks:
       - id: zero-slop
         args: [--gate, "25"]
