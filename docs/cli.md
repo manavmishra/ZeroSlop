@@ -3,7 +3,7 @@
 Use `deslop` for hosted editing with MCP parity. Use `score` for offline checks.
 
 ```sh
-npm install --global zero-slop@2.10.1
+npm install --global zero-slop@2.10.2
 zero-slop deslop draft.md --genre professional
 zero-slop deslop - --genre email < draft.txt
 zero-slop deslop draft.md --json --require-approved

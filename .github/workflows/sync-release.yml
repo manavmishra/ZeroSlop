@@ -2,7 +2,7 @@ name: synchronize release
 
 # The validation workflow calls this reusable workflow only after its code,
 # website, and MCP jobs pass on main. GitHub suppresses workflow triggers caused
-# by GITHUB_TOKEN, so this job creates the tag and dispatches the two tag-owned
+# by GITHUB_TOKEN, so this job creates the tag and dispatches the three tag-owned
 # publication workflows explicitly.
 
 on:
@@ -55,6 +55,14 @@ jobs:
         if: steps.head.outputs.publish == 'true'
         run: python3 scripts/check_distribution_manifests.py
 
+      - name: Require successful validation even on manual recovery
+        if: steps.head.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')
+          python3 .github/scripts/publication_guard.py --before-tag --tag "v$version" --sha "$(git rev-parse HEAD)"
+
       - name: Create the immutable version tag
         if: steps.head.outputs.publish == 'true'
         id: tag
@@ -77,13 +85,14 @@ jobs:
           fi
           echo "name=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch the release and MCP Registry publishers
+      - name: Dispatch npm, release and MCP Registry publishers
         if: steps.head.outputs.publish == 'true' && steps.tag.outputs.created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.tag.outputs.name }}
         run: |
           set -euo pipefail
+          gh workflow run publish-npm.yml --ref "$TAG"
           gh workflow run release-on-tag.yml --ref "$TAG"
           gh workflow run publish-mcp.yml --ref "$TAG"
-          echo "dispatched GitHub release and MCP Registry publication for $TAG"
+          echo "dispatched npm, GitHub release and MCP Registry publication for $TAG"

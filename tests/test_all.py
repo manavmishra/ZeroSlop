@@ -88,11 +88,20 @@ def live_release_fixture(url, version):
 
 def registry_release_fixture(version):
     return json.dumps({
-        "server": {"name": "io.github.manavmishra/zero-slop", "version": version},
+        "server": {"name": "io.github.manavmishra/zero-slop", "version": version,
+                   "remotes": [{"type": "streamable-http", "url": "https://mcp.zero-slop.ai/mcp"}]},
         "_meta": {"io.modelcontextprotocol.registry/official": {
             "status": "active", "isLatest": True,
         }},
     })
+
+
+def release_payload_fixture(module):
+    spec = importlib.util.spec_from_file_location(
+        "release_payload_test_fixtures", ROOT / "tests/test_release_surfaces.py")
+    fixtures = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fixtures)
+    return fixtures.fixture_responses(module)
 
 
 # --------------------------------------------------------------------------
@@ -2464,7 +2473,8 @@ class DocsMatchReality(unittest.TestCase):
         release = (workflows / "release-assets.yml").read_text()
         self.assertIn("scripts/build_plugin.py --check", release)
         publish = (workflows / "publish-npm.yml").read_text()
-        self.assertIn('- "bin/**"', publish)
+        self.assertIn("publication_guard.py", publish)
+        self.assertNotRegex(publish, r"(?m)^  push:")
 
     def test_validated_version_bumps_dispatch_every_release_surface(self):
         workflows = ROOT / ".github" / "workflows"
@@ -2610,7 +2620,7 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("dist/zero-slop.zip", tagged)
         self.assertIn("dist/zero-slop-single-file.md", tagged)
         self.assertIn("assets/Zero-Slop-One-Pager.pdf", tagged)
-        self.assertIn("python3 -m unittest tests.test_all", tagged)
+        self.assertIn("python3 -m unittest discover -s tests -p 'test_*.py'", tagged)
         self.assertIn("gh release upload", tagged,
                       "an idempotent rerun must repair a release with missing assets")
         self.assertNotIn("scripts/check_release_surfaces.py", validate,
@@ -2618,262 +2628,90 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("scripts/check_release_surfaces.py", tagged)
         self.assertIn("--require-network", tagged)
 
-    def test_missing_release_zip_is_drift_not_an_offline_skip(self):
+    def release_fixture(self):
         spec = importlib.util.spec_from_file_location(
-            "release_surfaces", ROOT / "scripts" / "check_release_surfaces.py")
+            "release_surfaces_packaging", ROOT / "scripts/check_release_surfaces.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+        responses = release_payload_fixture(module)
 
-        package = io.BytesIO()
-        with tarfile.open(fileobj=package, mode="w:gz") as archive:
-            files = {
-                "package/package.json": json.dumps({
-                    "version": shipped,
-                    "bin": {"zero-slop": "bin/zero-slop.mjs"},
-                }).encode(),
-                "package/SKILL.md": f'---\nversion: "{shipped}"\n---\n'.encode(),
-                "package/bin/zero-slop.mjs": b"#!/usr/bin/env node\n",
-            }
-            for name, content in files.items():
-                info = tarfile.TarInfo(name)
-                info.size = len(content)
-                archive.addfile(info, io.BytesIO(content))
+        def fetch(url, *, binary=False):
+            key = url.split("?", 1)[0] if "/try-runtime/manifest.json?" in url else url
+            self.assertIn(key, responses, url)
+            result = responses[key]
+            if isinstance(result, Exception):
+                raise result
+            return result
 
-        def fake_fetch(url, *, binary=False):
-            extra = live_release_fixture(url, shipped)
-            if extra is not None:
-                return extra
-            if url.endswith("/releases/latest"):
-                return json.dumps({"tag_name": f"v{shipped}"})
-            if url.endswith("/zero-slop.zip"):
-                raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
-            if url.endswith("/zero-slop/latest"):
-                return json.dumps({
-                    "version": shipped,
-                    "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
-                })
-            if url.endswith("/zero-slop.tgz"):
-                return package.getvalue()
-            if "registry.modelcontextprotocol.io" in url:
-                return registry_release_fixture(shipped)
-            if "zero-slop.ai/try-runtime/manifest.json" in url:
-                return json.dumps({"skillVersion": shipped})
-            raise AssertionError(url)
+        return module, responses, fetch
 
-        problems, skipped = module.check_once(fetch_fn=fake_fetch)
+    def test_missing_release_zip_is_drift_not_an_offline_skip(self):
+        module, responses, fetch = self.release_fixture()
+        url = "https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip"
+        responses[url] = urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+        problems, skipped = module.check_once(fetch_fn=fetch, emit=lambda _: None)
         self.assertEqual(skipped, [])
-        self.assertTrue(any("ZIP is missing" in p for p in problems), problems)
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("ZIP is missing", problems[0])
 
     def test_npm_metadata_without_downloadable_package_is_drift(self):
-        """A registry may expose metadata before its tarball has replicated.
-        Installation is not ready until the exact package can be opened and its
-        skill and command entry point agree with the repository."""
-        spec = importlib.util.spec_from_file_location(
-            "release_surfaces_npm", ROOT / "scripts" / "check_release_surfaces.py")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
-
-        def release_zip():
-            blob = io.BytesIO()
-            with zipfile.ZipFile(blob, "w") as archive:
-                archive.writestr("zero-slop/SKILL.md", f'---\nversion: "{shipped}"\n---\n')
-            return blob.getvalue()
-
-        def fake_fetch(url, *, binary=False):
-            extra = live_release_fixture(url, shipped)
-            if extra is not None:
-                return extra
-            if url.endswith("/releases/latest"):
-                return json.dumps({"tag_name": f"v{shipped}"})
-            if url.endswith("/zero-slop.zip"):
-                return release_zip()
-            if url.endswith("/zero-slop/latest"):
-                return json.dumps({
-                    "version": shipped,
-                    "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
-                })
-            if url.endswith("/zero-slop.tgz"):
-                raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
-            if "registry.modelcontextprotocol.io" in url:
-                return registry_release_fixture(shipped)
-            if "zero-slop.ai/try-runtime/manifest.json" in url:
-                return json.dumps({"skillVersion": shipped})
-            raise AssertionError(url)
-
-        problems, skipped = module.check_once(fetch_fn=fake_fetch)
+        module, responses, fetch = self.release_fixture()
+        metadata = json.loads(responses["https://registry.npmjs.org/zero-slop/latest"])
+        url = metadata["dist"]["tarball"]
+        responses[url] = urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+        problems, skipped = module.check_once(fetch_fn=fetch, emit=lambda _: None, skip_homebrew=True)
         self.assertEqual(skipped, [])
-        self.assertTrue(any("npm package tarball is missing" in p for p in problems), problems)
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("npm package tarball is missing", problems[0])
 
     def test_npm_package_must_contain_matching_skill_and_command(self):
-        spec = importlib.util.spec_from_file_location(
-            "release_surfaces_npm_contents",
-            ROOT / "scripts" / "check_release_surfaces.py",
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        shipped = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
-
-        release_blob = io.BytesIO()
-        with zipfile.ZipFile(release_blob, "w") as archive:
-            archive.writestr("zero-slop/SKILL.md", f'---\nversion: "{shipped}"\n---\n')
-
-        def make_package(*, skill_version=shipped, command="bin/zero-slop.mjs",
-                         include_command=True):
-            blob = io.BytesIO()
-            with tarfile.open(fileobj=blob, mode="w:gz") as archive:
-                files = {
-                    "package/package.json": json.dumps({
-                        "version": shipped,
-                        "bin": {"zero-slop": command},
-                    }).encode(),
-                    "package/SKILL.md": (
-                        f'---\nversion: "{skill_version}"\n---\n'.encode()
-                    ),
-                }
-                if include_command:
-                    files["package/bin/zero-slop.mjs"] = b"#!/usr/bin/env node\n"
-                for name, content in files.items():
-                    info = tarfile.TarInfo(name)
-                    info.size = len(content)
-                    archive.addfile(info, io.BytesIO(content))
-            return blob.getvalue()
-
-        cases = {
-            "skill version drift": make_package(skill_version="0.0.0"),
-            "wrong command": make_package(command="bin/missing.mjs"),
-            "missing command": make_package(include_command=False),
-        }
-        for label, package_blob in cases.items():
+        for label in ("skill version drift", "wrong command", "missing command"):
             with self.subTest(label=label):
-                def fake_fetch(url, *, binary=False):
-                    extra = live_release_fixture(url, shipped)
-                    if extra is not None:
-                        return extra
-                    if url.endswith("/releases/latest"):
-                        return json.dumps({"tag_name": f"v{shipped}"})
-                    if url.endswith("/zero-slop.zip"):
-                        return release_blob.getvalue()
-                    if url.endswith("/zero-slop/latest"):
-                        return json.dumps({
-                            "version": shipped,
-                            "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
-                        })
-                    if url.endswith("/zero-slop.tgz"):
-                        return package_blob
-                    if "registry.modelcontextprotocol.io" in url:
-                        return registry_release_fixture(shipped)
-                    if "zero-slop.ai/try-runtime/manifest.json" in url:
-                        return json.dumps({"skillVersion": shipped})
-                    raise AssertionError(url)
-
-                problems, skipped = module.check_once(fetch_fn=fake_fetch, emit=lambda _: None)
+                module, responses, fetch = self.release_fixture()
+                metadata = json.loads(responses["https://registry.npmjs.org/zero-slop/latest"])
+                url = metadata["dist"]["tarball"]
+                files = module._tar_files(responses[url])
+                if label == "skill version drift":
+                    files["package/SKILL.md"] = b'---\nversion: "0.0.0"\n---\n'
+                elif label == "wrong command":
+                    package = json.loads(files["package/package.json"])
+                    package["bin"]["zero-slop"] = "bin/missing.mjs"
+                    files["package/package.json"] = json.dumps(package).encode()
+                else:
+                    del files["package/bin/zero-slop.mjs"]
+                blob = io.BytesIO()
+                with tarfile.open(fileobj=blob, mode="w:gz") as archive:
+                    for name, content in files.items():
+                        info = tarfile.TarInfo(name)
+                        info.size = len(content)
+                        archive.addfile(info, io.BytesIO(content))
+                responses[url] = blob.getvalue()
+                metadata["dist"]["integrity"] = "sha512-" + module.base64.b64encode(
+                    hashlib.sha512(blob.getvalue()).digest()).decode()
+                responses["https://registry.npmjs.org/zero-slop/latest"] = json.dumps(metadata)
+                problems, skipped = module.check_once(fetch_fn=fetch, emit=lambda _: None, skip_homebrew=True)
                 self.assertEqual(skipped, [])
-                self.assertTrue(any("npm package tarball is invalid" in p for p in problems), problems)
+                self.assertEqual(len(problems), 1, problems)
+                self.assertIn("npm package tarball is invalid", problems[0])
 
     def test_release_check_detects_mcp_and_website_version_drift(self):
-        spec = importlib.util.spec_from_file_location(
-            "release_surfaces_all", ROOT / "scripts" / "check_release_surfaces.py")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        shipped = json.loads((ROOT / "package.json").read_text())["version"]
-
-        release_blob = io.BytesIO()
-        with zipfile.ZipFile(release_blob, "w") as archive:
-            archive.writestr("zero-slop/SKILL.md", f'---\nversion: "{shipped}"\n---\n')
-        package_blob = io.BytesIO()
-        with tarfile.open(fileobj=package_blob, mode="w:gz") as archive:
-            files = {
-                "package/package.json": json.dumps({
-                    "version": shipped, "bin": {"zero-slop": "bin/zero-slop.mjs"},
-                }).encode(),
-                "package/SKILL.md": f'---\nversion: "{shipped}"\n---\n'.encode(),
-                "package/bin/zero-slop.mjs": b"#!/usr/bin/env node\n",
-            }
-            for name, content in files.items():
-                info = tarfile.TarInfo(name)
-                info.size = len(content)
-                archive.addfile(info, io.BytesIO(content))
-
-        def fake_fetch(url, *, binary=False):
-            extra = live_release_fixture(url, shipped)
-            if extra is not None:
-                return extra
-            if url.endswith("/releases/latest"):
-                return json.dumps({"tag_name": f"v{shipped}"})
-            if url.endswith("/zero-slop.zip"):
-                return release_blob.getvalue()
-            if url.endswith("/zero-slop/latest"):
-                return json.dumps({
-                    "version": shipped,
-                    "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
-                })
-            if url.endswith("/zero-slop.tgz"):
-                return package_blob.getvalue()
-            if "registry.modelcontextprotocol.io" in url:
-                return registry_release_fixture("0.0.0")
-            if "zero-slop.ai/try-runtime/manifest.json" in url:
-                return json.dumps({"skillVersion": "0.0.0"})
-            raise AssertionError(url)
-
-        problems, skipped = module.check_once(fetch_fn=fake_fetch, emit=lambda _: None)
+        module, responses, fetch = self.release_fixture()
+        registry = "https://registry.modelcontextprotocol.io/v0.1/servers/" \
+                   "io.github.manavmishra%2Fzero-slop/versions/latest"
+        responses[registry] = registry_release_fixture("0.0.0")
+        responses["https://zero-slop.ai/try-runtime/manifest.json"] = json.dumps({"skillVersion": "0.0.0"})
+        problems, skipped = module.check_once(fetch_fn=fetch, emit=lambda _: None)
         self.assertEqual(skipped, [])
+        self.assertEqual(len(problems), 2, problems)
         self.assertTrue(any("official MCP Registry" in p for p in problems), problems)
         self.assertTrue(any("zero-slop.ai serves" in p for p in problems), problems)
 
     def test_release_check_can_delegate_website_convergence(self):
-        spec = importlib.util.spec_from_file_location(
-            "release_surfaces_without_site", ROOT / "scripts" / "check_release_surfaces.py")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        shipped = json.loads((ROOT / "package.json").read_text())["version"]
-
-        release_blob = io.BytesIO()
-        with zipfile.ZipFile(release_blob, "w") as archive:
-            archive.writestr("zero-slop/SKILL.md", f'---\nversion: "{shipped}"\n---\n')
-        package_blob = io.BytesIO()
-        with tarfile.open(fileobj=package_blob, mode="w:gz") as archive:
-            files = {
-                "package/package.json": json.dumps({
-                    "version": shipped, "bin": {"zero-slop": "bin/zero-slop.mjs"},
-                }).encode(),
-                "package/SKILL.md": f'---\nversion: "{shipped}"\n---\n'.encode(),
-                "package/bin/zero-slop.mjs": b"#!/usr/bin/env node\n",
-            }
-            for name, content in files.items():
-                info = tarfile.TarInfo(name)
-                info.size = len(content)
-                archive.addfile(info, io.BytesIO(content))
-
-        def fake_fetch(url, *, binary=False):
-            if url == "https://zero-slop.ai/":
-                raise AssertionError("website should not be requested")
-            extra = live_release_fixture(url, shipped)
-            if extra is not None:
-                return extra
-            if url.endswith("/releases/latest"):
-                return json.dumps({"tag_name": f"v{shipped}"})
-            if url.endswith("/zero-slop.zip"):
-                return release_blob.getvalue()
-            if url.endswith("/zero-slop/latest"):
-                return json.dumps({
-                    "version": shipped,
-                    "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
-                })
-            if url.endswith("/zero-slop.tgz"):
-                return package_blob.getvalue()
-            if "registry.modelcontextprotocol.io" in url:
-                return registry_release_fixture(shipped)
-            if "zero-slop.ai" in url:
-                raise AssertionError("website should not be requested")
-            raise AssertionError(url)
-
-        problems, skipped = module.check_once(
-            fetch_fn=fake_fetch, emit=lambda _: None, skip_website=True,
-        )
-        self.assertEqual(problems, [])
-        self.assertEqual(skipped, [])
+        module, responses, fetch = self.release_fixture()
+        for url in list(responses):
+            if url.startswith("https://zero-slop.ai/"):
+                del responses[url]
+        self.assertEqual(module.check_once(fetch_fn=fetch, emit=lambda _: None, skip_website=True), ([], []))
 
     def test_plugin_manifests_have_required_identity(self):
         for folder in (".claude-plugin", ".codex-plugin"):
@@ -2922,51 +2760,18 @@ class ReleaseSurfaceChecks(unittest.TestCase):
         self.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.module)
         self.shipped = json.loads((ROOT / "package.json").read_text())["version"]
-        package = io.BytesIO()
-        with tarfile.open(fileobj=package, mode="w:gz") as archive:
-            files = {
-                "package/package.json": json.dumps({
-                    "version": self.shipped, "bin": {"zero-slop": "bin/zero-slop.mjs"},
-                }).encode(),
-                "package/SKILL.md": f'---\nversion: "{self.shipped}"\n---\n'.encode(),
-                "package/bin/zero-slop.mjs": b"#!/usr/bin/env node\n",
-            }
-            for name, content in files.items():
-                info = tarfile.TarInfo(name)
-                info.size = len(content)
-                archive.addfile(info, io.BytesIO(content))
-        self.responses = {
-            "https://api.github.com/repos/manavmishra/ZeroSlop/releases/latest":
-                json.dumps({"tag_name": f"v{self.shipped}"}),
-            "https://github.com/manavmishra/ZeroSlop/releases/latest/download/zero-slop.zip":
-                self.make_zip(),
-            "https://registry.npmjs.org/zero-slop/latest": json.dumps({
-                "version": self.shipped,
-                "dist": {"tarball": "https://registry.example/zero-slop.tgz"},
-            }),
-            "https://registry.example/zero-slop.tgz": package.getvalue(),
-            "https://registry.modelcontextprotocol.io/v0.1/servers?"
-            "search=io.github.manavmishra%2Fzero-slop": json.dumps({"servers": [{"server": {
-                "name": "io.github.manavmishra/zero-slop", "version": self.shipped,
-            }}]}),
-            self.REGISTRY: registry_release_fixture(self.shipped),
-            "https://zero-slop.ai/try-runtime/manifest.json":
-                json.dumps({"skillVersion": self.shipped}),
-            self.HEALTH: live_release_fixture(self.HEALTH, self.shipped),
-            self.CARD: live_release_fixture(self.CARD, self.shipped),
-            self.SITE: '<a href="/downloads/current-skill.zip?source=site&amp;format=zip">'
-                       'Claude.ai zip</a>',
-            self.DOWNLOAD: self.make_zip(),
-        }
+        self.responses = release_payload_fixture(self.module)
         self.requests = []
 
     def make_zip(self, version=None, *, files=None):
+        if files is None:
+            skill, _ = self.module.expected_payloads()
+            files = {f"zero-slop/{name}": content for name, content in skill.items()}
+            if version is not None:
+                files["zero-slop/SKILL.md"] = f'---\nmetadata:\n  version: "{version}"\n---\n'
         blob = io.BytesIO()
         with zipfile.ZipFile(blob, "w") as archive:
-            for name, content in (files if files is not None else {
-                "zero-slop/SKILL.md":
-                    f'---\nmetadata:\n  version: "{version or self.shipped}"\n---\n',
-            }).items():
+            for name, content in files.items():
                 archive.writestr(name, content)
         return blob.getvalue()
 
@@ -4007,6 +3812,61 @@ class Fidelity(unittest.TestCase):
                          "Our team spoke to 40 customers, and those conversations changed our approach.")
         self.assertEqual(rescue.rescue_text("The insights were game-changing."),
                          "Those conversations changed our approach.")
+
+    def test_local_fallback_removes_complete_intro_without_adding_event_timing(self):
+        import rescue
+        for apostrophe in ("'", "’"):
+            for setting in ("landscape", "world"):
+                for intro in ("In", "in", "IN"):
+                    for subject in ("The team", "the team", "iOS", "eBay", "NASA"):
+                        source = (f"{intro} today{apostrophe}s rapidly evolving {setting}, "
+                                  f"{subject} kept the date.")
+                        expected = ("The team" if subject == "the team" else subject) + " kept the date."
+                        with self.subTest(source=source):
+                            self.assertEqual(rescue.rescue_text(source), expected)
+                            self.assertEqual(rescue.rescue_text(expected), expected)
+
+    def test_local_fallback_leaves_mid_sentence_and_incomplete_intros_alone(self):
+        import rescue
+        for source in (
+            "The team works in today's rapidly evolving landscape, with Maya as its reviewer.",
+            "The team works\nin today’s rapidly evolving world, with Maya as its reviewer.",
+            "Maya said: In today's rapidly evolving landscape, The team needs evidence.",
+            "Maya agreed; in today’s rapidly evolving world, the team needs evidence.",
+            "In today's rapidly evolving world the team kept the date.",
+            "In today's rapidly evolving landscape.",
+            "In today's rapidly evolving landscape,",
+            "The team kept the date today.",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(rescue.rescue_text(source), source)
+
+    def test_local_fallback_intro_preserves_release_facts_and_protected_spans(self):
+        import rescue
+        details = ('The team cut setup from 11 hours to 3 hours during the pilot on '
+                   'September 4, 2026. The approved budget is €24,800. Retention beyond '
+                   'the first month has not been measured. Maya said, "Do not ship before '
+                   'Friday." Details: https://example.com/atlas?plan=pro#notes.')
+        source = ("It is important to note that Maya Rao owns the Atlas migration. "
+                  "In today's rapidly evolving landscape, " + details)
+        expected = "Maya Rao owns the Atlas migration. " + details
+        self.assertEqual(rescue.rescue_text(source), expected)
+        checked = slopscore.fidelity(source, expected)
+        self.assertTrue(checked["preserved"])
+        self.assertFalse(checked["invented"])
+        for span in (
+            '\"In today\'s rapidly evolving landscape, The team kept the date.\"',
+            "“In today’s rapidly evolving world, the team kept the date.”",
+            "‘In today's rapidly evolving world, The team kept the date.’",
+            "`In today's rapidly evolving landscape, The team kept the date.`",
+            "```text\nIn today’s rapidly evolving world, the team kept the date.\n```",
+            "[In today's rapidly evolving landscape, The team](https://example.com/atlas?plan=pro#notes)",
+            "https://example.com/In-todays-rapidly-evolving-landscape?plan=pro#notes",
+        ):
+            with self.subTest(span=span):
+                self.assertEqual(rescue.rescue_text(span), span)
+                self.assertEqual(rescue.rescue_text("In today’s rapidly evolving world, Maya kept the date.\n\n" + span),
+                                 "Maya kept the date.\n\n" + span)
 
     def test_faithful_rewrite_passes(self):
         same = ("Acme raised $4.2M, led by Basis Ventures. Setup time fell 40%. "

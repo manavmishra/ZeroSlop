@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { readBoundedJson } from "./bounded-json";
+import { boundedOperation, type PipelineControl } from "./cancellation";
 import type { ChangeInventory, Genre, RankedRewrite, WritingReport } from "./types";
 
 type ScorerPath = "/report" | "/rank" | "/delta";
@@ -85,13 +86,12 @@ async function callScorer<T>(
   path: ScorerPath,
   payload: unknown,
   schema: z.ZodType<T>,
+  control?: PipelineControl,
 ): Promise<T> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), SCORER_TIMEOUT_MS);
-  try {
+  return boundedOperation(async (signal) => {
     const response = await env.SCORER.fetch(`https://zero-slop-scorer${path}`, {
       method: "POST",
-      signal: controller.signal,
+      signal,
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
@@ -101,13 +101,11 @@ async function callScorer<T>(
     const parsed = schema.safeParse(await readBoundedJson(response, MAX_SCORER_RESPONSE_BYTES));
     if (!parsed.success) throw new Error("scorer_invalid_response");
     return parsed.data;
-  } finally {
-    clearTimeout(timer);
-  }
+  }, SCORER_TIMEOUT_MS, control);
 }
 
-export function scoreWriting(env: Env, text: string, genre: Genre): Promise<WritingReport> {
-  return callScorer(env, "/report", { text, genre }, writingReportSchema);
+export function scoreWriting(env: Env, text: string, genre: Genre, control?: PipelineControl): Promise<WritingReport> {
+  return callScorer(env, "/report", { text, genre }, writingReportSchema, control);
 }
 
 export function rankRewrites(
@@ -115,8 +113,9 @@ export function rankRewrites(
   original: string,
   candidates: Record<string, string>,
   genre: Genre,
+  control?: PipelineControl,
 ): Promise<RankedRewrite> {
-  return callScorer(env, "/rank", { original, candidates, genre }, rankedRewriteSchema);
+  return callScorer(env, "/rank", { original, candidates, genre }, rankedRewriteSchema, control);
 }
 
 export function inventoryChanges(

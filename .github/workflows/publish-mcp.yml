@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
   id-token: write
 
 jobs:
@@ -24,7 +25,18 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Require the exact validated release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 .github/scripts/publication_guard.py --tag "$RELEASE_TAG" --sha "$(git rev-parse HEAD)"
+
+      - name: Check whether this exact registry record is already published
+        id: existing
+        run: python3 .github/scripts/registry_record.py --github-output "$GITHUB_OUTPUT"
+
       - name: Install the pinned MCP publisher
+        if: steps.existing.outputs.published != 'true'
         env:
           PUBLISHER_VERSION: "1.8.1"
           PUBLISHER_ASSET: "mcp-publisher_linux_amd64.tar.gz"
@@ -39,10 +51,17 @@ jobs:
           ./mcp-publisher --help >/dev/null
 
       - name: Authenticate with GitHub OIDC
+        if: steps.existing.outputs.published != 'true'
         run: ./mcp-publisher login github-oidc
 
       - name: Publish remote server metadata
-        run: ./mcp-publisher publish
+        if: steps.existing.outputs.published != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 .github/scripts/publication_guard.py --tag "$RELEASE_TAG" --sha "$(git rev-parse HEAD)"
+          ./mcp-publisher publish
 
       - name: Confirm the registry serves this version
         run: |

@@ -6,6 +6,7 @@ import { scorerHealth } from "./scorer";
 import { deslopInputSchema, deslopOutputSchema as outputSchema, MAX_DRAFT_CHARS as MAX_CHARS, MAX_REQUEST_BYTES } from "./contract";
 import { handleRest } from "./rest";
 import { HostedBudgetError } from "./budget";
+import { boundedOperation, PipelineCancelledError } from "./cancellation";
 import type { PipelineResult } from "./types";
 import {
   McpCounter,
@@ -29,6 +30,10 @@ preloadSchemas();
 
 export { McpCounter };
 
+class McpBodyError extends Error {
+  constructor(readonly status: 400 | 408, readonly code: string, message: string) { super(message); }
+}
+
 async function requestBodyWithinLimit(request: Request, maximumBytes = MAX_REQUEST_BYTES): Promise<boolean> {
   const declared = request.headers.get("content-length");
   if (declared !== null) {
@@ -41,17 +46,25 @@ async function requestBodyWithinLimit(request: Request, maximumBytes = MAX_REQUE
   if (!reader) return true;
   let bytes = 0;
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) return true;
-      bytes += value.byteLength;
-      if (bytes > maximumBytes) {
-        // Do not await cancellation of a cloned/tee'd body. The promise may
-        // wait for the untouched original branch and stall an early 413.
-        void reader.cancel().catch(() => undefined);
-        return false;
+    return await boundedOperation(async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) return true;
+        bytes += value.byteLength;
+        if (bytes > maximumBytes) {
+          // Do not await cancellation of a cloned/tee'd body. The promise may
+          // wait for the untouched original branch and stall an early 413.
+          void reader.cancel().catch(() => undefined);
+          return false;
+        }
       }
+    }, 10_000, { signal: request.signal, editorRequested: false });
+  } catch (error) {
+    void reader.cancel().catch(() => undefined);
+    if (error instanceof Error && error.message === "upstream_deadline") {
+      throw new McpBodyError(408, "body_timeout", "The MCP request body must arrive within 10 seconds.");
     }
+    throw new McpBodyError(400, "invalid_request", "The MCP request body could not be read.");
   } finally {
     reader.releaseLock();
   }
@@ -72,7 +85,7 @@ function resultText(result: PipelineResult): string {
   ].join("\n");
 }
 
-function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext, clientAddress: string): McpServer {
+function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext, clientAddress: string, signal: AbortSignal): McpServer {
   const server = new McpServer(
     { name: "zero-slop", version: env.SCORER_VERSION },
     {
@@ -100,10 +113,11 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
         openWorldHint: false,
       },
     },
-    async ({ text, genre, audience }) => {
+    async ({ text, genre, audience }, extra) => {
       const requestStarted = Date.now();
       try {
-        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}) }, clientAddress);
+        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}) }, clientAddress,
+          AbortSignal.any([signal, extra.mcpReq.signal]));
         trackPipelineResult(env, requestMeta, genre, text.length, result);
         ctx.waitUntil(countPipelineResult(env, result));
         console.log(JSON.stringify({
@@ -129,7 +143,8 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
             _meta: { "zero-slop/error": { code: error.code, status: error.status, retryAfterSeconds: error.retryAfterSeconds } },
           };
         }
-        trackPipelineFailure(env, requestMeta, genre, text.length, Date.now() - requestStarted);
+        trackPipelineFailure(env, requestMeta, genre, text.length, Date.now() - requestStarted,
+          "failed", error instanceof PipelineCancelledError ? error.modelRequests : -1);
         ctx.waitUntil(countPipelineFailure(env));
         console.error(JSON.stringify({
           event: "deslop_failed",
@@ -251,7 +266,16 @@ export default {
     }
 
     const requestStarted = Date.now();
-    if (!(await requestBodyWithinLimit(request))) {
+    let bodyWithinLimit;
+    try {
+      bodyWithinLimit = await requestBodyWithinLimit(request);
+    } catch (error) {
+      if (error instanceof McpBodyError) return withSecurityHeaders(Response.json(
+        { error: error.code, message: error.message }, { status: error.status },
+      ));
+      return withSecurityHeaders(Response.json({ error: "invalid_request" }, { status: 400 }));
+    }
+    if (!bodyWithinLimit) {
       return withSecurityHeaders(Response.json(
         { error: "request_too_large", message: "The MCP request exceeds the 128 KiB limit." },
         { status: 413 },
@@ -280,7 +304,7 @@ export default {
 
     try {
       const allowedOriginHostnames = env.ALLOWED_ORIGINS.split(",").map((origin) => new URL(origin).hostname);
-      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx, request.headers.get("cf-connecting-ip") ?? ""), {
+      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx, request.headers.get("cf-connecting-ip") ?? "", request.signal), {
         route: "/mcp",
         allowedHostnames: ["mcp.zero-slop.ai"],
         allowedOriginHostnames,

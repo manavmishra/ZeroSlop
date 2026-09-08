@@ -1,0 +1,39 @@
+name: Reconcile published release
+
+on:
+  schedule:
+    - cron: "47 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: reconcile-release
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - name: Repair missing or stale publications from the validated immutable tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/reconcile_release.py
+      - name: Verify every public version and downloadable runtime
+        # No success-by-skipping: outages and unrepairable drift fail this run.
+        run: python3 scripts/check_release_surfaces.py --require-network --wait-seconds 300
+      - name: Report incomplete synchronization
+        if: failure()
+        run: |
+          echo "::error::Release synchronization is incomplete. Read the failed surface above; existing installs are not silently upgraded."
+          echo "Release synchronization is incomplete. Website and Homebrew have their own hourly recovery jobs; npm, MCP Registry, release assets and hosted versions are repaired here." >> "$GITHUB_STEP_SUMMARY"

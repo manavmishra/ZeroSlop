@@ -1,4 +1,5 @@
 import { callRole } from "./model";
+import { checkCancelled } from "./cancellation";
 import { rankRewrites, scoreWriting } from "./scorer";
 import type { Genre, PipelineResult, RankedRewrite, WritingReport } from "./types";
 
@@ -52,6 +53,14 @@ export function localRescue(text: string): string {
     },
   );
   let out = masked.replace(/[\u00A0\u202F]/g, " ");
+  // Drop only a complete introductory clause. Replacing it with "Today"
+  // would turn generic framing into a claim about when the event happened.
+  // A single unpunctuated line break may be a wrapped sentence, not a start.
+  out = out.replace(
+    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)in today['’]s rapidly evolving (?:landscape|world),[ \t]+([A-Za-z][A-Za-z0-9_-]*)/gi,
+    (_match, prefix: string, word: string) => prefix + (word === word.toLowerCase()
+      ? word.charAt(0).toUpperCase() + word.slice(1) : word),
+  );
   out = out.replace(
     /(^|[.!?][ \t]+|\n[ \t]*)(?:it is important to note that|it is worth noting that)[ \t]+([A-Za-z][A-Za-z0-9_-]*)/gi,
     (_match, prefix: string, word: string) => prefix + (word === word.toLowerCase()
@@ -76,7 +85,6 @@ export function localRescue(text: string): string {
     [/\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b/gi, "I'm sharing"],
     [/\bour journey\b/gi, "our work"],
     [/\bour transformative journey\b/gi, "our work"],
-    [/\bin today'?s rapidly evolving (?:landscape|world)\b/gi, "Today"],
     [/\bit is important to note that\b[ \t]*/gi, ""],
     [/\bit is worth noting that\b[ \t]*/gi, ""],
     [/\bwhat we did not realize was just how deeply it impacted everything downstream\./gi,
@@ -162,11 +170,14 @@ function unchanged(
   };
 }
 
-export async function runPipeline(env: Env, input: DeslopInput, clientAddress = ""): Promise<PipelineResult> {
+export async function runPipeline(env: Env, input: DeslopInput, clientAddress = "", signal?: AbortSignal): Promise<PipelineResult> {
   const started = Date.now();
   const deadline = started + PIPELINE_BUDGET_MS;
+  const control = { signal, editorRequested: false, deadline };
+  checkCancelled(control);
   const original = input.text.trim();
-  const before = await scoreWriting(env, original, input.genre);
+  const before = await scoreWriting(env, original, input.genre, control);
+  checkCancelled(control);
 
   // A short clean note should not incur an AI call merely because document-
   // level statistics need more words. Positive findings still force an edit.
@@ -186,7 +197,8 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   };
   // Exactly one outbound editor request. The endpoint itself is also limited
   // to one provider invocation, so this cannot fan out into a retry ladder.
-  const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress);
+  const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress, control);
+  checkCancelled(control);
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
   const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";
@@ -203,9 +215,11 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     };
   }
 
-  let checked = await rankRewrites(env, original, candidates, input.genre);
+  let checked = await rankRewrites(env, original, candidates, input.genre, control);
+  checkCancelled(control);
   if (!sourceSafe(checked) && rescue && rescue !== original) {
-    const localOnly = await rankRewrites(env, original, { "local edit": rescue }, input.genre);
+    const localOnly = await rankRewrites(env, original, { "local edit": rescue }, input.genre, control);
+    checkCancelled(control);
     if (sourceSafe(localOnly)) checked = localOnly;
   }
   if (!sourceSafe(checked)) {
@@ -220,7 +234,8 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   }
 
   const current = checked.text;
-  const after = await scoreWriting(env, current, input.genre);
+  const after = await scoreWriting(env, current, input.genre, control);
+  checkCancelled(control);
   const selectedModelEdit = checked.name === "one-call edit";
   const passed = selectedModelEdit && meetsReleaseGate(after);
   const warnings: string[] = [];

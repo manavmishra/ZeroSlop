@@ -290,6 +290,7 @@ export function trackPipelineFailure(
   inputChars: number,
   durationMs: number,
   code: "failed" | "usage_limit" | "budget_unavailable" = "failed",
+  modelRequests: 0 | -1 = code === "failed" ? -1 : 0,
 ): void {
   write(env, meta, {
     event: "result",
@@ -299,6 +300,6 @@ export function trackPipelineFailure(
     durationMs,
     httpStatus: code === "usage_limit" ? 429 : 503,
     approval: code === "usage_limit" ? "limited" : "failed",
-    modelRequests: code === "failed" ? -1 : 0,
+    modelRequests,
   });
 }

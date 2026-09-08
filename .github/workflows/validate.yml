@@ -88,7 +88,7 @@ jobs:
           assert s2 < 30, f"human sample over-scored: {s2}"
           EOF
       - name: Full test suite
-        run: python3 -m unittest tests.test_all
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
 
       - name: Plugin mirror in sync
         run: python3 scripts/build_plugin.py --check
@@ -121,6 +121,7 @@ jobs:
 
       - name: CLI and distribution integration contracts
         run: |
+          node distribution/sync-version.mjs --check
           node --test tests/cli-deslop.test.mjs
           node --test distribution/homebrew/prepare-formula.test.mjs
           node --test integrations/github-action/review.test.mjs

@@ -2,6 +2,7 @@ import { countCapacityReject, countPipelineFailure, countPipelineResult } from "
 import { deslopInputSchema, deslopOutputSchema, MAX_REQUEST_BYTES, openApiDocument } from "./contract";
 import { runPipeline } from "./pipeline";
 import { HostedBudgetError } from "./budget";
+import { checkCancelled, PipelineCancelledError } from "./cancellation";
 import { inspectRestRequest, trackMcpRequest, trackCapacityLimit, trackPipelineResult, trackPipelineFailure, type McpRequestMeta } from "./telemetry";
 
 const BODY_TIMEOUT_MS = 10_000;
@@ -128,6 +129,7 @@ async function handleRestRequest(
   const started = Date.now();
   try {
     // The same binding AND key as MCP: adding a transport must not multiply capacity.
+    checkCancelled({ signal: request.signal, editorRequested: false });
     const limited = await env.PIPELINE_LIMITER.limit({ key: "deslop-global" });
     if (!limited.success) {
       trackCapacityLimit(env, meta);
@@ -135,7 +137,7 @@ async function handleRestRequest(
       return problem(429, "capacity_limit", "Zero Slop is busy. Please wait at least 10 seconds before trying again.", requestId, { "retry-after": "10" });
     }
     const { text, genre, audience } = parsed.data;
-    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}) }, request.headers.get("cf-connecting-ip") ?? ""));
+    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}) }, request.headers.get("cf-connecting-ip") ?? "", request.signal));
     trackPipelineResult(env, meta, genre, text.length, result);
     ctx.waitUntil(countPipelineResult(env, result));
     console.log(JSON.stringify({ event: "rest_deslop_complete", status: result.status, chars: parsed.data.text.length, durationMs: result.durationMs }));
@@ -148,7 +150,8 @@ async function handleRestRequest(
         error.retryAfterSeconds === null ? {} : { "retry-after": String(error.retryAfterSeconds) });
     }
     ctx.waitUntil(countPipelineFailure(env));
-    trackPipelineFailure(env, meta, parsed.data.genre, parsed.data.text.length, Date.now() - started);
+    trackPipelineFailure(env, meta, parsed.data.genre, parsed.data.text.length, Date.now() - started,
+      "failed", error instanceof PipelineCancelledError ? error.modelRequests : -1);
     console.error(JSON.stringify({ event: "rest_deslop_failed", durationMs: Date.now() - started }));
     return problem(503, "service_unavailable", "Zero Slop could not produce a safely scored result. Your draft was not changed. Review before retrying.", requestId);
   }

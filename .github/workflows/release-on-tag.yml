@@ -11,6 +11,11 @@ on:
 
 permissions:
   contents: write
+  actions: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -21,9 +26,14 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.11"
+      - name: Require the exact validated release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 .github/scripts/publication_guard.py --tag "$RELEASE_TAG" --sha "$(git rev-parse HEAD)"
       - name: test the tagged tree before publication
         run: |
-          python3 -m unittest tests.test_all
+          python3 -m unittest discover -s tests -p 'test_*.py'
           python3 scripts/calibrate.py --selftest
           python3 scripts/register.py --selftest
       - name: build the tagged installer
@@ -36,10 +46,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
+          python3 .github/scripts/publication_guard.py --tag "$TAG" --sha "$(git rev-parse HEAD)"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" \
               dist/zero-slop.zip dist/zero-slop-single-file.md \
               assets/Zero-Slop-One-Pager.pdf --clobber
+            gh release edit "$TAG" --draft=false --prerelease=false --latest --verify-tag
           else
             NOTES="$(git tag -l --format='%(contents)' "$TAG")"
             if [ -z "$NOTES" ]; then
@@ -49,16 +62,6 @@ jobs:
               --notes "$NOTES" \
               dist/zero-slop.zip dist/zero-slop-single-file.md \
               assets/Zero-Slop-One-Pager.pdf
-          fi
-      - name: Wake the website sync
-        env:
-          GH_TOKEN: ${{ secrets.WEBSITE_SYNC_TOKEN }}
-        run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::warning::WEBSITE_SYNC_TOKEN is not configured; the hourly reconciliation remains active"
-          else
-            gh api --method POST repos/manavmishra/ZSWebpage/dispatches \
-              -f event_type=zero-slop-release
           fi
   deploy_mcp:
     needs: publish
@@ -72,8 +75,40 @@ jobs:
       CF_WORKERS_DEPLOY_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
       CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
-  public_surfaces:
+  website_sync:
     needs: [publish, deploy_mcp]
+    if: needs.deploy_mcp.outputs.status == 'deployed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - name: Wait for npm before waking the release-pinned website
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          expected="${RELEASE_TAG#v}"
+          for attempt in $(seq 1 15); do
+            current=$(curl --fail --silent --show-error --max-time 10 https://registry.npmjs.org/zero-slop/latest | jq -r .version) || current=""
+            if [ "$current" = "$expected" ]; then exit 0; fi
+            sleep 10
+          done
+          echo '::error::npm has not converged; the website stays pinned to its last verified release'
+          exit 1
+      - name: Wake the website sync after npm and hosted runtime readiness
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_SYNC_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::WEBSITE_SYNC_TOKEN is not configured; the hourly reconciliation remains active"
+          else
+            gh api --method POST repos/manavmishra/ZSWebpage/dispatches \
+              -f event_type=zero-slop-release
+          fi
+
+  public_surfaces:
+    needs: [publish, deploy_mcp, website_sync]
     if: needs.deploy_mcp.outputs.status == 'deployed'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -96,7 +131,8 @@ jobs:
         env:
           WEBSITE_SYNC_TOKEN: ${{ secrets.WEBSITE_SYNC_TOKEN }}
         run: |
-          args=(--require-network --wait-seconds 600)
+          args=(--require-network --wait-seconds 600 --skip-homebrew)
+          echo "Homebrew convergence is checked by its hourly tested sync and the complete release audit."
           if [ -z "$WEBSITE_SYNC_TOKEN" ]; then
             echo "::warning::Website verification is owned by its hourly sync until WEBSITE_SYNC_TOKEN is configured"
             args+=(--skip-website)

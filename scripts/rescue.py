@@ -44,6 +44,13 @@ def rescue_text(text: str) -> str:
 
     masked = PROTECTED.sub(mask, original)
     out = re.sub(r"[\u00a0\u202f]", " ", masked)
+    # Drop only a complete introductory clause; "Today" would add event timing.
+    # A single unpunctuated line break may only wrap the current sentence.
+    out = re.sub(
+        r"(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)in today['’]s rapidly evolving "
+        r"(?:landscape|world),[ \t]+([A-Za-z][A-Za-z0-9_-]*)",
+        _without_wrapper, out, flags=re.IGNORECASE,
+    )
     out = re.sub(
         r"(^|[.!?][ \t]+|\n[ \t]*)(?:it is important to note that|it is worth noting that)"
         r"[ \t]+([A-Za-z][A-Za-z0-9_-]*)",
@@ -74,7 +81,6 @@ def rescue_text(text: str) -> str:
         (r"\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b", "I'm sharing"),
         (r"\bour journey\b", "our work"),
         (r"\bour transformative journey\b", "our work"),
-        (r"\bin today'?s rapidly evolving (?:landscape|world)\b", "Today"),
         (r"\bit is important to note that\b[ \t]*", ""),
         (r"\bit is worth noting that\b[ \t]*", ""),
         (r"\bwhat we did not realize was just how deeply it impacted everything downstream\.",

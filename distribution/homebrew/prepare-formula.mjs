@@ -5,7 +5,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const VERSION = "2.10.1";
+export const VERSION = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8")).version;
+if (!/^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/.test(VERSION)) throw new Error("Invalid release version.");
 export const METADATA_URL = `https://registry.npmjs.org/zero-slop/${VERSION}`;
 export const TARBALL_URL = `https://registry.npmjs.org/zero-slop/-/zero-slop-${VERSION}.tgz`;
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -36,7 +37,8 @@ export async function prepareFormula(output, fetchRelease = fetch) {
   const sha256 = createHash("sha256").update(tarball).digest("hex");
   const template = await readFile(resolve(ROOT, "zero-slop.rb.in"), "utf8");
   if (template.split(CHECKSUM_PLACEHOLDER).length !== 2) throw new Error("Formula template must contain exactly one checksum placeholder.");
-  const formula = template.replace(CHECKSUM_PLACEHOLDER, sha256).replace(/^# Release template\..*\n/, "");
+  if (template.split("__VERSION__").length !== 2) throw new Error("Formula template must contain exactly one version placeholder.");
+  const formula = template.replace(CHECKSUM_PLACEHOLDER, sha256).replace("__VERSION__", VERSION).replace(/^# Release template\..*\n/, "");
   await mkdir(dirname(resolve(output)), { recursive: true });
   await writeFile(output, formula, { flag: "wx" });
   return { version: VERSION, tarball: TARBALL_URL, sha256, output: resolve(output) };

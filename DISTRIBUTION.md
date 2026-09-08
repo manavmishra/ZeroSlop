@@ -40,16 +40,38 @@ shows only accepted listings with public URLs.
 ## One release number
 
 `package.json` is the release version. CI checks it against `SKILL.md`, every
-plugin and extension manifest, the npm package, GitHub release assets, and the
-MCP Registry record. A version tag publishes npm, rebuilds the GitHub release,
-and updates the official MCP Registry. The website pulls the released skill,
-checks browser-to-skill parity, deploys the exact build that passed, and checks
-the live `/try/` manifest after deployment.
+plugin and extension manifest, and the hosted runtime configuration. Set the
+version there, then run `node distribution/sync-version.mjs` to update the
+release labels. This maintainer command leaves historical benchmark results alone;
+rerun version-bound evaluations before publication.
 
-The website also reconciles with the skill repository every hour. Immediate
-cross-repository dispatch can be enabled with a fine-grained GitHub token named
-`WEBSITE_SYNC_TOKEN`; it needs Actions write access only to
-`manavmishra/ZSWebpage`.
+All three validation jobs must pass at the exact commit before an immutable tag
+can publish npm, the GitHub downloads or the official MCP Registry record. The
+private scorer and the shared REST/MCP gateway deploy from that tag. OpenAPI's
+product version comes from the gateway configuration; the `/v1/` route identifies
+the API contract, not the current package version.
+
+The website imports a published release only after its downloads, npm package
+and hosted scorer are ready. It verifies the vendored files and browser parity
+before deployment. Download buttons point to that release's ZIP and single-file
+skill, so an older page cannot silently offer a newer runtime.
+
+Three hourly reconciliation jobs check the canonical release, website and
+Homebrew tap. The tap derives its formula from the release's integrity-checked
+npm tarball, then audits, installs and tests it before committing. The canonical
+audit checks npm package bytes, skill ZIP contents, browser files, OpenAPI,
+hosted versions, the MCP Registry record and the tap checksum. Failed checks
+remain visible in Actions; unknown network failures never count as a pass.
+
+These services publish independently. Brief propagation gaps and delayed
+schedules are possible; synchronization is verified after publication, not
+assumed to be instantaneous. Existing pinned installations stay pinned until
+their owners update them. Marketplace approval and third-party crawl schedules
+are outside this release process.
+
+Optional immediate website dispatch uses `WEBSITE_SYNC_TOKEN`, a fine-grained
+token scoped to Contents write on `manavmishra/ZSWebpage` for GitHub's
+repository-dispatch endpoint. The scheduled sync works without that token.
 
 ## Maintainer release check
 
@@ -58,4 +80,6 @@ python3 scripts/check_distribution_manifests.py
 python3 scripts/check_release_surfaces.py --require-network --wait-seconds 600
 ```
 
-These checks report drift. They do not rewrite published records silently.
+The scripts above only report drift. The scheduled recovery workflow can rerun
+the existing publishers for the validated release; it does not invent a version,
+move a tag or upgrade a user's installed copy.

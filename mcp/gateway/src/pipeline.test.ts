@@ -350,3 +350,64 @@ test("gateway fallback matches the installed skill byte for byte", () => {
     assert.equal(localRescue(source), installed);
   }
 });
+
+function assertRescueParity(source: string, expected: string) {
+  assert.equal(localRescue(source), expected, source);
+  const installed = execFileSync("python3", [rescueScript, "-"], {
+    input: source,
+    encoding: "utf8",
+  }).trimEnd();
+  assert.equal(installed, expected, "Python fallback: " + source);
+  assert.equal(localRescue(expected), expected, "the edit is idempotent");
+}
+
+test("intro removal handles case and both apostrophes without inventing Today", () => {
+  for (const apostrophe of ["'", "’"]) for (const setting of ["landscape", "world"]) {
+    for (const introCase of ["In", "in", "IN"]) for (const subject of ["The team", "the team", "iOS", "eBay", "NASA"]) {
+      const source = `${introCase} today${apostrophe}s rapidly evolving ${setting}, ${subject} passed the review on September 4, 2026.`;
+      const expectedSubject = subject === "the team" ? "The team" : subject;
+      assertRescueParity(source, `${expectedSubject} passed the review on September 4, 2026.`);
+    }
+  }
+});
+
+test("intro removal keeps sentence and paragraph boundaries intact", () => {
+  for (const prefix of ["Maya agreed. ", "Maya agreed!\n", "Did Maya agree?\r\n", "Notes:\n\n", "Notes:\r\n\t\r\n"]) {
+    // Existing whitespace cleanup removes tabs at the end of a blank line.
+    const expectedPrefix = prefix.replace(/[ \t]+\n/g, "\n");
+    assertRescueParity(prefix + "In today’s rapidly evolving world, the team kept the date.", expectedPrefix + "The team kept the date.");
+  }
+});
+
+test("intro-like mid-sentence text and incomplete clauses remain unchanged", () => {
+  const samples = [
+    "The team works in today's rapidly evolving landscape, with Maya as its reviewer.",
+    "The team works\nin today’s rapidly evolving world, with Maya as its reviewer.",
+    "Maya said: In today's rapidly evolving landscape, The team still needs evidence.",
+    "Maya agreed; in today’s rapidly evolving world, the team still needs evidence.",
+    "In today's rapidly evolving world the team kept the date.",
+    "In today's rapidly evolving landscape.",
+    "In today's rapidly evolving landscape,",
+    "The team kept the date today.",
+  ];
+  for (const source of samples) assertRescueParity(source, source);
+});
+
+test("intro removal preserves the protected release fixture and quoted/code/link spans", () => {
+  const details = 'The team cut setup from 11 hours to 3 hours during the pilot on September 4, 2026. The approved budget is €24,800. Retention beyond the first month has not been measured. Maya said, "Do not ship before Friday." Details: https://example.com/atlas?plan=pro#notes.';
+  assertRescueParity("It is important to note that Maya Rao owns the Atlas migration. In today's rapidly evolving landscape, " + details,
+    "Maya Rao owns the Atlas migration. " + details);
+  const spans = [
+    '"In today\'s rapidly evolving landscape, The team kept the date."',
+    "“In today’s rapidly evolving world, the team kept the date.”",
+    "‘In today's rapidly evolving world, The team kept the date.’",
+    "`In today's rapidly evolving landscape, The team kept the date.`",
+    "```text\nIn today’s rapidly evolving world, the team kept the date.\n```",
+    "[In today's rapidly evolving landscape, The team](https://example.com/atlas?plan=pro#notes)",
+    "https://example.com/In-todays-rapidly-evolving-landscape?plan=pro#notes",
+  ];
+  for (const span of spans) {
+    assertRescueParity(span, span);
+    assertRescueParity("In today’s rapidly evolving world, Maya kept the date.\n\n" + span, "Maya kept the date.\n\n" + span);
+  }
+});

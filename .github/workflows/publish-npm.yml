@@ -4,24 +4,17 @@ name: publish to npm
 # a manual step someone had to remember. This makes the version in package.json
 # the trigger: bump it, merge, and the release goes out.
 #
-# Idempotent by construction. It asks the registry what exists before doing
-# anything, so re-running on an unchanged version is a no-op rather than an
-# error, and a failed run can simply be retried.
+# A rerun is a no-op only when the exact published commit is also npm latest.
+# Unknown registry failures block publication. An existing version with a stale
+# latest tag needs maintainer authentication, not another OIDC publish attempt.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "package.json"
-      - "bin/**"
-      - "SKILL.md"
-      - "references/**"
-      - "scripts/**"
-      - "data/**"
+  # Dispatched at the immutable tag by sync-release, after all validation jobs.
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
   # Required for npm provenance: the publish is signed with a short-lived
   # OIDC token, so the registry can attest which workflow and commit built it.
   id-token: write
@@ -45,6 +38,12 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.11"
+
+      - name: Require the exact validated release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 .github/scripts/publication_guard.py --tag "$RELEASE_TAG" --sha "$(git rev-parse HEAD)"
 
       # A published version is close to permanent: npm restricts unpublishing
       # after 72 hours. Everything below runs before the publish, never after.
@@ -70,7 +69,7 @@ jobs:
       - name: Tests must pass
         run: |
           node --test tests/cli-deslop.test.mjs
-          python3 tests/test_all.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
           python3 scripts/calibrate.py --selftest
           python3 scripts/register.py --selftest
 
@@ -131,20 +130,13 @@ jobs:
             console.log("tarball is clean");
           '
 
-      - name: Is this version already on the registry?
+      - name: Verify the exact npm record and latest tag
         id: check
         run: |
           set -euo pipefail
           version=$(node -p "require('./package.json').version")
-          name=$(node -p "require('./package.json').name")
-          if npm view "$name@$version" version >/dev/null 2>&1; then
-            echo "already=true" >> "$GITHUB_OUTPUT"
-            echo "$name@$version is already published; nothing to do."
-          else
-            echo "already=false" >> "$GITHUB_OUTPUT"
-            echo "version=$version" >> "$GITHUB_OUTPUT"
-            echo "$name@$version is new and will be published."
-          fi
+          python3 .github/scripts/npm_record.py --version "$version" \
+            --sha "$(git rev-parse HEAD)" --github-output "$GITHUB_OUTPUT"
 
       # Authenticated by npm Trusted Publishing, not a stored token. The OIDC
       # token minted by id-token: write above is exchanged with the registry,
@@ -155,7 +147,12 @@ jobs:
       # string, so npm fails with ENEEDAUTH before the exchange is attempted.
       - name: Publish
         if: steps.check.outputs.already == 'false'
-        run: npm publish --access public --provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 .github/scripts/publication_guard.py --tag "$RELEASE_TAG" --sha "$(git rev-parse HEAD)"
+          npm publish --access public --provenance
 
       - name: Confirm the registry serves it
         if: steps.check.outputs.already == 'false'
