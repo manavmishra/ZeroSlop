@@ -8,20 +8,16 @@ name: publish to PyPI
 # Authentication is PyPI Trusted Publishing over OIDC. There is no API token in
 # repository secrets to leak or rotate.
 
-# Manual until the PyPI Trusted Publisher exists. Claim the `zero-slop` name,
-# register this repository and this workflow file as its publisher, then swap
-# the commented push trigger in so a version bump ships the wheel automatically.
-# Enabling the push trigger before that is a guaranteed red build.
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - "package.json"
-  #     - "pyproject.toml"
-  #     - "packaging/**"
-  #     - "scripts/**"
-  #     - "data/**"
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "pyproject.toml"
+      - "packaging/**"
+      - "scripts/**"
+      - "data/**"
 
 permissions:
   contents: read
