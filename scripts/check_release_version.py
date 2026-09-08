@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require a new semantic version when a released runtime changes."""
+"""Require a new semantic version when a released package or runtime changes."""
 
 from __future__ import annotations
 
@@ -15,7 +15,12 @@ from build_plugin import EXCLUDE as PLUGIN_EXCLUDE, ITEMS as PLUGIN_ITEMS
 ROOT = Path(__file__).resolve().parent.parent
 EXACT_RELEASE_PATHS = {
     ".mcp.json",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
     "SKILL.md",
+    "docs/cli.md",
+    "docs/rest-api.md",
     "gemini-extension.json",
     "mcp.json",
     "package.json",
@@ -75,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
     current = str(json.loads((ROOT / "package.json").read_text())["version"])
     released = [path for path in changed_paths(args.base) if is_release_path(path)]
     if released and current == previous:
-        print("A released runtime changed without a version bump:", file=sys.stderr)
+        print("A released package or runtime changed without a version bump:", file=sys.stderr)
         for path in released:
             print(f"  {path}", file=sys.stderr)
         print(f"package.json is still {current}", file=sys.stderr)

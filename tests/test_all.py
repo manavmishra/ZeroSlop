@@ -2529,7 +2529,7 @@ class DocsMatchReality(unittest.TestCase):
         self.assertIn("--connect-timeout", workflow)
         self.assertIn("--max-time", workflow)
 
-    def test_release_path_classifier_covers_runtime_but_not_marketing_copy(self):
+    def test_release_path_classifier_covers_shipped_files_but_not_unshipped_copy(self):
         spec = importlib.util.spec_from_file_location(
             "release_version", ROOT / "scripts" / "check_release_version.py")
         module = importlib.util.module_from_spec(spec)
@@ -2544,11 +2544,13 @@ class DocsMatchReality(unittest.TestCase):
             "mcp/gateway/package-lock.json", "mcp/scorer/src/worker.py",
             "mcp/gateway/src/nested/model.test.ts", "mcp/other/src/model.test.ts",
             "mcp/gateway/src/model.test.ts.json", "scripts/model.test.ts",
+            "README.md", "SECURITY.md", "LICENSE", "docs/cli.md", "docs/rest-api.md",
         ):
             with self.subTest(path=path):
                 self.assertTrue(module.is_release_path(path))
         for path in (
-            "README.md", "growth/submission-copy.md", "assets/demo.svg",
+            "DISTRIBUTION.md", "docs/maintainer-notes.md", "docs/other.md",
+            "growth/submission-copy.md", "assets/demo.svg",
             "scripts/check_release_surfaces.py", "scripts/check_release_version.py",
             "scripts/check_distribution_manifests.py", "scripts/build_plugin.py",
             "scripts/contextual.py", "references/contextual-signals.md",
@@ -2556,6 +2558,14 @@ class DocsMatchReality(unittest.TestCase):
         ):
             with self.subTest(path=path):
                 self.assertFalse(module.is_release_path(path))
+
+    def test_every_expected_npm_payload_file_requires_a_release_bump(self):
+        import check_release_surfaces
+        import check_release_version
+        _, npm = check_release_surfaces.expected_payloads()
+        self.assertTrue(npm, "the canonical npm payload must not be empty")
+        exempt = [path for path in npm if not check_release_version.is_release_path(path)]
+        self.assertEqual(exempt, [], "published byte parity requires versioning every shipped file")
 
     def test_release_gate_reuses_packaging_exclusions_without_ignoring_runtime(self):
         import build_plugin
@@ -2571,6 +2581,12 @@ class DocsMatchReality(unittest.TestCase):
             (["scripts/check_release_surfaces.py", ".github/workflows/deploy-mcp.yml"], 0),
             (["scripts/check_release_surfaces.py", "scripts/slopscore.py"], 1),
             (["scripts/check_release_surfaces.py", ".codex-plugin/plugin.json"], 1),
+            (["scripts/check_release_version.py", "README.md"], 1),
+            (["scripts/check_release_version.py", "SECURITY.md"], 1),
+            (["scripts/check_release_version.py", "LICENSE"], 1),
+            (["scripts/check_release_version.py", "docs/cli.md"], 1),
+            (["scripts/check_release_version.py", "docs/rest-api.md"], 1),
+            (["scripts/check_release_version.py", "DISTRIBUTION.md", "docs/other.md"], 0),
         ):
             with self.subTest(paths=paths), \
                     mock.patch.object(module, "version_at", return_value=current), \
