@@ -10,7 +10,7 @@ the no-install option for clients that support Streamable HTTP.
 |---|---|
 | Agent Skills clients | `npx skills add manavmishra/ZeroSlop --global` |
 | PyPI | `pip install zero-slop` |
-| GitHub Actions | `uses: manavmishra/ZeroSlop@v2.11.1` |
+| GitHub Actions | `uses: manavmishra/ZeroSlop@v2.11.2` |
 | pre-commit | `repo: https://github.com/manavmishra/ZeroSlop`, hook `zero-slop` |
 | npm | `npx zero-slop install` |
 | Claude Code and Cowork | `/plugin marketplace add manavmishra/ZeroSlop`, then `/plugin install zero-slop@zero-slop` |

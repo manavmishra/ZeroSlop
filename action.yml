@@ -3,7 +3,7 @@
 # network request. Inputs reach the shell through env: rather than direct
 # expression interpolation, so a crafted branch or input cannot inject script.
 name: "Zero Slop"
-description: "Score prose 0-100 for AI-sounding language and fail the build above a threshold. Offline, no dependencies."
+description: "Less slop, more pop in all your writing. Scores prose 0-100 for canned AI phrasing and fails the build above your threshold. Offline, no dependencies."
 author: "Manav Mishra"
 
 branding:
