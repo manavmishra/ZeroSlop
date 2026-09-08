@@ -3,7 +3,7 @@
 #
 #   repos:
 #     - repo: https://github.com/manavmishra/ZeroSlop
-#       rev: main  # pin to a tag once one carries this file
+#       rev: v2.11.0
 #       hooks:
 #         - id: zero-slop
 #           args: [--gate, "25"]

@@ -7,7 +7,7 @@
   </a>
 </p>
 
-      Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
+      Zero Slop is installed about 1,600 times a week on npm.
 
 <p align="center"><strong>Find AI-sounding tells and slop in your writing.</strong></p>
 
@@ -30,7 +30,7 @@
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.10.2" src="https://img.shields.io/badge/version-2.10.2-72528F?color=C15732">
+  <img alt="Version 2.11.0" src="https://img.shields.io/badge/version-2.11.0-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -136,7 +136,7 @@ https://mcp.zero-slop.ai/mcp
 Edit a file through MCP:
 
 ```sh
-npx --yes zero-slop@2.10.2 deslop draft.md --genre professional
+npx --yes zero-slop@2.11.0 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` exits nonzero
