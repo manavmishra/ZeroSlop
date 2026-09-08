@@ -10,6 +10,11 @@ When the user authorizes implementation, a fix, tests, refactoring, documentatio
 
 Questions, investigation, status, and review-only requests are read-only unless the user explicitly asks to record or update them. A status-only session must not flush pending writes. These instructions run during active authorized sessions; they install no skill, daemon, scheduler, or Asana Rule.
 
+Use the approved `delivery-coordinator` skill when available, and give independent
+candidate reviews to `delivery-reviewer` in a separate run. The housekeeping role
+below remains required if those skills are unavailable. Do not ask the user to
+maintain cards. Skill installation is separate from authentication and scheduling.
+
 ## Resolve the record and use only free features
 
 - Prefer the authorized Asana connector and existing private local configuration. Resolve the exact **Zero Slop — Delivery** project and its workspace. If the target is ambiguous, ask one concise question before any mutation.
@@ -29,6 +34,24 @@ Update at meaningful checkpoints: scope ready, execution started, review ready, 
 Review evidence must identify the actual reviewer and reviewed revision; the executor cannot approve its own output. Tracking does not authorize merging, publishing, deployment, destructive actions, or extra spending. Preserve valid existing authorization within its scope and request only missing authority. A merge that triggers production is a release action.
 
 Mark Done and complete the task only after accepted work and any authorized release are verified. Attach the diff/PR, current checks, independent review, release/deploy receipt, and relevant public version or health evidence. For work requiring no release, explicitly record why and retain acceptance evidence. Failed, skipped, or unverified publication is not completion. Repository release pipelines remain authoritative.
+
+## Per-work ADLC audit trail
+
+For every authorized work packet, preserve a chronological checkpoint log from
+intake through verified delivery or a documented blocker. Record the request and
+applicable authority, scope and decision rationale, named agent runs and handoffs,
+base and candidate revisions, checks with outcomes, independent review, release
+target and receipt, and closure basis. Preserve failed and skipped attempts.
+Correct an earlier assertion with a new entry; do not erase the prior checkpoint.
+The task description is the current summary, not a replacement for that history.
+
+Record both when an event happened and when it was recorded. If an earlier time is
+unknown, say so; do not reconstruct an invented timeline. Point-in-time reports
+must use only evidence known at the requested cutoff, with missing evidence marked
+unknown. A reopened task or a changed candidate needs fresh applicable evidence.
+Follow the [portable audit contract](https://github.com/manavmishra/agent-delivery-backplane/blob/main/docs/AUDIT-TRAIL.md)
+for local records. This is evidence of the delivery process, not a regulatory
+certification, tamper-proof ledger, or authenticated proof of linked results.
 
 ## Access failure and privacy
 
