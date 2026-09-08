@@ -3,6 +3,14 @@
 Guidance for AI coding agents (Claude Code, Codex, OpenCode, Warp, etc.)
 working in or executing this repository.
 
+## Development coordination
+
+For repository development, also read `CLAUDE.md` and follow its bounded,
+free-only Asana housekeeping contract. This applies across coding assistants,
+not only Claude. It does not apply when merely executing the portable editing
+skill on a user's writing, and it does not add networking to the runtime.
+Questions and status-only requests retain the read-only boundary in that file.
+
 ## What this repo is
 
 A portable agent skill. The runtime artifact is `SKILL.md` (YAML frontmatter
