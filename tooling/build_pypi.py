@@ -96,9 +96,12 @@ def check(files: dict[Path, bytes]) -> list[str]:
             problems.append(f"stale {rel}")
     if PACKAGE.exists():
         for found in sorted(PACKAGE.rglob("*")):
-            # A local `python3 -m build` drops egg-info beside the package. It
-            # is git-ignored build output, not part of the mirror.
-            if any(part.endswith(".egg-info") for part in found.parts):
+            # Build output and bytecode caches are not part of the mirror.
+            # `python3 -m build` drops egg-info here, and merely importing a
+            # mirrored module writes __pycache__ beside it, which would
+            # otherwise make the mirror look stale the moment it is exercised.
+            if any(part.endswith(".egg-info") or part == "__pycache__"
+                   for part in found.parts):
                 continue
             if found.is_file() and found not in files:
                 problems.append(f"unexpected {found.relative_to(ROOT)}")
