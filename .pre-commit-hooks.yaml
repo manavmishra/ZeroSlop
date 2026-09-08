@@ -1,0 +1,32 @@
+# Zero Slop as a pre-commit hook. The scorer is standard library only, so the
+# hook environment installs nothing beyond this package.
+#
+#   repos:
+#     - repo: https://github.com/manavmishra/ZeroSlop
+#       rev: v2.10.2
+#       hooks:
+#         - id: zero-slop
+#           args: [--gate, "25"]
+#
+- id: zero-slop
+  name: Zero Slop (writing score gate)
+  description: >-
+    Score staged prose 0-100 for AI-sounding language and fail above the gate.
+    The score describes the writing, not who wrote it.
+  entry: zero-slop-gate
+  args: ["--gate", "25"]
+  language: python
+  types_or: [markdown, plain-text, rst]
+  require_serial: false
+
+- id: zero-slop-report
+  name: Zero Slop (report only)
+  description: >-
+    Print a writing score for staged prose without failing the commit. Use this
+    while a repository works its existing content down below the gate.
+  entry: zero-slop-gate
+  args: ["--gate", "100"]
+  language: python
+  types_or: [markdown, plain-text, rst]
+  verbose: true
+  always_run: false

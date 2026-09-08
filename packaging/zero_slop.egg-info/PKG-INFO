@@ -1,0 +1,109 @@
+Metadata-Version: 2.4
+Name: zero-slop
+Version: 2.9.2
+Summary: Score AI-sounding prose 0-100 and check what a rewrite changed. Offline, standard library only.
+Author-email: Manav Mishra <manavm@gmail.com>
+License-Expression: MIT
+Project-URL: Homepage, https://zero-slop.ai
+Project-URL: Source, https://github.com/manavmishra/ZeroSlop
+Project-URL: Changelog, https://github.com/manavmishra/ZeroSlop/releases
+Project-URL: Issues, https://github.com/manavmishra/ZeroSlop/issues
+Keywords: prose,linter,writing,editing,ai-slop,de-slop,humanize,style,ci,static-analysis
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Topic :: Software Development :: Quality Assurance
+Classifier: Topic :: Text Processing :: Linguistic
+Classifier: Typing :: Typed
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
+# Zero Slop
+
+**Find AI-sounding writing. Keep the source intact.**
+
+A prose linter that scores text 0–100 for stock phrasing, mechanical rhythm,
+vague claims, and canned formatting, then tells you which phrases produced the
+number. It runs offline, uses only the Python standard library, and has no
+runtime dependencies.
+
+The score describes the writing. It does not identify who wrote it. Zero Slop is
+not an AI detector and must not be used as one.
+
+## Install
+
+```sh
+pip install zero-slop
+```
+
+## Use it
+
+```sh
+slopscore draft.md                      # readable report
+slopscore --json draft.md               # machine-readable
+slopscore --explain draft.md            # report, reasons, line-by-line map
+slopscore --batch docs/ --gate 25       # exits non-zero above the threshold
+slopscore --fidelity before.md after.md # did the rewrite keep the facts?
+cat draft.md | slopscore                # stdin
+```
+
+### As a library
+
+```python
+from zero_slop import load_patterns, score_text
+
+data = load_patterns()
+score_text("We are thrilled to announce a transformative solution.", data)["ai_likelihood"]
+# 99.3
+```
+
+### In CI
+
+```yaml
+- uses: manavmishra/ZeroSlop@v2.9.2
+  with:
+    path: docs
+    gate: "25"
+```
+
+### As a pre-commit hook
+
+```yaml
+repos:
+  - repo: https://github.com/manavmishra/ZeroSlop
+    rev: v2.9.2
+    hooks:
+      - id: zero-slop
+        args: [--gate, "25"]
+```
+
+## What the score means
+
+Human reference samples score 9–21. Unedited model output averages 77. Those are
+reference points, not boundaries. The scoring was run over 7,627 abstracts from
+the MIT-licensed RAID+ dataset and all 2,187 Beemo records; the drafts, outputs,
+and hashes are in the repository so the numbers can be reproduced.
+
+The scorer handles about 500 documents per second on a single machine, so it is
+usable as a batch gate rather than only an interactive tool.
+
+## Rewriting
+
+This package is the scorer. The full editorial workflow — where your own AI
+assistant rewrites the draft across copy-desk and read-aloud passes, and a local
+fact gate rejects any revision that adds or drops a name, number, quotation, or
+link — ships as an Agent Skill:
+
+```sh
+npx skills add manavmishra/ZeroSlop --global
+```
+
+- Website: <https://zero-slop.ai>
+- Source: <https://github.com/manavmishra/ZeroSlop>
+- MIT licensed

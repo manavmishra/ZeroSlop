@@ -45,6 +45,29 @@ def main() -> int:
         require(manifest.get("version") == version,
                 f"{name} says {manifest.get('version')!r}, package.json says {version!r}", problems)
 
+    # The wheel, the Action, and the hook are release surfaces too. A version
+    # that drifts here ships a package whose scorer is not the one it claims.
+    pyproject = (ROOT / "pyproject.toml").read_text()
+    require(f'version = "{version}"' in pyproject,
+            f"pyproject.toml does not advertise {version}", problems)
+    require('slopscore = "zero_slop.scripts.slopscore:main"' in pyproject,
+            "pyproject.toml must expose the slopscore console script", problems)
+    require('zero-slop-gate = "zero_slop.scripts.gate:main"' in pyproject,
+            "pyproject.toml must expose the zero-slop-gate console script", problems)
+
+    action = (ROOT / "action.yml").read_text()
+    for field in ("name:", "description:", "branding:"):
+        require(field in action,
+                f"action.yml is missing {field} required by the Marketplace", problems)
+    require("${{ inputs." not in action.split("run: |", 1)[-1],
+            "action.yml must pass inputs through env:, not expression interpolation", problems)
+
+    # pre-commit hands over every matched file in one call, so the entry has to
+    # be the multi-file gate rather than the single-file report command.
+    hooks = (ROOT / ".pre-commit-hooks.yaml").read_text()
+    require("entry: zero-slop-gate" in hooks,
+            ".pre-commit-hooks.yaml must call the zero-slop-gate console script", problems)
+
     agent = manifests["Agent Plugin"]
     require(agent.get("$schema") == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
             "plugin.json uses the wrong schema", problems)

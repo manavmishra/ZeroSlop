@@ -57,8 +57,9 @@ score from 76.3 to 12.8 with 18 of 18 source checks passing.
 
 Free and MIT-licensed. Install with one command.
 
-Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12
-days. Those are lifetime launch milestones, not a weekly growth rate.
+Zero Slop is installed about 1,600 times a week on npm and has 114 GitHub
+stars. That is a current run rate measured over the seven days to 7 September
+2026, not a lifetime launch total.
 
 ## Description, about 300 words
 

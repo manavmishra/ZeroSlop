@@ -1,0 +1,127 @@
+name: publish to PyPI
+
+# The wheel carries the same scorer bytes as the skill, the plugin, and the
+# hosted Worker. Publishing follows the npm workflow's rule: the version in
+# package.json is the trigger, and the run is idempotent, so re-running on an
+# unchanged version is a no-op rather than an error.
+#
+# Authentication is PyPI Trusted Publishing over OIDC. There is no API token in
+# repository secrets to leak or rotate.
+
+# Manual until the PyPI Trusted Publisher exists. Claim the `zero-slop` name,
+# register this repository and this workflow file as its publisher, then swap
+# the commented push trigger in so a version bump ships the wheel automatically.
+# Enabling the push trigger before that is a guaranteed red build.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "package.json"
+  #     - "pyproject.toml"
+  #     - "packaging/**"
+  #     - "scripts/**"
+  #     - "data/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-pypi
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+      publish: ${{ steps.decide.outputs.publish }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+
+      - id: version
+        run: |
+          set -euo pipefail
+          value="$(python3 -c "import json;print(json.load(open('package.json'))['version'])")"
+          echo "value=$value" >> "$GITHUB_OUTPUT"
+
+      - name: The wheel mirror matches the shipped scorer
+        run: python3 scripts/build_pypi.py --check
+
+      - name: Manifests agree on one version
+        run: python3 scripts/check_distribution_manifests.py
+
+      - name: Ask PyPI what already exists
+        id: decide
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            "https://pypi.org/pypi/zero-slop/$VERSION/json" || echo 000)"
+          if [ "$code" = "200" ]; then
+            echo "zero-slop $VERSION is already on PyPI; nothing to do."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ "$code" = "404" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PyPI returned $code; refusing to guess." >&2
+            exit 1
+          fi
+
+      - name: Build sdist and wheel
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --upgrade build twine
+          python3 -m build
+          python3 -m twine check dist/*
+
+      - name: The built wheel scores identically to the repository scorer
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          python3 -m venv /tmp/verify
+          /tmp/verify/bin/pip install --quiet dist/*.whl
+          installed="$(/tmp/verify/bin/python -c "
+          from zero_slop import load_patterns, score_text
+          print(score_text('We are thrilled to announce a transformative solution.', load_patterns())['ai_likelihood'])")"
+          repo="$(python3 -c "
+          import sys; sys.path.insert(0,'scripts'); import slopscore
+          print(slopscore.score_text('We are thrilled to announce a transformative solution.', slopscore.load_patterns())['ai_likelihood'])")"
+          echo "installed=$installed repo=$repo"
+          [ "$installed" = "$repo" ] || { echo "The wheel disagrees with the shipped scorer." >&2; exit 1; }
+          /tmp/verify/bin/slopscore --version >/dev/null 2>&1 || true
+          echo "console script present: $(ls /tmp/verify/bin/slopscore)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.decide.outputs.publish == 'true'
+        with:
+          name: pypi-dist
+          path: dist/
+          retention-days: 7
+
+  publish:
+    needs: build
+    if: needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi
+      url: https://pypi.org/p/zero-slop
+    permissions:
+      # Trusted Publishing exchanges this short-lived OIDC token for an upload
+      # credential. No long-lived secret is stored in the repository.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: pypi-dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          print-hash: true

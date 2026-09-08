@@ -60,6 +60,29 @@ jobs:
           EOF
       - name: Validate plugin and extension manifests
         run: python3 scripts/check_distribution_manifests.py
+
+      - name: PyPI mirror matches the shipped scorer
+        run: python3 scripts/build_pypi.py --check
+
+      - name: Distribution surfaces suite
+        run: python3 -m unittest tests.test_distribution
+
+      - name: Wheel builds and scores identically to the repository scorer
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --upgrade build
+          python3 -m build --wheel --outdir /tmp/wheel
+          python3 -m venv /tmp/wheelcheck
+          /tmp/wheelcheck/bin/pip install --quiet /tmp/wheel/*.whl
+          sample="We are thrilled to announce a transformative solution."
+          installed="$(/tmp/wheelcheck/bin/python -c "
+          from zero_slop import load_patterns, score_text
+          print(score_text('$sample', load_patterns())['ai_likelihood'])")"
+          repo="$(python3 -c "
+          import sys; sys.path.insert(0,'scripts'); import slopscore
+          print(slopscore.score_text('$sample', slopscore.load_patterns())['ai_likelihood'])")"
+          echo "installed=$installed repo=$repo"
+          [ "$installed" = "$repo" ] || { echo "the wheel scorer drifted from the repository" >&2; exit 1; }
       - name: Compile all regexes
         run: |
           python3 - <<'EOF'
@@ -134,6 +157,40 @@ jobs:
           head -1 SKILL.md | grep -q '^---$'
           grep -q '^name: zero-slop' SKILL.md
           grep -q '^description:' SKILL.md
+
+  action:
+    # The Action is a release surface, so CI runs it rather than trusting it.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Score the examples directory
+        id: scored
+        uses: ./
+        with:
+          path: examples
+          gate: "40"
+      - name: Report-only mode never blocks
+        uses: ./
+        with:
+          path: README.md
+          gate: "0"
+          fail-on-gate: "false"
+      - name: A directory with nothing to score is a no-op
+        uses: ./
+        with:
+          path: .github/workflows
+          gate: "25"
+      - name: Outputs are populated
+        env:
+          PASSED: ${{ steps.scored.outputs.passed }}
+          WORST: ${{ steps.scored.outputs.max-score }}
+          DOCS: ${{ steps.scored.outputs.documents }}
+        run: |
+          set -euo pipefail
+          echo "passed=$PASSED worst=$WORST documents=$DOCS"
+          [ -n "$PASSED" ] && [ -n "$WORST" ] && [ -n "$DOCS" ]
+          [ "$DOCS" -gt 0 ]
 
   website:
     runs-on: ubuntu-latest

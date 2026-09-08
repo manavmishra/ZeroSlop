@@ -1,0 +1,140 @@
+# Zero Slop as a GitHub Action. The scorer ships with this repository and uses
+# only the Python standard library, so the action installs nothing and makes no
+# network request. Inputs reach the shell through env: rather than direct
+# expression interpolation, so a crafted branch or input cannot inject script.
+name: "Zero Slop"
+description: "Score prose 0-100 for AI-sounding language and fail the build above a threshold. Offline, no dependencies."
+author: "Manav Mishra"
+
+branding:
+  icon: "edit-3"
+  color: "orange"
+
+inputs:
+  path:
+    description: "File or directory to score, relative to the workspace."
+    required: false
+    default: "."
+  gate:
+    description: "Maximum allowed writing score. Lower is stricter. Scores above this fail the step."
+    required: false
+    default: "25"
+  formal:
+    description: "Score with the rules for professional writing rather than the default register."
+    required: false
+    default: "false"
+  fail-on-gate:
+    description: "Fail the step when the gate is exceeded. Set false to report without blocking."
+    required: false
+    default: "true"
+  annotate:
+    description: "Emit a GitHub annotation on each file above the gate."
+    required: false
+    default: "true"
+  summary:
+    description: "Write a results table to the job summary."
+    required: false
+    default: "true"
+
+outputs:
+  passed:
+    description: "true when every scored document is at or below the gate."
+    value: ${{ steps.score.outputs.passed }}
+  max-score:
+    description: "Highest writing score across the scored documents."
+    value: ${{ steps.score.outputs.max-score }}
+  documents:
+    description: "Number of documents scored."
+    value: ${{ steps.score.outputs.documents }}
+  report:
+    description: "Full result as compact JSON."
+    value: ${{ steps.score.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: score
+      shell: bash
+      env:
+        ZS_PATH: ${{ inputs.path }}
+        ZS_GATE: ${{ inputs.gate }}
+        ZS_FORMAL: ${{ inputs.formal }}
+        ZS_FAIL: ${{ inputs.fail-on-gate }}
+        ZS_ANNOTATE: ${{ inputs.annotate }}
+        ZS_SUMMARY: ${{ inputs.summary }}
+        ZS_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+
+        # Runners vary: some Windows images ship `python` and no `python3`.
+        if command -v python3 >/dev/null 2>&1; then
+          PY=python3
+        elif command -v python >/dev/null 2>&1; then
+          PY=python
+        else
+          echo "::error::Zero Slop needs Python 3.9 or newer on the runner. Add actions/setup-python before this step."
+          exit 1
+        fi
+
+        if [ ! -e "$ZS_PATH" ]; then
+          echo "::error::path '$ZS_PATH' does not exist in the workspace."
+          exit 1
+        fi
+
+        case "$ZS_GATE" in
+          ''|*[!0-9.]*)
+            echo "::error::gate must be a number, got '$ZS_GATE'."
+            exit 1 ;;
+        esac
+
+        ARGS=(--json --gate "$ZS_GATE")
+        if [ -d "$ZS_PATH" ]; then
+          ARGS=(--batch "$ZS_PATH" "${ARGS[@]}")
+        else
+          ARGS=("$ZS_PATH" "${ARGS[@]}")
+        fi
+        if [ "$ZS_FORMAL" = "true" ]; then
+          ARGS+=(--formal)
+        fi
+
+        REPORT_FILE="$(mktemp)"
+        ERR_FILE="$(mktemp)"
+        trap 'rm -f "$REPORT_FILE" "$ERR_FILE"' EXIT
+
+        # A score above the gate exits non-zero by design. That is the signal,
+        # not a crash, so capture the status instead of letting -e abort here.
+        set +e
+        "$PY" "$ZS_ACTION_PATH/scripts/slopscore.py" "${ARGS[@]}" >"$REPORT_FILE" 2>"$ERR_FILE"
+        STATUS=$?
+        set -e
+
+        if [ ! -s "$REPORT_FILE" ]; then
+          # A directory with nothing to score is a no-op, not a failure. A repo
+          # that adds the gate before it adds docs should not break its build.
+          if grep -q "no .md, .txt, or .markdown files" "$ERR_FILE" 2>/dev/null; then
+            echo "::notice::Zero Slop found no .md, .txt, or .markdown files under '$ZS_PATH'. Nothing to score."
+            {
+              echo "passed=true"
+              echo "max-score=0"
+              echo "documents=0"
+              echo "report={\"result_kind\":\"batch_score\",\"documents\":0,\"passed\":true}"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::error::Zero Slop produced no output (exit $STATUS)."
+          sed 's/^/  /' "$ERR_FILE" >&2 || true
+          exit 1
+        fi
+
+        "$PY" "$ZS_ACTION_PATH/scripts/gha_report.py" \
+          --gate "$ZS_GATE" \
+          --report "$REPORT_FILE" \
+          --path "$ZS_PATH" \
+          --annotate "$ZS_ANNOTATE" \
+          --summary "$ZS_SUMMARY"
+
+        if [ "$ZS_FAIL" = "true" ] && [ "$STATUS" -ne 0 ]; then
+          echo "::error::Writing score is above the gate of $ZS_GATE."
+          exit 1
+        fi
+        exit 0
