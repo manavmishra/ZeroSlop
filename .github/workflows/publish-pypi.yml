@@ -74,15 +74,19 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --quiet --upgrade build twine
-          python3 -m build
-          python3 -m twine check dist/*
+          # dist/ already holds the release bundle (zero-slop-single-file.md and
+          # friends), and `twine check dist/*` rejects anything that is not a
+          # distribution. Build into a directory of our own.
+          rm -rf dist/pypi
+          python3 -m build --outdir dist/pypi
+          python3 -m twine check dist/pypi/*
 
       - name: The built wheel scores identically to the repository scorer
         if: steps.decide.outputs.publish == 'true'
         run: |
           set -euo pipefail
           python3 -m venv /tmp/verify
-          /tmp/verify/bin/pip install --quiet dist/*.whl
+          /tmp/verify/bin/pip install --quiet dist/pypi/*.whl
           installed="$(/tmp/verify/bin/python -c "
           from zero_slop import load_patterns, score_text
           print(score_text('We are thrilled to announce a transformative solution.', load_patterns())['ai_likelihood'])")"
@@ -98,7 +102,7 @@ jobs:
         if: steps.decide.outputs.publish == 'true'
         with:
           name: pypi-dist
-          path: dist/
+          path: dist/pypi/
           retention-days: 7
 
   publish:
