@@ -62,7 +62,7 @@ jobs:
         run: python3 scripts/check_distribution_manifests.py
 
       - name: PyPI mirror matches the shipped scorer
-        run: python3 scripts/build_pypi.py --check
+        run: python3 tooling/build_pypi.py --check
 
       - name: Distribution surfaces suite
         run: python3 -m unittest tests.test_distribution
@@ -164,12 +164,18 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - name: Score the examples directory
+      - name: Score prose that is meant to be clean
         id: scored
+        uses: ./
+        with:
+          path: DISTRIBUTION.md
+          gate: "40"
+      - name: The examples directory holds deliberately bad drafts, so report only
         uses: ./
         with:
           path: examples
           gate: "40"
+          fail-on-gate: "false"
       - name: Report-only mode never blocks
         uses: ./
         with:

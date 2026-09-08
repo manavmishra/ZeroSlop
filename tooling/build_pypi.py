@@ -7,8 +7,8 @@ same code. This script copies those exact bytes into packaging/zero_slop/ and
 never edits them. CI runs it with --check so a pull request that touches the
 scorer without regenerating the mirror fails.
 
-    python3 scripts/build_pypi.py            # regenerate the mirror
-    python3 scripts/build_pypi.py --check    # verify it is current (CI)
+    python3 tooling/build_pypi.py            # regenerate the mirror
+    python3 tooling/build_pypi.py --check    # verify it is current (CI)
 
 Layout matters. slopscore.py resolves its data as `__file__/../../data`, so the
 mirror keeps the scripts/ and data/ pair one level below the package root. That
@@ -69,8 +69,10 @@ def planned() -> dict[Path, bytes]:
         PACKAGE / "__init__.py": PACKAGE_INIT.format(version=version()).encode(),
         PACKAGE / "scripts" / "__init__.py": SCRIPTS_INIT.encode(),
     }
-    for name in MODULES + EXTRA_MODULES:
+    for name in MODULES:
         files[PACKAGE / "scripts" / name] = (ROOT / "scripts" / name).read_bytes()
+    for name in EXTRA_MODULES:
+        files[PACKAGE / "scripts" / name] = (ROOT / "tooling" / name).read_bytes()
     for name in DATA:
         files[PACKAGE / "data" / name] = (ROOT / "data" / name).read_bytes()
     return files
@@ -94,6 +96,10 @@ def check(files: dict[Path, bytes]) -> list[str]:
             problems.append(f"stale {rel}")
     if PACKAGE.exists():
         for found in sorted(PACKAGE.rglob("*")):
+            # A local `python3 -m build` drops egg-info beside the package. It
+            # is git-ignored build output, not part of the mirror.
+            if any(part.endswith(".egg-info") for part in found.parts):
+                continue
             if found.is_file() and found not in files:
                 problems.append(f"unexpected {found.relative_to(ROOT)}")
     return problems

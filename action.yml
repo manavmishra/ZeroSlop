@@ -126,7 +126,7 @@ runs:
           exit 1
         fi
 
-        "$PY" "$ZS_ACTION_PATH/scripts/gha_report.py" \
+        "$PY" "$ZS_ACTION_PATH/tooling/gha_report.py" \
           --gate "$ZS_GATE" \
           --report "$REPORT_FILE" \
           --path "$ZS_PATH" \

@@ -20,7 +20,7 @@ from pathlib import Path
 try:  # installed wheel
     from zero_slop.scripts import slopscore
 except ImportError:  # running from a source checkout
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
     import slopscore  # type: ignore
 
 

@@ -26,3 +26,8 @@ dist/zero-slop.zip
 /node_modules/
 /tmp/
 /next-env.d.ts
+
+# Python build artifacts from `python3 -m build`
+*.egg-info/
+build/
+dist/pypi/

@@ -50,7 +50,7 @@ jobs:
           echo "value=$value" >> "$GITHUB_OUTPUT"
 
       - name: The wheel mirror matches the shipped scorer
-        run: python3 scripts/build_pypi.py --check
+        run: python3 tooling/build_pypi.py --check
 
       - name: Manifests agree on one version
         run: python3 scripts/check_distribution_manifests.py

@@ -20,6 +20,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tooling"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_pypi  # noqa: E402
@@ -33,7 +34,7 @@ def digest(path: Path) -> str:
 class PyPIMirror(unittest.TestCase):
     def test_mirror_is_current(self):
         self.assertEqual(build_pypi.main(["--check"]), 0,
-                         "packaging/zero_slop is stale; run python3 scripts/build_pypi.py")
+                         "packaging/zero_slop is stale; run python3 tooling/build_pypi.py")
 
     def test_scorer_bytes_are_identical(self):
         for name in build_pypi.MODULES:
@@ -149,7 +150,7 @@ class ActionManifest(unittest.TestCase):
 
     def test_calls_the_shipped_scorer_and_reporter(self):
         self.assertIn("scripts/slopscore.py", self.text)
-        self.assertIn("scripts/gha_report.py", self.text)
+        self.assertIn("tooling/gha_report.py", self.text)
 
 
 class PreCommitHooks(unittest.TestCase):
@@ -170,7 +171,7 @@ class MultiFileGate(unittest.TestCase):
     """pre-commit hands over every matched file at once; the gate must accept a list."""
 
     def setUp(self):
-        sys.path.insert(0, str(ROOT / "scripts"))
+        sys.path.insert(0, str(ROOT / "tooling"))
         import gate
         self.gate = gate
         self.tmp = tempfile.TemporaryDirectory()

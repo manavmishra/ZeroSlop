@@ -7,7 +7,7 @@
   </a>
 </p>
 
-      Zero Slop is installed about 1,600 times a week on npm.
+      Zero Slop crossed 100 GitHub stars and 2,000 npm downloads in its first 12 days.
 
 <p align="center"><strong>Find AI-sounding tells and slop in your writing.</strong></p>
 

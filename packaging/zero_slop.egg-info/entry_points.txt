@@ -1,3 +1,0 @@
-[console_scripts]
-slopscore = zero_slop.scripts.slopscore:main
-zero-slop-score = zero_slop.scripts.slopscore:main

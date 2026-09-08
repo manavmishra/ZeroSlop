@@ -36,10 +36,6 @@ EXCLUDE = {
     # A maintainer check against GitHub and npm, not something an installed
     # skill should carry or run.
     "check_distribution_manifests.py", "check_release_version.py",
-    # Packaging and CI tooling: the wheel mirror builder, the Action reporter,
-    # and the multi-file gate that pre-commit calls. None is runtime for an
-    # installed skill, so none should ship inside one.
-    "build_pypi.py", "gha_report.py", "gate.py",
     "check_release_surfaces.py",
     "contextual.py", "contextual-signals.md", ".DS_Store",
     "make-readme-gif.mjs",
