@@ -63,6 +63,22 @@ jobs:
               dist/zero-slop.zip dist/zero-slop-single-file.md \
               assets/Zero-Slop-One-Pager.pdf
           fi
+
+          # --latest is a request, not a guarantee: a release already carrying
+          # the flag can keep it, and the mismatch then sits until the hourly
+          # reconcile notices. Assert it took, and repair once before failing,
+          # so the flag can never disagree with the version being released.
+          latest="$(gh release view --json tagName --jq .tagName 2>/dev/null || true)"
+          if [ "$latest" != "$TAG" ]; then
+            echo "latest points at '${latest:-none}', not $TAG; repairing"
+            gh release edit "$TAG" --latest --verify-tag
+            latest="$(gh release view --json tagName --jq .tagName 2>/dev/null || true)"
+          fi
+          if [ "$latest" != "$TAG" ]; then
+            echo "::error::the latest release flag is '${latest:-none}', not $TAG." >&2
+            exit 1
+          fi
+          echo "latest release flag confirmed at $TAG"
   deploy_mcp:
     needs: publish
     permissions:
