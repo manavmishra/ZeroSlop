@@ -3,7 +3,7 @@
 #
 #   repos:
 #     - repo: https://github.com/manavmishra/ZeroSlop
-#       rev: v2.11.3
+#       rev: v2.11.4
 #       hooks:
 #         - id: zero-slop
 #           args: [--gate, "25"]

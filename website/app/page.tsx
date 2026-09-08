@@ -4,7 +4,7 @@ import { ExampleGallery } from "./ExampleGallery";
 
 const githubUrl = "https://github.com/manavmishra/ZeroSlop";
 const releaseUrl = `${githubUrl}/releases/latest`;
-const skillVersion = "2.11.3";
+const skillVersion = "2.11.4";
 const compatibleAgents = [
   "Codex",
   "Claude Code",

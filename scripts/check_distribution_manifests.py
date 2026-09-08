@@ -61,6 +61,16 @@ def main() -> int:
                 f"action.yml is missing {field} required by the Marketplace", problems)
     require("${{ inputs." not in action.split("run: |", 1)[-1],
             "action.yml must pass inputs through env:, not expression interpolation", problems)
+    # The Marketplace refuses to publish a description of 125 characters or
+    # more, and only says so in the release form.
+    action_description = ""
+    for line in action.splitlines():
+        if line.startswith("description:"):
+            action_description = line.split(":", 1)[1].strip().strip('"')
+            break
+    require(0 < len(action_description) < 125,
+            f"action.yml description is {len(action_description)} characters; "
+            "the GitHub Marketplace requires fewer than 125", problems)
 
     # pre-commit hands over every matched file in one call, so the entry has to
     # be the multi-file gate rather than the single-file report command.

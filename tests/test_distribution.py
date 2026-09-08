@@ -148,6 +148,14 @@ class ActionManifest(unittest.TestCase):
         self.assertNotIn("${{ inputs.", run_block,
                          "action.yml must pass inputs via env:, not expression interpolation")
 
+    def test_description_fits_the_marketplace_limit(self):
+        """GitHub refuses to publish an Action whose description reaches 125 characters."""
+        line = next(l for l in self.text.splitlines() if l.startswith("description:"))
+        description = line.split(":", 1)[1].strip().strip('"')
+        self.assertLess(len(description), 125,
+                        f"description is {len(description)} characters")
+        self.assertGreater(len(description), 0)
+
     def test_calls_the_shipped_scorer_and_reporter(self):
         self.assertIn("scripts/slopscore.py", self.text)
         self.assertIn("tooling/gha_report.py", self.text)

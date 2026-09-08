@@ -1,6 +1,6 @@
 {
   "name": "zero-slop",
-  "version": "2.11.3",
+  "version": "2.11.4",
   "description": "Find and fix canned AI writing while preserving the facts, voice, and format.",
   "mcpServers": {
     "zero-slop": {
