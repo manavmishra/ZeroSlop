@@ -1,19 +1,21 @@
 # Zero Slop — Terms of Service
 
-**Effective 7 September 2026 · Version 1.0**
+**Effective 10 September 2026 · Version 1.1**
 
-These terms are an agreement between you and Garage Capital LLC ("we", "us", and "our"). They
+Operator name corrected in this version. All other terms are unchanged.
+
+These terms are an agreement between you and Garage Capital Ventures LLC ("we", "us", and "our"). They
 cover the Zero Slop website, the free browser editor, and the optional hosted MCP connector.
 The installed skill and its source code are licensed separately under the
 [MIT License](LICENSE), and nothing here narrows the rights that licence grants you.
 
-No member, manager, employee, or agent of Garage Capital LLC is a party to these terms in an
+No member, manager, employee, or agent of Garage Capital Ventures LLC is a party to these terms in an
 individual capacity. These terms do not create a personal guarantee of the company's obligations
 by any such person. Nothing in this paragraph excludes liability that cannot lawfully be excluded.
 
 ## 1. What these terms cover
 
-Zero Slop is an open-source writing tool. Garage Capital LLC operates its hosted services.
+Zero Slop is an open-source writing tool. Garage Capital Ventures LLC operates its hosted services.
 The software and the hosted services are governed differently.
 
 - **The software.** The skill, the local scorer, and everything in this repository are licensed
@@ -111,7 +113,7 @@ separate warranty disclaimer in the MIT License.
 
 ## 10. Limitation of liability
 
-To the fullest extent permitted by applicable law, Garage Capital LLC and its members, managers,
+To the fullest extent permitted by applicable law, Garage Capital Ventures LLC and its members, managers,
 employees, and agents disclaim liability for claims, damages, or other liability arising out of
 or relating to the hosted services or their output, whether in contract, tort, or otherwise.
 This includes indirect, incidental, special, consequential, or exemplary damages and loss of
@@ -163,7 +165,7 @@ These terms are governed by the laws of the State of California, United States, 
 to its conflict-of-law rules. Except where applicable law requires otherwise, disputes arising
 out of or relating to these terms or the hosted services must be brought in the state courts in
 Los Angeles County, California, or, where federal jurisdiction exists, the United States District
-Court for the Central District of California. You and Garage Capital LLC consent to the personal
+Court for the Central District of California. You and Garage Capital Ventures LLC consent to the personal
 jurisdiction of those courts.
 
 Nothing in this section takes away any consumer protection or right to bring a claim in another

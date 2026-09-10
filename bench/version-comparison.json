@@ -1,10 +1,10 @@
 {
  "result_kind": "interleaved_local_version_comparison",
- "measured_at": "2026-09-08T23:27:03+00:00",
+ "measured_at": "2026-09-10T19:27:01+00:00",
  "environment": {
   "platform": "Darwin",
   "architecture": "arm64",
-  "python": "3.9.6"
+  "python": "3.12.7"
  },
  "baseline": {
   "version": "2.7.7",
@@ -12,7 +12,7 @@
   "slopscore_sha256": "e96c607189a1763d2ce26c2380edb777c26caadb7f264e6993f7d78ff2bfe1ce"
  },
  "candidate": {
-  "version": "2.11.5",
+  "version": "2.11.6",
   "slopscore_sha256": "e2f139f932e3dfec5dbd266f252bfd46abfb09eb4c04f5f619cdc00a2cdc5367"
  },
  "workload": {
@@ -24,38 +24,38 @@
  },
  "timing_seconds": {
   "baseline": [
-   0.9633,
-   0.9658,
-   0.9753,
-   0.9671,
-   0.969,
-   0.965,
-   0.9708,
-   0.9641,
-   0.9677,
-   0.9641,
-   0.966,
-   0.965
+   0.9057,
+   0.7866,
+   0.7841,
+   0.7886,
+   0.8057,
+   0.785,
+   0.9054,
+   0.7813,
+   0.7824,
+   0.7902,
+   0.7833,
+   0.9021
   ],
   "candidate": [
-   0.9712,
-   0.9741,
-   1.0224,
-   0.9721,
-   0.9682,
-   0.9728,
-   0.9719,
-   0.9681,
-   0.9714,
-   0.9752,
-   0.972,
-   0.971
+   0.93,
+   0.787,
+   0.7913,
+   0.7854,
+   0.8155,
+   0.7887,
+   0.7903,
+   0.7887,
+   0.8432,
+   0.789,
+   0.7811,
+   0.8356
   ],
-  "median_baseline": 0.9659,
-  "median_candidate": 0.9719,
-  "documents_per_second_baseline": 621.2,
-  "documents_per_second_candidate": 617.3,
-  "median_speed_change_pct": -0.62
+  "median_baseline": 0.7876,
+  "median_candidate": 0.7896,
+  "documents_per_second_baseline": 761.8,
+  "documents_per_second_candidate": 759.8,
+  "median_speed_change_pct": -0.26
  },
  "frozen_regression": {
   "score_changes": 0,

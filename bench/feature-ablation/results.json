@@ -5,7 +5,7 @@
     "commit": "a28fc2bb24715b59b6d0bd461b6e900c92cb9564"
   },
   "candidate": {
-   "version": "2.11.5",
+   "version": "2.11.6",
     "production_path": "single"
   },
   "deterministic_surface_ablation": {
@@ -41,7 +41,7 @@
     "median_local_retrieval_seconds": 0.1534,
     "calibrated_probability": false,
     "accuracy_result": null,
-    "limits": "Retrieval needs repeated, source-bound edits from a real writer before a field-quality lift can be estimated. It remains advisory and cannot bypass fidelity or safety gates. The retrieval timing is a retained historical measurement, not a timing rerun for this dependency-only release."
+    "limits": "Retrieval needs repeated, source-bound edits from a real writer before a field-quality lift can be estimated. It remains advisory and cannot bypass fidelity or safety gates. The retrieval timing is a retained historical measurement, not a timing rerun for this operator-identity and version-metadata release."
   },
   "blind_evaluation_lane": {
     "runtime_effect": "none",

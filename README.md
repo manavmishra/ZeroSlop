@@ -30,7 +30,7 @@
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.11.5" src="https://img.shields.io/badge/version-2.11.5-72528F?color=C15732">
+  <img alt="Version 2.11.6" src="https://img.shields.io/badge/version-2.11.6-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -136,7 +136,7 @@ https://mcp.zero-slop.ai/mcp
 Edit a file through MCP:
 
 ```sh
-npx --yes zero-slop@2.11.5 deslop draft.md --genre professional
+npx --yes zero-slop@2.11.6 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` exits nonzero
@@ -254,8 +254,8 @@ stress case took 2.2932 seconds, and learning from an 8,000-word edit took
 0.1592 seconds. The measurements and machine details are in
 [`bench/performance-results.json`](bench/performance-results.json).
 
-Across 12 interleaved runs against 2.7.7, we measured 0.62% lower median throughput,
-within the 5% regression limit. The separate two-way replay used
+Across 12 interleaved runs against 2.7.7, we measured 0.26% lower median throughput,
+within the 5% regression limit. Local timing, not an SLA. The two-way replay used
 Zero Slop v2.6.0.
 
 The [RAID+ audit](bench/raid-plus-corpus/README.md) checks how the scorer responds
