@@ -113,6 +113,9 @@ jobs:
       - name: Full test suite
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 
+      - name: Historical benchmark compatibility boundaries
+        run: python3 -m unittest discover -s bench -p 'test_runtime_compatibility.py'
+
       - name: Plugin mirror in sync
         run: python3 scripts/build_plugin.py --check
 

@@ -29,6 +29,7 @@ PARTS = [
     "references/copy-desk.md",
     "references/eval.md",
     "references/fresh-eyes.md",
+    "references/reader-review.md",
     "references/evidence.md",
 ]
 RULE = "=" * 72

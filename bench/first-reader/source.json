@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "repository": "Shubhamsaboo/awesome-llm-apps",
+  "commit": "f56f4febaac4eb869c2e98859e78612889913d3e",
+  "path": "agent_skills/first-reader",
+  "audited_on": "2026-09-10",
+  "license": "Apache-2.0",
+  "source_url": "https://github.com/Shubhamsaboo/awesome-llm-apps/tree/f56f4febaac4eb869c2e98859e78612889913d3e/agent_skills/first-reader",
+  "tree_url": "https://api.github.com/repos/Shubhamsaboo/awesome-llm-apps/git/trees/f56f4febaac4eb869c2e98859e78612889913d3e?recursive=1",
+  "upstream_test_suite": "No test files or evaluation corpus in the pinned first-reader subtree.",
+  "redistribution": "Source fetched on demand into a user-selected cache; no upstream implementation copied into the MIT runtime.",
+  "files": {
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "README.md": "b21d577ae0c25a04fe1fbface5f19e18f79d8ddcf724198b700e3295b026e193",
+    "SKILL.md": "51ead158e27a65eff7c1bacc5db8a89d1ed1101b44b3b57fa05440f60582d55d",
+    "references/interview.md": "1cfe4df25d1f5db6e1ecb869172ed4cc59cdf7c1ce21036a521d6f7336513093",
+    "references/personas.md": "80ed354630f231235f47b096b6d6feb0b2ae854ff0beb47c6e72ac99d892aa02",
+    "references/report.md": "eb79fcd5800ee7500257bd01e9da09e38c9fb048a17242feaa81c7c053e66cb8",
+    "references/room.md": "4ab04a5d7ed4fa0795de189d4e6cc0370d566aedf5aff5f2b6e9741133a907b9",
+    "scripts/ask.py": "4f474f8e7e41808fba18152b0edc4d84333e6fdda877b622ad9ef6cc8c5c680e",
+    "scripts/feed.py": "46b98b86ed81d432ab763de7b1051265ea0623a32e24702296f86405ec4e21bb",
+    "scripts/recall.py": "77d54c219d721f9cd56db710af17efed79750fde69a5647908861f212724ea9f",
+    "scripts/room.py": "4f83425aec3cb91ccf2c5953b1351e548470a54b5bbd1c824228cfb40f0f2f7d",
+    "scripts/room_template.html": "8631c113a79ff74c25df88267342a690badc634a3fe6d9e578d48d8d7da0f32e",
+    "scripts/signals.py": "4e9096ac2e5dac1ff8707689e9b816f6cc52de9872b5ed42d2342cb012f981aa",
+    "scripts/skim.py": "47ceffc0b6c2a737e206a97b34fba2dff493e328bb8f68c371fd810201335ecb"
+  }
+}

@@ -77,7 +77,8 @@ try {
   const tarball = join(directory, manifest.filename);
   report.tarball = { path: tarball, sha256: digest(await readFile(tarball)), integrity: manifest.integrity };
   const shipped = manifest.files.map((entry) => entry.path);
-  for (const path of ["bin/zero-slop.mjs", "bin/lib/deslop.mjs", "bin/lib/deslop.d.mts", "scripts/slopscore.py", "data/patterns.json"]) assert.ok(shipped.includes(path), `${path} missing from tarball`);
+  const readerFiles = ["scripts/reader_review.py", "references/reader-review.md"];
+  for (const path of ["bin/zero-slop.mjs", "bin/lib/deslop.mjs", "bin/lib/deslop.d.mts", "scripts/slopscore.py", "data/patterns.json", ...readerFiles]) assert.ok(shipped.includes(path), `${path} missing from tarball`);
   assert.equal(shipped.some((path) => path.startsWith("tests/") || path.startsWith("integrations/")), false);
   const prefix = join(directory, "install");
   const installed = await command(npm.executable, [...npm.prefixArgs, "install", "--offline", "--prefix", prefix, "--ignore-scripts", "--no-audit", "--no-fund", tarball]);
@@ -86,7 +87,7 @@ try {
   const bin = process.platform === "win32" ? join(packageRoot, "bin", "zero-slop.mjs") : join(prefix, "node_modules", ".bin", "zero-slop");
   await access(bin);
   if (process.platform === "win32") await access(join(prefix, "node_modules", ".bin", "zero-slop.cmd"));
-  for (const path of ["bin/zero-slop.mjs", "bin/lib/deslop.mjs", "bin/lib/deslop.d.mts"]) {
+  for (const path of ["bin/zero-slop.mjs", "bin/lib/deslop.mjs", "bin/lib/deslop.d.mts", ...readerFiles]) {
     const source = await readFile(join(root, path));
     // npm's bin linker normalizes only a CRLF shebang, even on Windows.
     // Keep the rest of the installed source byte-for-byte checked.
@@ -119,6 +120,9 @@ try {
       const installation = await cli(["install", "--harness", harness]);
       assert.equal(installation.code, 0, installation.stderr);
       assert.deepEqual(await readFile(join(expected, "SKILL.md")), await readFile(join(packageRoot, "SKILL.md")));
+      for (const path of readerFiles) {
+        assert.deepEqual(await readFile(join(expected, path)), await readFile(join(packageRoot, path)), `${harness} lost ${path}`);
+      }
       const repeated = await cli(["install", "--harness", harness]);
       assert.equal(repeated.code, 1, "Existing installation must not be overwritten without --force");
       const update = await cli(["install", "--harness", harness, "--force"]);
@@ -129,6 +133,22 @@ try {
   const draft = join(directory, "synthetic-clear.md");
   await writeFile(draft, cases[0].text, { mode: 0o600 });
   const originalHash = digest(await readFile(draft));
+  await record("installed reader helper prepares exact-source packets without inference", async () => {
+    const helper = join(packageRoot, "scripts", "reader_review.py");
+    const prepared = await command("python3", [helper, "prepare", draft, "--audience", "Engineering managers"]);
+    assert.equal(prepared.code, 0, prepared.stderr);
+    const manifest = JSON.parse(prepared.stdout);
+    assert.equal(manifest.source, cases[0].text);
+    assert.equal(manifest.source_sha256, originalHash);
+    const manifestPath = join(directory, "reader-manifest.json");
+    await writeFile(manifestPath, prepared.stdout, { mode: 0o600 });
+    const next = await command("python3", [helper, "next", manifestPath, "--reader", "R1"]);
+    assert.equal(next.code, 0, next.stderr);
+    const packet = JSON.parse(next.stdout);
+    assert.equal(packet.passage.text, cases[0].text);
+    assert.equal(packet.context_mode, "retrospective");
+    assert.equal(digest(await readFile(draft)), originalHash);
+  });
   await record("offline score file and stdin; source unchanged", async () => {
     for (const args of [["score", draft, "--", "--json"], ["score", "-", "--", "--json"]]) {
       const score = await cli(args, { input: cases[0].text });

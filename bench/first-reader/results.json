@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "result_kind": "pinned_source_and_offline_component_contracts",
+  "source_commit": "f56f4febaac4eb869c2e98859e78612889913d3e",
+  "source_manifest_sha256": "a14e9f9ed4a77d41145f07840eb02d3623c1a0691304712a16da14af9ca27d44",
+  "evaluator_sha256": "4de45fed86eba38a7d7f57f77d448390305962144a5283fab36fb3ab446575f4",
+  "network_during_checks": false,
+  "model_calls": 0,
+  "human_readers": 0,
+  "reader_outcome_accuracy": null,
+  "rewrite_scores": null,
+  "checks": [
+    {
+      "id": "rewrite_explicitly_excluded",
+      "passed": true
+    },
+    {
+      "id": "reference_material_has_lookup_route",
+      "passed": true
+    },
+    {
+      "id": "short_text_skips_recall",
+      "passed": true
+    },
+    {
+      "id": "fiction_limits_trust_ledger",
+      "passed": true
+    },
+    {
+      "id": "clean_control_must_not_invent_findings",
+      "passed": true
+    },
+    {
+      "id": "no_quality_scores_in_report",
+      "passed": true
+    },
+    {
+      "id": "heading_attached_to_prose",
+      "passed": true
+    },
+    {
+      "id": "long_blob_preserves_words",
+      "passed": true
+    },
+    {
+      "id": "long_blob_has_multiple_passages",
+      "passed": true
+    },
+    {
+      "id": "empty_chunking_is_empty",
+      "passed": true
+    },
+    {
+      "id": "cannot_advance_before_start",
+      "passed": true
+    },
+    {
+      "id": "first_passage_withholds_later_text",
+      "passed": true
+    },
+    {
+      "id": "short_log_refused",
+      "passed": true
+    },
+    {
+      "id": "dwell_guard_refuses_racing",
+      "passed": true
+    },
+    {
+      "id": "restart_does_not_advance",
+      "passed": true
+    },
+    {
+      "id": "valid_log_advances_one_passage",
+      "passed": true
+    },
+    {
+      "id": "draft_state_not_flushed_mid_read",
+      "passed": true
+    },
+    {
+      "id": "quit_records_position",
+      "passed": true
+    },
+    {
+      "id": "one_quit_does_not_flush_other_reader",
+      "passed": true
+    },
+    {
+      "id": "all_finished_flushes_state",
+      "passed": true
+    },
+    {
+      "id": "finished_reader_cannot_advance",
+      "passed": true
+    },
+    {
+      "id": "recall_receives_memory",
+      "passed": true
+    },
+    {
+      "id": "recall_withholds_unlogged_draft",
+      "passed": true
+    },
+    {
+      "id": "consultation_uses_log_only",
+      "passed": true
+    },
+    {
+      "id": "missing_reader_abstains",
+      "passed": true
+    },
+    {
+      "id": "skimmer_consultation_uses_own_note",
+      "passed": true
+    },
+    {
+      "id": "scanner_keeps_heading",
+      "passed": true
+    },
+    {
+      "id": "scanner_truncates_body",
+      "passed": true
+    },
+    {
+      "id": "signals_count_number",
+      "passed": true
+    },
+    {
+      "id": "signals_count_admission",
+      "passed": true
+    },
+    {
+      "id": "signals_count_hedge",
+      "passed": true
+    },
+    {
+      "id": "signals_are_not_quality_score",
+      "passed": true
+    }
+  ],
+  "passed": 32,
+  "total": 32,
+  "limitations": [
+    "Constructed fixtures validate component behavior; no AI reader session or human study was run.",
+    "No test suite is present in the pinned first-reader subtree. These are locally authored contracts.",
+    "HTTP transport, page rendering, hostile inputs and isolation from agent filesystem access are not validated.",
+    "Recall output is a log-bound prompt; this does not measure next-day human memory.",
+    "First Reader excludes rewriting and is not ranked in preserved rewrite benchmarks."
+  ]
+}

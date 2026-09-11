@@ -3312,10 +3312,13 @@ class SearchCorpus(unittest.TestCase):
     def test_version_comparison_record_is_current_and_arithmetically_sound(self):
         import hashlib
         import statistics
+        sys.path.insert(0, str(ROOT / "bench"))
+        from runtime_compatibility import exact_code_compatible
         record = json.loads((ROOT / "bench" / "version-comparison.json").read_text())
         self.assertEqual(record["result_kind"], "interleaved_local_version_comparison")
         version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
-        self.assertEqual(record["candidate"]["version"], version)
+        self.assertTrue(record["candidate"]["version"] == version or
+                        exact_code_compatible(record["candidate"]["version"], version))
         self.assertEqual(
             record["candidate"]["slopscore_sha256"],
             hashlib.sha256(SCORER.read_bytes()).hexdigest(),
@@ -4233,8 +4236,18 @@ class Diagram(unittest.TestCase):
             "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
         )
         self.assertGreaterEqual(len(audit["capabilities"]), 10)
+        added_reader_capabilities = {
+            "reader_skim_gate", "staged_reader_feed", "transcript_recall",
+            "reader_comment_page", "reader_followup",
+        }
         for row in audit["capabilities"]:
             with self.subTest(row=row["id"]):
+                if row["id"] in added_reader_capabilities:
+                    self.assertEqual(row["first_reader"], "native")
+                    for product in audit["products"]:
+                        if product != "first_reader":
+                            self.assertEqual(row[product], "not_assessed")
+                    continue
                 self.assertEqual(row["zero_slop"], "native")
                 self.assertIn(row["blader"], {"guided", "not_documented"})
                 self.assertIn(row["no_ai_slop"], {"guided", "not_documented"})
@@ -4348,6 +4361,7 @@ class Diagram(unittest.TestCase):
         self.assertEqual(shipped, {
             "calibrate.py", "learn.py", "predictability.py", "register.py",
             "rerank.py", "rescue.py", "safeio.py", "slopscore.py", "version_check.py",
+            "reader_review.py",
         })
         self.assertFalse((ROOT / "skills" / "zero-slop" / "references" /
                           "contextual-signals.md").exists())

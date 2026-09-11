@@ -11,4 +11,4 @@ The scorer runs offline and uses only the Python standard library.
 from zero_slop.scripts.slopscore import load_patterns, score_text
 
 __all__ = ["load_patterns", "score_text", "__version__"]
-__version__ = "2.11.6"
+__version__ = "2.12.0"

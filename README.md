@@ -30,7 +30,7 @@
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.11.6" src="https://img.shields.io/badge/version-2.11.6-72528F?color=C15732">
+  <img alt="Version 2.12.0" src="https://img.shields.io/badge/version-2.12.0-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -72,15 +72,8 @@ Writing score: 9.5/100  [clear]
 
 The rewrite retains the draft's stated result. See four complete, reproducible pairs in [`examples/`](examples/).
 
-## What can I use it for?
-
-- Tighten a launch post without losing the release details.
-- Turn a padded product update into a useful changelog.
-- Clean up an email while preserving names, dates, and numbers.
-- Edit a research summary without flattening its qualifications.
-- Gate a folder of generated copy before it ships.
-
-The score describes writing patterns, not authorship.
+Use it for launch posts, changelogs, emails, research summaries, or batch checks.
+Scores describe writing patterns, not authorship.
 
 ## Install
 
@@ -121,9 +114,7 @@ python3 scripts/slopscore.py --batch drafts/ --gate 25
 
 Installed checks run locally. Skill editing follows your assistant's privacy settings; [MCP editing is remote](mcp/README.md).
 
-### Prefer one hosted connection? Use the MCP
-
-Connect the [Zero Slop MCP](https://zero-slop.ai/#mcp) to edit drafts inside your MCP client. No account or API key required.
+### Hosted MCP
 
 ```text
 https://mcp.zero-slop.ai/mcp
@@ -136,7 +127,7 @@ https://mcp.zero-slop.ai/mcp
 Edit a file through MCP:
 
 ```sh
-npx --yes zero-slop@2.11.6 deslop draft.md --genre professional
+npx --yes zero-slop@2.12.0 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` exits nonzero
@@ -211,7 +202,19 @@ The free web editor combines the five AI responsibilities into one response and
 makes at most one live model call. A single response does not provide independent review.
 Any final change receives one final local recheck.
 
-If a repair still misses the target, Zero Slop returns the safest source-preserving edit with a plain warning. It does not enter an open-ended rewrite loop.
+If repair fails, return the safest edit with a warning. No open-ended rewrite loop.
+
+### Review the reader's side
+
+Ask: **“Review this for backend engineers. Where would they stop reading?
+Don't rewrite it.”** Optional skim, passage reactions, and notes-only recall
+produce comments and revision strips. Simulations cannot establish human behavior;
+sequential review requires isolated contexts. The [workflow](references/reader-review.md)
+explains privacy, limits, and reporting. Hosted calls are unchanged.
+
+Inspired by [First Reader](bench/first-reader/), a review-only skill. Zero Slop
+also rewrites and checks source details. Neither has established human-reader
+accuracy; First Reader gets no invented rewrite score.
 
 ## Evidence and limits
 
@@ -314,7 +317,7 @@ For setup help and responsible disclosure, see [`SUPPORT.md`](SUPPORT.md) and [`
 
 ## Credits
 
-Zero Slop builds on ideas from [no-ai-slop](https://github.com/petergyang/no-ai-slop), [humanizer](https://github.com/blader/humanizer), [de-slop](https://github.com/isatimur/de-slop), [stop-slop](https://github.com/hardikpandya/stop-slop), [unslop-text](https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text), and [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing).
+Ideas from [First Reader](https://github.com/Shubhamsaboo/awesome-llm-apps/tree/f56f4febaac4eb869c2e98859e78612889913d3e/agent_skills/first-reader), [no-ai-slop](https://github.com/petergyang/no-ai-slop), [humanizer](https://github.com/blader/humanizer), [de-slop](https://github.com/isatimur/de-slop), [stop-slop](https://github.com/hardikpandya/stop-slop), [unslop-text](https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text), and [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing).
 
 ## License
 

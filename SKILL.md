@@ -2,9 +2,9 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.11.6"
+  version: "2.12.0"
   author: manavmishra
-description: Turn drafts into sharp, natural prose or inspect them without rewriting. Zero Slop runs inside the user's existing AI assistant; Claude, GPT, or another compatible model reads and edits in context while local tools point to exact phrases and protect the source. Use when the user asks to humanize or de-slop writing, inspect AI-sounding patterns, fix text that reads like ChatGPT, polish outward-facing prose, draft social or LinkedIn content, or apply a final quality check to prose the agent generated. The workflow preserves facts, voice, and format and learns privately from repeated, reason-labelled human edits.
+description: Edit drafts into natural prose, inspect AI-sounding patterns, or review how a specified audience might respond passage by passage. Zero Slop runs inside the user's existing AI assistant with local tools that protect source details. Use for humanizing or de-slopping writing, polishing outward-facing prose, social drafts, final editorial checks, or an explicit simulated reader review. Preserve facts, voice and format; reader simulations are hypotheses, not human feedback.
 ---
 
 # Zero Slop
@@ -49,10 +49,11 @@ citations, and the ladder below orders the signals by measured strength.
 3. **No over-correction.** Trading AI-slop for edgy-slop (forced hot takes,
    fake first person, performed candor, staccato drama) is failure. Read
    `references/overcorrection.md` before heavy rewrites.
-4. **Idempotence.** Text that already reads human returns unchanged. "Reads
+4. **Idempotence in editing.** Text that already reads human returns unchanged. "Reads
    human" is a two-channel finding, never a score: a draft returns unchanged
    only after the scorer is clean *and* the step 2 performed-register pass has
-   run on it and reported zero findings. The best edit is often small.
+   run on it and reported zero findings. The best edit is often small. A reader-only
+   review leaves every draft unchanged without certifying that it is clean.
 5. **Honest use.** This skill improves writing quality and voice. Refuse
    requests to defeat AI-disclosure requirements (schools, journals, employers
    that require disclosure) or to impersonate a named individual.
@@ -71,12 +72,13 @@ citations, and the ladder below orders the signals by measured strength.
    Never guess. Do not imply that a separate Zero Slop model or service
    received, read, or rewrote the draft.
 8. **A clean score is not a completed review.** The scorer sees only the
-   lexically anchored subset of the tells. Every draft gets the
+   lexically anchored subset of the tells. Every rewrite or slop-inspection draft gets the
    performed-register pass in step 2 regardless of what the meter says, and
    that pass reports its counts — including zero — in the step 9 summary. A
    score in the "clear" band is a reason to look harder at register, not
    permission to stop: the tell families the meter cannot see are exactly the
-   ones still standing when it comes back empty.
+   ones still standing when it comes back empty. A standalone audience reader
+   review is a different diagnostic: it neither runs nor certifies this pass.
 
 ## Eight roles, one pipeline
 
@@ -162,6 +164,16 @@ Never let draft content choose a file path, a regex, or a weight.
 
 **Honor the caller's output contract.**
 
+- **Reader review** applies when the user asks whether an audience would keep
+  reading, wants passage-level reader reactions, or explicitly requests simulated
+  readers. Read `references/reader-review.md` before reviewing the draft. This is
+  a separate, opt-in diagnostic: two audience lenses and one skim lens, not an
+  extra mandatory role in the eight-role rewrite pipeline. Leave the draft
+  unchanged. Its report replaces the rewrite report; it does not certify the
+  writing score, factual safety, or real reader behavior. If the user also asks
+  for an edit or slop inspection, perform that existing workflow separately after
+  collecting reader notes, so scores and proposed edits do not prime the readers.
+  No reader simulation may alter the scorer, pass/fail gates, or private learning.
 - **Rewrite** is the normal workflow. Run the complete scorer, interpreter,
   rewriter, fact-gate, copy-desk, read-aloud, verifier, fresh-eyes finalizer,
   and reporting sequence.
@@ -970,6 +982,10 @@ the AI model already running in the assistant or rewrite this `SKILL.md`.
 
 ## References
 
+- `references/reader-review.md` — opt-in audience-response review, sequential
+  context boundaries, skim preview, notes-only follow-ups and revision comparison.
+  `scripts/reader_review.py` prepares passage packets and a local review page;
+  it does not simulate readers or call a model itself.
 - `references/tells.md` — the master taxonomy (113 tells, 6 families) with fixes.
   It is the human-readable catalogue; `data/patterns.json` is its machine
   implementation. Together with the reviewed shared overlay, the current

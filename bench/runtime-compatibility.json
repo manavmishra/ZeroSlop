@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "result_kind": "exact_code_equivalence_not_new_measurement",
+  "recorded_on": "2026-09-10",
+  "measured_version": "2.11.6",
+  "compatible_version": "2.12.0",
+  "measured_commit": "0d866036b210b90e23fa9f7b4146316cf40c255e",
+  "method": "SHA-256 of git show <measured_commit>:<path>, checked against the candidate files. Applies only while every listed file matches; historical versions, dates and measurements remain unchanged.",
+  "limits": "This records equality of the measured scoring components and shared data. It does not validate the new reader workflow or establish new timing, model, human or field results. Existing corpus/vector/hash checks still run.",
+  "files": {
+    "scripts/slopscore.py": "e2f139f932e3dfec5dbd266f252bfd46abfb09eb4c04f5f619cdc00a2cdc5367",
+    "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+    "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+    "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+    "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+    "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+    "data/learned.json": "8427cf1f2b3aa45494db94c0ce30969dbc7368174138c5b771c15951ca12f483"
+  }
+}

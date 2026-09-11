@@ -1,42 +1,59 @@
 {
-  "schema": 1,
-  "audited_on": "2026-08-30",
-  "method": "Repository audit of the pinned commits. Native means a dedicated script, stored artifact, or named workflow gate. Guided means an instruction or self-check without a dedicated executable component. Not documented means the capability was not found in the audited repository; it does not prove the product cannot do it.",
+  "schema": 2,
+  "audited_on": "2026-09-10",
+  "method": "Repository audit of the pinned commits. Native means a dedicated script, stored artifact, or named workflow gate. Guided means an instruction or self-check without a dedicated executable component. Not documented means the capability was not found in the audited repository; it does not prove the product cannot do it. Not assessed means this comparison has not checked that product for a newly added capability. Audit dates and commits are per product; historical Zero Slop capabilities do not describe the uncommitted candidate. First Reader is a reader-review workflow that explicitly excludes rewriting; no rewrite score is assigned.",
   "products": {
     "zero_slop": {
       "label": "Zero Slop",
       "repository": "https://github.com/manavmishra/ZeroSlop",
-      "commit": "37f838d3689ac43845cfc21d1f3edcf6da6959b1"
+      "commit": "37f838d3689ac43845cfc21d1f3edcf6da6959b1",
+      "audited_on": "2026-08-30"
     },
     "blader": {
       "label": "blader/humanizer",
       "repository": "https://github.com/blader/humanizer",
-      "commit": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5"
+      "commit": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5",
+      "audited_on": "2026-08-30"
     },
     "no_ai_slop": {
       "label": "petergyang/no-ai-slop",
       "repository": "https://github.com/petergyang/no-ai-slop",
-      "commit": "d30eddb9e04562234f2070b5ee63ca4649d9a05e"
+      "commit": "d30eddb9e04562234f2070b5ee63ca4649d9a05e",
+      "audited_on": "2026-08-30"
     },
     "unslop_text": {
       "label": "JCarterJohnson/unslop-text",
       "repository": "https://github.com/JCarterJohnson/vibecoded-design-tells/tree/main/unslop-ai-text",
-      "commit": "f7c4aefc2c797a66e55b49354a93917ab60d33ac"
+      "commit": "f7c4aefc2c797a66e55b49354a93917ab60d33ac",
+      "audited_on": "2026-08-30"
     },
     "avoid_ai_writing": {
       "label": "avoid-ai-writing",
       "repository": "https://github.com/conorbronsdon/avoid-ai-writing",
-      "commit": "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca"
+      "commit": "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
+      "audited_on": "2026-08-30"
     },
     "stop_slop": {
       "label": "hardikpandya/stop-slop",
       "repository": "https://github.com/hardikpandya/stop-slop",
-      "commit": "8da1f030185bdfe8471220585162991eaeb970e9"
+      "commit": "8da1f030185bdfe8471220585162991eaeb970e9",
+      "audited_on": "2026-08-30"
     },
     "de_slop": {
       "label": "isatimur/de-slop",
       "repository": "https://github.com/isatimur/de-slop",
-      "commit": "4349a8af4116d6f02b38d62f4b19e66108c4aada"
+      "commit": "4349a8af4116d6f02b38d62f4b19e66108c4aada",
+      "audited_on": "2026-08-30"
+    },
+    "first_reader": {
+      "label": "First Reader",
+      "repository": "https://github.com/Shubhamsaboo/awesome-llm-apps",
+      "path": "agent_skills/first-reader",
+      "commit": "f56f4febaac4eb869c2e98859e78612889913d3e",
+      "audited_on": "2026-09-10",
+      "license": "Apache-2.0",
+      "evidence": "bench/first-reader/source.json",
+      "scope": "Reader review only; rewriting explicitly excluded."
     }
   },
   "capabilities": [
@@ -49,7 +66,8 @@
       "unslop_text": "native",
       "avoid_ai_writing": "native",
       "stop_slop": "guided",
-      "de_slop": "native"
+      "de_slop": "native",
+      "first_reader": "native"
     },
     {
       "id": "numeric_meter",
@@ -60,7 +78,8 @@
       "unslop_text": "native",
       "avoid_ai_writing": "native",
       "stop_slop": "guided",
-      "de_slop": "native"
+      "de_slop": "native",
+      "first_reader": "not_documented"
     },
     {
       "id": "ci_json",
@@ -71,7 +90,8 @@
       "unslop_text": "native",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "native"
+      "de_slop": "native",
+      "first_reader": "not_documented"
     },
     {
       "id": "structural_statistics",
@@ -82,7 +102,8 @@
       "unslop_text": "guided",
       "avoid_ai_writing": "native",
       "stop_slop": "guided",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "native"
     },
     {
       "id": "fidelity_gate",
@@ -93,7 +114,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "native",
       "stop_slop": "not_documented",
-      "de_slop": "guided"
+      "de_slop": "guided",
+      "first_reader": "not_documented"
     },
     {
       "id": "candidate_rerank",
@@ -104,7 +126,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "separate_editors",
@@ -115,7 +138,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "guided",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "fresh_eyes_finalizer",
@@ -126,7 +150,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "portfolio_probe",
@@ -137,7 +162,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "private_learning",
@@ -148,7 +174,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "fix_memory",
@@ -159,7 +186,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "decay",
@@ -170,7 +198,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "voice_profile",
@@ -181,7 +210,8 @@
       "unslop_text": "guided",
       "avoid_ai_writing": "guided",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "public_evaluation",
@@ -192,7 +222,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "native",
       "stop_slop": "not_documented",
-      "de_slop": "native"
+      "de_slop": "native",
+      "first_reader": "not_documented"
     },
     {
       "id": "obfuscation_normalization",
@@ -203,7 +234,8 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "native",
       "stop_slop": "not_documented",
-      "de_slop": "not_documented"
+      "de_slop": "not_documented",
+      "first_reader": "not_documented"
     },
     {
       "id": "long_document_scoring",
@@ -214,7 +246,90 @@
       "unslop_text": "not_documented",
       "avoid_ai_writing": "not_documented",
       "stop_slop": "not_documented",
-      "de_slop": "native"
+      "de_slop": "native",
+      "first_reader": "not_documented"
+    },
+    {
+      "id": "reader_skim_gate",
+      "label": "Audience-specific skim gate",
+      "zero_slop": "not_assessed",
+      "blader": "not_assessed",
+      "no_ai_slop": "not_assessed",
+      "unslop_text": "not_assessed",
+      "avoid_ai_writing": "not_assessed",
+      "stop_slop": "not_assessed",
+      "de_slop": "not_assessed",
+      "first_reader": "native",
+      "evidence": {
+        "first_reader": "scripts/skim.py; SKILL.md Step 2"
+      }
+    },
+    {
+      "id": "staged_reader_feed",
+      "label": "Staged passage feed with log-before-next",
+      "zero_slop": "not_assessed",
+      "blader": "not_assessed",
+      "no_ai_slop": "not_assessed",
+      "unslop_text": "not_assessed",
+      "avoid_ai_writing": "not_assessed",
+      "stop_slop": "not_assessed",
+      "de_slop": "not_assessed",
+      "first_reader": "native",
+      "evidence": {
+        "first_reader": "scripts/feed.py: Feed.next and _record; served mode"
+      }
+    },
+    {
+      "id": "transcript_recall",
+      "label": "Recall prompt restricted to reading log",
+      "zero_slop": "not_assessed",
+      "blader": "not_assessed",
+      "no_ai_slop": "not_assessed",
+      "unslop_text": "not_assessed",
+      "avoid_ai_writing": "not_assessed",
+      "stop_slop": "not_assessed",
+      "de_slop": "not_assessed",
+      "first_reader": "native",
+      "evidence": {
+        "first_reader": "scripts/recall.py; SKILL.md Step 4"
+      }
+    },
+    {
+      "id": "reader_comment_page",
+      "label": "Reader comments beside the draft",
+      "zero_slop": "not_assessed",
+      "blader": "not_assessed",
+      "no_ai_slop": "not_assessed",
+      "unslop_text": "not_assessed",
+      "avoid_ai_writing": "not_assessed",
+      "stop_slop": "not_assessed",
+      "de_slop": "not_assessed",
+      "first_reader": "native",
+      "evidence": {
+        "first_reader": "scripts/room.py and room_template.html; SKILL.md Step 7"
+      }
+    },
+    {
+      "id": "reader_followup",
+      "label": "Follow-up questions from reader logs",
+      "zero_slop": "not_assessed",
+      "blader": "not_assessed",
+      "no_ai_slop": "not_assessed",
+      "unslop_text": "not_assessed",
+      "avoid_ai_writing": "not_assessed",
+      "stop_slop": "not_assessed",
+      "de_slop": "not_assessed",
+      "first_reader": "native",
+      "evidence": {
+        "first_reader": "scripts/ask.py; SKILL.md user contract"
+      }
     }
-  ]
+  ],
+  "first_reader_evidence": {
+    "detect_report": "SKILL.md Step 6 and references/report.md: report only, no rewrite.",
+    "structural_statistics": "scripts/signals.py: sentence length mean, standard deviation and burstiness; no quality verdict.",
+    "numeric_meter": "signals.py counts are explicitly measurements, not a numeric writing-quality score.",
+    "public_evaluation": "No test/evaluation suite in the pinned subtree; local bench/first-reader checks are component contracts, not tests of finished rewrites.",
+    "other_absences": "Not found in the pinned first-reader subtree; these statuses describe documentation, not impossibility."
+  }
 }

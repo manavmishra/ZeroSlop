@@ -14,6 +14,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import register  # noqa: E402
 import slopscore  # noqa: E402
 from safeio import atomic_write_text  # noqa: E402
+sys.path.insert(0, str(ROOT / "bench"))
+from runtime_compatibility import reports_match  # noqa: E402
 
 DOC_URL = (
     "https://docs.google.com/document/d/"
@@ -109,7 +111,7 @@ def main(argv=None):
         report = evaluate_text(source, version=version)
         rendered = json.dumps(report, indent=1) + "\n"
         if args.check:
-            if not out_path.exists() or out_path.read_text() != rendered:
+            if not out_path.exists() or not reports_match(json.loads(out_path.read_text()), report):
                 print("private corpus result drifted; review it, then rerun with --write")
                 return 1
             print(

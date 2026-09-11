@@ -19,6 +19,8 @@ RESULT = HERE / "results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 import slopscore  # noqa: E402
 from safeio import atomic_write_text  # noqa: E402
+sys.path.insert(0, str(ROOT / "bench"))
+from runtime_compatibility import exact_code_compatible, reports_match  # noqa: E402
 
 API = "https://huggingface.co/api/datasets/{dataset}"
 ROWS = "https://datasets-server.huggingface.co/rows"
@@ -244,7 +246,8 @@ def validate(result, pin):
     current_scorer_hash = hashlib.sha256(
         (ROOT / "scripts" / "slopscore.py").read_bytes()
     ).hexdigest()
-    if scorer.get("version") != VERSION \
+    if (scorer.get("version") != VERSION
+            and not exact_code_compatible(scorer.get("version"), VERSION)) \
             or scorer.get("slopscore_sha256") != current_scorer_hash:
         raise ValueError("results.json does not match the current scorer")
 
@@ -270,7 +273,7 @@ def main():
             if args.check:
                 committed = json.loads(RESULT.read_text())
                 validate(committed, pin)
-                if committed != fresh:
+                if not reports_match(committed, fresh):
                     raise ValueError(
                         "committed result is stale; rerun with --fetch --write and review"
                     )

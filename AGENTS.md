@@ -50,6 +50,13 @@ are examples, not limits.
 - `scripts/learn.py --guide --for <draft>` retrieves reason-labelled private fix
   preferences. Retrieval is advisory lexical coverage, not a probability, and must
   abstain when no relevant evidence exists.
+- `scripts/reader_review.py` prepares source-and-audience-bound passage packets
+  and escaped standalone reports for optional audience reviews. It performs no
+  inference, networking, or file writes. `references/reader-review.md` owns the
+  host workflow: simulated reactions are hypotheses, context isolation is a
+  harness responsibility, and reader feedback never trains private preferences
+  or changes the score without a person's explicit approval through the normal
+  editing/learning path. It adds no calls to the hosted editing pipeline.
 - `$ZERO_SLOP_HOME/voices/` — private named scoring profiles, outside the
   repository. The sample-based builder records an existing lexicon or rider
   term after one exact word match. It does not store the sample or model the

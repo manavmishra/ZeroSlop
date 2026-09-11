@@ -9,6 +9,7 @@ and a small chart-data.json manifest.
 
     python3 bench/make_charts.py            # regenerate the PNGs and the manifest
     python3 bench/make_charts.py --check    # fail if the data drifted (CI)
+    python3 bench/make_charts.py --capabilities-only  # refresh only this figure
 
 --check recomputes the numbers from the data and compares them to the committed
 manifest, so a benchmark re-run or a scorer change that would move a bar fails the
@@ -52,6 +53,30 @@ PANEL = [
     ("hardikpandya/stop-slop", ["stopslop_h1.json", "stopslop_h2.json"]),
     ("Zero Slop", ["zeroslop12_h1.json", "zeroslop12_h2.json"]),
 ]
+
+
+def capability_data(audit):
+    """Keep presence, unknowns and audit dates distinct from outcome scores."""
+    allowed = {"native", "guided", "not_documented", "not_assessed"}
+    products = ["zero_slop"] + [k for k in audit["products"] if k != "zero_slop"]
+    ids = [row["id"] for row in audit["capabilities"]]
+    if len(ids) != len(set(ids)):
+        raise ValueError("duplicate capability ids")
+    for row in audit["capabilities"]:
+        for key in products:
+            if row.get(key) not in allowed:
+                raise ValueError(f"missing or invalid capability status: {row['id']}/{key}")
+    return {
+        "audited_on": audit["audited_on"],
+        "products": [[key, audit["products"][key]["label"], audit["products"][key]["commit"]]
+                     for key in products],
+        "product_audit_dates": {key: audit["products"][key].get("audited_on", audit["audited_on"])
+                                for key in products},
+        "rows": [[row["label"], *[row[key] for key in products]] for row in audit["capabilities"]],
+        "note": "First Reader excludes rewriting. Added reader features were not re-audited for older product pins. No outcome ranking.",
+    }
+
+
 def compute():
     """Return chart datasets computed from the benchmark data."""
     import slopscore
@@ -90,18 +115,7 @@ def compute():
     # competitor-capabilities.json and silently did not render, because this list
     # was the real source of truth for the chart. Zero Slop stays first as the
     # subject of the comparison; the rest follow the audit's own order.
-    products = ["zero_slop"] + [k for k in audit["products"] if k != "zero_slop"]
-    capability_matrix = {
-        "audited_on": audit["audited_on"],
-        "products": [
-            [key, audit["products"][key]["label"], audit["products"][key]["commit"]]
-            for key in products
-        ],
-        "rows": [
-            [row["label"], *[row[key] for key in products]]
-            for row in audit["capabilities"]
-        ],
-    }
+    capability_matrix = capability_data(audit)
     comparison = json.loads(SEARCH_COMPARISON.read_text())
     fresh_replay = json.loads(FRESH_REPLAY.read_text())
     if (fresh_replay.get("result_kind") != "fresh_same_model_rewrite_replay"
@@ -298,13 +312,10 @@ def _hbar(path, title, subtitle, rows, ours_label, axis_ticks=None):
 def _capability_matrix(path, audit):
     """Render a presence matrix without turning capabilities into a quality score."""
     from PIL import Image, ImageDraw
-    # Widened from 1500 when the audit went from five products to seven: at the
-    # old width the owner/name labels ran into each other. Long labels also wrap
-    # at the slash now, so "JCarterJohnson/unslop-text" stacks instead of
-    # overlapping its neighbour.
-    W, left, top, rowh = 1760, 620, 172, 43
     products = audit["products"]
     rows = audit["rows"]
+    # Each added product receives another full column; slash labels wrap.
+    W, top, rowh = max(1760, 815 + 135 * len(products)), 194, 43
     column_left, column_right = 760, W - 90
     centers = [
         column_left + i * (column_right - column_left) / (len(products) - 1)
@@ -320,7 +331,7 @@ def _capability_matrix(path, audit):
     d.text((44, 96), "Native = dedicated component or named gate. Guided = instruction or self-check.",
            font=_font(13), fill=MUTE)
 
-    for x, (_, label, commit) in zip(centers, products):
+    for x, (key, label, commit) in zip(centers, products):
         is_subject = label == "Zero Slop"
         parts = label.split("/", 1)
         lines = [parts[0] + "/", parts[1]] if len(parts) == 2 else [label]
@@ -329,6 +340,8 @@ def _capability_matrix(path, audit):
                    font=_font(13, is_subject),
                    fill=INK if is_subject else MUTE, anchor="ma")
         d.text((x, 120 + len(lines) * 17 + 3), commit[:8],
+               font=_font(10), fill=MUTE, anchor="ma")
+        d.text((x, 176), audit["product_audit_dates"][key],
                font=_font(10), fill=MUTE, anchor="ma")
 
     for i, row in enumerate(rows):
@@ -345,6 +358,8 @@ def _capability_matrix(path, audit):
                 d.pieslice([x - r, cy - r, x + r, cy + r], 90, 270,
                            fill=(230, 168, 63))
                 d.ellipse([x - r, cy - r, x + r, cy + r], outline=(184, 136, 48), width=2)
+            elif status == "not_assessed":
+                d.text((x, cy), "?", font=_font(16), fill=MUTE, anchor="mm")
             else:
                 d.ellipse([x - r, cy - r, x + r, cy + r], outline=MUTEDBAR, width=2)
 
@@ -353,16 +368,20 @@ def _capability_matrix(path, audit):
         (BRAND, "Native"),
         ((230, 168, 63), "Guided"),
         (None, "Not documented"),
+        ("unknown", "Not assessed (?)"),
     ]
     x = 44
     for color, label in legend:
-        if color:
+        if color == "unknown":
+            d.text((x + 7, legend_y), "?", font=_font(16), fill=MUTE, anchor="mm")
+        elif color:
             d.ellipse([x, legend_y - 7, x + 14, legend_y + 7], fill=color)
         else:
             d.ellipse([x, legend_y - 7, x + 14, legend_y + 7], outline=MUTEDBAR, width=2)
         d.text((x + 24, legend_y), label, font=_font(12), fill=MUTE, anchor="lm")
-        x += 132 if label != "Not documented" else 190
-    d.text((W - 44, legend_y), f"Audited {audit['audited_on']}",
+        x += 190
+    d.text((44, legend_y + 36), audit["note"], font=_font(12), fill=MUTE)
+    d.text((W - 44, legend_y), f"Updated {audit['audited_on']}; dates above are per product",
            font=_font(11), fill=MUTE, anchor="rm")
     img.save(path)
     return path.name
@@ -468,7 +487,17 @@ def main():
             return 1
         print("benchmark charts are current")
         return 0
-    names = render(fresh)
+    # Update just the expanded audit figure when historic outcome bars are
+    # unchanged. The complete data manifest is still recomputed and checked.
+    if "--capabilities-only" in sys.argv:
+        stored = json.loads(MANIFEST.read_text())
+        for key, value in json.loads(json.dumps(fresh)).items():
+            if key != "capability_matrix" and stored.get(key) != value:
+                raise ValueError("outcome data also moved; run the full chart generator")
+        ASSETS.mkdir(exist_ok=True)
+        names = [_capability_matrix(ASSETS / "competitor-capabilities.png", fresh["capability_matrix"])]
+    else:
+        names = render(fresh)
     atomic_write_text(MANIFEST, json.dumps(fresh, indent=1) + "\n")
     print(f"wrote {', '.join(names)} and {MANIFEST.name} from the benchmark data")
     return 0

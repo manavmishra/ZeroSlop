@@ -10,6 +10,8 @@ ROOT = HERE.parent.parent
 RESULTS = HERE / "results.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 import slopscore  # noqa: E402
+sys.path.insert(0, str(ROOT / "bench"))
+from runtime_compatibility import exact_code_compatible  # noqa: E402
 
 
 def surface_hash():
@@ -69,7 +71,8 @@ def validate():
     if data.get("candidate", {}).get("production_path") != "single":
         raise ValueError("candidate must declare one production path")
     version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
-    if data.get("candidate", {}).get("version") != version:
+    measured_version = data.get("candidate", {}).get("version")
+    if measured_version != version and not exact_code_compatible(measured_version, version):
         raise ValueError("candidate version is stale")
     retrieval = data["reason_labelled_retrieval"]
     if (retrieval.get("maximum_preferences") != 50000
