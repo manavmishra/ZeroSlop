@@ -5,6 +5,8 @@
 
 # Zero Slop
 
+[![MCPVault: claimed](https://mcpvault.io/badge/zeroslop.svg)](https://mcpvault.io/servers/zeroslop/health?utm_source=external_badge&utm_medium=referral&utm_campaign=mcp_health_report)
+
 Find and remove AI slop in your writing. Get rid of workslop without losing your core intent and message.
 
 Zero Slop is a free, open-source agent skill that finds and removes AI slop while checking that the core details of your message survive the edit. If your AI setup does not support agent skills, [try the browser editor](https://zero-slop.ai/try/) or use our [MCP connector](https://mcp.zero-slop.ai/mcp).
