@@ -3,12 +3,32 @@
 import argparse
 import json
 import sys
+import time
 import urllib.error
 from pathlib import Path
 
 from deploy_mcp import VERSION, fetch_json
 
 BASE = "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.manavmishra%2Fzero-slop/versions/"
+TRANSIENT_HTTP_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
+
+
+def retry_transient_read(url, *, read=fetch_json, attempts=3, sleep=time.sleep):
+    """Retry only bounded transport and transient HTTP failures."""
+    if not isinstance(attempts, int) or attempts < 1:
+        raise ValueError("attempts must be a positive integer")
+    for attempt in range(attempts):
+        try:
+            return read(url)
+        except urllib.error.HTTPError as exc:
+            if exc.code not in TRANSIENT_HTTP_STATUSES:
+                raise
+            error = exc
+        except (TimeoutError, urllib.error.URLError) as exc:
+            error = exc
+        if attempt + 1 == attempts:
+            raise error
+        sleep(2 ** attempt)
 
 
 def published_record(server, *, fetch_fn=fetch_json):
@@ -34,7 +54,10 @@ def main():
     parser.add_argument("--github-output")
     args = parser.parse_args()
     try:
-        published = published_record(json.loads(Path("server.json").read_text()))
+        published = published_record(
+            json.loads(Path("server.json").read_text()),
+            fetch_fn=retry_transient_read,
+        )
         line = f"published={str(published).lower()}\n"
         if args.github_output:
             with Path(args.github_output).open("a") as output:
