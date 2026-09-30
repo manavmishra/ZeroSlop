@@ -2554,9 +2554,18 @@ class DocsMatchReality(unittest.TestCase):
             with self.subTest(paths=paths), \
                     mock.patch.object(module, "version_at", return_value=current), \
                     mock.patch.object(module, "changed_paths", return_value=paths), \
+                    mock.patch.object(module, "tag_exists", return_value=True), \
                     contextlib.redirect_stdout(io.StringIO()), \
                     contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(module.main(["base"]), expected)
+
+        with mock.patch.object(module, "version_at", return_value=current), \
+                mock.patch.object(module, "changed_paths", return_value=["README.md"]), \
+                mock.patch.object(module, "tag_exists", return_value=False), \
+                contextlib.redirect_stdout(io.StringIO()) as output, \
+                contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(module.main(["base"]), 0)
+        self.assertIn("is not tagged yet", output.getvalue())
 
     def test_gateway_unit_test_only_edits_do_not_require_a_runtime_release(self):
         spec = importlib.util.spec_from_file_location(
@@ -2585,6 +2594,7 @@ class DocsMatchReality(unittest.TestCase):
             with self.subTest(paths=paths), \
                     mock.patch.object(module, "version_at", return_value=current), \
                     mock.patch.object(module, "changed_paths", return_value=paths), \
+                    mock.patch.object(module, "tag_exists", return_value=True), \
                     contextlib.redirect_stdout(io.StringIO()), \
                     contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(module.main(["base"]), expected)
