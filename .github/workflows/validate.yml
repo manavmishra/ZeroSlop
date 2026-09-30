@@ -39,6 +39,11 @@ jobs:
             echo "No stable base commit; skipping the release-delta check"
             exit 0
           fi
+          changed="$(git diff --name-only "$base"...HEAD)"
+          if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '^README\.md$'; then
+            echo "Only README documentation changed; skipping the release-delta check"
+            exit 0
+          fi
           python3 scripts/check_release_version.py "$base"
       - name: Validate pattern data
         run: |
