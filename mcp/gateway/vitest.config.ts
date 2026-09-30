@@ -13,7 +13,7 @@ export default defineConfig({
           REPORT_SHARED_SECRET: testSecret,
         },
         serviceBindings: {
-          SCORER: async () => Response.json({ ok: true, scorerVersion: "2.12.11" }),
+          SCORER: async () => Response.json({ ok: true, scorerVersion: "2.12.12" }),
         },
       },
     }),

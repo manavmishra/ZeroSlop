@@ -71,6 +71,16 @@ def changed_paths(base: str) -> list[str]:
     return [line for line in output.splitlines() if line]
 
 
+def tag_exists(version: str) -> bool:
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"refs/tags/v{version}"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("base", help="commit or ref to compare with HEAD")
@@ -80,11 +90,17 @@ def main(argv: list[str] | None = None) -> int:
     current = str(json.loads((ROOT / "package.json").read_text())["version"])
     released = [path for path in changed_paths(args.base) if is_release_path(path)]
     if released and current == previous:
-        print("A released package or runtime changed without a version bump:", file=sys.stderr)
-        for path in released:
-            print(f"  {path}", file=sys.stderr)
-        print(f"package.json is still {current}", file=sys.stderr)
-        return 1
+        if tag_exists(current):
+            print("A released package or runtime changed without a version bump:", file=sys.stderr)
+            for path in released:
+                print(f"  {path}", file=sys.stderr)
+            print(f"package.json is still {current}", file=sys.stderr)
+            return 1
+        print(
+            f"Release completion check passed ({current} is not tagged yet; "
+            f"{len(released)} files)."
+        )
+        return 0
     if current != previous and not released:
         print(f"Version changed from {previous} to {current}, but no release file changed.")
     else:
