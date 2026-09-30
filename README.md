@@ -6,6 +6,7 @@
 # Zero Slop
 
 [![MCPVault: claimed](https://mcpvault.io/badge/zeroslop.svg)](https://mcpvault.io/servers/zeroslop/health?utm_source=external_badge&utm_medium=referral&utm_campaign=mcp_health_report)
+[![MCP Queen operational grade](https://mcpqueen.com/badge/io.github.manavmishra/zero-slop.svg)](https://mcpqueen.com/s/io.github.manavmishra/zero-slop)
 
 Find and remove AI slop in your writing. Get rid of workslop without losing your core intent and message.
 
