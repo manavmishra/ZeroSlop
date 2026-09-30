@@ -12,7 +12,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / ".github" / "scripts"))
 from publication_guard import API, RAW, publication_guard  # noqa: E402
-from registry_record import published_record  # noqa: E402
+from registry_record import published_record, retry_transient_read  # noqa: E402
 from reconcile_release import MCP, repair_plan, retry_transient_read  # noqa: E402
 import npm_record  # noqa: E402
 
@@ -70,6 +70,22 @@ class PublicationGuard(unittest.TestCase):
 
 
 class RegistryRecord(unittest.TestCase):
+    def test_registry_read_retries_transient_failures(self):
+        calls = []
+        data = {"server": {"version": "2.10.2"}}
+
+        def read(url):
+            calls.append(url)
+            if len(calls) < 3:
+                raise TimeoutError("registry unavailable")
+            return data
+
+        self.assertEqual(
+            retry_transient_read("https://registry.invalid", read=read, sleep=lambda _: None),
+            data,
+        )
+        self.assertEqual(len(calls), 3)
+
     def test_existing_exact_record_skips_publish(self):
         server = {"name": "io.github.manavmishra/zero-slop", "version": "2.10.2", "remotes": [{"url": f"{MCP}/mcp", "type": "streamable-http"}]}
         data = {"server": server, "_meta": {"io.modelcontextprotocol.registry/official": {"status": "active"}}}
