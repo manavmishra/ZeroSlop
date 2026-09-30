@@ -20,7 +20,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.53.1",
+    "@cloudflare/vite-plugin": "1.62.2",
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.2.6",
     "@types/node": "22.19.19",
@@ -39,10 +39,15 @@
     "typescript-eslint": "8.59.3",
     "vinext": "1.0.0-beta.8",
     "vite": "8.2.2",
-    "wrangler": "4.125.0"
+    "wrangler": "4.144.0"
   },
   "type": "module",
   "overrides": {
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "brace-expansion": "1.1.21",
+    "@typescript-eslint/typescript-estree": {
+      "brace-expansion": "5.0.12"
+    },
+    "fast-uri": "3.1.8"
   }
 }
