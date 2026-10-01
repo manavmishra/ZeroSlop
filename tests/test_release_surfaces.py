@@ -191,6 +191,20 @@ class PayloadParity(unittest.TestCase):
                 self.assertEqual(len(problems), 1, problems)
                 self.assertIn(path, problems[0])
 
+    def test_post_release_readme_change_does_not_fail_npm_runtime_parity(self):
+        metadata = json.loads(self.responses[NPM])
+        tar_url = metadata["dist"]["tarball"]
+        files = CHECKER._tar_files(self.responses[tar_url])
+        files["package/README.md"] += (
+            b"\n![post-release documentation badge](https://example.test/badge.svg)\n"
+        )
+        blob = make_tar(files)
+        self.responses[tar_url] = blob
+        metadata["dist"]["integrity"] = "sha512-" + base64.b64encode(hashlib.sha512(blob).digest()).decode()
+        self.responses[NPM] = json.dumps(metadata)
+
+        self.assertEqual(self.check(skip_homebrew=True), ([], []))
+
     def test_npm_metadata_cannot_redirect_to_an_unapproved_artifact(self):
         for url in ("http://registry.npmjs.org/zero-slop.tgz", "https://localhost/pkg.tgz",
                     "https://registry.npmjs.org/zero-slop/-/zero-slop-0.0.0.tgz"):

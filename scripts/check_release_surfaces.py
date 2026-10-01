@@ -141,15 +141,23 @@ def _tar_files(blob):
     return files
 
 
-def _same_payload(actual, expected, *, prefix):
+def _same_payload(actual, expected, *, prefix, ignore_changed=()):
+    """Require the exact payload, with narrowly scoped release-doc exceptions.
+
+    A published npm version is immutable.  Its README can therefore lag a
+    post-release documentation-only change on main without changing the
+    installed runtime; all file-set and non-README byte checks remain strict.
+    """
     selected = {name[len(prefix):]: content for name, content in actual.items()
                 if name.startswith(prefix)}
     missing = sorted(set(expected) - set(selected))
     extra = sorted(set(selected) - set(expected))
     if missing or extra or len(selected) != len(actual):
         raise ValueError(f"runtime file set differs (missing {missing[:5]}, unexpected {extra[:5]})")
+    ignored = set(ignore_changed)
     changed = [name for name, content in expected.items()
-               if hashlib.sha256(selected[name]).digest() != hashlib.sha256(content).digest()]
+               if name not in ignored
+               and hashlib.sha256(selected[name]).digest() != hashlib.sha256(content).digest()]
     if changed:
         raise ValueError(f"runtime bytes differ: {', '.join(sorted(changed)[:5])}")
 
@@ -329,7 +337,7 @@ def check_once(*, fetch_fn=fetch, emit=print, skip_website=False, skip_homebrew=
                     f"the npm tarball contains {package_version}, not {shipped}."
                 )
             else:
-                _same_payload(files, npm_payload, prefix="package/")
+                _same_payload(files, npm_payload, prefix="package/", ignore_changed={"README.md"})
                 emit(f"npm runtime and CLI       {len(npm_payload)} files match SHA-256")
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
