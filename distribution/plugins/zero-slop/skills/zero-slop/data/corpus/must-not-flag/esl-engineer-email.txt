@@ -1,0 +1,7 @@
+Hi team, I checked the failing job from yesterday night. The root cause is in the retry logic. When the upstream service returns 503, we retry after 2 seconds, but we do not add jitter, so all the workers retry in the same moment and the service goes down again. This is why the incident repeated three times.
+
+I propose we add jitter between 0 and 1000 ms. I already tested this on staging with 200 workers and the retry storm did not happen. The patch is small, about 15 lines in worker/retry.go.
+
+One more thing. The alert did not fire for the second and third incident, because the alert has a 30 minute cooldown. I think 30 minutes is too long for this service. Maybe 5 minutes is better, but I want to hear your opinion before I change it.
+
+I can send the pull request tomorrow morning if nobody disagrees.

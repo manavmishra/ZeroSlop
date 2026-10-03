@@ -1,0 +1,1 @@
+Open weights let you adapt a model. An open stack lets you adapt the machinery that created it.

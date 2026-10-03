@@ -23,17 +23,22 @@ gateway Worker
     |
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
-private scorer Worker              one Workers AI editor
-exact Zero Slop 2.12.12              same composite edit as /try/
+private scorer Worker              bounded hosted editor
+exact Zero Slop 2.12.13              same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
 input schema, deadlines, release policy, and security headers. A private
 Python Worker runs byte-for-byte copies of the shipped scorer modules. The
 five AI editorial responsibilities share one composite response, exactly as
-they do on `/try/`. The editor calls one binding-native Workers AI model at
-temperature zero. It has no provider ladder, model retry, or second finishing
-request. The scorer and source checks run before and after that response.
+they do on `/try/`. The 2.12.13 release candidate makes one outbound request to
+the hosted editor, whose primary provider is Cloudflare Workers AI at temperature
+zero. If the primary cannot return a usable edit, the editor can make one bounded
+OpenRouter request routed among pinned free models. Each provider attempt is
+budget-gated; there are at most two provider calls, reported in `modelRequests`,
+and no second finishing request. Both paths retain the connector's no-store
+requirement. The scorer and source checks run before and after the returned edit.
+This describes the candidate contract, not proof that version 2.12.13 is deployed.
 
 The gateway marks a rewrite fully checked only when all of these are true:
 
@@ -45,8 +50,8 @@ The gateway marks a rewrite fully checked only when all of these are true:
 - the final local recheck approves the exact text returned.
 
 Missing an editorial target does not start another model request. The safest
-source-preserving edit comes back with a clear review warning. If the one model
-request fails or changes protected material, a conservative local editor removes
+source-preserving edit comes back with a clear review warning. If the hosted
+editor request fails or changes protected material, a conservative local editor removes
 known stock wording without changing source details. It follows the same fixtures as
 the installed `scripts/rescue.py` command and the browser demo. A clean source returns
 after scoring and is never sent to the model.
@@ -159,8 +164,9 @@ private runtime without changing the public MCP schema.
 
 The public no-auth endpoint intentionally optimizes for a one-command install.
 It is still a metered service. Keep it on Cloudflare's Free plan when paid
-overage is not authorized; exhausting provider capacity must stop work, not
-switch providers or upgrade the plan. The project budget does not measure other
+overage is not authorized. The configured free-provider fallback must pass its
+own budget reservation; exhausting authorized capacity must stop inference,
+not bypass the gate or upgrade the plan. The project budget does not measure other
 applications' account usage or replace provider-level billing controls.
 
 ## Source layout

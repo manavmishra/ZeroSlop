@@ -1,0 +1,1 @@
+Llama is open-weights. Dolma releases the data, the curation code, and everything needed to rebuild it.

@@ -123,6 +123,8 @@ jobs:
 
       - name: Plugin mirror in sync
         run: python3 scripts/build_plugin.py --check
+      - name: Marketplace package matches canonical runtime
+        run: python3 scripts/build_marketplace_package.py --check
 
       - name: Single-file bundle in sync
         run: python3 scripts/build_bundle.py --check

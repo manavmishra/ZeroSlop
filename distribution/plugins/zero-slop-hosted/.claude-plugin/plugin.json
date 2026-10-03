@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "zero-slop-hosted",
+  "displayName": "Zero Slop Hosted",
+  "description": "Hosted prose editing with server-side writing scores, source-preservation checks, and review warnings. This package contains only a remote MCP connector, not a local skill or model.",
+  "version": "2.12.13",
+  "author": {
+    "name": "Manav Mishra",
+    "url": "https://github.com/manavmishra"
+  },
+  "homepage": "https://zero-slop.ai/",
+  "repository": "https://github.com/manavmishra/ZeroSlop",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.svg",
+  "documentationUrl": "https://github.com/manavmishra/ZeroSlop#readme",
+  "supportUrl": "https://github.com/manavmishra/ZeroSlop/issues",
+  "privacyPolicyUrl": "https://zero-slop.ai/privacy/",
+  "termsOfServiceUrl": "https://zero-slop.ai/terms/",
+  "mcpServers": "./.mcp.json"
+}

@@ -28,6 +28,7 @@ EXACT_RELEASE_PATHS = {
     "server.json",
 }
 RELEASE_PREFIXES = (
+    "distribution/plugins/zero-slop-hosted/",
     ".claude-plugin/",
     ".codex-plugin/",
     "bin/",

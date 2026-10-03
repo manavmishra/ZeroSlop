@@ -5,8 +5,14 @@
     "commit": "a28fc2bb24715b59b6d0bd461b6e900c92cb9564"
   },
   "candidate": {
-   "version": "2.12.12",
-    "production_path": "single"
+    "version": "2.12.13",
+    "production_path": "single",
+    "surface_recomputed_at": "2026-10-03T18:15:43+00:00",
+    "surface_recomputed_documents": 152,
+    "slopscore_sha256": "d4f55a6a7fb8a102ed143f08ee42b5196973d712659260c0c0cd4cba55b139b5",
+    "patterns_sha256": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+    "learned_sha256": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+    "measurement_scope": "The candidate's 152-document score vector and 72-item frozen blind quality panel were recomputed offline for this release. The baseline, rater labels, and retrieval timing remain historical; no new human or model judging was performed."
   },
   "deterministic_surface_ablation": {
     "documents": 152,

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "result_kind": "exact_code_equivalence_not_new_measurement",
+  "recorded_on": "2026-10-03",
+  "measured_version": "2.12.12",
+  "compatible_version": "2.12.13",
+  "measured_commit": "d065464b64d2ae46d72fde83f3c0b5da40bd149a",
+  "method": "Compared each pinned file from the released v2.12.12 Git commit with the 2.12.13 candidate using SHA-256. All seven pairs are byte-identical. Preserve historical measurement versions and compare every other result field unchanged.",
+  "limits": "Code equivalence only for the pinned scoring components and shared data. This is not a new corpus measurement, accuracy estimate, timing measurement, hosted editor test, or approval of skill instructions or marketplace behavior. Corpus provenance and all non-version checks remain mandatory.",
+  "files": {
+    "scripts/slopscore.py": "d4f55a6a7fb8a102ed143f08ee42b5196973d712659260c0c0cd4cba55b139b5",
+    "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+    "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+    "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+    "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+    "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+    "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea"
+  }
+}
