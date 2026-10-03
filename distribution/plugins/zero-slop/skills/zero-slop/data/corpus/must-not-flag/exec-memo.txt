@@ -1,0 +1,9 @@
+To the leadership team:
+
+We are going to miss the Q3 revenue target. The gap is roughly 8 percent, and it comes almost entirely from the mid-market segment, where our win rate fell from 31 percent to 22 percent after the pricing change in May.
+
+I want to be direct about the cause. We raised the entry price without changing what a customer gets at that tier. Sales flagged this in June. We did not act on it, and I own that decision.
+
+Three things change now. First, the mid-market tier gets the audit-log feature that enterprise customers already have, effective next release. Second, we are reverting the entry price to the prior level for new logos through the end of the year. Third, deal desk gets authority to approve discounts up to 15 percent without my sign-off, because the current approval chain is costing us deals we should win.
+
+I am not asking for a plan to make up the gap this quarter. We will not make it up. I am asking that we do not repeat the pattern where field feedback sits for a month before it reaches this room.

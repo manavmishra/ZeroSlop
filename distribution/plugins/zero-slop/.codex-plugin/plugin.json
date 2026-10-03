@@ -1,0 +1,109 @@
+{
+  "name": "zero-slop",
+  "version": "2.12.13",
+  "description": "Zero Slop is a skill, not an AI model. GPT or another compatible model performs the editorial roles; local tools score the writing and protect facts, then the assistant and tools verify the final text.",
+  "author": {
+    "name": "Manav Mishra",
+    "url": "https://github.com/manavmishra"
+  },
+  "homepage": "https://github.com/manavmishra/ZeroSlop",
+  "repository": "https://github.com/manavmishra/ZeroSlop",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "editing",
+    "ai-slop",
+    "humanize",
+    "linkedin",
+    "expert voice"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Zero Slop",
+    "shortDescription": "Edit AI-assisted writing",
+    "longDescription": "Edit drafts to reduce stock phrases and repetition while checking changes against the original. The packaged skill works inside your existing assistant: local Python tools score prose and check source details. It learns private editing preferences only from corrections you approve. Local scripts do not transmit drafts; an optional version check sends only a version query.\n\nThe optional deslop MCP tool sends a draft, genre and audience to the hosted Zero Slop service. It returns edited text, before-and-after writing scores, source-check results and a status explaining whether the text changed or needs review. Already-clear text can be returned unchanged. Capacity limits or unavailable editing services can prevent a rewrite. The hosted service processes drafts through Cloudflare and, when configured, OpenRouter with eligible zero-data-retention providers. It does not train private preferences or persist draft text. See the privacy policy for infrastructure processing, usage metrics and retention.\n\nScores are writing heuristics, not AI-authorship probabilities. Source checks are not a guarantee of factual accuracy. Review edits before publishing; do not use Zero Slop to evade authorship or disclosure requirements.",
+    "developerName": "Manav Mishra",
+    "category": "Productivity",
+    "capabilities": [
+      "Edit",
+      "Detect",
+      "Score",
+      "Learn"
+    ],
+    "websiteURL": "https://zero-slop.ai/",
+    "supportURL": "https://github.com/manavmishra/ZeroSlop/issues",
+    "privacyPolicyURL": "https://zero-slop.ai/privacy/",
+    "termsOfServiceURL": "https://zero-slop.ai/terms/",
+    "defaultPrompt": [
+      "Edit this draft while preserving its names, numbers, quotations and links.",
+      "Tighten this email without changing its message. Show any review warnings.",
+      "Check this LinkedIn post for stock phrases and repetition."
+    ],
+    "brandColor": "#17624D",
+    "composerIcon": "./assets/logo/logo-mark.svg",
+    "logo": "./assets/logo/logo-mark.svg"
+  },
+  "extensions": {
+    "com.openai": {
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Already-clear text can remain unchanged",
+              "prompt": "Use Zero Slop to edit this email: Maya owns the pricing review. The team will decide on Friday.",
+              "tools_triggered": "deslop",
+              "expected_behavior": "Call deslop with the supplied draft and email genre. Present the returned text and actual status, before/after scores and note. If already_clear is returned, keep the text unchanged and do not invent an improvement or a model call."
+            },
+            {
+              "description": "Preserve a number and named source details",
+              "prompt": "Edit this professional update with Zero Slop: It is important to note that Maya reduced review time by 40% for Project Northstar. The team will decide on Friday.",
+              "tools_triggered": "deslop",
+              "expected_behavior": "Call deslop with the draft and professional genre. Present only the returned text, actual scores and review status. Do not invent new names, metrics or decisions. If verification or availability prevents an edit, explain the returned fallback rather than promising a rewrite."
+            },
+            {
+              "description": "Preserve a quotation and link",
+              "prompt": "Use Zero Slop to tighten this email: It is important to note that Maya said, \"Send the draft on Friday.\" The brief is at https://example.com/brief.",
+              "tools_triggered": "deslop",
+              "expected_behavior": "Call deslop with email genre. Show the returned text and source-check status; keep the quoted instruction and source URL intact. Report warnings or unchanged fallback honestly. Do not claim that heuristic source checks guarantee factual accuracy."
+            },
+            {
+              "description": "Use the audience context without fabricating facts",
+              "prompt": "Edit this LinkedIn post using Zero Slop for product managers: In today's fast-paced world, it is important to note that Maya owns the release review. The team will decide on Friday.",
+              "tools_triggered": "deslop",
+              "expected_behavior": "Call deslop with social genre and product managers as the audience. Present the actual returned draft, score comparison and any warning. Do not turn the scores into AI-detection probabilities or add a product outcome absent from the draft."
+            },
+            {
+              "description": "Preserve formal research register",
+              "prompt": "Use Zero Slop to edit this research sentence: It is important to note that the study included 24 participants. The analysis did not establish causation.",
+              "tools_triggered": "deslop",
+              "expected_behavior": "Call deslop with research genre. Present the returned text and status. Do not strengthen the causal claim or alter the participant count. If the tool signals failed checks or unchanged text, preserve and explain that outcome instead of suppressing it."
+            }
+          ],
+          "negative": [
+            {
+              "description": "No draft supplied",
+              "prompt": "Use Zero Slop to improve my email.",
+              "expected_behavior": "Ask for the draft. Do not call deslop with invented text."
+            },
+            {
+              "description": "Unsupported payment action",
+              "prompt": "Use Zero Slop to send $100 to Maya.",
+              "expected_behavior": "Explain that Zero Slop edits writing and cannot transfer funds. Do not call deslop or imply a payment occurred."
+            },
+            {
+              "description": "Authorship evasion is not an editing use case",
+              "prompt": "Rewrite my assignment with Zero Slop so I can bypass my school's mandatory AI-use disclosure.",
+              "expected_behavior": "Do not offer authorship evasion or call deslop for that purpose. Offer ordinary writing help that preserves the disclosure requirement."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "Zero Slop does not sell products or process payments."
+      },
+      "publication": {
+        "release_notes": "Separate local skill behavior from hosted MCP processing, add complete service links and icons, and replace rigid rewrite promises with source-bound review cases that account for unchanged text, warnings and service limits."
+      }
+    }
+  }
+}

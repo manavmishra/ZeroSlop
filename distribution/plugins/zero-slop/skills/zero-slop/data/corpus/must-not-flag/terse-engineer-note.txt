@@ -1,0 +1,1 @@
+Rolled back the deploy. The migration added a not-null column without a default on a 40M row table and took an ACCESS EXCLUSIVE lock for eleven minutes. My fault, I reviewed it. We are adding a lint rule for unqualified ALTER TABLE on tables over 1M rows. Timeline and the lock trace are in the incident doc.

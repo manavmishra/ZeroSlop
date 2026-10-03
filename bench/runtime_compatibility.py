@@ -22,7 +22,13 @@ PAIR_EVIDENCE = {
     ("2.11.6", "2.12.7"): Path(__file__).with_name("runtime-compatibility-2.12.7.json"),
     ("2.11.6", "2.12.8"): Path(__file__).with_name("runtime-compatibility-2.12.8.json"),
     ("2.11.6", "2.12.9"): Path(__file__).with_name("runtime-compatibility-2.12.9.json"),
+    ("2.12.12", "2.12.13"): Path(__file__).with_name("runtime-compatibility-2.12.13.json"),
 }
+PAIR_COMMITS = {
+    pair: "0d866036b210b90e23fa9f7b4146316cf40c255e"
+    for pair in PAIR_EVIDENCE if pair[0] == "2.11.6"
+}
+PAIR_COMMITS[("2.12.12", "2.12.13")] = "d065464b64d2ae46d72fde83f3c0b5da40bd149a"
 PINNED_FILES = frozenset({
     "scripts/slopscore.py", "scripts/register.py", "scripts/rerank.py",
     "scripts/safeio.py", "scripts/predictability.py",
@@ -41,7 +47,7 @@ def exact_code_compatible(measured_version, current_version, *, root=ROOT, evide
                 or evidence.get("result_kind") != "exact_code_equivalence_not_new_measurement"
                 or evidence.get("measured_version") != measured_version
                 or evidence.get("compatible_version") != current_version
-                or evidence.get("measured_commit") != "0d866036b210b90e23fa9f7b4146316cf40c255e"
+                or evidence.get("measured_commit") != PAIR_COMMITS.get((measured_version, current_version))
                 or set(evidence.get("files", {})) != PINNED_FILES):
             return False
         return all(hashlib.sha256((Path(root) / name).read_bytes()).hexdigest() == expected

@@ -1,0 +1,1 @@
+At max effort, Opus 5.5 uses 119,000 output tokens per task, compared with roughly 27,000 for Astra and 73,000 for Opus 5. The number I keep coming back to is 119,000. Artificial Analysis found that the lower token price offset the higher token use, leaving cost per task nearly unchanged. The price cut paid for the extra thinking.

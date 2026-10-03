@@ -38,7 +38,7 @@ EXCLUDE = {
     "check_distribution_manifests.py", "check_release_version.py",
     "check_release_surfaces.py",
     "contextual.py", "contextual-signals.md", ".DS_Store",
-    "make-readme-gif.mjs",
+    "make-readme-gif.mjs", "growth-snapshot.mjs", "build_marketplace_package.py",
 }
 
 

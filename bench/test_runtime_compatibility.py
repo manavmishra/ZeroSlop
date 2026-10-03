@@ -39,8 +39,42 @@ class RuntimeCompatibilityTests(unittest.TestCase):
         # These releases matched 2.11.6 when reviewed. The current scorer has
         # since changed, so none may authorize relabelling today.
         for measured, compatible in PAIR_EVIDENCE:
+            if measured != "2.11.6":
+                continue
             with self.subTest(pair=(measured, compatible)):
                 self.assertFalse(exact_code_compatible(measured, compatible))
+
+    def test_latest_pair_is_exact_and_preserves_historical_results(self):
+        self.assertTrue(exact_code_compatible("2.12.12", "2.12.13"))
+        self.assertFalse(exact_code_compatible("2.12.13", "2.12.12"))
+        self.assertFalse(exact_code_compatible("2.12.12", "2.12.14"))
+        old = {"scorer": {"version": "2.12.12"}, "score": 12}
+        new = {"scorer": {"version": "2.12.13"}, "score": 12}
+        before = copy.deepcopy((old, new))
+        self.assertTrue(reports_match(old, new))
+        self.assertEqual((old, new), before)
+        new["score"] = 13
+        self.assertFalse(reports_match(old, new))
+
+    def test_latest_pair_rejects_wrong_release_and_changed_bytes(self):
+        original = json.loads(PAIR_EVIDENCE[("2.12.12", "2.12.13")].read_text())
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "runtime"
+            self.copy_runtime(root)
+            path = Path(temp) / "evidence.json"
+            path.write_text(json.dumps(original))
+            self.assertTrue(exact_code_compatible("2.12.12", "2.12.13", root=root, evidence_path=path))
+            bad = copy.deepcopy(original)
+            bad["measured_commit"] = "0d866036b210b90e23fa9f7b4146316cf40c255e"
+            path.write_text(json.dumps(bad))
+            self.assertFalse(exact_code_compatible("2.12.12", "2.12.13", root=root, evidence_path=path))
+            path.write_text(json.dumps(original))
+            for name in PINNED_FILES:
+                target = root / name
+                content = target.read_bytes()
+                target.write_bytes(content + b"\n")
+                self.assertFalse(exact_code_compatible("2.12.12", "2.12.13", root=root, evidence_path=path))
+                target.write_bytes(content)
 
     def test_complete_exact_hash_evidence_accepts_only_its_reviewed_pair(self):
         with tempfile.TemporaryDirectory() as temp:
