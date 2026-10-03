@@ -19,7 +19,7 @@ from check_release_version import is_release_path
 
 FILES = frozenset({
     ".claude-plugin/plugin.json", ".claude-plugin/icon.svg", ".mcp.json",
-    "README.md", "LICENSE",
+    "README.md", "LICENSE", "SECURITY.md",
 })
 MANIFEST_KEYS = frozenset({
     "$schema", "name", "displayName", "description", "version", "author",
@@ -91,6 +91,15 @@ def validate_package(folder: Path, version: str) -> None:
         raise ValueError("README contains local execution or hardcoded deployment version")
     if (folder / "LICENSE").read_bytes() != (ROOT / "LICENSE").read_bytes():
         raise ValueError("license differs from canonical license")
+    security = re.sub(r"\s+", " ", (folder / "SECURITY.md").read_text())
+    for phrase in (
+        MCP_URL, "no local skill", "review candidate", "retention policies",
+        "https://zero-slop.ai/privacy/", "Reporting a vulnerability",
+        "manav@prompeteer.com", "minimal synthetic reproduction",
+        "not security, privacy, data-quality, or compliance certification",
+    ):
+        if phrase not in security:
+            raise ValueError(f"missing hosted security disclosure: {phrase}")
     icon = folder / ".claude-plugin/icon.svg"
     if icon.read_bytes() != (ROOT / ".claude-plugin/icon.svg").read_bytes():
         raise ValueError("icon differs from approved mark")
@@ -229,6 +238,18 @@ class HostedPlugin(unittest.TestCase):
         self.assertIn("python3 scripts/check_distribution_manifests.py", workflow)
         self.assertIn("python3 -m unittest discover -s tests -p 'test_*.py'", workflow)
         self.assertIn("node distribution/sync-version.mjs --check", workflow)
+
+    def test_security_reporting_and_remote_boundary_are_required(self):
+        for content in (None, "# Security\nThis package is certified safe.\n"):
+            with self.subTest(content=content):
+                folder = self.fixture()
+                path = folder / "SECURITY.md"
+                if content is None:
+                    path.unlink()
+                else:
+                    path.write_text(content)
+                with self.assertRaises(ValueError):
+                    validate_package(folder, self.version)
 
 
 if __name__ == "__main__":
