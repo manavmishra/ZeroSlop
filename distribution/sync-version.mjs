@@ -14,7 +14,7 @@ async function update(path, transform) {
   const after = transform(before);
   if (before !== after) changes.push({ path, after });
 }
-for (const path of [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", "plugin.json", "gemini-extension.json", "server.json", "package-lock.json"]) {
+for (const path of [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", "plugin.json", "gemini-extension.json", "server.json", "package-lock.json", "distribution/plugins/zero-slop-hosted/.claude-plugin/plugin.json"]) {
   await update(path, (source) => {
     const data = JSON.parse(source);
     data.version = version;

@@ -36,6 +36,7 @@ def main() -> int:
 
     manifests = {
         "Claude plugin": load(".claude-plugin/plugin.json"),
+        "Claude hosted plugin": load("distribution/plugins/zero-slop-hosted/.claude-plugin/plugin.json"),
         "Codex plugin": load(".codex-plugin/plugin.json"),
         "Agent Plugin": load("plugin.json"),
         "Gemini extension": load("gemini-extension.json"),
@@ -115,6 +116,15 @@ def main() -> int:
 
     require(manifests["Claude plugin"].get("mcpServers") == "./.mcp.json",
             "Claude plugin does not bundle the MCP connector", problems)
+    hosted = manifests["Claude hosted plugin"]
+    require(hosted.get("name") == "zero-slop-hosted" and hosted.get("mcpServers") == "./.mcp.json",
+            "Claude hosted plugin must declare only the hosted MCP connector", problems)
+    require(not any(key in hosted for key in ("skills", "commands", "agents", "hooks", "settings",
+                                             "userConfig", "dependencies", "lspServers", "experimental")),
+            "Claude hosted plugin must not declare local execution or configuration", problems)
+    require(load("distribution/plugins/zero-slop-hosted/.mcp.json") == {
+        "mcpServers": {"zero-slop": {"type": "http", "url": MCP_URL}},
+    }, "Claude hosted plugin must use the exact public HTTP endpoint without credentials", problems)
     require(manifests["Codex plugin"].get("mcpServers") == "./mcp.json",
             "Codex plugin does not bundle the MCP connector", problems)
 
