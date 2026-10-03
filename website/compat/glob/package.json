@@ -1,0 +1,16 @@
+{
+  "name": "@zero-slop/website-glob-compat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Narrow tinyglobby adapter for the pinned website build and lint consumers",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "main": "index.js",
+  "exports": "./index.js",
+  "dependencies": {
+    "tinyglobby": "0.2.17"
+  }
+}

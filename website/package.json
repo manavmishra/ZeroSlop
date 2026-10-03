@@ -11,7 +11,7 @@
     "build:static": "npm run build && node scripts/export-static.mjs",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "deploy:cloudflare": "node scripts/refuse-deploy.mjs",
-    "test": "npm run build:static && node --test tests/rendered-html.test.mjs",
+    "test": "node --test tests/glob-compat.test.mjs && npm run build:static && node --test tests/rendered-html.test.mjs",
     "test:e2e": "node tests/browser-qa.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
@@ -32,6 +32,7 @@
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
+    "fast-glob": "file:compat/glob",
     "globals": "16.4.0",
     "playwright-core": "1.55.0",
     "react-server-dom-webpack": "19.2.8",
@@ -48,6 +49,7 @@
     "@typescript-eslint/typescript-estree": {
       "brace-expansion": "5.0.12"
     },
-    "fast-uri": "3.1.8"
+    "fast-uri": "3.1.8",
+    "fast-glob": "$fast-glob"
   }
 }
