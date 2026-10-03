@@ -54,6 +54,8 @@ Writing score: 9.5/100  [clear]
 
 ## Quick start
 
+The installed skill can make an optional, metadata-only request to GitHub’s public releases API to check for updates. It sends no draft or private learning data. Set `ZS_NO_UPDATE_CHECK=1` to disable it. Hosted MCP requests are separate and are covered by [our privacy policy](https://zero-slop.ai/privacy/).
+
 You can [try the browser editor](https://zero-slop.ai/try/) without installing anything, install the skill in an assistant that supports skills, or use the hosted service through MCP and the API.
 
 If you use Claude Code, Codex, or another assistant that supports skills, here's how to install Zero Slop there:
