@@ -2,7 +2,7 @@
 
 Every sample here is writing a human would recognise as human. No pattern in
 `data/patterns.json` or `data/learned.json` may fire on any of them, and
-`calibrate.py --selftest` fails the build if one does. `learn.py` consults the
+`MCP tool mcp__plugin_zero-slop_zero-slop-local__calibrate_selftest; example inputs: --selftest` fails the build if one does. `learn.py` consults the
 same directory before minting anything from the reflect loop, so a pattern
 learned from one writer's edit can never start flagging the writing below.
 
@@ -39,7 +39,7 @@ same bar: if any of them ever fires a pattern, the pattern is wrong.
 ## Adding a sample
 
 1. Drop a `.txt` file here with prose that is unambiguously human.
-2. Run `python3 scripts/calibrate.py --selftest`. If your sample fails, that is
+2. Run `MCP tool mcp__plugin_zero-slop_zero-slop-local__calibrate_selftest; example inputs: --selftest`. If your sample fails, that is
    a finding — fix the pattern, not the sample.
 3. Add a row to the table above naming the false positive it prevents. A sample
    with no stated purpose gets deleted in the next cleanup.

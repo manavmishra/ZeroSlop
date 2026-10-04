@@ -3,8 +3,8 @@
 Answer every check with pass or fail. Use "unavailable" only for a check that
 requires a missing script in the single-file or no-Python path; name that gap in
 the report and never call the result fully verified. Where a check asks for a
-count, write the number down; a count is evidence, and a missing count means the
-pass did not run.
+count, write the number down; a count is evidence, and a missing count means that the
+check was not performed.
 
 Any fail permits one targeted textual repair followed by one local recheck. It does
 not restart the copy desk, read-aloud pass, or model request. A failed check changes
@@ -20,7 +20,7 @@ reason to work through section A carefully, never permission to skip it.
 
 The ratchet: every miss an audit, a competitor, or a reader catches becomes a
 deterministic detector or a `data/corpus/must-flag/` fixture in the same change.
-A note is not a fix; `register.py --recall` proves each recorded miss still
+A note is not a fix; `maintainer-only register check (not an installed MCP operation)` proves each recorded miss still
 gets caught, and the release suite runs it.
 
 Families here are drawn from the Zero Slop tell catalogue, from Wikipedia's
@@ -222,7 +222,7 @@ the report even when they are zero.
 
 ## C. Fidelity
 
-48. **Scripted check run, not eyeballed.** `slopscore.py --fidelity` exits zero.
+48. **Scripted check run, not eyeballed.** `MCP tool mcp__plugin_zero-slop_zero-slop-local__fidelity; example inputs: --fidelity` exits zero.
     If scripts are unavailable, mark this unavailable and compare facts, claims,
     figures, and qualifiers directly against the source. The direct comparison
     does not turn an unavailable scripted check into a pass.
@@ -236,7 +236,7 @@ the report even when they are zero.
     as the source.
 52. **Claims not reframed.** Same names and numbers can still carry a changed
     emphasis or implication. Compare meaning, not tokens, and run three direction
-    tests on every span `register.py --delta` reports as inserted or rewritten:
+    tests on every span `MCP tool mcp__plugin_zero-slop_zero-slop-local__register_delta; example inputs: --delta` reports as inserted or rewritten:
     purpose has not become outcome ("changed tactics to achieve its objective" is
     not "changed tactics until it reached its objective"); agency has not moved
     ("helps teams generate fixes" is not "generates fixes"); a warned future has
@@ -252,7 +252,7 @@ the report even when they are zero.
     a baseline or a citation must be restored; an unsourced multiplier or statistic
     doing an intensifier's job -- "the 10x move", "tenfold", "~70% of pilots fail" --
     was right to cut. Record that ruling in a source-bound JSON file and rerun
-    `slopscore.py --fidelity --adjudication ruling.json original rewrite`; the
+    `MCP tool mcp__plugin_zero-slop_zero-slop-local__fidelity; example inputs: --fidelity --adjudication ruling.json original rewrite`; the
     file carries schema `1`, the exact original text's SHA-256, and an
     `allow_dropped_figures` list. Never invent a citation to keep a number alive.
     Unruled means unresolved:
@@ -276,7 +276,7 @@ the report even when they are zero.
 59. **Proportional cutting.** No compression that stripped character. Density is
     information per word, not fewer words.
 60. **Read aloud.** Would this sound natural read to a sharp colleague?
-61. **Emphasis survives.** `register.py --delta` lists every intensifier or
+61. **Emphasis survives.** `MCP tool mcp__plugin_zero-slop_zero-slop-local__register_delta; example inputs: --delta` lists every intensifier or
     absolute the rewrite cut from this source. Each cut needs a defect named from
     this file, judged in its own context: puffery, hyperbole universal, filler.
     "Too strong" is not a defect, and a falsifiable claim the author owns keeps

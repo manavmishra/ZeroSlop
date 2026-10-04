@@ -6,6 +6,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -100,15 +101,33 @@ def main(argv=None):
     )
     parser.add_argument("--source", default=default)
     parser.add_argument("--out", default=str(OUT))
+    parser.add_argument("--shared-only", action="store_true",
+                        help="fresh release replay excluding private learned preferences")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--write", action="store_true")
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
-    source_path, out_path = Path(args.source), Path(args.out)
+    source_path, out_path = Path(args.source), Path(args.out).resolve()
     try:
         source = source_path.read_text()
         version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
-        report = evaluate_text(source, version=version)
+        if args.shared_only:
+            registry = json.loads((ROOT / "bench/corpus-registry.json").read_text())
+            admission = next(row for row in registry["datasets"] if row["id"] == "manav-slop-examples")
+            digest = hashlib.sha256(source.encode()).hexdigest()
+            if (admission["status"] != "measured"
+                    or admission["source_pin"] != "SHA-256 " + digest):
+                raise ValueError("private source does not match its corpus admission")
+            with tempfile.TemporaryDirectory() as temp:
+                previous_home = slopscore.HOME
+                try:
+                    slopscore.HOME = Path(temp)
+                    report = evaluate_text(source, version=version)
+                finally:
+                    slopscore.HOME = previous_home
+            report["scorer"]["private_preferences"] = "excluded"
+        else:
+            report = evaluate_text(source, version=version)
         rendered = json.dumps(report, indent=1) + "\n"
         if args.check:
             if not out_path.exists() or not reports_match(json.loads(out_path.read_text()), report):
@@ -120,6 +139,8 @@ def main(argv=None):
             )
             return 0
         if args.write:
+            if args.shared_only and out_path.exists():
+                raise ValueError("refusing to overwrite a fresh measured receipt")
             atomic_write_text(out_path, rendered)
             print(f"wrote {out_path.relative_to(ROOT)} without source prose")
             return 0

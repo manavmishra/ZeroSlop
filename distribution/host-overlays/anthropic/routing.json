@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "wording": [{"file": "skills/zero-slop/references/eval.md", "before": "a missing count means the\npass did not run.", "after": "a missing count means that the\ncheck was not performed."}],
+  "required_tools": ["score", "heatmap", "portfolio", "fidelity", "register_measure", "register_read", "register_verdict", "register_delta", "reader_prepare", "reader_skim", "reader_next", "reader_recall", "reader_report", "predictability_probes", "predictability_score", "rerank", "rescue", "learn_guide", "learn_reflect", "learn_promote", "learn_demote", "learn_voice", "learn_stats", "learn_confirm", "learn_decay", "calibrate_compare", "calibrate_selftest", "version"],
+  "modules": {
+    "slopscore": {"flags": ["--explain", "--json", "--formal", "--genre", "--voice", "--fidelity", "--adjudication", "--portfolio", "--heatmap", "--batch", "--gate"], "default": "score", "select": [{"flag": "--fidelity", "tool": "fidelity"}, {"flag": "--portfolio", "tool": "portfolio"}, {"flag": "--heatmap", "tool": "heatmap"}]},
+    "register": {"flags": ["--read", "--verdict", "--delta", "--json", "--gate", "--recall", "--calibrate", "--selftest"], "maintainer_flags": ["--recall", "--calibrate", "--selftest"], "default": "register_measure", "select": [{"flag": "--read", "tool": "register_read"}, {"flag": "--verdict", "tool": "register_verdict"}, {"flag": "--delta", "tool": "register_delta"}]},
+    "reader_review": {"flags": ["--audience", "--reader", "--context-mode", "--notes", "--reviews", "--skim", "--previous", "--json"], "select": [{"command": "prepare", "tool": "reader_prepare"}, {"command": "skim", "tool": "reader_skim"}, {"command": "next", "tool": "reader_next"}, {"command": "recall", "tool": "reader_recall"}, {"command": "report", "tool": "reader_report"}]},
+    "predictability": {"flags": ["--probes", "--score", "--selftest"], "maintainer_flags": ["--selftest"], "select": [{"flag": "--probes", "tool": "predictability_probes"}, {"flag": "--score", "tool": "predictability_score"}]},
+    "rerank": {"flags": ["--original", "--candidates", "--genre", "--adjudication", "--out", "--emit"], "default": "rerank", "select": []},
+    "rescue": {"flags": [], "default": "rescue", "select": []},
+    "version_check": {"flags": ["--quiet", "--json"], "default": "version", "select": []},
+    "learn": {"flags": ["--guide", "--for", "--reason", "--genre", "--limit", "--reflect", "--produced", "--shipped", "--feedback", "--promote", "--demote", "--voice", "--from", "--stats", "--confirm", "--decay", "--apply", "--auto-apply", "--json", "--cat", "--weight", "--export", "--merge", "--out", "--yes"], "maintainer_flags": ["--export", "--merge"], "select": [{"flag": "--guide", "tool": "learn_guide"}, {"flag": "--reflect", "tool": "learn_reflect"}, {"flag": "--promote", "tool": "learn_promote"}, {"flag": "--demote", "tool": "learn_demote"}, {"flag": "--voice", "tool": "learn_voice"}, {"flag": "--stats", "tool": "learn_stats"}, {"flag": "--confirm", "tool": "learn_confirm"}, {"flag": "--decay", "tool": "learn_decay"}]},
+    "calibrate": {"flags": ["--human", "--ai", "--out", "--selftest", "--decay"], "maintainer_flags": ["--decay"], "default": "calibrate_compare", "select": [{"flag": "--selftest", "tool": "calibrate_selftest"}]}
+  }
+}

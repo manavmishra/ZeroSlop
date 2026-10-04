@@ -281,7 +281,7 @@ reporters agreeing is signal.
 **An appeals path is a first-class feature, not an afterthought.** Users can
 report content as *not* slop, which triggers re-review and restores ranking.
 A system that can only add suspicion converges on suspecting everything. This
-is what `learn.py --demote` exists for, and Kagi treating it as core rather
+is what `MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_demote; example inputs: --demote` exists for, and Kagi treating it as core rather
 than optional is the argument for building it before you think you need it.
 
 **Downrank, never remove.** Flagged results stay visible and simply rank lower.

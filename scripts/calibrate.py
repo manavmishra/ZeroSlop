@@ -95,8 +95,13 @@ def freqs(texts):
 
 
 def excess_weights(human_dir, ai_dir):
-    hc, hn = freqs(read_corpus(human_dir))
-    ac, an = freqs(read_corpus(ai_dir))
+    return excess_weights_from_texts(read_corpus(human_dir), read_corpus(ai_dir))
+
+
+def excess_weights_from_texts(human_texts, ai_texts):
+    """Same frequency comparison for supplied texts; no paths or persistence."""
+    hc, hn = freqs(human_texts)
+    ac, an = freqs(ai_texts)
     out = {}
     for term, n_ai in ac.items():
         if n_ai < MIN_OBS or len(term) < 4:

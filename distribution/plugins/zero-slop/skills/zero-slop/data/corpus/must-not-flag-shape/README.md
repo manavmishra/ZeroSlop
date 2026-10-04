@@ -2,7 +2,7 @@
 
 Genres that are structurally indistinguishable from broetry: every sentence on
 its own line, high fragment counts, no connective tissue. The shape channel
-must stay silent on these, and `calibrate.py --selftest` runs them under
+must stay silent on these, and `MCP tool mcp__plugin_zero-slop_zero-slop-local__calibrate_selftest; example inputs: --selftest` runs them under
 `--genre social` — the hostile setting, where the channel actually engages.
 
 The guards that keep them silent (structural markers, dialogue openings, and

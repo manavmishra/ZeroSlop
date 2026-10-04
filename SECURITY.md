@@ -17,6 +17,18 @@ The installed skill ships ten standard-library Python modules:
 | `scripts/safeio.py` | locks and atomic file replacement | only on behalf of the two writers above | none |
 | `scripts/version_check.py` | optional release check | none | one metadata-only GitHub API request |
 
+The Anthropic plugin folder additionally carries three host execution adapters:
+`mcp_stdio.py`, `mcp_local_tools.py`, and `mcp_workflow_tools.py`. They expose the
+existing local checks through a declared stdio MCP server; they do not run shell
+commands or accept caller-selected file paths. Learning writes still require
+affirmative consent, with separate consent for activation. The optional version
+tool uses the same metadata-only release check. These adapters and their routing
+overlay are absent from the portable skill, npm package, and OpenAI ZIP. The
+Anthropic folder retains the separate remote connector for explicitly requested
+hosted editing; local checks do not automatically invoke it.
+The declared Python entry point in a repository subfolder can be held for manual
+directory review. A declaration or local test does not establish scan approval.
+
 These local Python checks do not transmit the draft. Editing inside an assistant
 follows that assistant's privacy settings. The version checker sends only a GET
 for the latest public release tag, times out after 2.5 seconds, fails open, and can be

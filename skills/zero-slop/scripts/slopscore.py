@@ -1490,6 +1490,11 @@ def load_adjudication(path, original):
         payload = json.loads(source.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError(f"cannot read adjudication file: {exc}") from exc
+    return validate_adjudication(payload, original)
+
+
+def validate_adjudication(payload, original):
+    """Validate the same source-bound ruling supplied as JSON, without file I/O."""
     if not isinstance(payload, dict):
         raise ValueError("adjudication file must be a JSON object")
     expected = {"schema", "original_sha256", "allow_dropped_figures"}
