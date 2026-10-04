@@ -15,3 +15,13 @@ python3 bench/internal-corpus/evaluate.py --check
 When the document changes, export a fresh Markdown copy, replace the private
 snapshot, inspect the change, and run the same command with `--write` to accept
 the new hash and measurements.
+
+Release checks use `results-<package-version>.json`, not `results.json`. Generate
+each new release receipt with `--shared-only --out
+bench/internal-corpus/results-<package-version>.json --write`, then check that
+same path. This replays the admitted private source offline with private learned
+preferences excluded and commits only aggregate findings, counts and hashes.
+The evaluator refuses to overwrite an existing shared-only receipt; historical
+receipts retain their original versions. CI validates the current receipt's
+release and source/runtime pins even when the private prose is unavailable;
+machines with the private source also recompute every measurement.
