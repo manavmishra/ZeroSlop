@@ -35,6 +35,10 @@ class MarketplacePackage(unittest.TestCase):
                 target = self.root / path.relative_to(ROOT)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(path, target)
+        for name in build_plugin.MCP_RUNTIME:
+            shutil.copyfile(ROOT / "scripts" / name, self.root / "scripts" / name)
+        shutil.copytree(ROOT / build_plugin.ANTHROPIC_OVERLAY,
+                        self.root / build_plugin.ANTHROPIC_OVERLAY)
         for manifest_path in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json"):
             manifest = json.loads((ROOT / manifest_path).read_text())
             for section in (manifest, manifest.get("interface", {})):
@@ -60,8 +64,14 @@ class MarketplacePackage(unittest.TestCase):
             sources = build_plugin.wanted(source) if source.is_dir() else [source]
             for path in sources:
                 expected[f"skills/zero-slop/{path.relative_to(ROOT).as_posix()}"] = path.read_bytes()
-        self.assertEqual({k: v for k, v in files.items() if k.startswith("skills/")}, expected)
-        self.assertEqual(files, package.payload(self.root))
+        self.assertEqual(files, package.folder_payload(self.root))
+        for name, content in expected.items():
+            if not name.endswith(".md"):
+                self.assertEqual(files[name], content)
+        expected.update({"skills/zero-slop/scripts/" + name:
+                         (ROOT / "scripts" / name).read_bytes()
+                         for name in build_plugin.MCP_RUNTIME})
+        self.assertEqual({k for k in files if k.startswith("skills/")}, set(expected))
         allowed = set(package.SUPPORT_FILES)
         for manifest_name in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json"):
             manifest = json.loads(files[manifest_name])
@@ -116,7 +126,7 @@ class MarketplacePackage(unittest.TestCase):
 
     def test_check_is_read_only_and_detects_missing_changed_and_extra_files(self):
         self.assertEqual(self.build(check=True), 1)
-        self.assertFalse((self.root / "distribution").exists())
+        self.assertFalse((self.root / package.DEST.parent).exists())
         self.assertFalse((self.root / "tmp").exists())
         self.assertEqual(self.build(make_zip=True), 0)
         self.assertEqual(self.build(check=True, make_zip=True), 0)
@@ -164,7 +174,7 @@ class MarketplacePackage(unittest.TestCase):
             link.symlink_to(sentinel)
             self.assertEqual(self.build(), 1)
             link.unlink()
-            (self.root / "distribution").symlink_to(outside, target_is_directory=True)
+            (self.root / package.DEST.parent).symlink_to(outside, target_is_directory=True)
             self.assertEqual(self.build(), 1)
             self.assertEqual(list(outside.iterdir()), [sentinel])
             self.assertEqual(sentinel.read_text(), "preserve")

@@ -1,11 +1,11 @@
 """Fail-closed tests for the narrowly pinned measurement exception."""
 import copy
-import hashlib
 import json
 from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from pinned_runtime import populate
 
 from runtime_compatibility import (
     EVIDENCE, PAIR_EVIDENCE, PINNED_FILES, ROOT,
@@ -14,44 +14,46 @@ from runtime_compatibility import (
 
 
 class RuntimeCompatibilityTests(unittest.TestCase):
-    def make_evidence(self, path, *, compatible="2.12.0", root=ROOT):
-        record = {
-            "schema": 1,
-            "result_kind": "exact_code_equivalence_not_new_measurement",
-            "measured_version": "2.11.6",
-            "compatible_version": compatible,
-            "measured_commit": "0d866036b210b90e23fa9f7b4146316cf40c255e",
-            "files": {
-                name: hashlib.sha256((Path(root) / name).read_bytes()).hexdigest()
-                for name in PINNED_FILES
-            },
+    @classmethod
+    def setUpClass(cls):
+        cls.archive = tempfile.TemporaryDirectory()
+        cls.historical = {
+            version: populate(Path(cls.archive.name) / version, version)
+            for version in ("2.11.6", "2.12.12", "2.12.13")
         }
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.archive.cleanup()
+
+    def make_evidence(self, path, *, compatible="2.12.0"):
+        # Never mint an admission from the code under test.
+        record = json.loads(EVIDENCE.read_text())
+        record["compatible_version"] = compatible
         path.write_text(json.dumps(record))
         return path
 
-    def copy_runtime(self, destination):
+    def copy_runtime(self, destination, measured="2.12.12"):
         for name in PINNED_FILES:
             target = destination / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(ROOT / name, target)
+            shutil.copyfile(self.historical[measured] / name, target)
 
     def test_historical_evidence_fails_after_runtime_bytes_change(self):
         # These releases matched 2.11.6 when reviewed. The current scorer has
         # since changed, so none may authorize relabelling today.
         for measured, compatible in PAIR_EVIDENCE:
-            if measured != "2.11.6":
-                continue
             with self.subTest(pair=(measured, compatible)):
                 self.assertFalse(exact_code_compatible(measured, compatible))
 
     def test_latest_pair_is_exact_and_preserves_historical_results(self):
-        self.assertTrue(exact_code_compatible("2.12.12", "2.12.13"))
+        self.assertTrue(exact_code_compatible("2.12.12", "2.12.13", root=self.historical["2.12.12"]))
         self.assertFalse(exact_code_compatible("2.12.13", "2.12.12"))
         self.assertFalse(exact_code_compatible("2.12.12", "2.12.16"))
         old = {"scorer": {"version": "2.12.12"}, "score": 12}
         new = {"scorer": {"version": "2.12.13"}, "score": 12}
         before = copy.deepcopy((old, new))
-        self.assertTrue(reports_match(old, new))
+        self.assertTrue(reports_match(old, new, root=self.historical["2.12.12"]))
         self.assertEqual((old, new), before)
         new["score"] = 13
         self.assertFalse(reports_match(old, new))
@@ -80,7 +82,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             evidence = self.make_evidence(Path(temp) / "evidence.json")
             self.assertTrue(exact_code_compatible(
-                "2.11.6", "2.12.0", evidence_path=evidence,
+                "2.11.6", "2.12.0", root=self.historical["2.11.6"], evidence_path=evidence,
             ))
             self.assertFalse(exact_code_compatible(
                 "2.11.6", "2.12.1", evidence_path=evidence,
@@ -97,13 +99,13 @@ class RuntimeCompatibilityTests(unittest.TestCase):
             new = {"scorer": {"version": "2.12.0"}, "score": 12,
                    "date": "historical"}
             before = copy.deepcopy((old, new))
-            self.assertTrue(reports_match(old, new, evidence_path=evidence))
+            self.assertTrue(reports_match(old, new, root=self.historical["2.11.6"], evidence_path=evidence))
             self.assertEqual((old, new), before)
             new["score"] = 13
-            self.assertFalse(reports_match(old, new, evidence_path=evidence))
+            self.assertFalse(reports_match(old, new, root=self.historical["2.11.6"], evidence_path=evidence))
             new["score"] = 12
             new["date"] = "relabelled"
-            self.assertFalse(reports_match(old, new, evidence_path=evidence))
+            self.assertFalse(reports_match(old, new, root=self.historical["2.11.6"], evidence_path=evidence))
 
     def test_identical_reports_need_no_compatibility_exception(self):
         report = {"scorer": {"version": "2.12.10"}, "score": 12}
@@ -116,8 +118,8 @@ class RuntimeCompatibilityTests(unittest.TestCase):
     def test_every_runtime_source_or_data_change_fails_closed(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "runtime"
-            self.copy_runtime(root)
-            evidence = self.make_evidence(Path(temp) / "evidence.json", root=root)
+            self.copy_runtime(root, "2.11.6")
+            evidence = self.make_evidence(Path(temp) / "evidence.json")
             self.assertTrue(exact_code_compatible(
                 "2.11.6", "2.12.0", root=root, evidence_path=evidence,
             ))
@@ -146,11 +148,11 @@ class RuntimeCompatibilityTests(unittest.TestCase):
             del record["files"]["data/learned.json"]
             path.write_text(json.dumps(record))
             self.assertFalse(exact_code_compatible(
-                "2.11.6", "2.12.0", evidence_path=path,
+                "2.11.6", "2.12.0", root=self.historical["2.11.6"], evidence_path=path,
             ))
             path.write_text("invalid json")
             self.assertFalse(exact_code_compatible(
-                "2.11.6", "2.12.0", evidence_path=path,
+                "2.11.6", "2.12.0", root=self.historical["2.11.6"], evidence_path=path,
             ))
 
     def test_2_12_14_admissions_pin_complete_files_and_release_identity(self):
@@ -165,7 +167,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
                 self.assertEqual(set(evidence["files"]), PINNED_FILES)
                 self.assertEqual(evidence["measured_version"], measured)
                 self.assertEqual(evidence["compatible_version"], "2.12.14")
-                self.assertTrue(exact_code_compatible(measured, "2.12.14"))
+                self.assertTrue(exact_code_compatible(measured, "2.12.14", root=self.historical[measured]))
 
     def test_2_12_14_does_not_admit_other_or_reverse_pairs(self):
         for measured, current in (
@@ -213,7 +215,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
         for measured in ("2.12.12", "2.12.13"):
             with tempfile.TemporaryDirectory() as temp:
                 root = Path(temp) / "runtime"
-                self.copy_runtime(root)
+                self.copy_runtime(root, measured)
                 self.assertTrue(exact_code_compatible(measured, "2.12.14", root=root))
                 for name in PINNED_FILES:
                     target = root / name
@@ -232,7 +234,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
             new = copy.deepcopy(old)
             new["scorer"]["version"] = "2.12.14"
             before = copy.deepcopy((old, new))
-            self.assertTrue(reports_match(old, new))
+            self.assertTrue(reports_match(old, new, root=self.historical[measured]))
             self.assertEqual((old, new), before)
             for field, value in (
                 ("scorer", {"version": "2.12.14", "hash": "changed"}),
@@ -244,7 +246,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
                 bad = copy.deepcopy(new)
                 bad[field] = value
                 with self.subTest(measured=measured, field=field):
-                    self.assertFalse(reports_match(old, bad))
+                    self.assertFalse(reports_match(old, bad, root=self.historical[measured]))
                     self.assertEqual((old, new), before)
 
 
@@ -260,7 +262,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
                 self.assertEqual(set(evidence["files"]), PINNED_FILES)
                 self.assertEqual(evidence["measured_version"], measured)
                 self.assertEqual(evidence["compatible_version"], "2.12.15")
-                self.assertTrue(exact_code_compatible(measured, "2.12.15"))
+                self.assertTrue(exact_code_compatible(measured, "2.12.15", root=self.historical[measured]))
 
     def test_2_12_15_does_not_admit_other_or_reverse_pairs(self):
         for measured, current in (
@@ -309,7 +311,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
         for measured in ("2.12.12", "2.12.13"):
             with tempfile.TemporaryDirectory() as temp:
                 root = Path(temp) / "runtime"
-                self.copy_runtime(root)
+                self.copy_runtime(root, measured)
                 self.assertTrue(exact_code_compatible(measured, "2.12.15", root=root))
                 for name in PINNED_FILES:
                     target = root / name
@@ -328,7 +330,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
             new = copy.deepcopy(old)
             new["scorer"]["version"] = "2.12.15"
             before = copy.deepcopy((old, new))
-            self.assertTrue(reports_match(old, new))
+            self.assertTrue(reports_match(old, new, root=self.historical[measured]))
             self.assertEqual((old, new), before)
             for field, value in (
                 ("scorer", {"version": "2.12.15", "hash": "changed"}),
@@ -340,7 +342,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
                 bad = copy.deepcopy(new)
                 bad[field] = value
                 with self.subTest(measured=measured, field=field):
-                    self.assertFalse(reports_match(old, bad))
+                    self.assertFalse(reports_match(old, bad, root=self.historical[measured]))
                     self.assertEqual((old, new), before)
 
 

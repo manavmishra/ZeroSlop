@@ -656,8 +656,8 @@ def diff_spans(produced, shipped):
     return out
 
 
-def load_edit_feedback(path, produced, shipped, diffs):
-    """Load optional per-edit reason labels bound to an exact before/after pair."""
+def read_edit_feedback(path):
+    """Read a bounded feedback file once; semantic validation is separate."""
     source = Path(path)
     if not source.is_file():
         raise SystemExit(f"feedback is not a readable file: {source}")
@@ -667,6 +667,16 @@ def load_edit_feedback(path, produced, shipped, diffs):
         payload = json.loads(source.read_text())
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SystemExit(f"feedback must be readable UTF-8 JSON: {exc}") from exc
+    return payload
+
+
+def load_edit_feedback(path, produced, shipped, diffs):
+    """Load optional per-edit reason labels bound to an exact before/after pair."""
+    return validate_edit_feedback(read_edit_feedback(path), produced, shipped, diffs)
+
+
+def validate_edit_feedback(payload, produced, shipped, diffs):
+    """Validate source-bound edit labels without accepting a caller file path."""
     if (not isinstance(payload, dict)
             or set(payload) != {"schema", "source_sha256", "target_sha256", "edits"}
             or payload.get("schema") != 1
@@ -693,9 +703,28 @@ def load_edit_feedback(path, produced, shipped, diffs):
     return labels
 
 
-@state_locked(lambda *a, **k: OBS)
 def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="general",
             feedback=None):
+    prod_text = required_text(produced, "produced draft")
+    ship_text = required_text(shipped, "shipped draft")
+    payload = None
+    if feedback:
+        # Keep the file interface and its existing bound for CLI callers.
+        payload = read_edit_feedback(feedback)
+    return reflect_text(prod_text, ship_text, reason=reason, genre=genre,
+                        feedback=payload, labels=(Path(produced).name, Path(shipped).name))
+
+
+@state_locked(lambda *a, **k: OBS)
+def reflect_text(prod_text, ship_text, *, reason="unspecified", genre="general",
+                 feedback=None, labels=("supplied draft", "supplied final text")):
+    """Record explicitly approved supplied edits using the existing safety gates.
+
+    No source files are written. Private evidence remains under ZERO_SLOP_HOME;
+    callers must obtain human opt-in before invoking this state-changing operation.
+    """
+    if not isinstance(prod_text, str) or not isinstance(ship_text, str):
+        raise ValueError("Reflection inputs must be text")
     reason = validate_label(reason, REASON_LABELS, "reason label")
     genre = validate_label(genre, GENRES, "genre")
     base = load(DATA / "patterns.json")
@@ -710,8 +739,6 @@ def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="gene
     obs.setdefault("fix_observations", {})
 
     today = str(date.today())
-    prod_text = required_text(produced, "produced draft")
-    ship_text = required_text(shipped, "shipped draft")
     # A vote is one unique edit pair, regardless of filenames or caller-supplied
     # labels. Otherwise three copies of the same before/after text could cross
     # the recurrence threshold by changing only --doc-id. The optional label is
@@ -719,8 +746,8 @@ def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="gene
     doc = hashlib.sha256(
         (prod_text + "\0" + ship_text).encode()).hexdigest()[:16]
     diffs = diff_spans(prod_text, ship_text)
-    edit_labels = (load_edit_feedback(feedback, prod_text, ship_text, diffs)
-                   if feedback else {})
+    edit_labels = (validate_edit_feedback(feedback, prod_text, ship_text, diffs)
+                   if feedback is not None else {})
     caught_words = {word for d in diffs if already_caught(d["span"], pats, lex)
                      for word in norm(d["span"]).split()}
 
@@ -818,7 +845,7 @@ def reflect(produced, shipped, doc_id=None, *, reason="unspecified", genre="gene
 
     write_json(OBS, obs, private=True)
 
-    print(f"reflect: {Path(produced).name} → {Path(shipped).name}\n")
+    print(f"reflect: {labels[0]} → {labels[1]}\n")
     print(f"  {agreed} edit(s) Zero Slop had already flagged — the writer agreed")
     print(f"  {skipped} content-specific cut(s) ignored (figures, proper nouns)")
     print(f"  {recorded} new phrase(s) saved for review")
@@ -1242,11 +1269,8 @@ def merge(path, apply_, cat, weight):
     return 0
 
 
-@state_locked(lambda *a, **k: LOCAL)
 def confirm(target):
     """Refresh evidence. Patterns that keep firing stay; the rest decay out."""
-    p = LOCAL
-    d = load_learned(p, "local")
     t = Path(target)
     if not t.exists():
         raise SystemExit(f"confirmation path does not exist: {t}")
@@ -1260,6 +1284,15 @@ def confirm(target):
         raise SystemExit(f"cannot read confirmation corpus at {t}: {exc}") from exc
     if not text.strip():
         raise SystemExit(f"confirmation corpus contains no text: {t}")
+    return confirm_text(text, sample_count=len(files))
+
+
+@state_locked(lambda *a, **k: LOCAL)
+def confirm_text(text, *, sample_count=1):
+    """Refresh private rules against supplied text, without caller paths."""
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Confirmation input must contain text")
+    d = load_learned(LOCAL, "local")
     today, n = str(date.today()), 0
     for pat in d.get("patterns", []):
         try:
@@ -1270,9 +1303,9 @@ def confirm(target):
                 n += 1
         except re.error:
             continue
-    write_json(p, d, private=True)
+    write_json(LOCAL, d, private=True)
     print(f"confirmed {n}/{len(d.get('patterns', []))} learned pattern(s) "
-          f"against {len(files)} file(s)")
+          f"against {sample_count} sample(s)")
     return 0
 
 
@@ -1427,10 +1460,7 @@ def build_voice(name, sample_path):
     complete writing style. The resulting profile changes scoring only when
     the caller explicitly selects it with ``--voice NAME``.
     """
-    import slopscore
     name = safe_voice_name(name)
-    base = slopscore.load_patterns()
-    terms = list(base.get("lexicon", {})) + list(base.get("riders", {}))
     src = Path(sample_path)
     if not src.exists():
         raise SystemExit(f"voice sample path does not exist: {src}")
@@ -1444,6 +1474,18 @@ def build_voice(name, sample_path):
         raise SystemExit(f"cannot read voice sample at {src}: {exc}") from exc
     if not blob.strip():
         raise SystemExit(f"voice sample contains no text: {src}")
+    return build_voice_text(name, blob)
+
+
+def build_voice_text(name, text):
+    """Same exact-term profile from supplied text, never an arbitrary source path."""
+    import slopscore
+    name = safe_voice_name(name)
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Voice sample must contain text")
+    base = slopscore.load_patterns()
+    terms = list(base.get("lexicon", {})) + list(base.get("riders", {}))
+    blob = text.lower()
     keep = sorted({term for term in terms
                    if re.search(r"\b" + re.escape(term.lower()) + r"\b", blob)})
     prof = {"_comment": f"Named scoring profile for {name}. Exact matches for "

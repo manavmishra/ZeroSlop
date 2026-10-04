@@ -204,7 +204,7 @@ and the example that motivated it.
   excess frequency between a human corpus and current AI output, so the meter
   can be re-fit to any model generation or to one writer's baseline.
   (2) data/corpus/must-not-flag/ is a false-positive regression suite;
-  calibrate.py --selftest must pass before any pattern change ships. It
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__calibrate_selftest; example inputs: --selftest must pass before any pattern change ships. It
   immediately caught three real bugs: duplicate lexicon prefixes double-
   counting one word (elevate/elevat), technical terms of art convicting
   honest prose (robust, landscape, elevated), and style-only conviction of

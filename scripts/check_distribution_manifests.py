@@ -7,6 +7,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from build_plugin import MCP_RUNTIME, wanted
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,6 +34,11 @@ def main() -> int:
     version = package.get("version")
     require(isinstance(version, str) and VERSION_RE.fullmatch(version) is not None,
             "package.json has no semantic version", problems)
+    for name in MCP_RUNTIME:
+        require(f"!scripts/{name}" in package.get("files", []),
+                f"npm must exclude the Anthropic-only adapter {name}", problems)
+    require(not any(path.name in MCP_RUNTIME for path in wanted(ROOT / "scripts")),
+            "Anthropic-only adapters leaked into the portable runtime mirror", problems)
 
     manifests = {
         "Claude plugin": load(".claude-plugin/plugin.json"),

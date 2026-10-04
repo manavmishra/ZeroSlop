@@ -109,14 +109,14 @@ private output files using its approved file tools. These commands illustrate th
 interface, not a requirement to run a shell from the reader:
 
 ```sh
-python3 scripts/reader_review.py prepare draft.md --audience "Backend engineers reviewing a launch"
-python3 scripts/reader_review.py skim manifest.json
-python3 scripts/reader_review.py next manifest.json --reader R1 --context-mode sequential
-python3 scripts/reader_review.py next manifest.json --reader R1 --notes r1.json
-python3 scripts/reader_review.py recall manifest.json --reader R1 --notes r1.json
-python3 scripts/reader_review.py report manifest.json --reviews reviews.json --skim skim.json
-python3 scripts/reader_review.py report manifest.json --reviews reviews.json --skim skim.json --json
-python3 scripts/reader_review.py report revised-manifest.json --reviews revised-reviews.json --skim revised-skim.json --previous previous-report.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_prepare; example inputs: prepare draft.md --audience "Backend engineers reviewing a launch"
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_skim; example inputs: skim manifest.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_next; example inputs: next manifest.json --reader R1 --context-mode sequential
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_next; example inputs: next manifest.json --reader R1 --notes r1.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_recall; example inputs: recall manifest.json --reader R1 --notes r1.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_report; example inputs: report manifest.json --reviews reviews.json --skim skim.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_report; example inputs: report manifest.json --reviews reviews.json --skim skim.json --json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__reader_report; example inputs: report revised-manifest.json --reviews revised-reviews.json --skim revised-skim.json --previous previous-report.json
 ```
 
 The first command returns the manifest; save it only if an output file is wanted.

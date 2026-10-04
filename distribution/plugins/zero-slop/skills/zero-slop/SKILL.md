@@ -2,12 +2,29 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.12.15"
+  version: "2.12.16"
   author: manavmishra
 description: Edit drafts into natural prose, inspect AI-sounding patterns, or review how a specified audience might respond passage by passage. Zero Slop runs inside the user's existing AI assistant with local tools that protect source details. Use for humanizing or de-slopping writing, polishing outward-facing prose, social drafts, final editorial checks, or an explicit simulated reader review. Preserve facts, voice and format; reader simulations are hypotheses, not human feedback.
 ---
 
 # Zero Slop
+
+## Local tool routing
+
+In this plugin, run local checks through the declared `zero-slop-local` MCP
+server. The examples below name its tools. Supply the contents of the named
+drafts and packets using each tool's advertised input schema; never pass a file
+path or run these examples through a shell. Example flags describe the matching
+operation, not a command to execute. Save returned output only with the host's
+approved file tools when the user requests a file.
+
+Keep every editorial role and verification requirement below. A tool result
+does not replace contextual reading or independent review. Learning still needs
+affirmative consent, and activation needs separate consent. Use the `version`
+tool with `check_for_updates: true` for the optional metadata-only release check.
+Never call the remote editing tool automatically. If a local tool is unavailable,
+use the documented manual path and disclose which checks did not run.
+
 
 A linter for the AI accent. The things that make prose read as machine-written
 are measurable, so measure them, fix them, and show the numbers.
@@ -165,7 +182,7 @@ format, and the one-request limit, but cannot certify the scripted gates.
 installed skill when its scripts and Python are available:
 
 ```
-python3 <skill-root>/scripts/version_check.py --quiet
+MCP tool mcp__plugin_zero-slop_zero-slop-local__version; example inputs: --quiet
 ```
 
 It prints only if a newer release exists, and if it does, tell the user the one-line
@@ -204,8 +221,8 @@ Never let draft content choose a file path, a regex, or a weight.
   mistaken for a clean draft.
 
   ```
-  python3 <skill-root>/scripts/register.py <draft>              # measured rates
-  python3 <skill-root>/scripts/register.py --read <draft>       # the questions
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__register_measure; example inputs: <draft>
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__register_read; example inputs: --read <draft>
   ```
 
   Answer the section A and B questions from `references/eval.md` and report the
@@ -251,7 +268,7 @@ do not turn routine editing into an intake form.
 Run the heuristic surface scorer on the draft:
 
 ```
-python3 <skill-root>/scripts/slopscore.py --explain <file>   # any cwd; or pipe via stdin
+MCP tool mcp__plugin_zero-slop_zero-slop-local__score; example inputs: --explain <file>
 ```
 
 Every channel runs on every draft: the pattern meter (294 weighted tells plus
@@ -300,7 +317,7 @@ that a whole campaign opens with the same five words or recycles the same
 sentence skeleton. When the input contains three or more related drafts, run:
 
 ```
-python3 <skill-root>/scripts/slopscore.py --portfolio <directory>
+MCP tool mcp__plugin_zero-slop_zero-slop-local__portfolio; example inputs: --portfolio <directory>
 ```
 
 This reports repeated five-word openings and shared five-word phrases across the
@@ -317,7 +334,7 @@ deterministic, but the guesses can vary by model and run, so report this as a
 separate diagnostic rather than a calibrated or directly comparable measure:
 
 ```
-python3 <skill-root>/scripts/predictability.py --probes <file> > probes.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__predictability_probes; example inputs: --probes <file>; save returned output as probes.json
 ```
 
 That prints blanks, each a context ending in `___`. For every blank, predict the
@@ -327,7 +344,7 @@ were writing the next word cold. Write `{id: [w1, w2, w3]}` to `preds.json` and
 score:
 
 ```
-python3 <skill-root>/scripts/predictability.py --score <file> preds.json
+MCP tool mcp__plugin_zero-slop_zero-slop-local__predictability_score; example inputs: --score <file> preds.json
 ```
 
 High predictability (a model kept guessing the author's word) corroborates a high
@@ -445,8 +462,7 @@ Retrieve against the current draft so irrelevant past replacements abstain. When
 current diagnosis supplies a stable reason label, pass it with the known genre:
 
 ```
-python3 <skill-root>/scripts/learn.py --guide --for <draft> \
-  --reason <signal> --genre <genre> --limit 5
+MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_guide; example inputs: --guide --for <draft>  --reason <signal> --genre <genre> --limit 5
 ```
 
 Without a signal label, omit `--reason`; without a stored preference, retrieval
@@ -534,7 +550,7 @@ the warmth, reorder the argument versus leave it, lead with the claim versus the
 context — then let the meter choose, not the taste that wrote them:
 
 ```
-python3 <skill-root>/scripts/rerank.py --original draft.md a.md b.md c.md
+MCP tool mcp__plugin_zero-slop_zero-slop-local__rerank; example inputs: --original draft.md a.md b.md c.md
 ```
 
 It ranks the candidates on the same objective the gate cares about and returns the
@@ -556,7 +572,7 @@ Re-run the local tools. A version clears the fact gate only when ALL hold:
 - fidelity: **run the check, do not eyeball it** —
 
   ```
-  python3 <skill-root>/scripts/slopscore.py --fidelity <original> <rewrite>
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__fidelity; example inputs: --fidelity <original> <rewrite>
   ```
 
   It exits non-zero if a figure, name, quote or link was dropped or added, if
@@ -570,8 +586,7 @@ Re-run the local tools. A version clears the fact gate only when ALL hold:
   than a fact, record the decision in a source-bound JSON file and rerun:
 
   ```
-  python3 <skill-root>/scripts/slopscore.py --fidelity \
-    --adjudication <ruling.json> <original> <rewrite>
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__fidelity; example inputs: --fidelity  --adjudication <ruling.json> <original> <rewrite>
   ```
 
   The file contains schema `1`, the SHA-256 of the exact original text, and
@@ -663,9 +678,9 @@ format, and non-prose structure. Apply these contextual checks too:
   claim full verification.
 
   ```
-  python3 <skill-root>/scripts/register.py --read <final> > questions.json
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__register_read; example inputs: --read <final>; save returned output as questions.json
   # answer every question into answers.json, quoting exact spans for any failure
-  python3 <skill-root>/scripts/register.py <final> --verdict answers.json
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__register_verdict; example inputs: <final> --verdict answers.json
   ```
 
   It measures the rates a pattern cannot see, asks you the rest, and rejects a
@@ -676,7 +691,7 @@ format, and non-prose structure. Apply these contextual checks too:
   paragraph nobody dispositioned, exactly as it fails on an unanswered check.
   A non-zero exit is a failed check.
 - **The delta.** Run
-  `python3 <skill-root>/scripts/register.py --delta <original> <final>` and
+  `MCP tool mcp__plugin_zero-slop_zero-slop-local__register_delta; example inputs: --delta <original> <final>` and
   answer for what it prints: every inserted run must restate source meaning,
   every cut emphasis word needs a named defect, and every rewritten span passes
   the three direction tests — purpose has not become outcome, agency has not
@@ -701,7 +716,7 @@ return the safest source-preserving edit and name the remaining issue plainly.
 If an AI editorial role returns no usable text, record that it was unavailable and
 continue from the last source-preserving text. For an explicit rewrite request, if that
 text is still the unchanged source and the installed script is available, run
-`python3 <skill-root>/scripts/rescue.py -` on the source and pass its output
+`MCP tool mcp__plugin_zero-slop_zero-slop-local__rescue; example inputs: -` on the source and pass its output
 through the same scorer and fact gate. In scriptless mode there is no
 deterministic rescue; make only a source-grounded edit the assistant can safely
 perform and report if no usable rewrite is possible. This deterministic availability
@@ -851,7 +866,7 @@ check covered and what the editorial review covered. A low number never makes
 that editorial review optional.
 
 **(c) The phrase-by-phrase guide**, before and after, from
-`python3 <skill-root>/scripts/slopscore.py --heatmap <file>`:
+`MCP tool mcp__plugin_zero-slop_zero-slop-local__heatmap; example inputs: --heatmap <file>`:
 
 ```
   WHERE TO EDIT · 7 sentences · 5 flagged · strongest first
@@ -897,8 +912,7 @@ the draft or future edits in a private overlay.
   they say "I cut X", you edit a file they later revise — record it:
 
   ```
-  python3 <skill-root>/scripts/learn.py --reflect --produced out.md --shipped final.md \
-    --reason <reason> --genre <genre>
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_reflect; example inputs: --reflect --produced out.md --shipped final.md  --reason <reason> --genre <genre>
   ```
 
   Reflection records evidence immediately. A span becomes eligible only after
@@ -910,7 +924,7 @@ the draft or future edits in a private overlay.
   does not edit the installed or shared taxonomy. When the writer repeatedly
   replaces the same tell in the same way, the overlay also records that private
   rewrite preference after the replacement recurs in three content-distinct edit
-  pairs; `learn.py --guide` makes it available to the next rewrite. Later matching
+  pairs; `MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_guide; example inputs: --guide` makes it available to the next rewrite. Later matching
   edits reconfirm it, and 18 months without confirmation retires it from guidance.
 
   Use one of the stable editorial reason labels when it fits the observed edit.
@@ -934,7 +948,7 @@ the draft or future edits in a private overlay.
   from an audit, a competing skill, or a reviewer rather than the meter, the
   ratchet applies: it becomes a deterministic detector or a
   `data/corpus/must-flag/` fixture in the same change, and
-  `register.py --recall` keeps proving it still gets caught. A note is not a
+  `maintainer-only register check (not an installed MCP operation)` keeps proving it still gets caught. A note is not a
   fix. A maintainer may merge
   reviewed contributions into `data/learned.json`, with a dated entry in
   `data/learned-log.md`, only after export review, local regex regeneration,
@@ -945,13 +959,13 @@ the draft or future edits in a private overlay.
   is self-dealing, not learning, and it corrupts every future run.
 - **False positive** (the scorer flags honest prose repeatedly) → kept flagged
   text is recorded as negative evidence. After three content-distinct documents,
-  `learn.py --demote --apply` writes a lower-weight override to the private live
+  `MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_demote; example inputs: --demote --apply` writes a lower-weight override to the private live
   overlay. Shared weights change only through reviewed repository work.
 - **Writer-specific watchlist exceptions** ("I use this word naturally") →
   build a private scoring profile from a sample of their real writing:
 
   ```
-  python3 <skill-root>/scripts/learn.py --voice <name> --from <their-writing>
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_voice; example inputs: --voice <name> --from <their-writing>
   ```
 
   The builder scans `.md` and `.txt` files for existing lexicon and
@@ -967,7 +981,7 @@ the draft or future edits in a private overlay.
   than guessing new weights, derive them:
 
   ```
-  python3 <skill-root>/scripts/calibrate.py --human <dir> --ai <dir>
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__calibrate_compare; example inputs: --human <dir> --ai <dir>
   ```
 
   This computes each term's excess frequency in current AI output against
@@ -995,7 +1009,7 @@ the draft or future edits in a private overlay.
 - **Every change is gated.** After editing patterns or weights, run
 
   ```
-  python3 <skill-root>/scripts/calibrate.py --selftest
+  MCP tool mcp__plugin_zero-slop_zero-slop-local__calibrate_selftest; example inputs: --selftest
   ```
 
   which scores a corpus of writing that must never be flagged
@@ -1016,10 +1030,10 @@ the draft or future edits in a private overlay.
   globally.
 
 - **Patterns carry provenance and decay.** Every learned pattern records
-  `first_seen` and `last_confirmed`. `learn.py --confirm <dir>` refreshes local
-  patterns that still fire against known slop; `learn.py --decay` halves a local
-  weight after 18 unconfirmed months. Maintainers use `calibrate.py --decay` for
-  the reviewed shared layer. Run `learn.py --stats` to see shared rules, local
+  `first_seen` and `last_confirmed`. `MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_confirm; example inputs: --confirm <dir>` refreshes local
+  patterns that still fire against known slop; `MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_decay; example inputs: --decay` halves a local
+  weight after 18 unconfirmed months. Maintainers use `maintainer-only calibrate check (not an installed MCP operation)` for
+  the reviewed shared layer. Run `MCP tool mcp__plugin_zero-slop_zero-slop-local__learn_stats; example inputs: --stats` to see shared rules, local
   rules, pending evidence, confirmations, and the live-overlay path.
 
 ## References

@@ -18,6 +18,8 @@ request that edits the root without rebuilding fails loudly.
 """
 import argparse
 import filecmp
+import json
+import re
 import stat
 import sys
 from pathlib import Path
@@ -40,12 +42,133 @@ EXCLUDE = {
     "contextual.py", "contextual-signals.md", ".DS_Store",
     "make-readme-gif.mjs", "growth-snapshot.mjs", "build_marketplace_package.py",
 }
+# Host execution adapters are not part of the portable ten-module runtime.
+# Keep this separate from maintainer exclusions and add it only to Anthropic.
+MCP_RUNTIME = frozenset({"mcp_stdio.py", "mcp_local_tools.py", "mcp_workflow_tools.py"})
+
+ANTHROPIC_OVERLAY = Path("distribution/host-overlays/anthropic")
+LOCAL_TOOL_PREFIX = "mcp__plugin_zero-slop_zero-slop-local__"
+_PYTHON_COMMAND = re.compile(
+    r"\bpython(?:3)?[ \t]+(?:<skill-root>/|\./)?scripts/"
+    r"(?P<module>[a-z_]+)\.py(?P<args>(?:[^\n`\\]|\\\r?\n[ \t]*)*)"
+)
+_INLINE_COMMAND = re.compile(
+    r"(?<![/\w])(?P<module>slopscore|register|reader_review|predictability|"
+    r"rerank|rescue|learn|calibrate|version_check)\.py"
+    r"(?P<args>[ \t]+--[^`\n]*)"
+)
+_UNROUTED_COMMAND = re.compile(
+    r"\bpython[0-9.]*[^\n`]*scripts/[a-z_]+\.py|(?<![/\w])[a-z_]+\.py[ \t]+--"
+)
+
+
+def _bounded_source(root, relative):
+    """Read a fixed, bounded source template; never follow a package symlink."""
+    root = Path(root).absolute()
+    path = root / relative
+    if (any(p.is_symlink() for p in (path, *path.parents))
+            or not is_within(path, root) or not path.is_file()
+            or path.stat().st_size > 1024 * 1024):
+        raise ValueError("missing or unsafe Anthropic overlay source")
+    return path.read_bytes()
+
+
+def _overlay_source(root, name):
+    return _bounded_source(root, ANTHROPIC_OVERLAY / name)
+
+
+def _route_commands(text, routes, tool_names):
+    """Route examples without executing them or replacing editorial behavior."""
+    def replace(match):
+        module, arguments = match.group("module", "args")
+        route = routes.get(module)
+        if not isinstance(route, dict):
+            raise ValueError(f"unrouted Python helper: {module}")
+        arguments = re.sub(r"\\\r?\n[ \t]*", " ", arguments).strip()
+        arguments = arguments.split("#", 1)[0].strip()
+        flags = set(re.findall(r"--[a-z][a-z-]*", arguments))
+        if flags - set(route["flags"]):
+            raise ValueError(f"unrouted {module} options: {sorted(flags - set(route['flags']))}")
+        maintenance = flags.intersection(route.get("maintainer_flags", []))
+        if maintenance:
+            return f"maintainer-only {module} check (not an installed MCP operation)"
+        choices = [rule["tool"] for rule in route["select"]
+                   if rule.get("flag") in flags or
+                   rule.get("command") == arguments.split(" ", 1)[0]]
+        if len(choices) > 1:
+            raise ValueError(f"ambiguous {module} operation")
+        selected = choices[0] if choices else route.get("default")
+        if selected not in tool_names:
+            raise ValueError(f"missing declared local tool: {selected}")
+        arguments = re.sub(r"\s+>\s*(\S+)", r"; save returned output as \1", arguments)
+        return (f"MCP tool {LOCAL_TOOL_PREFIX}{selected}" +
+                (f"; example inputs: {arguments}" if arguments else ""))
+
+    routed = _PYTHON_COMMAND.sub(replace, text)
+    routed = _INLINE_COMMAND.sub(replace, routed)
+    if _UNROUTED_COMMAND.search(routed):
+        raise ValueError("unrouted installed helper command")
+    return routed
+
+
+def anthropic_payload(root, canonical_files, tools):
+    """Pure Anthropic-folder overlay; callers must archive canonical files instead.
+
+    Canonical runtime files, other-host routing and the OpenAI ZIP stay host-free.
+    Tool descriptors must come from the real local adapter, not a stub inventory.
+    """
+    routes = json.loads(_overlay_source(root, "routing.json"))
+    if not isinstance(routes, dict) or routes.get("schema") != 1:
+        raise ValueError("invalid Anthropic routing schema")
+    if not isinstance(tools, (list, tuple)):
+        raise ValueError("local tool descriptors must be a sequence")
+    names = [tool.get("name") for tool in tools if isinstance(tool, dict)]
+    if (len(names) != len(tools) or not all(isinstance(name, str) for name in names)
+            or len(set(names)) != len(names)):
+        raise ValueError("invalid or duplicate local tool descriptors")
+    required = set(routes["required_tools"])
+    if not required <= set(names):
+        raise ValueError("missing declared local tools: " + ", ".join(sorted(required - set(names))))
+    files = dict(canonical_files)
+    server = "skills/zero-slop/scripts/mcp_stdio.py"
+    for name in sorted(MCP_RUNTIME):
+        target = "skills/zero-slop/scripts/" + name
+        if target in files:
+            raise ValueError("local adapter leaked into the canonical runtime payload")
+        files[target] = _bounded_source(root, Path("scripts") / name)
+    config = json.loads(_overlay_source(root, ".mcp.json"))
+    remote = json.loads(files[".mcp.json"])
+    if (remote != {"mcpServers": {"zero-slop": {"type": "http", "url": "https://mcp.zero-slop.ai/mcp"}}}
+            or config["mcpServers"].get("zero-slop") != remote["mcpServers"]["zero-slop"]
+            or config["mcpServers"].get("zero-slop-local") != {
+                "command": "python3", "args": ["-B", "${CLAUDE_PLUGIN_ROOT}/" + server]}
+            or set(config) != {"mcpServers"}
+            or set(config["mcpServers"]) != {"zero-slop", "zero-slop-local"}):
+        raise ValueError("unexpected Anthropic MCP configuration")
+    intro = _overlay_source(root, "local-routing.md").decode("utf-8")
+    for name, content in canonical_files.items():
+        if name.startswith("skills/zero-slop/") and name.endswith(".md"):
+            text = _route_commands(content.decode("utf-8"), routes["modules"], set(names))
+            for wording in routes.get("wording", []):
+                if wording["file"] == name:
+                    if text.count(wording["before"]) != 1:
+                        raise ValueError("Anthropic wording source changed")
+                    text = text.replace(wording["before"], wording["after"], 1)
+            if name == "skills/zero-slop/SKILL.md":
+                anchor = "# Zero Slop\n"
+                if text.count(anchor) != 1:
+                    raise ValueError("Anthropic skill heading is missing or ambiguous")
+                text = text.replace(anchor, anchor + "\n" + intro + "\n", 1)
+            files[name] = text.encode("utf-8")
+    files[".mcp.json"] = (json.dumps(config, indent=2) + "\n").encode("utf-8")
+    return dict(sorted(files.items()))
 
 
 def wanted(src: Path):
     return [p for p in src.rglob("*")
             if p.is_file() and not p.is_symlink()
-            and not any(part in EXCLUDE for part in p.parts)]
+            and not any(part in EXCLUDE for part in p.parts)
+            and not (src.name == "scripts" and p.parent == src and p.name in MCP_RUNTIME)]
 
 
 def build(check=False):

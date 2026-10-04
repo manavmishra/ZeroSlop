@@ -5,8 +5,9 @@
     python3 scripts/build_marketplace_package.py --check
     python3 scripts/build_marketplace_package.py --zip
 
-The folder is distribution/plugins/zero-slop; --zip also creates the ignored
-tmp/zero-slop-marketplace.zip, with .codex-plugin at archive root. This offline
+The folder is the Anthropic-specific distribution/plugins/zero-slop; --zip
+creates the separate canonical remote-only tmp/zero-slop-marketplace.zip,
+with .codex-plugin at archive root. This offline
 maintainer tool never changes the root or skills/zero-slop install layouts.
 Local ownership hashes in tmp permit deletion only of unmodified obsolete files
 from a previous build. Unknown files require review, never recursive deletion.
@@ -23,7 +24,7 @@ import stat
 import sys
 import zipfile
 
-from build_plugin import ITEMS, wanted
+from build_plugin import ITEMS, wanted, anthropic_payload
 from safeio import atomic_write_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -144,14 +145,21 @@ def digest(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def folder_payload(root: Path, canonical_files: dict[str, bytes] | None = None) -> dict[str, bytes]:
+    """The declared local server belongs only in the Anthropic source folder."""
+    from mcp_local_tools import TOOLS
+    return anthropic_payload(root, payload(root) if canonical_files is None else canonical_files, TOOLS)
+
+
 def build(root: Path = ROOT, *, check: bool = False, make_zip: bool = False,
           openai_existing_name: str | None = None) -> int:
     root = Path(root).absolute()
     try:
-        files = payload(root)
+        canonical_files = payload(root)
+        files = folder_payload(root, canonical_files)
         if openai_existing_name and not make_zip:
             raise ValueError("--openai-existing-name requires --zip")
-        zip_contents = archive_bytes(files, openai_existing_name) if make_zip else None
+        zip_contents = archive_bytes(canonical_files, openai_existing_name) if make_zip else None
         destination = guarded(root, DEST)
         state_path = guarded(root, STATE)
         zip_path = guarded(root, ZIP)

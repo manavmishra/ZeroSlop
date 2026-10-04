@@ -4,7 +4,9 @@ import argparse
 import hashlib
 import json
 import statistics as st
+import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -21,6 +23,7 @@ import slopscore  # noqa: E402
 from safeio import atomic_write_text  # noqa: E402
 sys.path.insert(0, str(ROOT / "bench"))
 from runtime_compatibility import exact_code_compatible, reports_match  # noqa: E402
+from pinned_runtime import COMMITS, populate  # noqa: E402
 
 API = "https://huggingface.co/api/datasets/{dataset}"
 ROWS = "https://datasets-server.huggingface.co/rows"
@@ -220,7 +223,7 @@ def compute(pin, metadata, rows):
     }
 
 
-def validate(result, pin):
+def validate(result, pin, *, scorer_root=ROOT, scorer_version=VERSION):
     if result.get("result_kind") != "current_model_surface_audit" \
             or result.get("calibrated_accuracy") is not False:
         raise ValueError("results.json has the wrong result contract")
@@ -243,13 +246,30 @@ def validate(result, pin):
     if result.get("overall", {}).get("documents") != source["scored_rows"]:
         raise ValueError("results.json overall count is invalid")
     scorer = result.get("scorer", {})
-    current_scorer_hash = hashlib.sha256(
-        (ROOT / "scripts" / "slopscore.py").read_bytes()
-    ).hexdigest()
-    if (scorer.get("version") != VERSION
-            and not exact_code_compatible(scorer.get("version"), VERSION)) \
-            or scorer.get("slopscore_sha256") != current_scorer_hash:
+    if (scorer.get("version") != scorer_version
+            and not exact_code_compatible(scorer.get("version"), scorer_version, root=scorer_root)):
         raise ValueError("results.json does not match the current scorer")
+    for name, field in (("scripts/slopscore.py", "slopscore_sha256"),
+                        ("data/patterns.json", "patterns_sha256"),
+                        ("data/learned.json", "learned_sha256")):
+        if scorer.get(field) != hashlib.sha256((Path(scorer_root) / name).read_bytes()).hexdigest():
+            raise ValueError("results.json does not match the current scorer")
+
+
+def validate_historical(result, pin):
+    """Validate the immutable 2.12.12 receipt, never admit today's changed code."""
+    commit = COMMITS["2.12.12"]
+    for path, observed in (("bench/raid-plus-corpus/results.json", result),
+                           ("bench/raid-plus-corpus/source.json", pin)):
+        blob = subprocess.run(["git", "show", f"{commit}:{path}"], cwd=ROOT,
+                              capture_output=True, check=True, timeout=15).stdout
+        if json.loads(blob) != observed:
+            raise ValueError("historical RAID+ receipt or source pin changed")
+    if result.get("scorer", {}).get("version") != "2.12.12":
+        raise ValueError("historical RAID+ release identity changed")
+    with tempfile.TemporaryDirectory() as temp:
+        historical_root = populate(Path(temp), "2.12.12")
+        validate(result, pin, scorer_root=historical_root, scorer_version="2.12.12")
 
 
 def main():
@@ -257,10 +277,14 @@ def main():
     parser.add_argument("--fetch", action="store_true", help="fetch every pinned public row")
     parser.add_argument("--write", action="store_true", help="write a freshly fetched result")
     parser.add_argument("--check", action="store_true", help="verify the committed result")
+    parser.add_argument("--check-historical", action="store_true",
+                        help="verify the unchanged 2.12.12 receipt against fixed Git history")
     args = parser.parse_args()
     if args.write and not args.fetch:
         parser.error("--write requires --fetch")
-    if not args.write and not args.check:
+    if args.check_historical and (args.fetch or args.write or args.check):
+        parser.error("--check-historical is offline and cannot be combined with other modes")
+    if not args.write and not args.check and not args.check_historical:
         parser.error("choose --check or --write")
     try:
         pin = load_pin()
@@ -280,7 +304,12 @@ def main():
             result = fresh
         else:
             result = json.loads(RESULT.read_text())
-            validate(result, pin)
+            if args.check_historical:
+                validate_historical(result, pin)
+            else:
+                validate(result, pin)
+        if args.check_historical:
+            print("historical 2.12.12 receipt; not a current-release RAID+ replay")
         print(f"RAID+ {result['source']['scored_rows']}/{result['source']['rows']} "
               f"generations scored at {result['source']['revision'][:12]}")
         for model, row in result["models"].items():
@@ -290,7 +319,7 @@ def main():
         print("  current-model provenance audit only; not slop accuracy")
         return 0
     except (OSError, UnicodeDecodeError, json.JSONDecodeError,
-            RuntimeError, ValueError) as exc:
+            RuntimeError, ValueError, subprocess.SubprocessError) as exc:
         print(f"RAID+ audit: {exc}", file=sys.stderr)
         return 2
 
