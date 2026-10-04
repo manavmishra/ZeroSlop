@@ -1,7 +1,7 @@
 {
   "name": "zero-slop",
-  "version": "2.12.19",
-  "description": "Zero Slop is a skill, not an AI model. GPT or another compatible model performs the editorial roles; local tools score the writing and protect facts, then the assistant and tools verify the final text.",
+  "version": "2.12.20",
+  "description": "Edit emails, workplace updates, social posts and research prose. Score writing patterns, compare edits with the original facts, and learn private preferences only from corrections you approve.",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"
@@ -21,8 +21,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Zero Slop",
-    "shortDescription": "Edit AI-assisted writing",
-    "longDescription": "Edit drafts to reduce stock phrases and repetition while checking changes against the original. The packaged skill works inside your existing assistant: local Python tools score prose and check source details. It learns private editing preferences only from corrections you approve. Local scripts do not transmit drafts; an optional version check sends only a version query.\n\nThe optional deslop MCP tool sends a draft, genre and audience to the hosted Zero Slop service. It returns edited text, before-and-after writing scores, source-check results and a status explaining whether the text changed or needs review. Already-clear text can be returned unchanged. Capacity limits or unavailable editing services can prevent a rewrite. The hosted service processes drafts through Cloudflare and, when configured, OpenRouter with eligible zero-data-retention providers. It does not train private preferences or persist draft text. See the privacy policy for infrastructure processing, usage metrics and retention.\n\nScores are writing heuristics, not AI-authorship probabilities. Source checks are not a guarantee of factual accuracy. Review edits before publishing; do not use Zero Slop to evade authorship or disclosure requirements.",
+    "shortDescription": "Edit and check your writing",
+    "longDescription": "Zero Slop is a writing productivity tool for people preparing emails, workplace updates, social posts and research prose. It flags stock phrases and repetition and checks proposed edits against the original names, numbers, quotations and links.\n\nThe packaged skill runs inside your existing assistant. Local Python tools score prose and check source details; the assistant performs the editorial work. Private editing preferences are learned only from corrections you approve. Local scripts do not transmit drafts. An optional version check sends only a version query.\n\nThe optional deslop MCP tool sends the draft, genre and audience you provide to the hosted Zero Slop service. It returns text, before-and-after writing scores, source-check results and an edit or review status. Already-clear text can remain unchanged. Capacity limits or unavailable editing services can prevent a rewrite.\n\nThe hosted service uses hosting infrastructure and model providers described in the privacy policy. Fallback model requests require zero-data-retention routing and deny provider data collection; infrastructure and provider operational records have separate retention policies. The service does not train private preferences or persist draft text. See the privacy policy for recipients, usage metrics, retention and user controls.\n\nScores are writing heuristics, not authorship probabilities. Source checks do not guarantee factual accuracy. Review edits before publishing. Do not use Zero Slop to evade authorship or disclosure requirements.",
     "developerName": "Manav Mishra",
     "category": "Productivity",
     "capabilities": [

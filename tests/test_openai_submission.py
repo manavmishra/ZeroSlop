@@ -123,7 +123,7 @@ class OpenAISubmission(unittest.TestCase):
             self.assertRegex(self.contract, r"\b" + re.escape(field) + r":")
         self.assertIn("429", self.contract)
         self.assertIn("capacity_limit", self.contract)
-        self.assertIn("not a guarantee", self.interface["longDescription"])
+        self.assertIn("Source checks do not guarantee factual accuracy.", self.interface["longDescription"])
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 import { McpServer, originValidationResponse, preloadSchemas } from "@modelcontextprotocol/server";
+import { ToolSchema } from "@modelcontextprotocol/core";
 import { createMcpHandler } from "agents/mcp/server";
+import { z } from "zod";
 
 import { runPipeline } from "./pipeline";
 import { scorerHealth } from "./scorer";
@@ -99,17 +101,13 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
     },
   );
 
-  server.registerTool(
-    "deslop",
-    {
+  const securitySchemes = [{ type: "noauth" as const }];
+  const toolConfig = {
       title: "Deslop writing",
       description: "Processes pasted prose with server-side scoring and source-preservation checks, plus bounded hosted AI editing when needed. Inputs are text, genre, and an optional audience. Returns edited or unchanged text, exact before-and-after writing scores, completed-check metadata, and review warnings when editing targets are missed.",
       inputSchema: deslopInputSchema,
       outputSchema,
-      // SDK 2.0 emits extension fields through _meta; it does not expose a
-      // primary securitySchemes registration field. Declare the documented
-      // compatibility auth policy explicitly without adding OAuth.
-      _meta: { securitySchemes: [{ type: "noauth" }] },
+      _meta: { securitySchemes },
       annotations: {
         title: "Deslop writing",
         // Calls persist aggregate usage counters and operational metrics, not drafts.
@@ -118,7 +116,10 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
         idempotentHint: false,
         openWorldHint: false,
       },
-    },
+  };
+  server.registerTool(
+    "deslop",
+    toolConfig,
     async ({ text, genre, audience }, extra) => {
       const requestStarted = Date.now();
       try {
@@ -168,6 +169,24 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
       }
     },
   );
+
+  // The pinned SDK drops primary extension fields from registerTool's
+  // tools/list response. Use its public handler API to publish the primary
+  // auth declaration and compatibility mirror from one configuration; keep
+  // the registered tools/call handler and its validation unchanged.
+  const { inputSchema, outputSchema: toolOutputSchema, ...toolMetadata } = toolConfig;
+  const toolDescriptor = ToolSchema.parse({
+    name: "deslop",
+    ...toolMetadata,
+    inputSchema: z.toJSONSchema(inputSchema, { io: "input", target: "draft-2020-12" }),
+    outputSchema: z.toJSONSchema(toolOutputSchema, { io: "output", target: "draft-2020-12" }),
+  });
+  server.server.setRequestHandler("tools/list", async () => ({
+    tools: [{
+      ...toolDescriptor,
+      securitySchemes,
+    }],
+  }));
 
   return server;
 }
