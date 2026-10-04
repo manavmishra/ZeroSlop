@@ -14,6 +14,7 @@
     "dry-run": "wrangler deploy --dry-run"
   },
   "dependencies": {
+    "@modelcontextprotocol/core": "2.0.0",
     "@modelcontextprotocol/server": "2.0.0",
     "agents": "0.22.0",
     "zod": "4.5.4"

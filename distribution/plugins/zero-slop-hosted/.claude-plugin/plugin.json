@@ -3,7 +3,7 @@
   "name": "zero-slop-hosted",
   "displayName": "Zero Slop Hosted",
   "description": "Hosted prose editing with server-side writing scores, source-preservation checks, and review warnings. This package contains only a remote MCP connector, not a local skill or model.",
-  "version": "2.12.19",
+  "version": "2.12.20",
   "author": {
     "name": "Manav Mishra",
     "url": "https://github.com/manavmishra"
