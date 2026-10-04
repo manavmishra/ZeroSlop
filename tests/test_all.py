@@ -3644,9 +3644,36 @@ class CorpusAdmission(unittest.TestCase):
         source = Path.home() / ".zero-slop" / "evals" / "slop-examples.md"
         if not source.exists():
             self.skipTest("private maintainer corpus is not installed on this machine")
+        version = json.loads((ROOT / "package.json").read_text())["version"]
+        receipt = ROOT / "bench" / "internal-corpus" / f"results-{version}.json"
         result = run([str(INTERNAL_CORPUS), "--source", str(source), "--shared-only",
-                      "--out", str(ROOT / "bench/internal-corpus/results-2.12.16.json"), "--check"])
+                      "--out", str(receipt), "--check"])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_current_private_corpus_receipt_is_release_bound(self):
+        """CI checks the receipt even when the private prose is unavailable."""
+        version = json.loads((ROOT / "package.json").read_text())["version"]
+        receipt = ROOT / "bench" / "internal-corpus" / f"results-{version}.json"
+        report = json.loads(receipt.read_text())
+        self.assertEqual(report["result_kind"], "private_maintainer_regression")
+        self.assertFalse(report["calibrated_accuracy"])
+        self.assertEqual(report["scorer"]["version"], version)
+        self.assertEqual(report["scorer"]["private_preferences"], "excluded")
+        self.assertEqual(report["scorer"]["slopscore_sha256"],
+                         hashlib.sha256(SCORER.read_bytes()).hexdigest())
+        self.assertEqual(report["scorer"]["patterns_sha256"],
+                         hashlib.sha256((DATA / "patterns.json").read_bytes()).hexdigest())
+        registry = json.loads((ROOT / "bench" / "corpus-registry.json").read_text())
+        admission = next(row for row in registry["datasets"]
+                         if row["id"] == "manav-slop-examples")
+        self.assertEqual(admission["status"], "measured")
+        self.assertEqual(admission["source_pin"], "SHA-256 " + report["source"]["sha256"])
+        self.assertFalse(report["source"]["source_committed"])
+        self.assertNotIn("text", json.dumps(report).lower())
+
+    def test_private_2_12_16_receipt_remains_historical(self):
+        receipt = ROOT / "bench/internal-corpus/results-2.12.16.json"
+        self.assertEqual(json.loads(receipt.read_text())["scorer"]["version"], "2.12.16")
 
     def test_private_corpus_report_never_copies_source_prose(self):
         spec = importlib.util.spec_from_file_location("internal_corpus", INTERNAL_CORPUS)
