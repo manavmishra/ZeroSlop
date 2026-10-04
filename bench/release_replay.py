@@ -10,6 +10,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import re
 import tempfile
 
 from pinned_runtime import ROOT, populate, scorer
@@ -17,7 +18,19 @@ from runtime_compatibility import PINNED_FILES, exact_code_compatible
 from validate_corpus_registry import validate
 from version_compare import tracked_documents, quality_metrics
 
-OUT = ROOT / "bench/release-replay-2.12.16.json"
+STABLE_VERSION = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)")
+
+
+def current_version():
+    package = json.loads((ROOT / "package.json").read_text())
+    version = package.get("version") if isinstance(package, dict) else None
+    if not isinstance(version, str) or not STABLE_VERSION.fullmatch(version):
+        raise ValueError("unsupported package version; strict stable SemVer required")
+    return version
+
+
+def receipt_path():
+    return ROOT / "bench" / f"release-replay-{current_version()}.json"
 
 
 def sha(path):
@@ -25,14 +38,12 @@ def sha(path):
 
 
 def compute():
+    version = current_version()
     registry = validate()
     admitted = {row["id"]: row for row in registry["datasets"]}
     for name in ("zero-slop-search-corpus", "zero-slop-quality-panel"):
         if admitted[name]["status"] != "measured":
             raise ValueError("replay corpus has not been admitted")
-    version = json.loads((ROOT / "package.json").read_text())["version"]
-    if version != "2.12.16":
-        raise ValueError("this receipt is specifically a 2.12.16 replay")
     spec = importlib.util.spec_from_file_location("surface_replay", ROOT / "bench/feature-ablation/check.py")
     surface = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(surface)
@@ -70,6 +81,8 @@ def compute():
                         for path in (ROOT / "data/corpus/must-not-flag").glob("*.txt"))
     if any(exact_code_compatible("2.12.12", release) for release in ("2.12.13", "2.12.14", "2.12.15")):
         raise ValueError("modified current bytes unexpectedly admitted as historical code")
+    if current_version() != version:
+        raise ValueError("package version changed during replay")
     return {
         "schema": 1, "result_kind": "fresh_deterministic_release_replay",
         "version": version, "private_preferences": "excluded",
@@ -109,16 +122,20 @@ def main():
     mode.add_argument("--write", action="store_true")
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args()
+    out = receipt_path()
     if args.write:
-        if OUT.exists():
+        if out.exists():
             raise ValueError("refusing to overwrite a measured receipt")
         result = compute()
+        if result["version"] != current_version() or out != receipt_path():
+            raise ValueError("package version changed during replay")
         result["measured_at"] = datetime.now(timezone.utc).isoformat()
-        OUT.write_text(json.dumps(result, indent=2) + "\n")
+        with out.open("x") as handle:
+            handle.write(json.dumps(result, indent=2) + "\n")
     else:
-        result = json.loads(OUT.read_text())
+        result = json.loads(out.read_text())
         check(result)
-    print(f"2.12.16 deterministic replay: {result['surface']['documents']} surface / {result['regression']['documents']} regression documents; no new judging")
+    print(f"{result['version']} deterministic replay: {result['surface']['documents']} surface / {result['regression']['documents']} regression documents; no new judging")
 
 
 if __name__ == "__main__":

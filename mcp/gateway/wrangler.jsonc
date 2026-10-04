@@ -48,7 +48,7 @@
     }
   },
   "vars": {
-    "SCORER_VERSION": "2.12.16",
+    "SCORER_VERSION": "2.12.17",
     "EDITOR_DAILY_NEURONS": "8000",
     "EDITOR_OPENROUTER_DAILY_CALLS": "800",
     "EDITOR_CLIENT_DAILY_CALLS": "5",
