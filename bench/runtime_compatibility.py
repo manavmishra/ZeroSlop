@@ -25,6 +25,8 @@ PAIR_EVIDENCE = {
     ("2.12.12", "2.12.13"): Path(__file__).with_name("runtime-compatibility-2.12.13.json"),
     ("2.12.12", "2.12.14"): Path(__file__).with_name("runtime-compatibility-2.12.14-from-2.12.12.json"),
     ("2.12.13", "2.12.14"): Path(__file__).with_name("runtime-compatibility-2.12.14-from-2.12.13.json"),
+    ("2.12.12", "2.12.15"): Path(__file__).with_name("runtime-compatibility-2.12.15-from-2.12.12.json"),
+    ("2.12.13", "2.12.15"): Path(__file__).with_name("runtime-compatibility-2.12.15-from-2.12.13.json"),
 }
 PAIR_COMMITS = {
     pair: "0d866036b210b90e23fa9f7b4146316cf40c255e"
@@ -33,6 +35,8 @@ PAIR_COMMITS = {
 PAIR_COMMITS[("2.12.12", "2.12.13")] = "d065464b64d2ae46d72fde83f3c0b5da40bd149a"
 PAIR_COMMITS[("2.12.12", "2.12.14")] = "d065464b64d2ae46d72fde83f3c0b5da40bd149a"
 PAIR_COMMITS[("2.12.13", "2.12.14")] = "5dc573740f79b32449ec5f25e9a1c443e7ab8e36"
+PAIR_COMMITS[("2.12.12", "2.12.15")] = "d065464b64d2ae46d72fde83f3c0b5da40bd149a"
+PAIR_COMMITS[("2.12.13", "2.12.15")] = "5dc573740f79b32449ec5f25e9a1c443e7ab8e36"
 PINNED_FILES = frozenset({
     "scripts/slopscore.py", "scripts/register.py", "scripts/rerank.py",
     "scripts/safeio.py", "scripts/predictability.py",

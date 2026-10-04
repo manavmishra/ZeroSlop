@@ -1,4 +1,4 @@
-import { McpServer, preloadSchemas } from "@modelcontextprotocol/server";
+import { McpServer, originValidationResponse, preloadSchemas } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 
 import { runPipeline } from "./pipeline";
@@ -328,7 +328,13 @@ export default {
         legacy: "stateless",
         responseMode: "auto",
       });
-      const response = await handler(request, env, ctx);
+      const origin = request.headers.get("origin");
+      let originHostname = "";
+      try { originHostname = origin === null ? "" : new URL(origin).hostname; } catch { /* The SDK rejects malformed Origins. */ }
+      // The new platform admission is exact; prior Origins retain the SDK's hostname policy.
+      const response = originHostname === "platform.openai.com" && origin !== "https://platform.openai.com"
+        ? originValidationResponse(request, [])!
+        : await handler(request, env, ctx);
       trackMcpRequest(env, requestMeta, response.status, Date.now() - requestStarted);
       ctx.waitUntil(countMcpRequest(env, requestMeta, response.status));
       return withSecurityHeaders(response);
