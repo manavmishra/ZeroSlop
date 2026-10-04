@@ -2,12 +2,14 @@
 
 ## Runtime boundary
 
-The installed skill ships eight standard-library Python modules:
+The installed skill ships ten standard-library Python modules:
 
 | File | Purpose | Writes | Network |
 |---|---|---|---|
 | `scripts/slopscore.py` | score, heatmap, and fidelity checks | one-time interactive-note state under `$ZERO_SLOP_HOME`; never the draft | none |
 | `scripts/register.py` | document-level measurements and validated final-review packets | none | none |
+| `scripts/reader_review.py` | prepare and report simulated reader-review packets | none | none |
+| `scripts/rescue.py` | conservative deterministic editing fallback | none | none |
 | `scripts/predictability.py` | create and score deterministic cloze probes | none | none |
 | `scripts/rerank.py` | rank candidate rewrites | optional user-selected output | none |
 | `scripts/learn.py` | private online learning, named scoring profiles, reviewed imports/exports | `$ZERO_SLOP_HOME`; shared taxonomy only through explicit maintainer `--merge --apply` | none |

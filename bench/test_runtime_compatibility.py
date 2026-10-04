@@ -47,7 +47,7 @@ class RuntimeCompatibilityTests(unittest.TestCase):
     def test_latest_pair_is_exact_and_preserves_historical_results(self):
         self.assertTrue(exact_code_compatible("2.12.12", "2.12.13"))
         self.assertFalse(exact_code_compatible("2.12.13", "2.12.12"))
-        self.assertFalse(exact_code_compatible("2.12.12", "2.12.14"))
+        self.assertFalse(exact_code_compatible("2.12.12", "2.12.15"))
         old = {"scorer": {"version": "2.12.12"}, "score": 12}
         new = {"scorer": {"version": "2.12.13"}, "score": 12}
         before = copy.deepcopy((old, new))
@@ -152,6 +152,100 @@ class RuntimeCompatibilityTests(unittest.TestCase):
             self.assertFalse(exact_code_compatible(
                 "2.11.6", "2.12.0", evidence_path=path,
             ))
+
+    def test_2_12_14_admissions_pin_complete_files_and_release_identity(self):
+        commits = {
+            "2.12.12": "d065464b64d2ae46d72fde83f3c0b5da40bd149a",
+            "2.12.13": "5dc573740f79b32449ec5f25e9a1c443e7ab8e36",
+        }
+        for measured, commit in commits.items():
+            with self.subTest(measured=measured):
+                evidence = json.loads(PAIR_EVIDENCE[(measured, "2.12.14")].read_text())
+                self.assertEqual(evidence["measured_commit"], commit)
+                self.assertEqual(set(evidence["files"]), PINNED_FILES)
+                self.assertEqual(evidence["measured_version"], measured)
+                self.assertEqual(evidence["compatible_version"], "2.12.14")
+                self.assertTrue(exact_code_compatible(measured, "2.12.14"))
+
+    def test_2_12_14_does_not_admit_other_or_reverse_pairs(self):
+        for measured, current in (
+            ("2.12.11", "2.12.14"), ("2.12.12", "2.12.15"),
+            ("2.12.13", "2.12.15"), ("2.12.14", "2.12.12"),
+            ("2.12.14", "2.12.13"), (None, "2.12.14"),
+        ):
+            with self.subTest(pair=(measured, current)):
+                self.assertFalse(exact_code_compatible(measured, current))
+
+    def test_2_12_14_rejects_commit_mismatch_and_incomplete_evidence(self):
+        for measured in ("2.12.12", "2.12.13"):
+            original = json.loads(PAIR_EVIDENCE[(measured, "2.12.14")].read_text())
+            with tempfile.TemporaryDirectory() as temp:
+                path = Path(temp) / "evidence.json"
+                for field, value in (
+                    ("measured_commit", "0" * 40),
+                    ("measured_version", "2.12.11"),
+                    ("compatible_version", "2.12.15"),
+                    ("schema", 2),
+                ):
+                    bad = copy.deepcopy(original)
+                    bad[field] = value
+                    path.write_text(json.dumps(bad))
+                    with self.subTest(measured=measured, field=field):
+                        self.assertFalse(exact_code_compatible(
+                            measured, "2.12.14", evidence_path=path,
+                        ))
+                for name in PINNED_FILES:
+                    bad = copy.deepcopy(original)
+                    del bad["files"][name]
+                    path.write_text(json.dumps(bad))
+                    with self.subTest(measured=measured, missing=name):
+                        self.assertFalse(exact_code_compatible(
+                            measured, "2.12.14", evidence_path=path,
+                        ))
+                bad = copy.deepcopy(original)
+                bad["files"]["scripts/unreviewed.py"] = "0" * 64
+                path.write_text(json.dumps(bad))
+                self.assertFalse(exact_code_compatible(
+                    measured, "2.12.14", evidence_path=path,
+                ))
+
+    def test_2_12_14_rejects_every_pinned_file_hash_drift(self):
+        for measured in ("2.12.12", "2.12.13"):
+            with tempfile.TemporaryDirectory() as temp:
+                root = Path(temp) / "runtime"
+                self.copy_runtime(root)
+                self.assertTrue(exact_code_compatible(measured, "2.12.14", root=root))
+                for name in PINNED_FILES:
+                    target = root / name
+                    content = target.read_bytes()
+                    target.write_bytes(content + b"\n")
+                    with self.subTest(measured=measured, changed=name):
+                        self.assertFalse(exact_code_compatible(measured, "2.12.14", root=root))
+                    target.write_bytes(content)
+
+    def test_2_12_14_reports_preserve_all_non_version_fields_and_inputs(self):
+        for measured in ("2.12.12", "2.12.13"):
+            old = {"scorer": {"version": measured, "hash": "same"},
+                   "source": {"sha256": "source", "documents": 9},
+                   "summary": {"count": 9}, "items": [{"score": 12}],
+                   "limits": "historical"}
+            new = copy.deepcopy(old)
+            new["scorer"]["version"] = "2.12.14"
+            before = copy.deepcopy((old, new))
+            self.assertTrue(reports_match(old, new))
+            self.assertEqual((old, new), before)
+            for field, value in (
+                ("scorer", {"version": "2.12.14", "hash": "changed"}),
+                ("source", {"sha256": "changed", "documents": 9}),
+                ("summary", {"count": 10}),
+                ("items", [{"score": 13}]),
+                ("limits", "changed"),
+            ):
+                bad = copy.deepcopy(new)
+                bad[field] = value
+                with self.subTest(measured=measured, field=field):
+                    self.assertFalse(reports_match(old, bad))
+                    self.assertEqual((old, new), before)
 
 
 if __name__ == "__main__":
