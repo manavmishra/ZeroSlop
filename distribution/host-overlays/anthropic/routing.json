@@ -1,6 +1,10 @@
 {
   "schema": 1,
-  "wording": [{"file": "skills/zero-slop/references/eval.md", "before": "a missing count means the\npass did not run.", "after": "a missing count means that the\ncheck was not performed."}],
+  "wording": [
+    {"file": "skills/zero-slop/references/eval.md", "before": "a missing count means the\npass did not run.", "after": "a missing count means that the\ncheck was not performed."},
+    {"file": "skills/zero-slop/SKILL.md", "before": "| `.docx` | A `.docx`, styles and structure intact (use the docx skill; never return markdown for a Word document) |", "after": "| `.docx` | Preserve the document with built-in host file operations only; if unavailable, leave the original untouched and ask for prose or an approved plain-text alternative. Do not delegate conversion to another skill. |"},
+    {"file": "skills/zero-slop/SKILL.md", "before": "| `.pdf` | A `.pdf` rendered to match the original's layout and typography (use the pdf skill) |", "after": "| `.pdf` | Preserve the PDF with built-in host file operations only; if unavailable, leave the original untouched and ask for prose or an approved plain-text alternative. Do not claim layout preservation without producing the PDF. |"}
+  ],
   "required_tools": ["score", "heatmap", "portfolio", "fidelity", "register_measure", "register_read", "register_verdict", "register_delta", "reader_prepare", "reader_skim", "reader_next", "reader_recall", "reader_report", "predictability_probes", "predictability_score", "rerank", "rescue", "learn_guide", "learn_reflect", "learn_promote", "learn_demote", "learn_voice", "learn_stats", "learn_confirm", "learn_decay", "calibrate_compare", "calibrate_selftest", "version"],
   "modules": {
     "slopscore": {"flags": ["--explain", "--json", "--formal", "--genre", "--voice", "--fidelity", "--adjudication", "--portfolio", "--heatmap", "--batch", "--gate"], "default": "score", "select": [{"flag": "--fidelity", "tool": "fidelity"}, {"flag": "--portfolio", "tool": "portfolio"}, {"flag": "--heatmap", "tool": "heatmap"}]},

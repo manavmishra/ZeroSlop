@@ -60,6 +60,10 @@ _INLINE_COMMAND = re.compile(
 _UNROUTED_COMMAND = re.compile(
     r"\bpython[0-9.]*[^\n`]*scripts/[a-z_]+\.py|(?<![/\w])[a-z_]+\.py[ \t]+--"
 )
+_EXTERNAL_SKILL_COMMAND = re.compile(
+    r"\b(?:use|invoke|run|call|delegate\s+to)\s+(?:the\s+)?"
+    r"(?:docx|pdf|document|word|conversion)\s+skill\b", re.I
+)
 
 
 def _bounded_source(root, relative):
@@ -154,6 +158,8 @@ def anthropic_payload(root, canonical_files, tools):
                     if text.count(wording["before"]) != 1:
                         raise ValueError("Anthropic wording source changed")
                     text = text.replace(wording["before"], wording["after"], 1)
+            if _EXTERNAL_SKILL_COMMAND.search(text):
+                raise ValueError("unbounded document skill delegation")
             if name == "skills/zero-slop/SKILL.md":
                 anchor = "# Zero Slop\n"
                 if text.count(anchor) != 1:
