@@ -106,6 +106,10 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
       description: "Processes pasted prose with server-side scoring and source-preservation checks, plus bounded hosted AI editing when needed. Inputs are text, genre, and an optional audience. Returns edited or unchanged text, exact before-and-after writing scores, completed-check metadata, and review warnings when editing targets are missed.",
       inputSchema: deslopInputSchema,
       outputSchema,
+      // SDK 2.0 emits extension fields through _meta; it does not expose a
+      // primary securitySchemes registration field. Declare the documented
+      // compatibility auth policy explicitly without adding OAuth.
+      _meta: { securitySchemes: [{ type: "noauth" }] },
       annotations: {
         title: "Deslop writing",
         // Calls persist aggregate usage counters and operational metrics, not drafts.

@@ -21,6 +21,21 @@ async function rpcResult(method: string, params?: Record<string, unknown>) {
 }
 
 describe("MCP tool metadata in workerd", () => {
+  it("advertises anonymous auth through the SDK 2.0 compatibility metadata without OAuth", async () => {
+    const result = await rpcResult("tools/list") as {
+      tools: Array<{ name: string; _meta?: Record<string, unknown>; securitySchemes?: unknown }>;
+    };
+    expect(result.tools).toHaveLength(1);
+    const tool = result.tools[0]!;
+    expect(tool.name).toBe("deslop");
+    expect(tool._meta?.securitySchemes).toEqual([{ type: "noauth" }]);
+    // The pinned SDK does not emit the primary OpenAI extension field.
+    // Keep that limitation visible rather than claiming a complete mirror.
+    expect(tool.securitySchemes).toBeUndefined();
+    expect(JSON.stringify(tool)).not.toContain('"oauth2"');
+    expect(tool._meta).not.toHaveProperty("mcp/www_authenticate");
+  });
+
   it("declares persistent usage side effects without destructive or open-world access", async () => {
     const result = await rpcResult("tools/list") as {
       tools: Array<{
