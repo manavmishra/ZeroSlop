@@ -2,7 +2,7 @@
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.12.17"
+  version: "2.12.18"
   author: manavmishra
 description: Edit drafts into natural prose, inspect AI-sounding patterns, or review how a specified audience might respond passage by passage. Zero Slop runs inside the user's existing AI assistant with local tools that protect source details. Use for humanizing or de-slopping writing, polishing outward-facing prose, social drafts, final editorial checks, or an explicit simulated reader review. Preserve facts, voice and format; reader simulations are hypotheses, not human feedback.
 ---
@@ -24,6 +24,14 @@ affirmative consent, and activation needs separate consent. Use the `version`
 tool with `check_for_updates: true` for the optional metadata-only release check.
 Never call the remote editing tool automatically. If a local tool is unavailable,
 use the documented manual path and disclose which checks did not run.
+
+Do not delegate file conversion to other skills or execute shell commands,
+custom scripts, or conversion programs outside the declared MCP servers.
+For DOCX and PDF, use only built-in host file operations that support the format
+without launching custom code. If those operations are unavailable, leave the
+original file untouched, explain the format limitation, and ask the user to
+provide the prose or approve a plain-text alternative. Never claim that styles,
+layout, or the original format were preserved without producing that output.
 
 
 A linter for the AI accent. The things that make prose read as machine-written
@@ -816,8 +824,8 @@ Match the input:
 |---|---|
 | Pasted text in chat | The rewritten text in chat, same shape (paragraphs, line breaks, list structure preserved) |
 | `.md` / `.txt` file | The same file rewritten in place, or a sibling `<name>-deslopped.<ext>` when the original must be preserved |
-| `.docx` | A `.docx`, styles and structure intact (use the docx skill; never return markdown for a Word document) |
-| `.pdf` | A `.pdf` rendered to match the original's layout and typography (use the pdf skill) |
+| `.docx` | Preserve the document with built-in host file operations only; if unavailable, leave the original untouched and ask for prose or an approved plain-text alternative. Do not delegate conversion to another skill. |
+| `.pdf` | Preserve the PDF with built-in host file operations only; if unavailable, leave the original untouched and ask for prose or an approved plain-text alternative. Do not claim layout preservation without producing the PDF. |
 | `.html` | `.html`, with the markup, classes and structure preserved and only the prose nodes touched |
 | A file inside a repo | Edited in place, so the diff is reviewable |
 | A field in JSON/YAML/CSV | The same structure with only that field's value rewritten |

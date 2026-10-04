@@ -122,6 +122,28 @@ class AnthropicHostOverlay(unittest.TestCase):
                 self.assertIn(phrase, skill)
         self.assertEqual(skill.split("---", 2)[:2], source.split("---", 2)[:2])
 
+    def test_document_formats_do_not_delegate_execution_and_keep_honest_fallback(self):
+        files = self.overlay()
+        skill = files["skills/zero-slop/SKILL.md"].decode()
+        source = self.canonical["skills/zero-slop/SKILL.md"].decode()
+        self.assertIn("use the docx skill", source)
+        self.assertIn("use the pdf skill", source)
+        self.assertIsNone(build_plugin._EXTERNAL_SKILL_COMMAND.search(skill))
+        for phrase in ("built-in host file operations", "leave the original untouched",
+                       "approved plain-text alternative", "without launching custom code",
+                       "Never claim that styles"):
+            self.assertIn(phrase, skill)
+        self.assertEqual(self.canonical["skills/zero-slop/SKILL.md"].decode(), source)
+
+    def test_new_document_delegation_fails_closed_in_all_instruction_copies(self):
+        for name in ("skills/zero-slop/SKILL.md", "skills/zero-slop/references/reader-review.md"):
+            for instruction in ("Use the docx skill", "invoke PDF skill", "run the conversion skill"):
+                files = dict(self.canonical)
+                files[name] += ("\n" + instruction + "\n").encode()
+                with self.subTest(file=name, instruction=instruction), self.assertRaisesRegex(
+                        ValueError, "unbounded document skill delegation"):
+                    self.overlay(files=files)
+
     def test_new_helper_unknown_option_and_missing_mode_fail_closed(self):
         for command in ("python3 scripts/new_helper.py draft.md",
                         "python3 -B scripts/new_helper.py draft.md",
