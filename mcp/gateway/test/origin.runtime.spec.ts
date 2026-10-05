@@ -71,7 +71,7 @@ describe("explicit MCP Origin admission in workerd", () => {
     });
   }
 
-  it("discovers the unchanged single tool from the OpenAI platform Origin", async () => {
+  it("discovers the single hosted tool with external provider access from the OpenAI platform Origin", async () => {
     const listed = await result(await rpc("https://platform.openai.com", "tools/list"));
     expect(listed.tools).toHaveLength(1);
     expect(listed.tools[0].name).toBe("deslop");
@@ -79,7 +79,7 @@ describe("explicit MCP Origin admission in workerd", () => {
       readOnlyHint: false,
       destructiveHint: false,
       idempotentHint: false,
-      openWorldHint: false,
+      openWorldHint: true,
     });
     expect(listed.tools[0].inputSchema.properties.text.maxLength).toBe(20_000);
   });

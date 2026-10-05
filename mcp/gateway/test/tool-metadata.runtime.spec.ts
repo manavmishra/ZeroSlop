@@ -44,7 +44,7 @@ describe("MCP tool metadata in workerd", () => {
     );
   });
 
-  it("declares persistent usage side effects without destructive or open-world access", async () => {
+  it("declares persistent usage side effects and external provider access without destructive behavior", async () => {
     const result = await rpcResult("tools/list") as {
       tools: Array<{
         name: string;
@@ -63,7 +63,7 @@ describe("MCP tool metadata in workerd", () => {
       readOnlyHint: false,
       destructiveHint: false,
       idempotentHint: false,
-      openWorldHint: false,
+      openWorldHint: true,
     });
     expect(tool.description).toBe("Processes pasted prose with server-side scoring and source-preservation checks, plus bounded hosted AI editing when needed. Inputs are text, genre, and an optional audience. Returns edited or unchanged text, exact before-and-after writing scores, completed-check metadata, and review warnings when editing targets are missed.");
     expect(tool.description).not.toMatch(/\b(use it|never|must|do not|ignore|obey|follow|Codex|Claude|Cowork|ChatGPT|skills|instructions)\b/i);
