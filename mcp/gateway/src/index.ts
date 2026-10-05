@@ -114,7 +114,8 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: false,
-        openWorldHint: false,
+        // Hosted editing can call independently controlled model providers.
+        openWorldHint: true,
       },
   };
   server.registerTool(
