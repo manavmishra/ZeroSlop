@@ -118,7 +118,7 @@ the changed Beemo aggregates.
 ---
 
 Open source under the [MIT License](LICENSE) ·
-[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.12.21 ·
+[github.com/manavmishra/ZeroSlop](https://github.com/manavmishra/ZeroSlop) · v2.12.22 ·
 tested · built on no-ai-slop, humanizer, de-slop, stop-slop, unslop-text, and
 avoid-ai-writing, with thanks
 to Kagi's SlopStop and the research listed in the repo.

@@ -5,5 +5,5 @@
   "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
   "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
   "scripts/slopscore.py": "90e14e3ed97e91d2b7403e7442e180a7042142088d8bbcb76b6ed42366ff7829",
-  "version": "2.12.21"
+  "version": "2.12.22"
 }
