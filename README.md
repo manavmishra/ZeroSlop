@@ -61,13 +61,8 @@ You can [try the browser editor](https://zero-slop.ai/try/) without installing a
 If you use Claude Code, Codex, or another assistant that supports skills, here's how to install Zero Slop there:
 
 ```sh
-npx skills add https://github.com/manavmishra/ZeroSlop/tree/main/skills/zero-slop --skill zero-slop --global
+npx skills add manavmishra/ZeroSlop --global
 ```
-
-The explicit subfolder installs the generated skill package: the workflow,
-references, data, and local checks. It does not copy the repository's benchmarks,
-hosted API examples, or build tools into your installed skill. The root and
-packaged skill definitions are kept identical by the release checks.
 
 ```text
 /zero-slop (your writing)
