@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "result_kind": "fresh_deterministic_release_replay",
+  "version": "2.12.22",
+  "private_preferences": "excluded",
+  "raw_sha256": {
+    "bench/corpus-registry.json": "17aca940f13296740c49f0466c50fb88226c769adcb2b50d11bd8f8ef83f165d",
+    "bench/discrimination/corpus.json": "f495d6ed74841aebb89799875bc794b3e3baa681a5b7dfd8f35add065b0a3578",
+    "bench/examples.json": "749362bae24888679eaac562bc4f6c84a0a7f8c3ae7fdfdc45af26cc932748ab",
+    "bench/feature-ablation/check.py": "ff5673e857bff0e9030d55fc04fccce5e62ee316f7384588c34adb806eadf002",
+    "bench/pinned_runtime.py": "bdef5f75c6cbd9cbd4397dd483a50a42bff92590d29d6cea22bd17c307ef4a99",
+    "bench/quality-corpus/labels-rater-a.json": "98024a530fc15277a62e22acbf259aed597c881c02176d6062c7144903e2b8d9",
+    "bench/quality-corpus/labels-rater-b.json": "1d5373286b97ea1d9849131b85bcfb570356fc17523ca8515fd7d885b5d23f8e",
+    "bench/quality-corpus/manifest.json": "0acbd49b5cadd8254f08d02893d98e830ced4f24068c2ad9a6c45331a823c503",
+    "bench/release_replay.py": "ad3b46ce1d599c1a16a7398b1dc59056be392d04a27faf7c6b147509336ded3e",
+    "bench/search-corpus/corpus.json": "78626533120d341dcf1193ce98a4274170bff6901af2057b66a256a7f12fa342",
+    "bench/version_compare.py": "498d599df509c0363bc7ebd1255dce637b7a676dc6637f8670d51ee40314cfd5",
+    "data/corpus/must-not-flag/esl-engineer-email.txt": "a0080890e7bc1c72e550f7315d157ca192aea9bcd20d1448d4b5c3432506cf20",
+    "data/corpus/must-not-flag/exec-memo.txt": "3784f40a13950783fc41019d142c149a57c8095cb6069849a621aed69010115c",
+    "data/corpus/must-not-flag/federalist.txt": "12b198026f36143686c0e60f05d3e4f35a4632b64dbfca795dfaabf66b350c37",
+    "data/corpus/must-not-flag/gettysburg.txt": "77bfe105699a77a6298f9082cdfe49b6f9490c9252a02e9bd723f317bee199e9",
+    "data/corpus/must-not-flag/grant-abstract.txt": "d0fa287206e8b9398ff1756189670a7f82de0f6c17ba025fe0a98399b9d8905b",
+    "data/corpus/must-not-flag/ml-methods.txt": "82b62b40196aa3c06ad9af1c8a28bd006be8378dcaed0d7643762cec1765d781",
+    "data/corpus/must-not-flag/personal-essay.txt": "d29ebbe5d04377e5d6423e5461b91f770058d88a6a71198b06c62caf294ea3ae",
+    "data/corpus/must-not-flag/press-release.txt": "a69cb8c22fc4d8d3edd2d6569d4528a2e5e3081bc72c7fb608b461f31c4d196b",
+    "data/corpus/must-not-flag/recipe.txt": "bc8930cf87fc5ddadf5e2e31db57ab078b8e776e90580ee32350ca752dd96a51",
+    "data/corpus/must-not-flag/sre-runbook.txt": "dc728e730933eca56b11603fa55da13fa60f4887336510122f066a22d731f441",
+    "data/corpus/must-not-flag/technical-postmortem.txt": "a2ade170a6eabcd185f3bac21cf58f9fde3d1f3e0ff87aadd279b35b7e9efd7b",
+    "data/corpus/must-not-flag/terse-engineer-note.txt": "52ef2f93be787a14122c15be8b50e78cf103c08de53655dc6aeffe8d4b2ed2a1",
+    "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+    "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+    "package.json": "d34e05f844efe3b8648c5fc4f696ff601551e65fdc525bc96e7477036fe737ae",
+    "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+    "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+    "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+    "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+    "scripts/slopscore.py": "90e14e3ed97e91d2b7403e7442e180a7042142088d8bbcb76b6ed42366ff7829"
+  },
+  "historical_comparison": {
+    "version": "2.12.13",
+    "commit": "5dc573740f79b32449ec5f25e9a1c443e7ab8e36",
+    "raw_sha256": {
+      "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+      "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+      "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+      "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+      "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+      "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+      "scripts/slopscore.py": "d4f55a6a7fb8a102ed143f08ee42b5196973d712659260c0c0cd4cba55b139b5"
+    }
+  },
+  "surface": {
+    "documents": 152,
+    "score_vector_sha256": "ae4d79fd656b7d7588a0708f64020cdcc33dd6285ac59924341670ee7042aa69",
+    "historical_documents": 152,
+    "historical_score_vector_sha256": "ae4d79fd656b7d7588a0708f64020cdcc33dd6285ac59924341670ee7042aa69"
+  },
+  "regression": {
+    "documents": 114,
+    "changed_document_ids": [],
+    "known_human_documents": 18,
+    "known_human_below_gate": 18,
+    "search_documents": 18,
+    "search_caught": 18
+  },
+  "frozen_llm_labels": {
+    "current_surface": {
+      "items": 38,
+      "true_positive": 27,
+      "true_negative": 5,
+      "false_positive": 4,
+      "false_negative": 2,
+      "accuracy": 0.8421
+    },
+    "historical_surface": {
+      "items": 38,
+      "true_positive": 27,
+      "true_negative": 5,
+      "false_positive": 4,
+      "false_negative": 2,
+      "accuracy": 0.8421
+    },
+    "new_judging": false,
+    "field_accuracy": false
+  },
+  "limits": "Deterministic scorer replay on frozen bundled inputs only. Output parity is not code equivalence, new labels, a timing measurement, full workflow validation, or human field accuracy. Historical records remain unchanged.",
+  "measured_at": "2026-10-06T01:48:01.567268+00:00"
+}
