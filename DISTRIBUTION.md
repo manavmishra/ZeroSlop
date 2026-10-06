@@ -26,6 +26,17 @@ root-based Git installation can also copy repository benchmarks, hosted API
 examples, and build tools. Those maintenance files are not part of the packaged
 skill. Omit `--global` for a project-local installation.
 
+In skills CLI 1.7.0, `--skill zero-slop` selects the skill by name; it does
+not limit a repository-root installation to the nested runtime package.
+By default, a valid `SKILL.md` at the source root makes the CLI select that
+directory and copy it recursively. Use the subfolder URL above
+to select the runtime directory explicitly.
+
+To preview discovery without installing, add `--list` to the command above.
+Review the source and installation targets before confirming an install.
+Selecting the runtime folder does not establish a clean third-party security
+audit or guarantee that a directory's cached snapshot has refreshed.
+
 The canonical MCP entry is `io.github.manavmishra/zero-slop` in the official
 Model Context Protocol Registry. Other MCP catalogs can import that record
 without introducing a second package or server.
