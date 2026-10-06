@@ -8,7 +8,7 @@ the no-install option for clients that support Streamable HTTP.
 
 | Platform | Install or connect |
 |---|---|
-| Agent Skills clients | `npx skills add manavmishra/ZeroSlop --global` |
+| Agent Skills clients | `npx skills add https://github.com/manavmishra/ZeroSlop/tree/main/skills/zero-slop --skill zero-slop --global` |
 | PyPI | `pip install zero-slop` |
 | GitHub Actions | `uses: manavmishra/ZeroSlop@v2.11.4` |
 | pre-commit | `repo: https://github.com/manavmishra/ZeroSlop`, hook `zero-slop` |
@@ -18,6 +18,24 @@ the no-install option for clients that support Streamable HTTP.
 | Codex | `codex mcp add zero-slop --url https://mcp.zero-slop.ai/mcp` |
 | Claude Code MCP | `claude mcp add --transport http zero-slop --scope user https://mcp.zero-slop.ai/mcp` |
 | ChatGPT, Claude.ai, Grok, Cursor, Gemini, and other MCP clients | Add `https://mcp.zero-slop.ai/mcp` as a custom connector where remote MCP servers are supported |
+
+For the skills CLI, prefer the explicit `skills/zero-slop` subfolder above.
+It selects the generated runtime package: `SKILL.md`, references, data, and
+local checks. The root and packaged skill definitions remain identical, but
+root-based Git installation can also copy repository benchmarks, hosted API
+examples, and build tools. Those maintenance files are not part of the packaged
+skill. Omit `--global` for a project-local installation.
+
+In skills CLI 1.7.0, `--skill zero-slop` selects the skill by name; it does
+not limit a repository-root installation to the nested runtime package.
+By default, a valid `SKILL.md` at the source root makes the CLI select that
+directory and copy it recursively. Use the subfolder URL above
+to select the runtime directory explicitly.
+
+To preview discovery without installing, add `--list` to the command above.
+Review the source and installation targets before confirming an install.
+Selecting the runtime folder does not establish a clean third-party security
+audit or guarantee that a directory's cached snapshot has refreshed.
 
 The canonical MCP entry is `io.github.manavmishra/zero-slop` in the official
 Model Context Protocol Registry. Other MCP catalogs can import that record
