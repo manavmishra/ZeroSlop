@@ -87,7 +87,7 @@ test("malformed structured fields cannot become a successful result", () => {
   }
   for (const mutate of [
     (value) => { value.after.score = NaN; }, (value) => { value.before.score = 101; },
-    (value) => { value.modelRequests = 2; }, (value) => { value.durationMs = -1; },
+    (value) => { value.modelRequests = 3; }, (value) => { value.durationMs = -1; },
     (value) => { value.after.register.findings = [{}]; }, (value) => { value.after.flags = [{}]; },
     (value) => { value.after.register.findings = [{ name: "x", rate: 0, budget: 0, found: 0.5, quote: "x" }]; },
     (value) => { value.after.shape.broetry = "false"; }, (value) => { value.status = "successful"; },
@@ -102,6 +102,19 @@ test("bounded report strings use the same Unicode units as the MCP output schema
   assert.equal(validateResult(value), value);
   value.after.band += "a";
   assert.throws(() => validateResult(value), { code: "invalid_response" });
+});
+
+test("two-provider receipts retain approval and warning states within the hosted attempt limit", () => {
+  for (const modelRequests of [0, 1, 2]) {
+    const value = { ...result(), modelRequests };
+    assert.equal(validateResult(value), value);
+    assert.equal(isApprovedResult(value), true);
+    assert.equal(isApprovedResult({ ...value, status: "rewritten_with_warnings", passedFinalChecks: false }), false);
+    assert.equal(isApprovedResult({ ...value, factsPreserved: false }), false);
+  }
+  for (const modelRequests of [-1, 0.5, 3, Infinity, NaN, "2"]) {
+    assert.throws(() => validateResult({ ...result(), modelRequests }), { code: "invalid_response" });
+  }
 });
 
 test("approval requires preservation and correctly treats already_clear without model checks", () => {

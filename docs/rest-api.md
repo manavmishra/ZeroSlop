@@ -102,7 +102,7 @@ The successful response contains these 14 fields:
 | `factsPreserved` | Whether tracked source details survived the checks |
 | `passedFinalChecks` | Whether the rewritten text passed the final checks |
 | `independentModelChecks` | Count of independent model checks; currently zero |
-| `modelRequests` | Editing-model requests made, zero or one |
+| `modelRequests` | Provider attempts started, from zero to two; failed attempts count |
 | `rolesCompleted` | Completed pipeline responsibilities |
 | `finishingRounds` | Additional local finishing rounds |
 | `scorerVersion` | Deployed Zero Slop release |

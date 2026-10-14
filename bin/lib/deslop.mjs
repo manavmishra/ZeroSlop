@@ -74,7 +74,7 @@ export function validateResult(result) {
     || !validReport(result.before) || !validReport(result.after) || !number(result.scoreChange, -100, 100)
     || typeof result.factsPreserved !== "boolean" || typeof result.passedFinalChecks !== "boolean"
     || ![result.independentModelChecks, result.modelRequests, result.rolesCompleted, result.finishingRounds, result.durationMs].every(integer)
-    || result.modelRequests > 1 || !string(result.scorerVersion) || !string(result.note)) {
+    || result.modelRequests > 2 || !string(result.scorerVersion) || !string(result.note)) {
     throw new DeslopError("invalid_response", "The MCP service returned an invalid structured result.");
   }
   // Return the original object, including additive fields; never rewrite its status.

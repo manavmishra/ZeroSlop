@@ -109,7 +109,7 @@ for (const fixture of selectedFixtures) {
   if (result) {
     for (const token of fixture.protected) if (!result.text.includes(token)) issues.push(`Exact source token missing: ${token}`);
     if (fixture.expectUnchanged && result.text !== fixture.text) issues.push("Clean source changed");
-    if (result.modelRequests > 1) issues.push("Exceeded one-model-request budget");
+    if (result.modelRequests > 2) issues.push("Exceeded two-provider-attempt budget");
     if (result.before.score >= 25 && result.after.score >= result.before.score) issues.push("Flagged draft did not improve its measured score");
     if (result.before.score >= 25 && result.after.score >= 25) issues.push("Edited draft misses the writing-score target");
     if (result.before.score >= 25 && result.status !== "rewritten") issues.push("Model editing did not complete all final checks");

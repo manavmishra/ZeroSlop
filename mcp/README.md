@@ -265,8 +265,8 @@ Deploy in this order:
 7. Read `GET https://mcp.zero-slop.ai/internal/counters` with the report token
    and confirm the initialization and call totals increased.
 8. Do not announce the connector until the factual fixture returns a rewritten
-   result with one model request, source-preservation checks, and the expected
-   score reduction. The one editorial response is not independent model review;
+   result within the two-provider-attempt limit, source-preservation checks, and
+   the expected score reduction. The editorial response is not independent model review;
    a local fallback must remain labelled `rewritten_with_warnings`.
 
 Deploy the new gateway budget method before the website begins requesting grants.

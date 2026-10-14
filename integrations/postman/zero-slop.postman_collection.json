@@ -54,7 +54,7 @@
         "    pm.expect(result.passedFinalChecks).to.be.a('boolean');",
         "    pm.expect(result.before.score).to.be.within(0, 100);",
         "    pm.expect(result.after.score).to.be.within(0, 100);",
-        "    pm.expect(result.modelRequests).to.be.oneOf([0, 1]);",
+        "    pm.expect(result.modelRequests).to.be.oneOf([0, 1, 2]);",
         "  });",
         "  const approved = result.factsPreserved === true && ((result.status === 'already_clear' && result.modelRequests === 0 && result.scoreChange === 0 && typeof result.before?.score === 'number' && result.before.score === result.after?.score) || (result.status === 'rewritten' && result.passedFinalChecks === true));",
         "  pm.variables.set('reviewRequired', !approved);",

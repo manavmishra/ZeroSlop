@@ -88,6 +88,18 @@ test("Postman schema and structured-error examples run against fixture responses
   assert(runPostman(collection.item[1], 429, {}).failures.length);
 });
 
+test("Postman accepts two-provider receipts and retains warning review requirements", () => {
+  for (const status of ["rewritten", "rewritten_with_warnings"]) {
+    const value = { ...fixture(status), modelRequests: 2 };
+    const response = runPostman(collection.item[1], 200, value);
+    assert.deepEqual(response.failures, []);
+    assert.equal(response.variables.get("reviewRequired"), status !== "rewritten");
+  }
+  for (const modelRequests of [-1, 0.5, 3, Infinity, NaN, "2"]) {
+    assert(runPostman(collection.item[1], 200, { ...fixture(), modelRequests }).failures.length);
+  }
+});
+
 test("n8n workflow is manual, inactive, credential-free, and does not persist execution history", () => {
   assert.equal(workflow.active, false);
   assert.deepEqual(workflow.pinData, {});

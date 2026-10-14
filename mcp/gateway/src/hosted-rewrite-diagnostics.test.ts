@@ -96,6 +96,28 @@ test("an invalid HTTP success body differs from an unproven provider abort", asy
   } finally { globalThis.fetch = oldFetch; }
 });
 
+test("provider attempt diagnostics retain bounded enums without exporting untrusted fields", async () => {
+  const oldFetch = globalThis.fetch;
+  const oldWarn = console.warn;
+  const logs: string[] = [];
+  console.warn = (value: string) => { logs.push(value); };
+  try {
+    for (const [providerAttempts, expected] of [
+      [[{ provider: "workers-ai", outcome: "timeout", message: source },
+        { provider: "openrouter", outcome: "unavailable", secret: signingKey }],
+       [{ provider: "workers-ai", outcome: "timeout" }, { provider: "openrouter", outcome: "unavailable" }]],
+      [[{ provider: source, outcome: signingKey }], []],
+      [[{ provider: "workers-ai", outcome: "timeout" }, { provider: "openrouter", outcome: "unavailable" },
+        { provider: "openrouter", outcome: "unavailable" }], []],
+    ]) {
+      globalThis.fetch = (async () => Response.json({ editorOutcome: "unavailable", providerCalls: 2, providerAttempts }, { status: 503 })) as typeof fetch;
+      assert.equal(await callRole(env, "complete", source, {}, Date.now() + 1000), null);
+      assert.deepEqual(JSON.parse(logs.at(-1)!).providerAttempts, expected);
+    }
+    assert.ok(logs.every(value => !value.includes(source) && !value.includes(signingKey)));
+  } finally { globalThis.fetch = oldFetch; console.warn = oldWarn; }
+});
+
 test("already clear Northstar facts require no provider request", async () => {
   const text = "Starting October 20, teams can export their weekly report as a CSV file. Maya owns the rollout, and the beta is limited to 25 teams.";
   const oldFetch = globalThis.fetch;

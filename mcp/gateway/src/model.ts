@@ -45,6 +45,22 @@ type EditorResponse = {
   providerCalls?: unknown;
 };
 
+// Endpoint diagnostics are untrusted. Copy only bounded enum pairs, never
+// provider messages, draft fields, model names or other response properties.
+function safeProviderAttempts(value: unknown): { provider: string; outcome: string }[] {
+  if (!value || typeof value !== "object" || !("providerAttempts" in value)) return [];
+  const attempts = value.providerAttempts;
+  if (!Array.isArray(attempts) || attempts.length > 2) return [];
+  const outcomes = ["success", "timeout", "cancelled", "capacity", "invalid_output", "configuration", "unavailable"];
+  const safe: { provider: string; outcome: string }[] = [];
+  for (const attempt of attempts) {
+    if (!attempt || typeof attempt !== "object" ||
+        !["workers-ai", "openrouter"].includes(attempt.provider) || !outcomes.includes(attempt.outcome)) return [];
+    safe.push({ provider: attempt.provider, outcome: attempt.outcome });
+  }
+  return safe;
+}
+
 function safeRungPart(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
@@ -124,8 +140,10 @@ export async function callRole(
       });
       if (!response.ok) {
         let failure: EditorFailure = "unavailable";
+        let providerAttempts: { provider: string; outcome: string }[] = [];
         if (response.status === 429 || response.status === 503) {
           const errorBody = await readBoundedJson(response, 2048).catch(() => null);
+          providerAttempts = safeProviderAttempts(errorBody);
           if (errorBody && typeof errorBody === "object" && "providerCalls" in errorBody) {
             const count = errorBody.providerCalls;
             if (count === 0 || count === 1 || count === 2) onProviderCalls?.(count);
@@ -151,6 +169,7 @@ export async function callRole(
         console.warn(JSON.stringify({
           event: "editor_request_unavailable", role, status: response.status,
           reason: failure,
+          providerAttempts,
           durationMs: Date.now() - started,
         }));
         return null;
@@ -170,7 +189,8 @@ export async function callRole(
         return null;
       }
       console.log(JSON.stringify({
-        event: "editor_request_complete", role, providerCalls: reply.providerCalls, durationMs: Date.now() - started,
+        event: "editor_request_complete", role, providerCalls: reply.providerCalls,
+        providerAttempts: safeProviderAttempts(payload), durationMs: Date.now() - started,
       }));
       return reply;
     }, Math.min(REQUEST_TIMEOUT_MS, remaining), control);
