@@ -3,7 +3,8 @@ import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { callRole, type EditorFailure } from "./model";
-import { localRescue, runPipeline } from "./pipeline";
+import { localRescue, meetsReleaseGate, runPipeline } from "./pipeline";
+import { resultApproval } from "./telemetry";
 
 const source = "We’re thrilled to announce a game-changing update to Project Northstar. Starting October 20, teams can export their weekly report as a CSV file. It is important to note that Maya owns the rollout, and the beta is limited to 25 teams. This seamless experience empowers teams to unlock actionable insights.";
 const observed = "We’re thrilled to announce a useful update to Project Northstar. Starting October 20, teams can export their weekly report as a CSV file. Maya owns the rollout, and the beta is limited to 25 teams. This seamless experience empowers teams to unlock actionable insights.";
@@ -29,7 +30,10 @@ test("Northstar provider outage and rejected source edit have distinct review wa
     assert.equal(unavailable.text, localRescue(source));
     assert.notEqual(unavailable.text, observed);
     assert.equal(unavailable.before.score, 100);
-    assert.ok(unavailable.after.score < 99.9);
+    assert.equal(unavailable.after.score, 99.9);
+    assert.equal(unavailable.after.flaggedPhrases, 4);
+    assert.match(unavailable.text, /thrilled to announce an update/);
+    assert.match(unavailable.text, /This seamless experience empowers teams to unlock actionable insights\./);
     assert.equal(unavailable.modelRequests, 2);
     assert.equal(unavailable.status, "rewritten_with_warnings");
     assert.equal(unavailable.passedFinalChecks, false);
@@ -116,5 +120,36 @@ test("a model response that cleans back to the source is not a service outage", 
     assert.match(result.note, /no distinct edit after local cleanup/);
     assert.doesNotMatch(result.note, /unavailable/);
     assert.equal(result.passedFinalChecks, false);
+  } finally { globalThis.fetch = oldFetch; }
+});
+
+test("a below-gate fallback is never advertised as a clean editorial rewrite", async () => {
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = (async () => Response.json({ error: "editor_unavailable", editorOutcome: "unavailable", providerCalls: 2 }, { status: 503 })) as typeof fetch;
+  const lowScoreScorer = { fetch: async (url: RequestInfo | URL, init?: RequestInit) => {
+    const response = await scorer.fetch(url, init);
+    const payload = JSON.parse(String(init?.body));
+    if (new URL(String(url)).pathname !== "/report" || payload.text === source) return response;
+    const report = await response.json() as Record<string, unknown>;
+    // Deliberately simulate the previous 20.2 result. Provenance and contextual
+    // limits must still require review even if every measured check is green.
+    return Response.json({ ...report, score: 20.2, band: "clear", highWeightFlags: 0,
+      flaggedPhrases: 0, flags: [], readability: "clear", sentenceVariety: "natural",
+      register: { measured: true, words: 50, checked: 4, findings: [], twoPartContrasts: 0, announcements: 0 },
+      shape: { measured: true, broetry: false, oneSentenceParagraphShare: 0, longestFragmentRun: 0 } });
+  } };
+  try {
+    const result = await runPipeline({ ...env, SCORER: lowScoreScorer } as unknown as Env, { text: source, genre: "social" });
+    assert.equal(result.after.score, 20.2);
+    assert.equal(meetsReleaseGate(result.after), true);
+    assert.equal(result.factsPreserved, true);
+    assert.equal(result.text, localRescue(source));
+    assert.equal(result.status, "rewritten_with_warnings");
+    assert.equal(result.passedFinalChecks, false);
+    assert.equal(result.independentModelChecks, 0);
+    assert.equal(result.rolesCompleted, 4);
+    assert.equal(resultApproval(result), "review_required");
+    assert.match(result.note, /local editor only removes stock wording; meaning, voice, and vague claims still need review/);
+    assert.doesNotMatch(result.note, /approved|already reads cleanly/);
   } finally { globalThis.fetch = oldFetch; }
 });

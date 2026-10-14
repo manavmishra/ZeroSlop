@@ -9,10 +9,10 @@ const source = "We’re thrilled to announce a game-changing update to Project N
   "Starting October 20, teams can export their weekly report as a CSV file. " +
   "It is important to note that Maya owns the rollout, and the beta is limited to 25 teams. " +
   "This seamless experience empowers teams to unlock actionable insights.";
-const expected = "We’re excited about an update to Project Northstar. " +
+const expected = "We’re thrilled to announce an update to Project Northstar. " +
   "Starting October 20, teams can export their weekly report as a CSV file. " +
   "Maya owns the rollout, and the beta is limited to 25 teams. " +
-  "This experience helps teams find insights they can act on.";
+  "This seamless experience empowers teams to unlock actionable insights.";
 
 function parity(input: string, output: string) {
   assert.equal(localRescue(input), output);
@@ -22,21 +22,21 @@ function parity(input: string, output: string) {
   assert.equal(localRescue(output), output);
 }
 
-test("Northstar fallback improves framing while preserving excitement and benefit", () => {
+test("Northstar fallback removes hype without paraphrasing emotion or benefit", () => {
   parity(source, expected);
   assert.equal(sourceClaimRisk(source, expected), false);
   assert.equal(sourceClaimRisk(source, expected.replace("teams can export", "teams cannot export")), true);
   assert.equal(sourceClaimRisk(source, expected.replace("Starting October 20", "Starting October 21")), true);
-  assert.equal(sourceClaimRisk(source, expected.replace("they can act on", "they cannot act on")), true);
+  assert.equal(sourceClaimRisk(source, expected.replace("empowers teams", "does not empower teams")), true);
 });
 
-test("stock announcement and benefit rules preserve spelling and agency", () => {
+test("announcements and unspecified benefit claims keep their literal meaning", () => {
   for (const verb of ["’re", "'re", " are"]) for (const noun of ["an update to iOS", "a release for eBay and NASA"]) {
-    parity(`We${verb} thrilled to announce ${noun}.`, `We${verb} excited about ${noun}.`);
+    parity(`We${verb} thrilled to announce ${noun}.`, `We${verb} thrilled to announce ${noun}.`);
   }
   for (const agent of ["teams", "users", "people"]) {
     parity(`This seamless experience empowers ${agent} to unlock actionable insights.`,
-      `This experience helps ${agent} find insights they can act on.`);
+      `This seamless experience empowers ${agent} to unlock actionable insights.`);
   }
 });
 

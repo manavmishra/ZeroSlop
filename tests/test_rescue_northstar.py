@@ -15,35 +15,36 @@ SOURCE = (
     "This seamless experience empowers teams to unlock actionable insights."
 )
 EXPECTED = (
-    "We’re excited about an update to Project Northstar. "
+    "We’re thrilled to announce an update to Project Northstar. "
     "Starting October 20, teams can export their weekly report as a CSV file. "
     "Maya owns the rollout, and the beta is limited to 25 teams. "
-    "This experience helps teams find insights they can act on."
+    "This seamless experience empowers teams to unlock actionable insights."
 )
 
 
 class NorthstarRescue(unittest.TestCase):
-    def test_exact_incident_is_faithful_and_improves_measured_writing(self):
+    def test_exact_incident_keeps_emotion_and_benefit_without_cosmetic_paraphrase(self):
         self.assertEqual(rescue.rescue_text(SOURCE), EXPECTED)
         self.assertEqual(rescue.rescue_text(EXPECTED), EXPECTED)
         checked = slopscore.fidelity(SOURCE, EXPECTED)
         self.assertTrue(checked["preserved"])
         self.assertFalse(checked["invented"])
-        data = slopscore.load_patterns()
-        self.assertLess(slopscore.score_text(EXPECTED, data)["ai_likelihood"],
-                        slopscore.score_text(SOURCE, data)["ai_likelihood"])
+        self.assertIn("thrilled to announce", EXPECTED)
+        self.assertIn("This seamless experience empowers teams to unlock actionable insights.", EXPECTED)
+        self.assertNotIn("useful update", EXPECTED)
+        self.assertNotIn("excited about", EXPECTED)
 
     def test_present_announcement_keeps_emotion_subject_and_noun(self):
         for verb in ("’re", "'re", " are"):
             for noun in ("an update to iOS", "a release for eBay and NASA"):
                 source = f"We{verb} thrilled to announce {noun}."
-                expected = f"We{verb} excited about {noun}."
+                expected = f"We{verb} thrilled to announce {noun}."
                 self.assertEqual(rescue.rescue_text(source), expected)
 
     def test_benefit_keeps_agent_and_claim_instead_of_deleting_sentence(self):
         for agent in ("teams", "users", "people"):
             source = f"This seamless experience empowers {agent} to unlock actionable insights."
-            expected = f"This experience helps {agent} find insights they can act on."
+            expected = source
             self.assertEqual(rescue.rescue_text(source), expected)
 
     def test_quotations_code_and_links_are_byte_preserved(self):

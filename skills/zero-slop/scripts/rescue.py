@@ -63,26 +63,12 @@ def rescue_text(text: str) -> str:
         r"(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)as we move forward,[ \t]+the team will\b",
         lambda m: m.group(1) + "The team will", out, flags=re.IGNORECASE,
     )
-    # Preserve the author's excitement; only recast a present-tense stock
-    # announcement before a noun phrase. Do not touch reported or negated
-    # excitement, or an announcement introducing a factual "that" clause.
+    # Remove one hype modifier without substituting emotion or paraphrasing
+    # an unspecified benefit. Preserve the announcement and its exact subject.
     out = re.sub(
         r"(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) "
         r"thrilled to announce a game[-\u2011]changing update\b",
-        lambda m: m.group(1) + m.group(2) + m.group(3) + " excited about an update", out,
-    )
-    out = re.sub(
-        r"(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) "
-        r"thrilled to announce (?=(?:a|an) )",
-        lambda m: m.group(1) + m.group(2) + m.group(3) + " excited about ", out,
-    )
-    # Keep the benefit and its agent. A complete fixed sentence is required:
-    # qualifiers, negation, named products and trailing conditions abstain.
-    out = re.sub(
-        r"(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Tt]his|[Tt]hat|[Tt]he) "
-        r"seamless experience empowers (teams|users|people) to unlock actionable insights\.(?=$|\s)",
-        lambda m: m.group(1) + m.group(2) + " experience helps " + m.group(3)
-        + " find insights they can act on.", out,
+        lambda m: m.group(1) + m.group(2) + m.group(3) + " thrilled to announce an update", out,
     )
     rules: list[tuple[str, str | object]] = [
         (

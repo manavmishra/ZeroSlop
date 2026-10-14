@@ -136,21 +136,11 @@ export function localRescue(text: string): string {
     /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)as we move forward,[ \t]+the team will\b/gi,
     (_match, prefix: string) => prefix + "The team will",
   );
-  // Preserve excitement while recasting a present-tense stock announcement
-  // before a noun phrase. Reported/negated emotion and "that" clauses abstain.
+  // Remove one hype modifier without substituting emotion or paraphrasing
+  // an unspecified benefit. Preserve the announcement and its exact subject.
   out = out.replace(
     /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) thrilled to announce a game[-\u2011]changing update\b/g,
-    (_match, prefix: string, subject: string, verb: string) => prefix + subject + verb + " excited about an update",
-  );
-  out = out.replace(
-    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) thrilled to announce (?=(?:a|an) )/g,
-    (_match, prefix: string, subject: string, verb: string) => prefix + subject + verb + " excited about ",
-  );
-  // Keep the benefit and its agent. Require a complete fixed sentence so
-  // qualifiers, negation, named products and trailing conditions abstain.
-  out = out.replace(
-    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Tt]his|[Tt]hat|[Tt]he) seamless experience empowers (teams|users|people) to unlock actionable insights\.(?=$|\s)/g,
-    (_match, prefix: string, subject: string, agent: string) => prefix + subject + " experience helps " + agent + " find insights they can act on.",
+    (_match, prefix: string, subject: string, verb: string) => prefix + subject + verb + " thrilled to announce an update",
   );
   const changes: Array<[RegExp, string | ((...args: string[]) => string)]> = [
     [/\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that redefines what is possible in ([^.]+)\./gi,
@@ -378,6 +368,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
             ? "the model edit exceeded the scorer's input limit, so the local edit was used"
             : "the model response yielded no distinct edit after local cleanup, so the local edit was used"
           : `${editorFailureNote(editorFailure)}, so the local edit was used`);
+    warnings.push("the local editor only removes stock wording; meaning, voice, and vague claims still need review");
   }
   if (after.score >= SCORE_GATE) warnings.push("the writing score remains above 25");
   if (after.highWeightFlags > 0) warnings.push("a strong stock-writing signal remains");
