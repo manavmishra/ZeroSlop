@@ -1265,8 +1265,30 @@ def facts(text, _other=""):
 # a feeling verb, because the goal is catching an INVENTED inner state, and the
 # comparison below cancels any that were already in the source.
 INTERIOR_STATE_RX = re.compile(
-    r"\b(?:I|we)\s+(?:genuinely\s+)?(?:was|were|am|felt|feel|got)\s+"
-    r"(?:(?:very|really|extremely|quite|so|genuinely)\s+)?(?P<state>[A-Za-z]+)", re.I)
+    r"\b(?P<subject>I|we)(?:(?P<contraction>['’](?:m|re))|\s+"
+    r"(?:genuinely\s+)?(?P<verb>was|were|am|are|felt|feel|got)(?P<negative>n['’]t)?)\s+"
+    r"(?P<modifiers>(?:(?:very|really|extremely|quite|so|genuinely|not|never|hardly|"
+    r"barely|somewhat|slightly|partly|mostly|almost|nearly|probably|possibly|"
+    r"perhaps|usually|sometimes|occasionally)\s+)*)"
+    r"(?P<state>[A-Za-z]+)\b", re.I)
+# New copula forms are limited to feelings, rather than treating "we're
+# exporting" or "we are product managers" as invented interior experience.
+# The older felt/was/am branches retain their existing experiential coverage.
+INTERIOR_EMOTIONS = frozenset("""afraid alarmed angry anxious ashamed astonished
+bewildered bitter bored calm comfortable confident confused content delighted
+depressed disappointed discouraged distressed eager elated embarrassed excited
+exhausted fearful familiar frustrated furious glad grateful happy hopeful humbled
+hurt isolated lonely miserable nervous overwhelmed panicked pleased proud relieved
+sad safe scared shocked surprised terrified thrilled tired uncomfortable uncertain
+uneasy unhappy unsafe upset worried""".split())
+INTERIOR_COSMETIC_INTENSITY = frozenset("very really extremely quite so genuinely".split())
+INTERIOR_CONTEXT_RX = re.compile(
+    r"\b(?:if|unless|provided|assuming|when|once|until|whether|wish|wished|"
+    r"may|might|could|would|should|possibly|probably|perhaps|reportedly|"
+    r"allegedly|apparently)\b", re.I)
+INTERIOR_ATTRIBUTION_RX = re.compile(
+    r"\b(?:said|says|wrote|writes|claimed|claims|reported|reports|told|tells|"
+    r"according\s+to)\b", re.I)
 INTERIOR_COGNITION_RX = re.compile(
     r"\b(?:I|we)\s+(?P<cognition>remember(?:ed)?|recall(?:ed)?|realise(?:d)?|"
     r"realize(?:d)?|knew|fear(?:ed)?|hope(?:d)?|worr(?:y|ied)|panic(?:ked)?|"
@@ -1285,10 +1307,92 @@ COGNITION_CANON = {
 }
 
 
+def _quoted_interior_starts(text, starts):
+    """Mark quotation/blockquote context in one forward delimiter scan."""
+    quoted, opened = set(), [False, False, False, False]
+    line_start = 0
+    blockquote = False
+    def word(value):
+        return bool(value) and value in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+    for index, char in enumerate(text):
+        if index == line_start:
+            cursor = index
+            while cursor < len(text) and text[cursor] in " \t":
+                cursor += 1
+            blockquote = cursor < len(text) and text[cursor] == ">"
+        if index in starts and (blockquote or any(opened)):
+            quoted.add(index)
+        previous = text[index - 1] if index else ""
+        following = text[index + 1] if index + 1 < len(text) else ""
+        if char == "“":
+            opened[0] = True
+        elif char == "”":
+            opened[0] = False
+        elif char == "‘":
+            opened[1] = True
+        elif char == "’" and not (word(previous) and word(following)):
+            opened[1] = False
+        elif char == '"':
+            opened[2] = not opened[2]
+        elif char == "'":
+            if opened[3] and not word(following):
+                opened[3] = False
+            elif not opened[3] and not word(previous):
+                opened[3] = True
+        if char == "\n":
+            line_start = index + 1
+    return quoted
+
+
+def _interior_states(text):
+    # Literal code is protected by the structure gate, not an author's feeling.
+    prose = INLINE_CODE_RX.sub(lambda m: " " * len(m.group(0)), _mask_fenced(text))
+    matches = list(INTERIOR_STATE_RX.finditer(prose))
+    quoted = _quoted_interior_starts(prose, {match.start() for match in matches})
+    out, match_index, start = set(), 0, 0
+    # Context is scanned once per sentence, avoiding a suffix scan per state.
+    ends = [m.start() for m in re.finditer(r"[.!?](?=\s|$)|\n[ \t]*\n", prose)] + [len(prose)]
+    for end in ends:
+        sentence = prose[start:end]
+        context = INTERIOR_CONTEXT_RX.search(sentence)
+        attribution = INTERIOR_ATTRIBUTION_RX.search(sentence)
+        context_signature = None
+        if context:
+            # Pin the exact qualification without copying a long sentence into
+            # every state key or exposing it as a new diagnostics field.
+            qualification = " ".join(sentence[context.start():].lower().split())
+            context_signature = hashlib.sha256(qualification.encode("utf-8")).hexdigest()
+        while match_index < len(matches) and matches[match_index].start() < end:
+            match = matches[match_index]
+            match_index += 1
+            subject, state = match.group("subject").lower(), match.group("state").lower()
+            contraction = (match.group("contraction") or "").replace("’", "'").lower()
+            if contraction and contraction != ("'m" if subject == "i" else "'re"):
+                continue
+            if (contraction or match.group("verb").lower() == "are") and state not in INTERIOR_EMOTIONS:
+                continue
+            modifiers = [word.lower() for word in match.group("modifiers").split()
+                         if word.lower() not in INTERIOR_COSMETIC_INTENSITY]
+            if match.group("negative"):
+                modifiers.insert(0, "not")
+            parts = [subject, *modifiers, state]
+            if match.start() in quoted:
+                parts.insert(0, "quoted")
+            if attribution and start + attribution.start() < match.start():
+                parts.insert(0, "attributed")
+            if context_signature:
+                # A hypothetical/qualified feeling must not license a new
+                # unqualified assertion. Keep its actual context conservatively.
+                parts.append("context=" + context_signature)
+            out.add(":".join(parts))
+        start = end + 1
+    return out
+
+
 def interior_claims(text):
     """Inner-state assertions, reduced to a comparable core so paraphrase of an
     existing one does not read as a new invention."""
-    out = {m.group("state").lower() for m in INTERIOR_STATE_RX.finditer(text)}
+    out = _interior_states(text)
     for m in INTERIOR_COGNITION_RX.finditer(text):
         word = m.group("cognition").lower()
         out.add(COGNITION_CANON.get(word, word))

@@ -57,6 +57,30 @@ test("Northstar provider outage and rejected source edit have distinct review wa
   } finally { globalThis.fetch = oldFetch; }
 });
 
+test("a faithful Northstar feeling paraphrase is not a source rejection", async () => {
+  const rewrite = localRescue(source).replace(
+    "We’re thrilled to announce an update to Project Northstar.",
+    "We feel thrilled about the update to Project Northstar.",
+  );
+  const oldFetch = globalThis.fetch;
+  const oldWarn = console.warn;
+  const logs: string[] = [];
+  globalThis.fetch = (async () => Response.json({ rewrite, provider: "mock", model: "mock", stored: false, providerCalls: 1 })) as typeof fetch;
+  console.warn = (value: string) => { logs.push(value); };
+  try {
+    const result = await runPipeline(env, { text: source, genre: "social", audience: "product managers" });
+    assert.equal(result.text, rewrite);
+    assert.equal(result.modelRequests, 1);
+    assert.equal(result.factsPreserved, true);
+    assert.doesNotMatch(result.note, /did not pass the source check|changed a source claim/);
+    assert.ok(logs.every(value => JSON.parse(value).event !== "editor_source_rejected"));
+    // This fixture still contains stock benefit wording. Source fidelity alone
+    // must not turn it into an approved edit or lower the writing threshold.
+    assert.equal(result.passedFinalChecks, false);
+    assert.equal(result.status, "rewritten_with_warnings");
+  } finally { globalThis.fetch = oldFetch; console.warn = oldWarn; }
+});
+
 test("a provider ignoring cancellation still reaches the bounded editor timeout", async () => {
   const oldFetch = globalThis.fetch;
   let failure: EditorFailure | null = null;
