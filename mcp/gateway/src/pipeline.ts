@@ -1,4 +1,4 @@
-import { callRole } from "./model";
+import { callRole, type EditorFailure } from "./model";
 import { checkCancelled } from "./cancellation";
 import { MAX_DRAFT_CHARS } from "./contract";
 import { rankRewrites, scoreWriting } from "./scorer";
@@ -111,7 +111,7 @@ export function localRescue(text: string): string {
   const original = String(text || "").trim();
   const protectedSpans: string[] = [];
   const masked = original.replace(
-    /\x60{3}[\s\S]*?\x60{3}|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+|“[^”\n]*”|‘[^’\n]*’|"[^"\n]*"/g,
+    /\x60{3}[\s\S]*?\x60{3}|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+|“[^”]*”|‘(?:[^’]|(?<=[A-Za-z0-9_])’(?=[A-Za-z0-9_]))*’|"[^"]*"|(?<![A-Za-z0-9_])'(?:[^']|(?<=[A-Za-z0-9_])'(?=[A-Za-z0-9_]))*'(?![A-Za-z0-9_])/gm,
     (value) => {
       const token = `\uE000${protectedSpans.length}\uE001`;
       protectedSpans.push(value);
@@ -135,6 +135,22 @@ export function localRescue(text: string): string {
   out = out.replace(
     /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)as we move forward,[ \t]+the team will\b/gi,
     (_match, prefix: string) => prefix + "The team will",
+  );
+  // Preserve excitement while recasting a present-tense stock announcement
+  // before a noun phrase. Reported/negated emotion and "that" clauses abstain.
+  out = out.replace(
+    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) thrilled to announce a game[-\u2011]changing update\b/g,
+    (_match, prefix: string, subject: string, verb: string) => prefix + subject + verb + " excited about an update",
+  );
+  out = out.replace(
+    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) thrilled to announce (?=(?:a|an) )/g,
+    (_match, prefix: string, subject: string, verb: string) => prefix + subject + verb + " excited about ",
+  );
+  // Keep the benefit and its agent. Require a complete fixed sentence so
+  // qualifiers, negation, named products and trailing conditions abstain.
+  out = out.replace(
+    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Tt]his|[Tt]hat|[Tt]he) seamless experience empowers (teams|users|people) to unlock actionable insights\.(?=$|\s)/g,
+    (_match, prefix: string, subject: string, agent: string) => prefix + subject + " experience helps " + agent + " find insights they can act on.",
   );
   const changes: Array<[RegExp, string | ((...args: string[]) => string)]> = [
     [/\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that redefines what is possible in ([^.]+)\./gi,
@@ -245,6 +261,19 @@ function unchanged(
   };
 }
 
+function editorFailureNote(reason: EditorFailure | null): string {
+  switch (reason) {
+    case "timeout": return "the editor request timed out";
+    case "cancelled": return "the editor service cancelled the request";
+    case "deadline": return "the editor request could not start within its deadline";
+    case "configuration": return "the editor service configuration was unavailable";
+    case "invalid_output": return "the editor service returned unusable output";
+    case "unchanged_output": return "the model returned the original text";
+    case "transport": return "the editor request failed before a usable response arrived";
+    default: return "the editor service was unavailable";
+  }
+}
+
 export async function runPipeline(env: Env, input: DeslopInput, clientAddress = "", signal?: AbortSignal): Promise<PipelineResult> {
   const started = Date.now();
   const deadline = started + PIPELINE_BUDGET_MS;
@@ -273,8 +302,9 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   // Exactly one outbound editor request. The endpoint may use one bounded
   // alternate provider if its primary cannot return a usable edit.
   let observedProviderCalls: 0 | 1 | 2 | null = null;
+  let editorFailure: EditorFailure | null = null;
   const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress, control,
-    (count) => { observedProviderCalls = count; });
+    (count) => { observedProviderCalls = count; }, (reason) => { editorFailure = reason; });
   checkCancelled(control);
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
@@ -289,8 +319,12 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   if (Object.keys(candidates).length === 0) {
     return {
       ...unchanged(
-        original, "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
-        "The single model request did not return a usable edit, and the conservative local editor found no safe textual change.",
+        original, modelReply ? "unchanged_no_better_version" : "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
+        modelReply
+          ? !withinScorerLimit(cleanedModelReply)
+            ? "Zero Slop kept the original because the model edit exceeded the scorer's input limit, and the local editor found no safe textual change."
+            : "Zero Slop kept the original because the model response yielded no distinct edit after local cleanup, and the local editor found no safe textual change."
+          : `Zero Slop kept the original because ${editorFailureNote(editorFailure)}, and the conservative local editor found no safe textual change.`,
       ),
       modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
     };
@@ -300,6 +334,15 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     && sourceClaimRisk(original, candidates["one-call edit"]));
   let checked = await rankRewrites(env, original, candidates, input.genre, control);
   checkCancelled(control);
+  // Record the model verdict before a local-only rerank drops that candidate.
+  // This contains fixed categories only: never source spans or provider errors.
+  const modelSourceRejected = checked.ranked.some((candidate) =>
+    candidate.name === "one-call edit" && (!candidate.preserved || candidate.invented));
+  const safeModelEdit = checked.ranked.some((candidate) =>
+    candidate.name === "one-call edit" && candidate.preserved && !candidate.invented);
+  if (modelSourceRejected || modelClaimUncertain) {
+    console.warn(JSON.stringify({ event: "editor_source_rejected", reason: modelClaimUncertain ? "claim_changed" : "protected_source_changed" }));
+  }
   if ((!sourceSafe(checked) || sourceClaimRisk(original, checked.text)) && candidates["local edit"]) {
     const localOnly = await rankRewrites(env, original, { "local edit": rescue }, input.genre, control);
     checkCancelled(control);
@@ -324,13 +367,17 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   const passed = selectedModelEdit && !claimUncertain && meetsReleaseGate(after);
   const warnings: string[] = [];
   if (!selectedModelEdit) {
-    const safeModelEdit = checked.ranked.some((candidate) =>
-      candidate.name === "one-call edit" && candidate.preserved && !candidate.invented);
     warnings.push(modelClaimUncertain
       ? "the model response changed a source claim's negation, direction, certainty, or timing, so the local edit was used"
+      : modelSourceRejected
+        ? "the model response did not pass the source check, so the local edit was used"
       : safeModelEdit
         ? "the local edit ranked ahead of a source-preserving model edit on the measured writing checks"
-        : "the model response was unavailable or did not pass the source check, so the local edit was used");
+        : modelReply
+          ? !withinScorerLimit(cleanedModelReply)
+            ? "the model edit exceeded the scorer's input limit, so the local edit was used"
+            : "the model response yielded no distinct edit after local cleanup, so the local edit was used"
+          : `${editorFailureNote(editorFailure)}, so the local edit was used`);
   }
   if (after.score >= SCORE_GATE) warnings.push("the writing score remains above 25");
   if (after.highWeightFlags > 0) warnings.push("a strong stock-writing signal remains");
