@@ -1,5 +1,6 @@
 """Offline fallback regression for the fictional hosted Northstar incident."""
 import sys
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -89,6 +90,37 @@ class NorthstarRescue(unittest.TestCase):
                     self.assertEqual(rescue.rescue_text(quoted), quoted)
                     self.assertEqual(rescue.rescue_text(SOURCE + "\n\n" + quoted),
                                      EXPECTED + "\n\n" + quoted)
+
+    def test_unmatched_quote_flood_completes_within_bounded_cli_time(self):
+        # One MiB of repeated unmatched openers previously made the quote
+        # regex rescan almost the entire remaining input at every line.
+        flood = "‘\n" * 262144
+        quoted = "“Maya said:\n\n" + SOURCE + "\n”"
+        text = flood + quoted + "\n\n" + SOURCE
+        result = subprocess.run(
+            [sys.executable, str(Path(rescue.__file__)), "-"],
+            input=text, capture_output=True, text=True, timeout=5, check=True,
+        )
+        self.assertEqual(result.stdout, text + "\n")
+
+    def test_unmatched_quotations_abstain_from_editing_the_suffix(self):
+        for opener in ('"', "'", "“", "‘"):
+            quoted = opener + "Maya said:\n\n" + SOURCE
+            self.assertEqual(rescue.rescue_text(quoted), quoted)
+            self.assertEqual(rescue.rescue_text(SOURCE + "\n\n" + quoted),
+                             EXPECTED + "\n\n" + quoted)
+
+    def test_nested_quotations_and_protected_inner_spans_remain_exact(self):
+        for quoted in (
+            '“Maya said \'We\'re thrilled to announce an update.\'\n' + SOURCE + '”',
+            '"Maya said:\nhttps://example.test/\n`game-changing`\n' + SOURCE + '"',
+            "‘Maya said:\n\nWe're thrilled to announce an update.\n" + SOURCE + "’",
+            '"Maya said: `"`\n\n' + SOURCE + '\n"',
+            '"Maya said: [a "label"](https://example.test/)\n\n' + SOURCE + '\n"',
+            '“Maya said:\n\n' + SOURCE + '\nhttps://example.test/”.',
+            '"Maya said:\n\n' + SOURCE + '\nhttps://example.test/".',
+        ):
+            self.assertEqual(rescue.rescue_text(quoted), quoted)
 
 
 if __name__ == "__main__":

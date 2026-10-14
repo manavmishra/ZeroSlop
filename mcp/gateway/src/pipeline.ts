@@ -110,14 +110,80 @@ export function meetsReleaseGate(report: WritingReport): boolean {
 export function localRescue(text: string): string {
   const original = String(text || "").trim();
   const protectedSpans: string[] = [];
-  const masked = original.replace(
-    /\x60{3}[\s\S]*?\x60{3}|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+|“[^”]*”|‘(?:[^’]|(?<=[A-Za-z0-9_])’(?=[A-Za-z0-9_]))*’|"[^"]*"|(?<![A-Za-z0-9_])'(?:[^']|(?<=[A-Za-z0-9_])'(?=[A-Za-z0-9_]))*'(?![A-Za-z0-9_])/gm,
-    (value) => {
-      const token = `\uE000${protectedSpans.length}\uE001`;
-      protectedSpans.push(value);
-      return token;
-    },
-  );
+  const base = [...original.matchAll(
+    /\x60{3}[\s\S]*?\x60{3}|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+/gm,
+  )].map((match): [number, number] => {
+    let end = match.index + match[0].length;
+    if (/^https?:\/\//.test(match[0])) {
+      // Adjacent closing prose quotes belong to the quotation scanner.
+      const boundary = /["'“”‘’][.!?,;:)]*$/.exec(match[0]);
+      if (boundary) end = match.index + boundary.index;
+    }
+    return [match.index, end];
+  });
+  const quotes: Array<Array<[number, number]>> = [[], [], [], []];
+  const opened: Array<number | null> = [null, null, null, null];
+  const word = (char: string) => Boolean(char) && /[A-Za-z0-9_]/.test(char);
+  let baseIndex = 0;
+  // Scan each delimiter once. Unmatched openers do not repeatedly scan the
+  // remaining text; independent quote types can still close later spans.
+  for (let index = 0; index < original.length; index++) {
+    while (baseIndex < base.length && index >= base[baseIndex]![1]) baseIndex++;
+    const inBase = baseIndex < base.length && base[baseIndex]![0] <= index;
+    if (inBase) continue;
+    const char = original[index];
+    const previous = original[index - 1] ?? "";
+    const following = original[index + 1] ?? "";
+    let kind: number | null = null;
+    let starts = false;
+    let closes = false;
+    if (char === "“") { kind = 0; starts = true; }
+    else if (char === "”") { kind = 0; closes = true; }
+    else if (char === "‘") { kind = 1; starts = true; }
+    else if (char === "’") { kind = 1; closes = !(word(previous) && word(following)); }
+    else if (char === '"') { kind = 2; starts = true; closes = true; }
+    else if (char === "'") { kind = 3; starts = !word(previous); closes = !word(following); }
+    if (kind === null) continue;
+    const start = opened[kind];
+    if (start !== null && start !== undefined && closes) {
+      quotes[kind]!.push([start, index + 1]);
+      opened[kind] = null;
+    } else if (start === null && starts) {
+      opened[kind] = index;
+    }
+  }
+  // Preserve an unmatched quoted suffix rather than guessing its endpoint.
+  for (let kind = 0; kind < opened.length; kind++) {
+    const start = opened[kind];
+    if (start !== null && start !== undefined) quotes[kind]!.push([start, original.length]);
+  }
+  // Fixed five-way merge is linear, preserving nested quotes and any code or
+  // links they contain without restoring nested placeholder tokens.
+  const lists = [base, ...quotes];
+  const positions = lists.map(() => 0);
+  const ranges: Array<[number, number]> = [];
+  while (true) {
+    let selected = -1;
+    for (let kind = 0; kind < lists.length; kind++) {
+      const span = lists[kind]![positions[kind]!];
+      if (span && (selected < 0 || span[0] < lists[selected]![positions[selected]!]![0])) selected = kind;
+    }
+    if (selected < 0) break;
+    const [start, end] = lists[selected]![positions[selected]!]!;
+    positions[selected]!++;
+    const last = ranges.at(-1);
+    if (last && start <= last[1]) last[1] = Math.max(last[1], end);
+    else ranges.push([start, end]);
+  }
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const [start, end] of ranges) {
+    parts.push(original.slice(cursor, start), `\uE000${protectedSpans.length}\uE001`);
+    protectedSpans.push(original.slice(start, end));
+    cursor = end;
+  }
+  parts.push(original.slice(cursor));
+  const masked = parts.join("");
   let out = masked.replace(/[\u00A0\u202F]/g, " ");
   // Drop only a complete introductory clause. Replacing it with "Today"
   // would turn generic framing into a claim about when the event happened.

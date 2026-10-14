@@ -81,3 +81,34 @@ test("complete multiline quotations preserve their content and internal apostrop
     }
   }
 });
+
+test("unmatched quote flood is bounded and preserves the entire uncertain suffix", () => {
+  // Far beyond the hosted 20,000-character limit to expose suffix rescanning.
+  // The former regex took seconds here; a forward scan has ample headroom.
+  const flood = "‘\n".repeat(65536);
+  const quoted = `“Maya said:\n\n${source}\n”`;
+  const input = `${flood}${quoted}\n\n${source}`;
+  const started = performance.now();
+  assert.equal(localRescue(input), input);
+  assert.ok(performance.now() - started < 2000, "quote scanning must not repeatedly rescan an unmatched suffix");
+});
+
+test("unmatched quotations abstain while edits before the opener still work", () => {
+  for (const opening of ['"', "'", "“", "‘"]) {
+    const quoted = `${opening}Maya said:\n\n${source}`;
+    parity(quoted, quoted);
+    parity(`${source}\n\n${quoted}`, `${expected}\n\n${quoted}`);
+  }
+});
+
+test("nested quotations and their protected inner code and links remain exact", () => {
+  for (const quoted of [
+    `“Maya said 'We're thrilled to announce an update.'\n${source}”`,
+    `"Maya said:\nhttps://example.test/\n\x60game-changing\x60\n${source}"`,
+    `‘Maya said:\n\nWe're thrilled to announce an update.\n${source}’`,
+    `"Maya said: \x60"\x60\n\n${source}\n"`,
+    `"Maya said: [a "label"](https://example.test/)\n\n${source}\n"`,
+    `“Maya said:\n\n${source}\nhttps://example.test/”.`,
+    `"Maya said:\n\n${source}\nhttps://example.test/".`,
+  ]) parity(quoted, quoted);
+});

@@ -19,12 +19,86 @@ import sys
 MAX_INPUT_BYTES = 4 * 1024 * 1024
 PROTECTED = re.compile(
     r"```[\s\S]*?```|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|"
-    r"`[^`\n]+`|\[[^\]\n]+\]\([^)]+\)|https?://[^\s<]+|"
-    r"“[^”]*”|‘(?:[^’]|(?<=[A-Za-z0-9_])’(?=[A-Za-z0-9_]))*’|\"[^\"]*\"|"
-    r"(?<![A-Za-z0-9_])'(?:[^']|(?<=[A-Za-z0-9_])'(?=[A-Za-z0-9_]))*'(?![A-Za-z0-9_])",
+    r"`[^`\n]+`|\[[^\]\n]+\]\([^)]+\)|https?://[^\s<]+",
     re.MULTILINE,
 )
 TOKEN = re.compile(r"\ue000(\d+)\ue001")
+
+
+def _protected_ranges(text: str) -> list[tuple[int, int]]:
+    """Scan quote delimiters once; an unmatched opener never rescans a suffix."""
+    base = []
+    for match in PROTECTED.finditer(text):
+        end = match.end()
+        if match.group(0).startswith(("http://", "https://")):
+            # A closing prose quote may be adjacent to a URL. Leave its
+            # delimiter to the quote scanner, preserving all original bytes.
+            boundary = re.search(r"[\"'“”‘’][.!?,;:)]*$", match.group(0))
+            if boundary:
+                end = match.start() + boundary.start()
+        base.append((match.start(), end))
+    quotes: list[list[tuple[int, int]]] = [[], [], [], []]
+    opened: list[int | None] = [None, None, None, None]
+    base_index = 0
+
+    def word(char: str) -> bool:
+        return bool(char) and char in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+
+    for index, char in enumerate(text):
+        while base_index < len(base) and index >= base[base_index][1]:
+            base_index += 1
+        in_base = base_index < len(base) and base[base_index][0] <= index
+        if in_base:
+            continue
+        previous = text[index - 1] if index else ""
+        following = text[index + 1] if index + 1 < len(text) else ""
+        kind: int | None = None
+        starts = False
+        closes = False
+        if char == "“":
+            kind, starts = 0, True
+        elif char == "”":
+            kind, closes = 0, True
+        elif char == "‘":
+            kind, starts = 1, True
+        elif char == "’":
+            kind, closes = 1, not (word(previous) and word(following))
+        elif char == '"':
+            kind, starts, closes = 2, True, True
+        elif char == "'":
+            kind, starts, closes = 3, not word(previous), not word(following)
+        if kind is None:
+            continue
+        start = opened[kind]
+        if start is not None and closes:
+            quotes[kind].append((start, index + 1))
+            opened[kind] = None
+        elif start is None and starts:
+            opened[kind] = index
+
+    # An incomplete quoted passage is still source material. Abstain from
+    # editing its remaining suffix rather than guessing where the quote ended.
+    for kind, start in enumerate(opened):
+        if start is not None:
+            quotes[kind].append((start, len(text)))
+
+    # Each list is already ordered. Merge the fixed five lists in linear time,
+    # including nested quotes and protected code/links inside an outer quote.
+    lists = [base, *quotes]
+    positions = [0] * len(lists)
+    merged: list[tuple[int, int]] = []
+    while True:
+        available = [kind for kind, spans in enumerate(lists) if positions[kind] < len(spans)]
+        if not available:
+            break
+        kind = min(available, key=lambda key: lists[key][positions[key]][0])
+        start, end = lists[kind][positions[kind]]
+        positions[kind] += 1
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return merged
 
 
 def _without_wrapper(match: re.Match[str]) -> str:
@@ -40,12 +114,15 @@ def rescue_text(text: str) -> str:
     """Return a bounded, source-preserving edit; return clean text unchanged."""
     original = str(text or "").strip()
     protected: list[str] = []
-
-    def mask(match: re.Match[str]) -> str:
-        protected.append(match.group(0))
-        return f"\ue000{len(protected) - 1}\ue001"
-
-    masked = PROTECTED.sub(mask, original)
+    parts: list[str] = []
+    cursor = 0
+    for start, end in _protected_ranges(original):
+        parts.append(original[cursor:start])
+        protected.append(original[start:end])
+        parts.append(f"\ue000{len(protected) - 1}\ue001")
+        cursor = end
+    parts.append(original[cursor:])
+    masked = "".join(parts)
     out = re.sub(r"[\u00a0\u202f]", " ", masked)
     # Drop only a complete introductory clause; "Today" would add event timing.
     # A single unpunctuated line break may only wrap the current sentence.
