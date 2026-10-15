@@ -27,6 +27,25 @@ describe("shared editor budget in SQLite", () => {
     expect(denied.allowed).toBe(false);
     expect((await reserveOpenRouter(stub, { ...body, text: "private draft" })).status).toBe(400);
   });
+
+  it("labels provider and client denials so the editor can choose a safe fallback", async () => {
+    const stub = env.MCP_COUNTER.getByName(`budget-reasons-${crypto.randomUUID()}`);
+    await runInDurableObject(stub, async (_instance, state) => {
+      const workers = new EditorBudgetStore(state.storage, Object.assign({}, env, { EDITOR_DAILY_NEURONS: "0" }) as Env);
+      const workersDenied = await (await workers.reserve({ day: day(), clientKey: key(1), neurons: 100 })).json();
+      expect(workersDenied).toMatchObject({ allowed: false, reason: "workers_daily" });
+
+      const openRouter = new EditorBudgetStore(state.storage, Object.assign({}, env, { EDITOR_OPENROUTER_DAILY_CALLS: "1" }) as Env);
+      const openRouterInput = { day: day(), clientKey: key(2) };
+      expect(await (await openRouter.reserve(openRouterInput, Date.now, "openrouter")).json()).toMatchObject({ allowed: true });
+      expect(await (await openRouter.reserve({ ...openRouterInput, clientKey: key(3) }, Date.now, "openrouter")).json()).toMatchObject({ allowed: false, reason: "openrouter_daily" });
+
+      const client = new EditorBudgetStore(state.storage, Object.assign({}, env, { EDITOR_CLIENT_DAILY_CALLS: "1" }) as Env);
+      const clientInput = { day: day(), clientKey: key(4), neurons: 100 };
+      expect(await (await client.reserve(clientInput)).json()).toMatchObject({ allowed: true });
+      expect(await (await client.reserve(clientInput)).json()).toMatchObject({ allowed: false, reason: "client_daily" });
+    });
+  });
   it("never overspends the global allowance under concurrent distinct-client requests and eviction", async () => {
     const stub = env.MCP_COUNTER.getByName(`budget-global-${crypto.randomUUID()}`);
     const responses = await Promise.all(Array.from({ length: 100 }, (_, index) => reserve(stub, { day: day(), clientKey: key(index), neurons: 100 })));
@@ -118,7 +137,7 @@ describe("shared editor budget in SQLite", () => {
       const midnight = (Math.floor(Date.now() / 86400000) + 10) * 86400000;
       const input = { day: new Date(midnight - 61000).toISOString().slice(0, 10), clientKey: key(1), neurons: 100 };
       const near = await (await budget.reserve(input, () => midnight - 60000)).json();
-      expect(near).toEqual({ allowed: false, retryAfterSeconds: 60 });
+      expect(near).toEqual({ allowed: false, retryAfterSeconds: 60, reason: "day_reset" });
       let ticks = 0;
       await expect(budget.reserve(input, () => ticks++ === 0 ? midnight - 61000 : midnight + 1)).rejects.toThrow("budget_day_changed");
       expect(state.storage.sql.exec<{ count: number }>("SELECT COUNT(*) AS count FROM editor_budget_days").one().count).toBe(0);

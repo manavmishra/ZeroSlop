@@ -83,14 +83,14 @@ export class EditorBudgetStore {
     // account activity; adding models or keys does not multiply this pool.
     const openRouterDaily = configuredLimit(this.env.EDITOR_OPENROUTER_DAILY_CALLS, 800, 1000);
     const nextDay = (Math.floor(now / DAY_MS) + 1) * DAY_MS;
-    if (nextDay - now <= 60000) return Response.json({ allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - now) / 1000)) });
+    if (nextDay - now <= 60000) return Response.json({ allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - now) / 1000)), reason: "day_reset" });
     // Persist expiration before granting anything. Even an idle object purges
     // daily pseudonyms; alarm failure denies the request instead of leaking it.
     const alarm = await this.storage.getAlarm();
     if (alarm === null || alarm > nextDay || alarm <= now) await this.storage.setAlarm(nextDay);
     const grantedAt = clock();
     if (new Date(grantedAt).toISOString().slice(0, 10) !== day) throw new Error("budget_day_changed");
-    if (nextDay - grantedAt <= 60000) return Response.json({ allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)) });
+    if (nextDay - grantedAt <= 60000) return Response.json({ allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "day_reset" });
     this.cleanup(grantedAt);
     const result = this.storage.transactionSync(() => {
       const total = this.storage.sql.exec<{ reserved: number }>("SELECT reserved FROM editor_budget_days WHERE day = ?", day).toArray()[0]?.reserved ?? 0;
@@ -100,13 +100,17 @@ export class EditorBudgetStore {
       const client = this.storage.sql.exec<{ calls: number; minute: number; minute_calls: number }>("SELECT calls, minute, minute_calls FROM editor_budget_clients WHERE day = ? AND client_key = ?", day, clientKey).toArray()[0];
       const minute = Math.floor(grantedAt / 60_000);
       const minuteCalls = client?.minute === minute ? client.minute_calls : 0;
-      if ((provider === "workers-ai" && neurons > daily - total)
-        || (provider === "openrouter" && openRouterCalls >= openRouterDaily)
-        || (client?.calls ?? 0) >= clientDaily) {
-        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)) };
+      if (provider === "workers-ai" && neurons > daily - total) {
+        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "workers_daily" };
+      }
+      if (provider === "openrouter" && openRouterCalls >= openRouterDaily) {
+        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "openrouter_daily" };
+      }
+      if ((client?.calls ?? 0) >= clientDaily) {
+        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "client_daily" };
       }
       if (minuteCalls >= clientMinute) {
-        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(((minute + 1) * 60_000 - grantedAt) / 1000)) };
+        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(((minute + 1) * 60_000 - grantedAt) / 1000)), reason: "client_minute" };
       }
       if (provider === "workers-ai") this.storage.sql.exec("INSERT INTO editor_budget_days(day, reserved) VALUES (?, ?) ON CONFLICT(day) DO UPDATE SET reserved = editor_budget_days.reserved + excluded.reserved", day, neurons);
       else this.storage.sql.exec("INSERT INTO editor_openrouter_days(day, calls) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET calls = editor_openrouter_days.calls + 1", day);
