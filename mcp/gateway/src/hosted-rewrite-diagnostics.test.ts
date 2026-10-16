@@ -130,6 +130,10 @@ test("provider attempt diagnostics retain bounded enums without exporting untrus
       [[{ provider: "workers-ai", outcome: "timeout", message: source },
         { provider: "openrouter", outcome: "unavailable", secret: signingKey }],
        [{ provider: "workers-ai", outcome: "timeout" }, { provider: "openrouter", outcome: "unavailable" }]],
+      [[{ provider: "workers-ai", outcome: "unavailable", failureStage: "invoke", httpStatus: 401, message: source },
+        { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 429, body: signingKey }],
+       [{ provider: "workers-ai", outcome: "unavailable", failureStage: "invoke" },
+        { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 429 }]],
       [[{ provider: source, outcome: signingKey }], []],
       [[{ provider: "workers-ai", outcome: "timeout" }, { provider: "openrouter", outcome: "unavailable" },
         { provider: "openrouter", outcome: "unavailable" }], []],
@@ -140,6 +144,48 @@ test("provider attempt diagnostics retain bounded enums without exporting untrus
     }
     assert.ok(logs.every(value => !value.includes(source) && !value.includes(signingKey)));
   } finally { globalThis.fetch = oldFetch; console.warn = oldWarn; }
+});
+
+test("provider failure metadata drops arbitrary stages and non-numeric or unobserved statuses", async () => {
+  const oldFetch = globalThis.fetch;
+  const oldWarn = console.warn;
+  const logs: string[] = [];
+  console.warn = (value: string) => { logs.push(value); };
+  try {
+    for (const [failureStage, httpStatus, expected] of [
+      ["fetch", 503, { failureStage: "fetch" }],
+      ["body", 200, { failureStage: "body", httpStatus: 200 }],
+      ["http", 401, { failureStage: "http", httpStatus: 401 }],
+      ["http", 403, { failureStage: "http", httpStatus: 403 }],
+      ["http", 503, { failureStage: "http", httpStatus: 503 }],
+      ["http", "429", { failureStage: "http" }],
+      ["http", 429.5, { failureStage: "http" }],
+      ["http", 99, { failureStage: "http" }],
+      ["http", 600, { failureStage: "http" }],
+      [source, 429, {}],
+      [undefined, 429, {}],
+    ] as const) {
+      const providerAttempts = [{ provider: "openrouter", outcome: "unavailable", failureStage, httpStatus,
+        message: source, body: signingKey, statusText: source, headers: { authorization: signingKey } }];
+      globalThis.fetch = (async () => Response.json({ editorOutcome: "unavailable", providerCalls: 1, providerAttempts }, { status: 503 })) as typeof fetch;
+      assert.equal(await callRole(env, "complete", source, {}, Date.now() + 1000), null);
+      assert.deepEqual(JSON.parse(logs.at(-1)!).providerAttempts, [{ provider: "openrouter", outcome: "unavailable", ...expected }]);
+    }
+    assert.ok(logs.every(value => !value.includes(source) && !value.includes(signingKey)));
+  } finally { globalThis.fetch = oldFetch; console.warn = oldWarn; }
+});
+
+test("successful provider records cannot carry failure metadata", async () => {
+  const oldFetch = globalThis.fetch;
+  const oldLog = console.log;
+  const logs: string[] = [];
+  console.log = (value: string) => { logs.push(value); };
+  try {
+    globalThis.fetch = (async () => Response.json({ rewrite: "A distinct edited draft.", provider: "mock", model: "mock", stored: false,
+      providerCalls: 1, providerAttempts: [{ provider: "openrouter", outcome: "success", failureStage: "http", httpStatus: 503 }] })) as typeof fetch;
+    assert.ok(await callRole(env, "complete", "An original draft.", {}, Date.now() + 1000));
+    assert.deepEqual(JSON.parse(logs.at(-1)!).providerAttempts, [{ provider: "openrouter", outcome: "success" }]);
+  } finally { globalThis.fetch = oldFetch; console.log = oldLog; }
 });
 
 test("already clear Northstar facts require no provider request", async () => {

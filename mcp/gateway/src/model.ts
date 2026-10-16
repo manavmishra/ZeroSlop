@@ -45,18 +45,33 @@ type EditorResponse = {
   providerCalls?: unknown;
 };
 
-// Endpoint diagnostics are untrusted. Copy only bounded enum pairs, never
-// provider messages, draft fields, model names or other response properties.
-function safeProviderAttempts(value: unknown): { provider: string; outcome: string }[] {
+type SafeProviderAttempt = {
+  provider: string;
+  outcome: string;
+  failureStage?: string;
+  httpStatus?: number;
+};
+
+// Endpoint diagnostics are untrusted. Copy only bounded enums and an observed
+// numeric HTTP status, never messages, drafts, model names or other properties.
+function safeProviderAttempts(value: unknown): SafeProviderAttempt[] {
   if (!value || typeof value !== "object" || !("providerAttempts" in value)) return [];
   const attempts = value.providerAttempts;
   if (!Array.isArray(attempts) || attempts.length > 2) return [];
   const outcomes = ["success", "timeout", "cancelled", "capacity", "invalid_output", "configuration", "unavailable"];
-  const safe: { provider: string; outcome: string }[] = [];
+  const safe: SafeProviderAttempt[] = [];
   for (const attempt of attempts) {
     if (!attempt || typeof attempt !== "object" ||
         !["workers-ai", "openrouter"].includes(attempt.provider) || !outcomes.includes(attempt.outcome)) return [];
-    safe.push({ provider: attempt.provider, outcome: attempt.outcome });
+    const entry: SafeProviderAttempt = { provider: attempt.provider, outcome: attempt.outcome };
+    if (attempt.outcome !== "success" && ["invoke", "fetch", "http", "body"].includes(attempt.failureStage)) {
+      entry.failureStage = attempt.failureStage;
+      if (["http", "body"].includes(attempt.failureStage) && typeof attempt.httpStatus === "number"
+          && Number.isSafeInteger(attempt.httpStatus) && attempt.httpStatus >= 100 && attempt.httpStatus <= 599) {
+        entry.httpStatus = attempt.httpStatus;
+      }
+    }
+    safe.push(entry);
   }
   return safe;
 }
@@ -140,7 +155,7 @@ export async function callRole(
       });
       if (!response.ok) {
         let failure: EditorFailure = "unavailable";
-        let providerAttempts: { provider: string; outcome: string }[] = [];
+        let providerAttempts: SafeProviderAttempt[] = [];
         if (response.status === 429 || response.status === 503) {
           const errorBody = await readBoundedJson(response, 2048).catch(() => null);
           providerAttempts = safeProviderAttempts(errorBody);
