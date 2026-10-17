@@ -1,3 +1,5 @@
+import type { EditorDiagnostics } from "./editor-diagnostics";
+
 export type Genre = "general" | "social" | "email" | "research" | "professional";
 
 export type WritingReport = {
@@ -89,4 +91,5 @@ export type PipelineResult = {
   scorerVersion: string;
   durationMs: number;
   note: string;
+  editorDiagnostics?: EditorDiagnostics | undefined;
 };

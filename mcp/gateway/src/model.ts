@@ -1,6 +1,7 @@
 import { readBoundedJson } from "./bounded-json";
 import { dailyBudgetClient, HostedBudgetError } from "./budget";
 import { boundedOperation, checkCancelled, PipelineCancelledError, type PipelineControl } from "./cancellation";
+import { safeEditorDiagnostics, safeProviderAttempts, type EditorDiagnostics, type SafeProviderAttempt } from "./editor-diagnostics";
 
 // The website may try two providers. Leave bounded room for both deadlines,
 // two budget checks, and the gateway-to-website response transit.
@@ -45,22 +46,6 @@ type EditorResponse = {
   providerCalls?: unknown;
 };
 
-// Endpoint diagnostics are untrusted. Copy only bounded enum pairs, never
-// provider messages, draft fields, model names or other response properties.
-function safeProviderAttempts(value: unknown): { provider: string; outcome: string }[] {
-  if (!value || typeof value !== "object" || !("providerAttempts" in value)) return [];
-  const attempts = value.providerAttempts;
-  if (!Array.isArray(attempts) || attempts.length > 2) return [];
-  const outcomes = ["success", "timeout", "cancelled", "capacity", "invalid_output", "configuration", "unavailable"];
-  const safe: { provider: string; outcome: string }[] = [];
-  for (const attempt of attempts) {
-    if (!attempt || typeof attempt !== "object" ||
-        !["workers-ai", "openrouter"].includes(attempt.provider) || !outcomes.includes(attempt.outcome)) return [];
-    safe.push({ provider: attempt.provider, outcome: attempt.outcome });
-  }
-  return safe;
-}
-
 function safeRungPart(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
@@ -100,6 +85,7 @@ export async function callRole(
   control?: PipelineControl,
   onProviderCalls?: (count: 0 | 1 | 2) => void,
   onFailure?: (reason: EditorFailure) => void,
+  onDiagnostics?: (diagnostics: EditorDiagnostics) => void,
 ): Promise<ModelReply | null> {
   checkCancelled(control);
   const started = Date.now();
@@ -109,6 +95,16 @@ export async function callRole(
     console.warn(JSON.stringify({ event: "editor_request_skipped", role, reason: "deadline" }));
     return null;
   }
+  let active = true;
+  const captureDiagnostics = (status: number, payload?: unknown) => {
+    if (!active) return;
+    try {
+      const safe = safeEditorDiagnostics(status, payload);
+      if (safe) onDiagnostics?.(safe);
+    } catch {
+      // Optional diagnostics must never change editing or allowance behavior.
+    }
+  };
   try {
     return await boundedOperation(async (signal) => {
       const body = JSON.stringify({
@@ -138,12 +134,14 @@ export async function callRole(
         },
         body,
       });
+      captureDiagnostics(response.status);
       if (!response.ok) {
         let failure: EditorFailure = "unavailable";
-        let providerAttempts: { provider: string; outcome: string }[] = [];
+        let providerAttempts: SafeProviderAttempt[] = [];
         if (response.status === 429 || response.status === 503) {
           const errorBody = await readBoundedJson(response, 2048).catch(() => null);
           providerAttempts = safeProviderAttempts(errorBody);
+          captureDiagnostics(response.status, errorBody);
           if (errorBody && typeof errorBody === "object" && "providerCalls" in errorBody) {
             const count = errorBody.providerCalls;
             if (count === 0 || count === 1 || count === 2) onProviderCalls?.(count);
@@ -177,6 +175,7 @@ export async function callRole(
       let payload: unknown;
       try { payload = await readBoundedJson(response, MAX_EDITOR_RESPONSE_BYTES); }
       catch { throw new EditorInvalidResponseError(); }
+      captureDiagnostics(response.status, payload);
       const reply = editorReply(payload);
       if (reply) onProviderCalls?.(reply.providerCalls as 1 | 2);
       if (!reply || tooShort(source, reply.text, role) || tooLong(source, reply.text, role) || reply.text === source) {
@@ -206,5 +205,9 @@ export async function callRole(
       durationMs: Date.now() - started,
     }));
     return null;
+  } finally {
+    // A binding may complete after the deadline. Its late result cannot alter
+    // diagnostics already returned with the selected pipeline result.
+    active = false;
   }
 }

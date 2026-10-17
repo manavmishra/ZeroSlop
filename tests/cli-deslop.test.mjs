@@ -65,15 +65,24 @@ test("Unicode limits match MCP: 20,000 draft and 200 audience code points after 
   assert.throws(() => validateInput({ text: "e\u0301".repeat(10_001) }), { code: "invalid_input" });
 });
 
-test("all 14 fields and all six statuses are preserved without reconstructing the result", async () => {
+test("all 14 required fields, optional diagnostics and six statuses are preserved without reconstruction", async () => {
   const schemaSource = await readFile(join(root, "mcp/gateway/src/contract.ts"), "utf8");
   const schema = schemaSource.split("const deslopOutputSchema = z.object({")[1].split("\n});")[0];
   const keys = [...schema.matchAll(/^  (\w+):/gm)].map((match) => match[1]);
-  assert.equal(keys.length, 14);
+  const requiredKeys = keys.filter(key => key !== "editorDiagnostics");
+  assert.equal(requiredKeys.length, 14);
+  assert.deepEqual(keys.filter(key => !requiredKeys.includes(key)), ["editorDiagnostics"]);
+  assert.match(schema, /editorDiagnostics: editorDiagnosticsSchema\.optional\(\)/);
   for (const status of RESULT_STATUSES) {
     const value = result(status);
-    assert.deepEqual(Object.keys(value), keys);
+    assert.deepEqual(Object.keys(value), requiredKeys);
     assert.equal(validateResult(value), value);
+    const extended = { ...value, editorDiagnostics: { endpointHttpStatus: 503, providerAttempts: [
+      { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 401 },
+    ] } };
+    assert.equal(validateResult(extended), extended);
+    assert.deepEqual(Object.keys(extended), keys);
+    assert.equal(isApprovedResult(extended), isApprovedResult(value));
     assert.ok(schema.includes(`"${status}"`));
   }
 });

@@ -3,6 +3,7 @@ import { checkCancelled } from "./cancellation";
 import { MAX_DRAFT_CHARS } from "./contract";
 import { rankRewrites, scoreWriting } from "./scorer";
 import type { Genre, PipelineResult, RankedRewrite, WritingReport } from "./types";
+import type { EditorDiagnostics } from "./editor-diagnostics";
 
 const SCORE_GATE = 25;
 const PIPELINE_BUDGET_MS = 75_000;
@@ -359,9 +360,12 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   // alternate provider if its primary cannot return a usable edit.
   let observedProviderCalls: 0 | 1 | 2 | null = null;
   let editorFailure: EditorFailure | null = null;
+  let editorDiagnostics: EditorDiagnostics | undefined;
   const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress, control,
-    (count) => { observedProviderCalls = count; }, (reason) => { editorFailure = reason; });
+    (count) => { observedProviderCalls = count; }, (reason) => { editorFailure = reason; },
+    (observed) => { editorDiagnostics = observed; });
   checkCancelled(control);
+  const resultDiagnostics = editorDiagnostics ? { editorDiagnostics } : {};
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
   const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";
@@ -383,6 +387,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
           : `Zero Slop kept the original because ${editorFailureNote(editorFailure)}, and the conservative local editor found no safe textual change.`,
       ),
       modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
+      ...resultDiagnostics,
     };
   }
 
@@ -412,6 +417,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
       ),
       modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
       rolesCompleted: modelReply ? 6 : 2,
+      ...resultDiagnostics,
     };
   }
 
@@ -464,5 +470,6 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     note: warnings.length
       ? `Zero Slop returned the safest edited draft. Review it before publishing because ${warnings.join("; ")}.`
       : "One AI editorial response produced the rewrite; local scoring and source checks approved the exact text returned.",
+    ...resultDiagnostics,
   };
 }
