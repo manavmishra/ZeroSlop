@@ -4,7 +4,7 @@ import { editorDiagnosticsSchema, safeEditorDiagnostics } from "./editor-diagnos
 import { callRole } from "./model";
 
 const env = { EDITOR_ENDPOINT: "https://example.invalid/editor",
-  EDITOR_SHARED_SECRET: "synthetic-editor-signing-key-with-40-characters" } as unknown as Env;
+  EDITOR_SHARED_SECRET: crypto.randomUUID() } as unknown as Env;
 const source = "Maya owns the rollout on October 20, and the beta is limited to 25 teams.";
 const secret = "PRIVATE_PROVIDER_ERROR_DRAFT_AND_SECRET";
 
