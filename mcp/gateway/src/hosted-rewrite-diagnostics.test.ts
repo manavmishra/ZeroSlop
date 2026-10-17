@@ -38,6 +38,7 @@ test("Northstar provider outage and rejected source edit have distinct review wa
     assert.equal(unavailable.status, "rewritten_with_warnings");
     assert.equal(unavailable.passedFinalChecks, false);
     assert.equal(unavailable.factsPreserved, true);
+    assert.deepEqual(unavailable.editorDiagnostics, { endpointHttpStatus: 503 });
     assert.match(unavailable.note, /editor service was unavailable/);
     assert.doesNotMatch(unavailable.note, /did not pass the source check/);
 
@@ -48,6 +49,7 @@ test("Northstar provider outage and rejected source edit have distinct review wa
     assert.doesNotMatch(rejected.note, /was unavailable/);
     assert.equal(rejected.factsPreserved, true);
     assert.equal(rejected.passedFinalChecks, false);
+    assert.deepEqual(rejected.editorDiagnostics, { endpointHttpStatus: 200 });
 
     globalThis.fetch = (async () => Response.json({ error: "editor_timeout", editorOutcome: "timeout", providerCalls: 2 }, { status: 503 })) as typeof fetch;
     const timeout = await runPipeline(env, { text: source, genre: "social" });
@@ -197,6 +199,7 @@ test("already clear Northstar facts require no provider request", async () => {
     assert.equal(result.text, text);
     assert.equal(result.status, "already_clear");
     assert.equal(result.modelRequests, 0);
+    assert.ok(!Object.hasOwn(result, "editorDiagnostics"));
     assert.equal(result.passedFinalChecks, false);
   } finally { globalThis.fetch = oldFetch; }
 });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { writingReportSchema } from "./scorer";
+import { editorDiagnosticsSchema } from "./editor-diagnostics";
 
 export const MAX_DRAFT_CHARS = 20_000;
 export const MAX_REQUEST_BYTES = 128 * 1024;
@@ -33,6 +34,7 @@ export const deslopOutputSchema = z.object({
   scorerVersion: z.string(),
   durationMs: z.number().int().nonnegative(),
   note: z.string(),
+  editorDiagnostics: editorDiagnosticsSchema.optional(),
 });
 
 export const problemSchema = z.object({

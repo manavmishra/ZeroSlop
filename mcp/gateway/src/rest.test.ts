@@ -76,6 +76,28 @@ test("all six MCP outcomes preserve all fields over REST, including unapproved o
   }
 });
 
+test("REST preserves optional safe editor diagnostics without adding them to aggregate analytics", async () => {
+  const editorDiagnostics = {
+    endpointHttpStatus: 503,
+    providerAttempts: [
+      { provider: "workers-ai" as const, outcome: "invalid_output" as const },
+      { provider: "openrouter" as const, outcome: "unavailable" as const, failureStage: "http" as const, httpStatus: 401 },
+    ],
+  };
+  for (const status of deslopOutputSchema.shape.status.options.filter(value => value !== "already_clear")) {
+    const { env, points } = environment(); const { ctx, pending } = context();
+    const expected = { ...result, status, modelRequests: 2, editorDiagnostics };
+    const response = await handleRest(request({ text: "draft" }), env, ctx, async () => expected);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), expected);
+    assert.doesNotMatch(JSON.stringify(points), /editorDiagnostics|providerAttempts|workers-ai|openrouter|endpointHttpStatus|failureStage/);
+    await Promise.all(pending);
+  }
+  const spec = openApiDocument("2.12.25").components.schemas.DeslopResult;
+  assert.ok(spec.properties?.editorDiagnostics);
+  assert.ok(!spec.required?.includes("editorDiagnostics"));
+});
+
 test("invalid inputs cannot invoke the pipeline or consume inference capacity", async () => {
   for (const body of [{}, { text: " " }, { text: 123 }, [], null, { text: "x".repeat(20_001) }, { text: "x", genre: "invented" }, { text: "x", audience: "x".repeat(201) }]) {
     const { env, keys } = environment();

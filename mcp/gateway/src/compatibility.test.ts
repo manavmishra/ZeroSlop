@@ -5,9 +5,8 @@ import { deslopInputSchema, deslopOutputSchema } from "./contract";
 import { writingReportSchema } from "./scorer";
 
 // Freeze the published 2.9.2 validation contract before introducing another transport.
-// Only descriptive metadata was updated for the unpublished 2.12.13 candidate.
-// A future intentional MCP contract change must explicitly review this fixture.
-test("REST extraction preserves the existing MCP input and output schemas", () => {
+// The diagnostics extension is optional; all published fields remain unchanged.
+test("optional editor diagnostics preserve the published MCP validation contract", () => {
   const legacyInput = z.object({
     text: z.string().trim().min(1).max(20_000)
       .describe("The complete draft supplied as data for editing."),
@@ -37,7 +36,11 @@ test("REST extraction preserves the existing MCP input and output schemas", () =
     note: z.string(),
   });
   assert.deepEqual(z.toJSONSchema(deslopInputSchema), z.toJSONSchema(legacyInput));
-  assert.deepEqual(z.toJSONSchema(deslopOutputSchema), z.toJSONSchema(legacyOutput));
+  assert.deepEqual(z.toJSONSchema(deslopOutputSchema.omit({ editorDiagnostics: true })), z.toJSONSchema(legacyOutput));
+  const extended = z.toJSONSchema(deslopOutputSchema);
+  const legacy = z.toJSONSchema(legacyOutput);
+  assert.deepEqual(extended.required, legacy.required);
+  assert.deepEqual(Object.keys(extended.properties ?? {}).filter(key => !(key in (legacy.properties ?? {}))), ["editorDiagnostics"]);
 });
 
 test("MCP input descriptions are factual metadata rather than model instructions", () => {
