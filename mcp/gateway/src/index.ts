@@ -94,9 +94,10 @@ function resultText(result: PipelineResult): string {
   ].join("\n");
 }
 
-// Everything below is fixed for the life of the isolate. Building it once at
-// module scope keeps schema conversion and validation off the request path,
-// which counts against the Workers CPU limit.
+// Everything below is fixed for the life of the isolate, so it is built once
+// here instead of on every request. Measured alone in Node, the two schema
+// conversions and the descriptor parse cost about 1 ms per warm request; the
+// end-to-end CPU benchmark is too noisy to resolve a gain of that size.
 const SERVER_NAME = "zero-slop";
 const SERVER_INSTRUCTIONS = [
   "Use deslop when the user asks to improve AI-assisted prose, remove stock AI phrasing, or polish outward-facing writing.",
@@ -130,7 +131,16 @@ const toolConfig = {
 // handler API with this descriptor, which publishes the primary auth
 // declaration and compatibility mirror from the one configuration above.
 const { inputSchema: _inputSchema, outputSchema: _outputSchema, ...toolMetadata } = toolConfig;
-const TOOLS_LIST_RESULT = {
+// Deep-frozen because every request's tools/list handler returns this same
+// object; a mutation in one request must not leak into the next.
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    for (const child of Object.values(value)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
+const TOOLS_LIST_RESULT = deepFreeze({
   tools: [{
     ...ToolSchema.parse({
       name: "deslop",
@@ -140,7 +150,7 @@ const TOOLS_LIST_RESULT = {
     }),
     securitySchemes,
   }],
-};
+});
 
 function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext, clientAddress: string, signal: AbortSignal): McpServer {
   const server = new McpServer(
@@ -380,6 +390,9 @@ export default {
       // The new platform admission is exact; prior Origins retain the SDK's hostname policy.
       let response = originHostname === "platform.openai.com" && origin !== "https://platform.openai.com"
         ? originValidationResponse(request, [])!
+        // handler.fetch() passes no ExecutionContext or authInfo to the SDK.
+        // The gateway is deliberately unauthenticated (noauth), so neither is
+        // needed; add authInfo here if the connector ever gains OAuth.
         : await handler.fetch(sdkRequest, parsedBody === undefined ? undefined : { parsedBody });
       if (isListenRequest(parsedBody)) {
         response = await completeListenStream(response, parsedBody, { name: SERVER_NAME, version: env.SCORER_VERSION });

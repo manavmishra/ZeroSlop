@@ -21,6 +21,16 @@ Headers.prototype.get = function get(this: Headers, name: string) {
   return value === null && name.toLowerCase() === "host" ? "mcp.zero-slop.ai" : value;
 };
 
+// The scorer is a separate Worker reached over a service binding. The stub
+// reports every draft as already clear, so a deslop call runs the gateway's
+// own validation, scoring round trip and result shaping without a model call.
+const cleanReport = {
+  score: 5, band: "clear", words: 7, sentences: 1, flaggedPhrases: 0, sentenceVariety: "natural", readability: "clear",
+  highWeightFlags: 0, punctuation: { dashes: 0, emoji: 0, hashtags: 0 },
+  shape: { measured: true, broetry: false, oneSentenceParagraphShare: 0, longestFragmentRun: 0 },
+  register: { measured: true, words: 7, checked: 1, findings: [], twoPartContrasts: 0, announcements: 0 }, flags: [],
+};
+
 const env = {
   SCORER_VERSION: "2.12.1",
   ALLOWED_ORIGINS: "https://zero-slop.ai,https://www.zero-slop.ai,https://chatgpt.com,https://claude.ai",
@@ -28,7 +38,7 @@ const env = {
   REPORT_SHARED_SECRET: "x".repeat(40),
   PIPELINE_LIMITER: { limit: async () => ({ success: true }) },
   MCP_COUNTER: { getByName: () => ({ fetch: async () => Response.json({}) }) },
-  SCORER: { fetch: async () => Response.json({ ok: true, scorerVersion: "2.12.1" }) },
+  SCORER: { fetch: async () => Response.json(cleanReport) },
 } as unknown as Env;
 const ctx = { waitUntil() {}, passThroughOnException() {} } as unknown as ExecutionContext;
 
@@ -39,7 +49,7 @@ const modernMeta = {
   "io.modelcontextprotocol/clientCapabilities": {},
 };
 
-type Probe = { name: string; request: () => Request };
+type Probe = { name: string; request: () => Request; expect?: string };
 
 function legacy(method: string, params?: Record<string, unknown>): () => Request {
   const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method, ...(params ? { params } : {}) });
@@ -70,12 +80,26 @@ const probes: Probe[] = [
   { name: "2026-era server/discover", request: modern("server/discover", "discover-1") },
   { name: "2026-era tools/list", request: modern("tools/list", 1) },
   { name: "2026-era subscriptions/listen", request: modern("subscriptions/listen", "listen:0", { notifications: { toolsListChanged: true } }) },
+  {
+    name: "2025-era tools/call deslop",
+    request: legacy("tools/call", { name: "deslop", arguments: { text: "The importer now maps CSV headers automatically." } }),
+    expect: '"status":"already_clear"',
+  },
+  {
+    // The largest draft the contract accepts: 20,000 four-byte characters,
+    // about 80 KiB of the 128 KiB body limit.
+    name: "2025-era tools/call deslop, maximum draft",
+    request: legacy("tools/call", { name: "deslop", arguments: { text: "🧭".repeat(20_000) } }),
+    expect: '"status":"already_clear"',
+  },
   { name: "server card", request: () => new Request("https://mcp.zero-slop.ai/.well-known/mcp/server-card.json") },
 ];
 
-async function drain(response: Response): Promise<void> {
-  if (!response.body) return;
+async function drain(response: Response): Promise<string> {
+  if (!response.body) return "";
   const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
   const deadline = Date.now() + BODY_DEADLINE_MS;
   try {
     while (true) {
@@ -86,7 +110,8 @@ async function drain(response: Response): Promise<void> {
           timer = setTimeout(() => reject(new Error(`response body still open after ${BODY_DEADLINE_MS} ms`)), Math.max(0, deadline - Date.now()));
         }),
       ]).finally(() => clearTimeout(timer));
-      if (chunk.done) return;
+      if (chunk.done) return text + decoder.decode();
+      text += decoder.decode(chunk.value, { stream: true });
     }
   } finally {
     void reader.cancel().catch(() => undefined);
@@ -97,9 +122,10 @@ async function cpuMs(probe: Probe): Promise<number> {
   const request = probe.request();
   const started = process.cpuUsage();
   const response = await worker.fetch(request, env, ctx);
-  await drain(response);
+  const body = await drain(response);
   const used = process.cpuUsage(started);
   assert.ok(response.status < 400, `${probe.name} answered ${response.status}`);
+  if (probe.expect) assert.ok(body.includes(probe.expect), `${probe.name} did not return ${probe.expect}: ${body.slice(0, 200)}`);
   return (used.user + used.system) / 1000;
 }
 
