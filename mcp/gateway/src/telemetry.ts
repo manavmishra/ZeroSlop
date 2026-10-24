@@ -100,17 +100,10 @@ function edgeLocation(request: Request): { country: string; colo: string } {
   return { country, colo };
 }
 
-export async function inspectMcpRequest(request: Request): Promise<McpRequestMeta> {
-  let messages: JsonRpcMessage[] = [];
-  if (request.method === "POST") {
-    try {
-      const body: unknown = await request.clone().json();
-      const candidates = Array.isArray(body) ? body : [body];
-      messages = candidates.filter((item): item is JsonRpcMessage => Boolean(item) && typeof item === "object");
-    } catch {
-      messages = [];
-    }
-  }
+/** Reads aggregate metadata from the already-parsed JSON-RPC body; never reads the request body. */
+export function inspectMcpRequest(request: Request, body: unknown): McpRequestMeta {
+  const candidates = request.method !== "POST" || body === undefined ? [] : Array.isArray(body) ? body : [body];
+  const messages = candidates.filter((item): item is JsonRpcMessage => Boolean(item) && typeof item === "object");
 
   const initialize = messages.find((message) => message.method === "initialize");
   const toolCall = messages.find((message) => message.method === "tools/call");
