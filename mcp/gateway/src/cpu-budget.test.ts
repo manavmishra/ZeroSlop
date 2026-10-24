@@ -32,7 +32,7 @@ const cleanReport = {
 };
 
 const env = {
-  SCORER_VERSION: "2.12.1",
+  SCORER_VERSION: "2.12.28",
   ALLOWED_ORIGINS: "https://zero-slop.ai,https://www.zero-slop.ai,https://chatgpt.com,https://claude.ai",
   EDITOR_SHARED_SECRET: "x".repeat(40),
   REPORT_SHARED_SECRET: "x".repeat(40),
