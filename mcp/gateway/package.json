@@ -2,6 +2,14 @@
   "name": "@zero-slop/mcp-gateway",
   "version": "0.1.0",
   "private": true,
+  "allowScripts": {
+    "core-js-pure@3.50.0": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
+    "workerd@1.20260926.1": true
+  },
   "type": "module",
   "engines": {
     "node": ">=22.18.0"

@@ -14,7 +14,7 @@ It finds AI slop and workslop, guides the edit, and checks that the key details 
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.12.29" src="https://img.shields.io/badge/version-2.12.29-72528F?color=C15732">
+  <img alt="Version 2.12.30" src="https://img.shields.io/badge/version-2.12.30-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -120,7 +120,7 @@ We ran Zero Slop and three other open-source agent skills on our AI Slop test co
 
 ![Writing scores and local checks for a saved, same-model replay of the AI Slop test corpus; lower scores are better](assets/bench-search-rewrites.png)
 
-The [RAID+ audit](bench/raid-plus-corpus/README.md) asks a different question: how much default writing from different models is flagged as AI slop by Zero Slop? The test corpus contains 7,627 anonymous, user-generated transcripts:
+Our [RAID+ audit](bench/raid-plus-corpus/README.md) scored 7,627 non-empty machine-generated abstracts from four models. The [INSCONE project](https://github.com/markstanl/INSCONE) extended RAID by generating new outputs from the original RAID prompts.
 
 | Model | Texts scored | Mean writing score ↓ | At or above 25 |
 |---|---:|---:|---:|
@@ -176,7 +176,7 @@ python3 scripts/slopscore.py --batch drafts/ --gate 25
 The CLI sends a file to the hosted editor without changing the file on disk:
 
 ```sh
-npx --yes zero-slop@2.12.29 deslop draft.md --genre professional
+npx --yes zero-slop@2.12.30 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` prints the result but exits nonzero when review is needed. Requires Node.js 22+; offline `score` also needs Python 3. [CLI options and privacy](docs/cli.md).
