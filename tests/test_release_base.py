@@ -1,10 +1,15 @@
 """Resolve release comparisons after normal and rewritten Git history."""
 
+import contextlib
+import io
+import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 HELPER = Path(__file__).resolve().parents[1] / ".github/scripts/release-base.sh"
@@ -60,6 +65,34 @@ class ReleaseBase(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), self.base)
         self.assertIn("merge-base", result.stderr)
         self.assertEqual(self.git("diff", "--name-only", f"{result.stdout.strip()}...HEAD"), "content.txt")
+
+    def test_main_at_head_still_requires_a_bump_for_released_changes(self):
+        (self.repo / "package.json").write_text(json.dumps({"version": "2.12.29"}))
+        (self.repo / "README.md").write_text("Original documentation.\n")
+        self.git("add", "package.json", "README.md")
+        previous = self.commit("released version")
+        self.git("tag", "v2.12.29")
+        (self.repo / "README.md").write_text("Corrected documentation.\n")
+        (self.repo / "scripts").mkdir()
+        (self.repo / "scripts/runtime.py").write_text("# Released runtime change.\n")
+        self.git("add", "README.md", "scripts/runtime.py")
+        current = self.commit("released changes without a bump")
+        self.git("push", "origin", "main")
+        result = self.resolve(BEFORE="f" * 40)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), previous)
+        self.assertNotEqual(result.stdout.strip(), current)
+        changed = self.git("diff", "--name-only", f"{result.stdout.strip()}...HEAD").splitlines()
+        self.assertIn("README.md", changed)
+        self.assertIn("scripts/runtime.py", changed)
+
+        sys.path.insert(0, str(HELPER.parents[2] / "scripts"))
+        import check_release_version
+        with mock.patch.object(check_release_version, "ROOT", self.repo):
+            with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(check_release_version.main([result.stdout.strip()]), 1)
+                (self.repo / "package.json").write_text(json.dumps({"version": "2.12.30"}))
+                self.assertEqual(check_release_version.main([result.stdout.strip()]), 0)
 
     def test_existing_but_unreachable_before_uses_main(self):
         self.git("checkout", "-b", "discarded", self.base)

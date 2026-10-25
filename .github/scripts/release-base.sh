@@ -13,5 +13,12 @@ elif [[ "${BEFORE:-}" =~ ^[[:xdigit:]]{40}$ ]] &&
 else
   echo "Push base unavailable or unreachable; using the merge-base with origin/main" >&2
   git fetch --no-tags origin main >&2
-  git merge-base HEAD origin/main
+  base="$(git merge-base HEAD origin/main)"
+  if [ "$base" = "$(git rev-parse HEAD)" ]; then
+    # A main push has already moved origin/main to HEAD. Compare its parent
+    # rather than silently treating released changes as an empty delta.
+    echo "origin/main already points at HEAD; checking its first-parent delta" >&2
+    base="$(git rev-parse --verify HEAD^1)"
+  fi
+  printf '%s\n' "$base"
 fi
