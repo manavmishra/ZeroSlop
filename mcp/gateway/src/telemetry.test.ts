@@ -32,7 +32,7 @@ test("inspects initialize metadata into bounded aggregate categories", async () 
     }),
   });
 
-  const meta = await inspectMcpRequest(request);
+  const meta = inspectMcpRequest(request, await request.json());
   assert.deepEqual(meta, {
     method: "initialize",
     tool: "none",
@@ -90,10 +90,10 @@ test("telemetry point contains only the documented aggregate schema", () => {
 
 test("stateless CLI tool calls are attributable without retaining header or draft data", async () => {
   const request = new Request("https://mcp.zero-slop.ai/mcp", { method: "POST", headers: { "user-agent": "zero-slop-cli/2", "cf-connecting-ip": "192.0.2.1", "x-user-id": "private-identifier" }, body: JSON.stringify({ method: "tools/call", params: { name: "deslop", arguments: { text: "private source draft" } } }) });
-  const meta = await inspectMcpRequest(request);
+  const meta = inspectMcpRequest(request, await request.json());
   assert.equal(meta.channel, "cli"); assert.equal(meta.clientVersion, "2"); assert.equal(meta.isDeslopCall, true);
   assert.doesNotMatch(JSON.stringify(meta), /192\.0\.2\.1|private|zero-slop-cli\/2/);
-  const hostile = await inspectMcpRequest(new Request(request.url, { method: "POST", body: JSON.stringify({ method: "tools/call", params: { name: "private-draft-as-tool-name" } }) }));
+  const hostile = inspectMcpRequest(new Request(request.url, { method: "POST" }), { method: "tools/call", params: { name: "private-draft-as-tool-name" } });
   assert.equal(hostile.tool, "other"); assert.equal(hostile.isDeslopCall, false); assert.doesNotMatch(JSON.stringify(hostile), /private/);
   const rest = inspectRestRequest(request);
   assert.equal(rest.channel, "rest"); assert.equal(rest.client, "rest-api"); assert.equal(rest.method, "rest/deslop");

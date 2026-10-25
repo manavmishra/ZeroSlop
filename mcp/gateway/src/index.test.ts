@@ -168,10 +168,10 @@ test("the request limit permits the full documented Unicode draft size", async (
     params: { name: "deslop", arguments: { text: "🧭".repeat(20_000) } },
     id: 1,
   });
-  const { requestBodyWithinLimit } = await import("./index");
-  assert.equal(await requestBodyWithinLimit(new Request("https://mcp.zero-slop.ai/mcp", {
+  const { readRequestBody } = await import("./index");
+  assert.equal(await readRequestBody(new Request("https://mcp.zero-slop.ai/mcp", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body,
-  })), true);
+  })), body);
 });
