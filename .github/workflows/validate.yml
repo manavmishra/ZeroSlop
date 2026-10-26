@@ -143,6 +143,7 @@ jobs:
         run: |
           node distribution/sync-version.mjs --check
           node --test tests/cli-deslop.test.mjs
+          node --test tests/text-hygiene.test.mjs tests/text-hygiene-cli.test.mjs
           node --test growth/check-star-access.test.mjs
           node --test distribution/homebrew/prepare-formula.test.mjs
           node --test integrations/github-action/review.test.mjs

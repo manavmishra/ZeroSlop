@@ -5,8 +5,8 @@ import { deslopInputSchema, deslopOutputSchema } from "./contract";
 import { writingReportSchema } from "./scorer";
 
 // Freeze the published 2.9.2 validation contract before introducing another transport.
-// The diagnostics extension is optional; all published fields remain unchanged.
-test("optional editor diagnostics preserve the published MCP validation contract", () => {
+// New input and diagnostics fields are optional; published fields remain unchanged.
+test("optional cleanup and diagnostics preserve the published MCP validation contract", () => {
   const legacyInput = z.object({
     text: z.string().trim().min(1).max(20_000)
       .describe("The complete draft supplied as data for editing."),
@@ -35,7 +35,14 @@ test("optional editor diagnostics preserve the published MCP validation contract
     durationMs: z.number().int().nonnegative(),
     note: z.string(),
   });
-  assert.deepEqual(z.toJSONSchema(deslopInputSchema), z.toJSONSchema(legacyInput));
+  assert.deepEqual(z.toJSONSchema(deslopInputSchema.omit({ operation: true })), z.toJSONSchema(legacyInput));
+  const extendedInput = z.toJSONSchema(deslopInputSchema);
+  const publishedInput = z.toJSONSchema(legacyInput);
+  assert.deepEqual(extendedInput.required, publishedInput.required);
+  assert.deepEqual(Object.keys(extendedInput.properties ?? {}).filter(key => !(key in (publishedInput.properties ?? {}))), ["operation"]);
+  assert.deepEqual(deslopInputSchema.parse({ text: "Clear text." }), legacyInput.parse({ text: "Clear text." }));
+  assert.equal(deslopInputSchema.parse({ text: "Clear text.", operation: "clean_text" }).operation, "clean_text");
+  assert.equal(deslopInputSchema.safeParse({ text: "Clear text.", operation: "unknown" }).success, false);
   assert.deepEqual(z.toJSONSchema(deslopOutputSchema.omit({ editorDiagnostics: true })), z.toJSONSchema(legacyOutput));
   const extended = z.toJSONSchema(deslopOutputSchema);
   const legacy = z.toJSONSchema(legacyOutput);

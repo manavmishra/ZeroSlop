@@ -136,8 +136,8 @@ async function handleRestRequest(
       ctx.waitUntil(countCapacityReject(env));
       return problem(429, "capacity_limit", "Zero Slop is busy. Please wait at least 10 seconds before trying again.", requestId, { "retry-after": "10" });
     }
-    const { text, genre, audience } = parsed.data;
-    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}) }, request.headers.get("cf-connecting-ip") ?? "", request.signal));
+    const { text, genre, audience, operation } = parsed.data;
+    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}), ...(operation ? { operation } : {}) }, request.headers.get("cf-connecting-ip") ?? "", request.signal));
     trackPipelineResult(env, meta, genre, text.length, result);
     ctx.waitUntil(countPipelineResult(env, result));
     console.log(JSON.stringify({ event: "rest_deslop_complete", status: result.status, chars: parsed.data.text.length, durationMs: result.durationMs }));

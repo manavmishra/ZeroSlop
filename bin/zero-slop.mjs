@@ -12,6 +12,7 @@ import { homedir } from "node:os";
 import { dirname, join, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deslop, DeslopError, isApprovedResult, validateInput } from "./lib/deslop.mjs";
+import { cleanTextHygiene, inspectTextHygiene } from "./lib/text-hygiene.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAYLOAD = ["SKILL.md", "references", "scripts", "data"];
@@ -37,6 +38,7 @@ function usage(v) {
 Usage
   npx zero-slop install [--harness <name>] [--dir <path>] [--force]
   npx zero-slop score <file|-> [-- <slopscore flags>]
+  npx zero-slop clean-text <file|-> [--inspect] [--json]
   npx zero-slop deslop <file|-> [--genre <name>] [--audience <reader>] [--json]
                        [--require-approved] [--timeout <seconds>]
   npx zero-slop where
@@ -249,7 +251,7 @@ function parseDeslopArgs(argv) {
     json: Boolean(values["--json"]), requireApproved: Boolean(values["--require-approved"]), timeoutMs };
 }
 
-async function readDraft(file, signal) {
+async function readDraft(file, signal, preserveBOM = false) {
   const maximum = 128 * 1024;
   let bytes;
   if (file === "-") {
@@ -288,7 +290,7 @@ async function readDraft(file, signal) {
     } finally { await handle?.close(); }
   }
   signal.throwIfAborted();
-  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch {
+  try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: preserveBOM }).decode(bytes); } catch {
     throw new DeslopError("invalid_input", "The draft must be valid UTF-8; nothing was uploaded.");
   }
 }
@@ -348,6 +350,15 @@ async function runDeslop(argv, v) {
 
 async function main() {
   const argv = process.argv.slice(2);
+  if (argv[0] === "clean-text") {
+    const args = argv.slice(1);
+    const files = args.filter(arg => !["--inspect", "--json"].includes(arg));
+    if (files.length !== 1 || (files[0].startsWith("--"))) throw new Error("clean-text needs one file or -, plus optional --inspect and --json");
+    const text = await readDraft(files[0], new AbortController().signal, true);
+    const result = args.includes("--inspect") ? inspectTextHygiene(text) : cleanTextHygiene(text);
+    process.stdout.write(args.includes("--json") ? `${JSON.stringify(result)}\n` : result.text);
+    return 0;
+  }
   // Parse this command separately: no install flags or scorer passthrough can
   // accidentally become a remote-upload option.
   if (argv[0] === "deslop") {

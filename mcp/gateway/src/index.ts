@@ -161,10 +161,10 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
   server.registerTool(
     "deslop",
     toolConfig,
-    async ({ text, genre, audience }, extra) => {
+    async ({ text, genre, audience, operation }, extra) => {
       const requestStarted = Date.now();
       try {
-        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}) }, clientAddress,
+        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}), ...(operation ? { operation } : {}) }, clientAddress,
           AbortSignal.any([signal, extra.mcpReq.signal]));
         trackPipelineResult(env, requestMeta, genre, text.length, result);
         ctx.waitUntil(countPipelineResult(env, result));
@@ -318,6 +318,7 @@ export default {
                 default: "general",
               },
               audience: { type: "string", maxLength: 200, description: "Optional intended reader or destination." },
+              operation: { type: "string", enum: ["clean_text"], description: "Optional local character cleanup, without a model request or statistical watermark verification." },
             },
             required: ["text"],
           },

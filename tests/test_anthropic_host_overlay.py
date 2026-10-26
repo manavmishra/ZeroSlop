@@ -42,10 +42,11 @@ class AnthropicHostOverlay(unittest.TestCase):
         return build_plugin.anthropic_payload(
             self.root, kwargs.get("files", self.canonical), kwargs.get("tools", self.tools))
 
-    def test_portable_ten_module_set_and_npm_exclusions_are_explicit(self):
+    def test_portable_runtime_set_and_npm_exclusions_are_explicit(self):
         names = {path.name for path in build_plugin.wanted(ROOT / "scripts")}
         self.assertTrue(build_plugin.MCP_RUNTIME.isdisjoint(names))
-        self.assertEqual(len([name for name in names if name.endswith(".py")]), 10)
+        self.assertEqual(len([name for name in names if name.endswith(".py")]), 11)
+        self.assertIn("text_hygiene.py", names)
         self.assertTrue(build_plugin.MCP_RUNTIME.isdisjoint(build_plugin.EXCLUDE))
         npm = json.loads((ROOT / "package.json").read_bytes())["files"]
         for name in build_plugin.MCP_RUNTIME:

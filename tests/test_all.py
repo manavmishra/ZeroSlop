@@ -4424,7 +4424,7 @@ class Diagram(unittest.TestCase):
         self.assertEqual(shipped, {
             "calibrate.py", "learn.py", "predictability.py", "register.py",
             "rerank.py", "rescue.py", "safeio.py", "slopscore.py", "version_check.py",
-            "reader_review.py",
+            "reader_review.py", "text_hygiene.py",
         })
         self.assertFalse((ROOT / "skills" / "zero-slop" / "references" /
                           "contextual-signals.md").exists())

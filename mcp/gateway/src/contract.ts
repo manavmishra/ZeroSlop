@@ -14,6 +14,8 @@ export const deslopInputSchema = z.object({
     .describe("Publication context: social for LinkedIn or X; research and professional retain formal register."),
   audience: z.string().trim().max(200).optional()
     .describe("Optional intended reader or destination when that context is not clear from the draft."),
+  operation: z.literal("clean_text").optional()
+    .describe("Optional local character cleanup only. Does not call an editing model or verify statistical watermark removal."),
 });
 
 export const deslopOutputSchema = z.object({
