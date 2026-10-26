@@ -2,7 +2,7 @@
 
 ## Runtime boundary
 
-The installed skill ships ten standard-library Python modules:
+The installed skill includes these standard-library Python modules:
 
 | File | Purpose | Writes | Network |
 |---|---|---|---|
@@ -10,6 +10,7 @@ The installed skill ships ten standard-library Python modules:
 | `scripts/register.py` | document-level measurements and validated final-review packets | none | none |
 | `scripts/reader_review.py` | prepare and report simulated reader-review packets | none | none |
 | `scripts/rescue.py` | conservative deterministic editing fallback | none | none |
+| `scripts/text_hygiene.py` | inspect copy artifacts and apply conservative, reversible character cleanup | none | none |
 | `scripts/predictability.py` | create and score deterministic cloze probes | none | none |
 | `scripts/rerank.py` | rank candidate rewrites | optional user-selected output | none |
 | `scripts/learn.py` | private online learning, named scoring profiles, reviewed imports/exports | `$ZERO_SLOP_HOME`; shared taxonomy only through explicit maintainer `--merge --apply` | none |
