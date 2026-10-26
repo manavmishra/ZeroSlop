@@ -30,7 +30,7 @@ it("preserves only bounded editor diagnostics through real REST and MCP handlers
     return Response.json({
       error: privateMarker, editorOutcome: "unavailable", providerCalls: 2,
       providerAttempts: [
-        { provider: "workers-ai", outcome: "invalid_output", text: privateMarker },
+        { provider: "workers-ai", outcome: "invalid_output", outputStage: "source_preservation", text: privateMarker },
         { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 401, message: privateMarker },
       ],
       headers: privateMarker,
@@ -60,7 +60,7 @@ it("preserves only bounded editor diagnostics through real REST and MCP handlers
       expect(result.editorDiagnostics).toEqual({
         endpointHttpStatus: 503,
         providerAttempts: [
-          { provider: "workers-ai", outcome: "invalid_output" },
+          { provider: "workers-ai", outcome: "invalid_output", outputStage: "source_preservation" },
           { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 401 },
         ],
       });

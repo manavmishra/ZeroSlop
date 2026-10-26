@@ -118,6 +118,7 @@ The optional `editorDiagnostics` field contains only bounded operational metadat
 | `providerAttempts` | Up to two ordered attempts reported by the endpoint; each has a fixed `provider` and `outcome` |
 | `providerAttempts[].failureStage` | Optional `invoke`, `fetch`, `http`, or `body` stage reported for a failed attempt |
 | `providerAttempts[].httpStatus` | Optional observed provider HTTP status, from 100 to 599, for an `http` or `body` failure |
+| `providerAttempts[].outputStage` | Optional `response_shape`, `empty_output`, `source_preservation`, or `implausible_edit` stage for an `invalid_output` outcome |
 
 Providers are `workers-ai` or `openrouter`. Outcomes are `success`, `timeout`,
 `cancelled`, `capacity`, `invalid_output`, `configuration`, or `unavailable`.

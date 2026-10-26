@@ -138,3 +138,23 @@ test("an optional diagnostic callback failure cannot change a usable editor resu
   assert.ok(await callRole(env, "complete", source, {}, Date.now() + 2000, "", undefined,
     undefined, undefined, () => { throw new Error(privateDetail); }));
 });
+
+test("invalid output diagnostics preserve only bounded text-free output stages", () => {
+  for (const outputStage of ["response_shape", "empty_output", "source_preservation", "implausible_edit"]) {
+    const result = safeEditorDiagnostics(503, { providerAttempts: [{ provider: "workers-ai", outcome: "invalid_output", outputStage, message: privateDetail }] });
+    assert.deepEqual(result, { endpointHttpStatus: 503, providerAttempts: [{ provider: "workers-ai", outcome: "invalid_output", outputStage }] });
+    assert.equal(editorDiagnosticsSchema.safeParse(result).success, true);
+    assert.ok(!JSON.stringify(result).includes(privateDetail));
+  }
+});
+
+test("output stages are absent for other outcomes and unknown values never escape", () => {
+  for (const outcome of ["success", "unavailable", "timeout"]) {
+    const attempt = { provider: "workers-ai", outcome, outputStage: "source_preservation" };
+    assert.deepEqual(safeEditorDiagnostics(503, { providerAttempts: [attempt] }), { endpointHttpStatus: 503, providerAttempts: [{ provider: "workers-ai", outcome }] });
+    assert.equal(editorDiagnosticsSchema.safeParse({ providerAttempts: [attempt] }).success, false);
+  }
+  const attempt = { provider: "openrouter", outcome: "invalid_output", outputStage: privateDetail };
+  assert.deepEqual(safeEditorDiagnostics(503, { providerAttempts: [attempt] }), { endpointHttpStatus: 503, providerAttempts: [{ provider: "openrouter", outcome: "invalid_output" }] });
+  assert.equal(editorDiagnosticsSchema.safeParse({ providerAttempts: [attempt] }).success, false);
+});

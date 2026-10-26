@@ -33,7 +33,7 @@ async function version() {
 }
 
 function usage(v) {
-  return `zero-slop ${v} — score locally or edit through the hosted Zero Slop MCP.
+  return `zero-slop ${v}: score writing, clean pasted text or edit through the hosted Zero Slop MCP.
 
 Usage
   npx zero-slop install [--harness <name>] [--dir <path>] [--force]
@@ -48,6 +48,12 @@ Install targets
   --harness   ${Object.keys(HARNESS_DIRS).join(", ")}   (default: claude)
   --dir       install into an explicit directory instead
   --force     replace a verified Zero Slop installation
+
+Clean pasted text (clean-text)
+  Runs locally and leaves the source file unchanged.
+  --inspect   show the findings without changing the returned text
+  --json      include the reversible edit list in structured output
+  Cleanup uses a small reviewed word list and keeps uncertain text.
 
 Hosted editing (deslop)
   Sends only the explicit draft, genre and audience to https://mcp.zero-slop.ai/mcp.
