@@ -2100,6 +2100,18 @@ class DocsMatchReality(unittest.TestCase):
                 self.assertTrue((ROOT / asset).is_file())
         self.assertIn('media="(prefers-reduced-motion: reduce)"', readme)
 
+    def test_readme_raid_plus_description_matches_retained_provenance(self):
+        readme = re.sub(r"\s+", " ", self.docs["README.md"])
+        source = json.loads((ROOT / "bench/raid-plus-corpus/source.json").read_text())
+        result = json.loads((ROOT / "bench/raid-plus-corpus/results.json").read_text())
+        self.assertEqual(result["source"]["scored_rows"], 7627)
+        self.assertEqual(result["domains"]["abstracts"]["documents"], 7627)
+        self.assertIn("7,627 non-empty machine-generated abstracts", readme)
+        self.assertIn(source["project_url"], readme)
+        self.assertIn("INSCONE project", readme)
+        self.assertNotIn("user-generated transcripts", readme)
+        self.assertIn("original RAID prompts", readme)
+
     def test_readme_routes_new_readers_before_developer_reference(self):
         readme = self.docs["README.md"]
         quick = readme.split("## Quick start", 1)[1].split("## What it does", 1)[0]
@@ -4412,7 +4424,7 @@ class Diagram(unittest.TestCase):
         self.assertEqual(shipped, {
             "calibrate.py", "learn.py", "predictability.py", "register.py",
             "rerank.py", "rescue.py", "safeio.py", "slopscore.py", "version_check.py",
-            "reader_review.py",
+            "reader_review.py", "text_hygiene.py",
         })
         self.assertFalse((ROOT / "skills" / "zero-slop" / "references" /
                           "contextual-signals.md").exists())

@@ -10,6 +10,7 @@ import re
 import reader_review
 import register
 import slopscore
+import text_hygiene
 import mcp_workflow_tools as workflow
 
 MAX_TEXT = 20000
@@ -79,6 +80,8 @@ def _tool(name, title, description, properties, required):
 
 
 CORE_TOOLS = [
+    _tool("clean_text", "Inspect or clean copy artifacts", "Local conservative character cleanup only; preserves uncertain formatting and does not verify statistical watermark removal.",
+          {"text": TEXT, "inspect": BOOLEAN}, ["text"]),
     _tool("score", "Check writing", "Offline heuristic check; not an authorship or completed editorial verdict. Reads bundled rules and existing private rules without writing notes.",
           {"text": TEXT, "formal": BOOLEAN,
            "genre": {"type": "string", "maxLength": 64},
@@ -194,6 +197,8 @@ def call(name, arguments):
     """Fixed dispatch only; caller text cannot select files or commands."""
     spec = tool_spec(name)
     validate_arguments(spec, arguments)
+    if name == "clean_text":
+        return (text_hygiene.inspect_text_hygiene if arguments.get("inspect", False) else text_hygiene.clean_text_hygiene)(arguments["text"])
     if name == "score":
         result = slopscore.score_text(arguments["text"], slopscore.load_patterns(voice=arguments.get("voice")), formal=arguments.get("formal", False))
         result["shape"] = slopscore.shape_metrics(arguments["text"], genre=arguments.get("genre", "general"))

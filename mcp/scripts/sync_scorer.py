@@ -18,6 +18,7 @@ SOURCES = {
     ROOT / "scripts" / "register.py": DEST / "engine" / "register.py",
     ROOT / "scripts" / "rerank.py": DEST / "engine" / "rerank.py",
     ROOT / "scripts" / "safeio.py": DEST / "engine" / "safeio.py",
+    ROOT / "scripts" / "text_hygiene.py": DEST / "engine" / "text_hygiene.py",
     ROOT / "data" / "patterns.json": DEST / "data" / "patterns.json",
     ROOT / "data" / "learned.json": DEST / "data" / "learned.json",
 }

@@ -4,6 +4,7 @@ import { MAX_DRAFT_CHARS } from "./contract";
 import { rankRewrites, scoreWriting } from "./scorer";
 import type { Genre, PipelineResult, RankedRewrite, WritingReport } from "./types";
 import type { EditorDiagnostics } from "./editor-diagnostics";
+import { cleanTextHygiene, reverseTextHygiene } from "../../../bin/lib/text-hygiene.mjs";
 
 const SCORE_GATE = 25;
 const PIPELINE_BUDGET_MS = 75_000;
@@ -12,6 +13,7 @@ export type DeslopInput = {
   text: string;
   genre: Genre;
   audience?: string;
+  operation?: "clean_text";
 };
 
 export function scorerGuidance(report: WritingReport): string {
@@ -336,9 +338,24 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   const deadline = started + PIPELINE_BUDGET_MS;
   const control = { signal, editorRequested: false, deadline };
   checkCancelled(control);
-  const original = input.text.trim();
+  const original = input.operation === "clean_text" ? input.text : input.text.trim();
   const before = await scoreWriting(env, original, input.genre, control);
   checkCancelled(control);
+
+  if (input.operation === "clean_text") {
+    const hygiene = cleanTextHygiene(original);
+    if (reverseTextHygiene(hygiene.text, hygiene.edits) !== original) throw new Error("Text cleanup verification failed.");
+    const after = hygiene.edits.length ? await scoreWriting(env, hygiene.text, input.genre, control) : before;
+    checkCancelled(control);
+    return {
+      ...unchanged(hygiene.text, hygiene.edits.length ? "rewritten_with_warnings" : "unchanged_no_better_version", before, started, env.SCORER_VERSION,
+        hygiene.edits.length
+          ? `Removed ${hygiene.edits.length} supported copy-and-paste characters. This was local character cleanup, not an editorial review. Statistical watermark removal has not been verified.`
+          : "No supported character cleanup was needed. Ambiguous formatting was preserved. Statistical watermark removal has not been verified."),
+      after,
+      scoreChange: Math.round((after.score - before.score) * 10) / 10,
+    };
+  }
 
   // A short clean note should not incur an AI call merely because document-
   // level statistics need more words. Positive findings still force an edit.

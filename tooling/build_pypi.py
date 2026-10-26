@@ -30,7 +30,7 @@ PACKAGE = ROOT / "packaging" / "zero_slop"
 
 # Byte-identical to the sources pinned by mcp/scripts/sync_scorer.py. Adding a
 # module here without adding it there would let the wheel and the Worker drift.
-MODULES = ("slopscore.py", "register.py", "rerank.py", "safeio.py")
+MODULES = ("slopscore.py", "register.py", "rerank.py", "safeio.py", "text_hygiene.py")
 # Authored here rather than mirrored from the pinned set: the multi-file gate
 # is the pre-commit and shell entry point and ships only in the wheel.
 EXTRA_MODULES = ("gate.py",)

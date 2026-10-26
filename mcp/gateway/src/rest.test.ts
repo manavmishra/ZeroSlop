@@ -38,12 +38,24 @@ function request(body: unknown, headers: Record<string, string> = {}) {
 }
 const neverRun = async (): Promise<PipelineResult> => { throw new Error("pipeline must not run"); };
 
+test("REST forwards an explicit local cleanup operation without changing the output contract", async () => {
+  const { env } = environment(); const { ctx, pending } = context();
+  const response = await handleRest(request({ text: "The te\u200bxt is clear.", operation: "clean_text" }), env, ctx, async (_env, input) => {
+    assert.equal(input.operation, "clean_text");
+    return result;
+  });
+  assert.equal(response.status, 200);
+  await Promise.all(pending);
+});
+
 test("OpenAPI derives its complete input/output contract from runtime schemas", () => {
   const document = openApiDocument("2.10.0");
   assert.equal(document.openapi, "3.1.2");
   assert.equal(document.info.version, "2.10.0");
   assert.equal(document.paths["/v1/deslop"].post.operationId, "deslop");
   const input = document.components.schemas.DeslopInput;
+  assert.equal(input.type, "object");
+  assert.ok(input.properties?.operation);
   assert.equal(typeof input.properties?.text === "object" && input.properties.text.maxLength, 20_000);
   assert.equal(typeof input.properties?.audience === "object" && input.properties.audience.maxLength, 200);
   assert.deepEqual(input.required, ["text"]);

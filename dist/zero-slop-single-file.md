@@ -30,7 +30,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.12.29"
+  version: "2.12.31"
   author: manavmishra
 description: Edit drafts into natural prose, inspect AI-sounding patterns, or review how a specified audience might respond passage by passage. Zero Slop runs inside the user's existing AI assistant with local tools that protect source details. Use for humanizing or de-slopping writing, polishing outward-facing prose, social drafts, final editorial checks, or an explicit simulated reader review. Preserve facts, voice and format; reader simulations are hypotheses, not human feedback.
 ---
@@ -60,6 +60,22 @@ semantic checks below enforce that boundary. `references/evidence.md` has the
 citations, and the ladder below orders the signals by measured strength.
 
 ## Hard rules (non-negotiable)
+
+For an explicit character-cleanup request, use the bundled offline text-hygiene
+helper at `scripts/text_hygiene.py` when available. It inspects formatting
+characters and removes only a
+small reviewed set of embedded artifacts in 16 common ASCII prose words.
+Only sentence-shaped lines with conservative prose openers are eligible.
+Recognized code, command syntax, URLs, formulas, quotations and multilingual
+formatting are excluded; these guards are not a complete code parser. Preserve
+uncertain text and use inspection when its purpose is unclear.
+This is a separate local operation, not a replacement for contextual editing.
+Its change record can reverse the exact cleanup. A scriptless assistant must
+not claim byte-level cleanup it did not perform. Character cleanup does not
+verify removal of statistical watermarks from ChatGPT, Claude, Gemini or any
+other model. Preserve required disclosures and attribution.
+In a host that routes local checks through the bundled MCP connector, use its
+`clean_text` tool with the supplied text and optional `inspect: true` instead.
 
 1. **Fidelity.** Meaning, claims, and facts survive exactly. Never invent a
    number, name, anecdote, or experience — and experiential/interior claims

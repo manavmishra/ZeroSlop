@@ -63,6 +63,32 @@ function scorerHarness(original: string, rewrite: string, afterScore = 9.5, mode
   };
 }
 
+test('explicit character cleanup preserves API shape and starts no model request', async () => {
+  const source = 'The te\u200bxt is clear.';
+  let requests = 0;
+  const env = { SCORER_VERSION: 'test', SCORER: { fetch: async () => {
+    requests += 1;
+    return Response.json(writingReport(9));
+  } } } as unknown as Env;
+  const result = await runPipeline(env, { text: source, genre: 'general', operation: 'clean_text' });
+  assert.equal(result.text, 'The text is clear.');
+  assert.equal(result.modelRequests, 0);
+  assert.equal(result.passedFinalChecks, false);
+  assert.equal(result.status, 'rewritten_with_warnings');
+  assert.match(result.note, /Statistical watermark removal has not been verified/);
+  assert.equal(requests, 2);
+});
+
+test('explicit cleanup preserves uncertain language without certifying editorial quality', async () => {
+  const source = 'فارسی\u200cنویسی';
+  const env = { SCORER_VERSION: 'test', SCORER: { fetch: async () => Response.json(writingReport(9)) } } as unknown as Env;
+  const result = await runPipeline(env, { text: source, genre: 'general', operation: 'clean_text' });
+  assert.equal(result.text, source);
+  assert.equal(result.status, 'unchanged_no_better_version');
+  assert.equal(result.modelRequests, 0);
+  assert.equal(result.passedFinalChecks, false);
+});
+
 test("editor response requires a confirmed no-store path", () => {
   assert.deepEqual(
     editorReply({ rewrite: "  edited  ", provider: "router", model: "writer", stored: false }),

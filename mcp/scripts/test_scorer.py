@@ -17,6 +17,7 @@ VENDORED = {
     "scripts/register.py": "engine/register.py",
     "scripts/rerank.py": "engine/rerank.py",
     "scripts/safeio.py": "engine/safeio.py",
+    "scripts/text_hygiene.py": "engine/text_hygiene.py",
     "data/patterns.json": "data/patterns.json",
     "data/learned.json": "data/learned.json",
 }
@@ -42,6 +43,16 @@ def main() -> int:
         expected = manifest[source]
         assert digest(ROOT / source) == expected, f"stale scorer copy: {source}"
         assert digest(SCORER / target) == expected, f"modified vendored scorer: {target}"
+
+    hygiene_spec = importlib.util.spec_from_file_location("vendored_text_hygiene", SCORER / "engine/text_hygiene.py")
+    assert hygiene_spec and hygiene_spec.loader
+    hygiene = importlib.util.module_from_spec(hygiene_spec)
+    hygiene_spec.loader.exec_module(hygiene)
+    for case in json.loads((ROOT / "tests/fixtures/text-hygiene.json").read_text()):
+        result = hygiene.clean_text_hygiene(case["input"])
+        assert result["text"] == case["expected"], case["name"]
+        assert hygiene.reverse_text_hygiene(result["text"], result["edits"]) == case["input"], case["name"]
+        assert result["statisticalWatermark"]["status"] == "not_verified"
 
     core = load_core()
     sloppy = (

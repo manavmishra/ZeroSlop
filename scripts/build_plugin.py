@@ -42,7 +42,7 @@ EXCLUDE = {
     "contextual.py", "contextual-signals.md", ".DS_Store",
     "make-readme-gif.mjs", "growth-snapshot.mjs", "build_marketplace_package.py",
 }
-# Host execution adapters are not part of the portable ten-module runtime.
+# Host execution adapters are not part of the portable runtime.
 # Keep this separate from maintainer exclusions and add it only to Anthropic.
 MCP_RUNTIME = frozenset({"mcp_stdio.py", "mcp_local_tools.py", "mcp_workflow_tools.py"})
 

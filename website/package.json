@@ -2,6 +2,11 @@
   "name": "zero-slop-site",
   "version": "0.1.0",
   "private": true,
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "workerd@1.20260926.1": true
+  },
   "engines": {
     "node": ">=22.13.0"
   },

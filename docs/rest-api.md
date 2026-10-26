@@ -22,9 +22,10 @@ curl --fail-with-body --max-time 75 --include https://mcp.zero-slop.ai/v1/deslop
 
 | Field | Accepted value |
 |---|---|
-| `text` | Required, nonempty string; up to 20,000 Unicode code points after trimming |
+| `text` | Required, nonempty string; up to 20,000 Unicode code points. Editing trims the text first; `clean_text` preserves it and counts its full length. |
 | `genre` | `general` (default), `social`, `email`, `research`, or `professional` |
 | `audience` | Optional string, up to 200 Unicode code points after trimming |
+| `operation` | Optional `"clean_text"` for conservative character cleanup without an editing-model call |
 
 Lengths count Unicode code points; a combined emoji or accented character can contain more than one.
 Send UTF-8 JSON in the body, never a URL query. The body limit is 128 KiB, including

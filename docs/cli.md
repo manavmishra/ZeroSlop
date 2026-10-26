@@ -1,9 +1,25 @@
 # Zero Slop CLI
 
+For an explicit local copy-artifact cleanup, use `npx zero-slop clean-text draft.md`.
+Use `--inspect --json` to inspect without changing the returned text, or `--json`
+with cleanup to receive reversible edits. The command never changes the source
+file and accepts one regular UTF-8 file or stdin, up to 128 KiB.
+
+This first policy removes only embedded U+200B, U+2060 and U+FEFF in a small
+reviewed vocabulary of 16 common ASCII prose words. A line is eligible only
+when it starts with The, This, Hello, A or An and ends with sentence punctuation.
+Recognized code, command flags, operators, quotes, URLs, markup and non-ASCII
+text are excluded. Other words and fragments stay unchanged. These guards are
+conservative rules, not a complete parser for every programming language.
+This deliberately limited cleanup does not verify statistical watermark removal.
+The installed skill also includes the offline Python helper. Its offsets use
+code points; the JavaScript result uses UTF-16 offsets. Change-detection bindings
+are not authentication or provenance evidence.
+
 Use `deslop` for hosted editing with MCP parity. Use `score` for offline checks.
 
 ```sh
-npm install --global zero-slop@2.12.29
+npm install --global zero-slop@2.12.31
 zero-slop deslop draft.md --genre professional
 zero-slop deslop - --genre email < draft.txt
 zero-slop deslop draft.md --json --require-approved

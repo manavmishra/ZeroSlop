@@ -30,20 +30,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            git fetch --no-tags origin "$BASE_REF"
-            base="origin/$BASE_REF"
-          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
-            base="$BEFORE"
-          else
-            echo "No stable base commit; skipping the release-delta check"
-            exit 0
-          fi
-          changed="$(git diff --name-only "$base"...HEAD)"
-          if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '^README\.md$'; then
-            echo "Only README documentation changed; skipping the release-delta check"
-            exit 0
-          fi
+          base="$(bash .github/scripts/release-base.sh)"
           python3 scripts/check_release_version.py "$base"
       - name: Validate pattern data
         run: |
@@ -156,6 +143,7 @@ jobs:
         run: |
           node distribution/sync-version.mjs --check
           node --test tests/cli-deslop.test.mjs
+          node --test tests/text-hygiene.test.mjs tests/text-hygiene-cli.test.mjs
           node --test growth/check-star-access.test.mjs
           node --test distribution/homebrew/prepare-formula.test.mjs
           node --test integrations/github-action/review.test.mjs
@@ -222,7 +210,12 @@ jobs:
           node-version: "22.13.0"
           cache: npm
           cache-dependency-path: website/package-lock.json
-      - run: npm ci
+      - name: Pin npm 11 for install-script enforcement
+        run: npm install --global npm@11.21.1 --ignore-scripts --no-audit --no-fund
+      - name: Verify dependency install-script policy
+        run: node --test ../.github/scripts/install-scripts.test.mjs
+      - name: Install only approved dependency scripts
+        run: npm ci --strict-allow-scripts --ignore-scripts=false --dangerously-allow-all-scripts=false
       - name: Verify dependency audit gate
         run: node --test ../.github/scripts/audit-npm.test.mjs
       - name: Audit dependencies
@@ -260,12 +253,15 @@ jobs:
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.12.5"
+      - name: Pin npm 11 for install-script enforcement
+        run: npm install --global npm@11.21.1 --ignore-scripts --no-audit --no-fund
       - name: Verify exact scorer bundle
         working-directory: .
         run: |
           python3 mcp/scripts/sync_scorer.py --check
           python3 mcp/scripts/test_scorer.py
-      - run: npm ci
+      - name: Install only approved gateway dependency scripts
+        run: npm ci --strict-allow-scripts --ignore-scripts=false --dangerously-allow-all-scripts=false
       - name: Audit gateway dependencies
         env:
           AUDIT_ALLOW_UNAVAILABLE: "1"
@@ -277,7 +273,7 @@ jobs:
       - run: npm run dry-run
       - name: Install scorer Worker dependencies
         working-directory: mcp/scorer
-        run: npm ci
+        run: npm ci --strict-allow-scripts --ignore-scripts=false --dangerously-allow-all-scripts=false
       - name: Lock and install scorer Python dependencies
         working-directory: mcp/scorer
         run: uv sync --locked
