@@ -1,16 +1,21 @@
 import { z } from "zod";
 
 const providerSchema = z.enum(["workers-ai", "openrouter"]);
-const failureOutcomeSchema = z.enum(["timeout", "cancelled", "capacity", "invalid_output", "configuration", "unavailable"]);
+const otherFailureOutcomeSchema = z.enum(["timeout", "cancelled", "capacity", "configuration", "unavailable"]);
+const outputStageSchema = z.enum(["response_shape", "empty_output", "source_preservation", "implausible_edit"]);
 const httpStatusSchema = z.number().int().min(100).max(599);
 // Keep the relationships expressible in the JSON Schema shared by MCP/OpenAPI.
 const providerAttemptSchema = z.union([
   z.object({ provider: providerSchema, outcome: z.literal("success"),
-    failureStage: z.never().optional(), httpStatus: z.never().optional() }).strict(),
-  z.object({ provider: providerSchema, outcome: failureOutcomeSchema,
-    failureStage: z.enum(["invoke", "fetch"]).optional(), httpStatus: z.never().optional() }).strict(),
-  z.object({ provider: providerSchema, outcome: failureOutcomeSchema,
-    failureStage: z.enum(["http", "body"]), httpStatus: httpStatusSchema.optional() }).strict(),
+    failureStage: z.never().optional(), httpStatus: z.never().optional(), outputStage: z.never().optional() }).strict(),
+  z.object({ provider: providerSchema, outcome: otherFailureOutcomeSchema,
+    failureStage: z.enum(["invoke", "fetch"]).optional(), httpStatus: z.never().optional(), outputStage: z.never().optional() }).strict(),
+  z.object({ provider: providerSchema, outcome: otherFailureOutcomeSchema,
+    failureStage: z.enum(["http", "body"]), httpStatus: httpStatusSchema.optional(), outputStage: z.never().optional() }).strict(),
+  z.object({ provider: providerSchema, outcome: z.literal("invalid_output"),
+    failureStage: z.enum(["invoke", "fetch"]).optional(), httpStatus: z.never().optional(), outputStage: outputStageSchema.optional() }).strict(),
+  z.object({ provider: providerSchema, outcome: z.literal("invalid_output"),
+    failureStage: z.enum(["http", "body"]), httpStatus: httpStatusSchema.optional(), outputStage: outputStageSchema.optional() }).strict(),
 ]);
 
 export const editorDiagnosticsSchema = z.object({
@@ -39,6 +44,10 @@ export function safeProviderAttempts(value: unknown): SafeProviderAttempt[] {
           && Number.isSafeInteger(attempt.httpStatus) && attempt.httpStatus >= 100 && attempt.httpStatus <= 599) {
         entry.httpStatus = attempt.httpStatus;
       }
+    }
+    if (entry.outcome === "invalid_output"
+        && ["response_shape", "empty_output", "source_preservation", "implausible_edit"].includes(attempt.outputStage)) {
+      entry.outputStage = attempt.outputStage;
     }
     safe.push(entry);
   }

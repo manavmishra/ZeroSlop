@@ -13,6 +13,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -67,6 +68,22 @@ class PyPIMirror(unittest.TestCase):
         version = json.loads((ROOT / "package.json").read_text())["version"]
         self.assertIn(f'version = "{version}"', pyproject,
                       "pyproject.toml version must match package.json")
+
+
+class ReleaseInstallReferences(unittest.TestCase):
+    def test_active_install_examples_match_the_release(self):
+        version = json.loads((ROOT / "package.json").read_text())["version"]
+        self.assertIn(f"uses: manavmishra/ZeroSlop@v{version}",
+                      (ROOT / "DISTRIBUTION.md").read_text())
+        pypi_readme = (ROOT / "README-pypi.md").read_text()
+        self.assertIn(f"uses: manavmishra/ZeroSlop@v{version}", pypi_readme)
+        self.assertIn(f"rev: v{version}", pypi_readme)
+        self.assertIn(f"rev: v{version}", (ROOT / ".pre-commit-hooks.yaml").read_text())
+        self.assertIn(f'export const CLI_VERSION = "{version}";',
+                      (ROOT / "integrations/github-action/review.mjs").read_text())
+        action_readme = (ROOT / "integrations/github-action/README.md").read_text()
+        self.assertIn(f"zero-slop@{version}", action_readme)
+        self.assertNotRegex(action_readme, r"github-action@v(?!" + re.escape(version) + r"\b)[0-9.]+")
 
 
 class ActionReporter(unittest.TestCase):

@@ -6,5 +6,5 @@
   "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
   "scripts/slopscore.py": "4a993f884de6fe8440e01c8e8a96d5f1e22258c144c2bca4155674f5469c474a",
   "scripts/text_hygiene.py": "317c347e0d7b0c479b3c9d2d250ea1037323cbe20f4631b9d0d91148d9aec746",
-  "version": "2.12.32"
+  "version": "3.0.0"
 }

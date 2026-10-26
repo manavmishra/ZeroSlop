@@ -79,6 +79,7 @@ test("all 14 required fields, optional diagnostics and six statuses are preserve
     assert.equal(validateResult(value), value);
     const extended = { ...value, editorDiagnostics: { endpointHttpStatus: 503, providerAttempts: [
       { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 401 },
+      { provider: "workers-ai", outcome: "invalid_output", outputStage: "source_preservation" },
     ] } };
     assert.equal(validateResult(extended), extended);
     assert.deepEqual(Object.keys(extended), keys);

@@ -1,6 +1,8 @@
 # Zero Slop CLI
 
-For an explicit local copy-artifact cleanup, use `npx zero-slop clean-text draft.md`.
+## Clean pasted text
+
+To remove supported hidden characters locally, use `npx zero-slop clean-text draft.md`.
 Use `--inspect --json` to inspect without changing the returned text, or `--json`
 with cleanup to receive reversible edits. The command never changes the source
 file and accepts one regular UTF-8 file or stdin, up to 128 KiB.
@@ -16,10 +18,12 @@ The installed skill also includes the offline Python helper. Its offsets use
 code points; the JavaScript result uses UTF-16 offsets. Change-detection bindings
 are not authentication or provenance evidence.
 
+## Edit or score a draft
+
 Use `deslop` for hosted editing with MCP parity. Use `score` for offline checks.
 
 ```sh
-npm install --global zero-slop@2.12.32
+npm install --global zero-slop@3.0.0
 zero-slop deslop draft.md --genre professional
 zero-slop deslop - --genre email < draft.txt
 zero-slop deslop draft.md --json --require-approved
