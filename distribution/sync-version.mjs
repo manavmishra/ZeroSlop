@@ -33,6 +33,7 @@ const rules = [
   ["DISTRIBUTION.md", /(uses: manavmishra\/ZeroSlop@v)[0-9.]+/, `$1${version}`],
   ["README-pypi.md", /(uses: manavmishra\/ZeroSlop@v)[0-9.]+/, `$1${version}`],
   ["README-pypi.md", /(rev: v)[0-9.]+/, `$1${version}`],
+  [".pre-commit-hooks.yaml", /(rev: v)[0-9.]+/, `$1${version}`],
   ["integrations/github-action/review.mjs", /(export const CLI_VERSION = ")[0-9.]+(")/, `$1${version}$2`],
   ["integrations/github-action/README.md", /(zero-slop@|github-action@v)[0-9.]+/g, `$1${version}`],
   ["ONE-PAGER.md", /( · v)[0-9.]+( ·)/, `$1${version}$2`],

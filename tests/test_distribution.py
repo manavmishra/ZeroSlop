@@ -78,6 +78,7 @@ class ReleaseInstallReferences(unittest.TestCase):
         pypi_readme = (ROOT / "README-pypi.md").read_text()
         self.assertIn(f"uses: manavmishra/ZeroSlop@v{version}", pypi_readme)
         self.assertIn(f"rev: v{version}", pypi_readme)
+        self.assertIn(f"rev: v{version}", (ROOT / ".pre-commit-hooks.yaml").read_text())
         self.assertIn(f'export const CLI_VERSION = "{version}";',
                       (ROOT / "integrations/github-action/review.mjs").read_text())
         action_readme = (ROOT / "integrations/github-action/README.md").read_text()
