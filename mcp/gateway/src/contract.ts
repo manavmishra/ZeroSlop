@@ -6,8 +6,8 @@ export const MAX_DRAFT_CHARS = 20_000;
 export const MAX_REQUEST_BYTES = 128 * 1024;
 
 // The MCP tool, REST validator and OpenAPI document share these schemas.
-export const deslopInputSchema = z.object({
-  text: z.string().trim().min(1).max(MAX_DRAFT_CHARS)
+const deslopInputObject = z.object({
+  text: z.string().min(1).max(MAX_DRAFT_CHARS)
     .describe("The complete draft supplied as data for editing."),
   genre: z.enum(["general", "social", "email", "research", "professional"])
     .default("general")
@@ -17,6 +17,18 @@ export const deslopInputSchema = z.object({
   operation: z.literal("clean_text").optional()
     .describe("Optional local character cleanup only. Does not call an editing model or verify statistical watermark removal."),
 });
+
+// Trimming is an editing convention, not safe preprocessing for character
+// cleanup: indentation and boundary characters can carry structure or meaning.
+export const deslopInputSchema = z.preprocess((value) => {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const input = value as Record<string, unknown>;
+    if (input.operation !== "clean_text" && typeof input.text === "string") {
+      return { ...input, text: input.text.trim() };
+    }
+  }
+  return value;
+}, deslopInputObject);
 
 export const deslopOutputSchema = z.object({
   text: z.string(),
@@ -73,7 +85,7 @@ export function openApiDocument(version: string) {
           operationId: "deslop",
           tags: ["Writing"],
           summary: "Edit a draft",
-          description: "Send UTF-8 JSON, at most 128 KiB. Text is limited to 20,000 Unicode code points after trimming. Unknown JSON properties are ignored. HTTP 200 means the pipeline returned a result, not that a rewrite passed its checks: inspect status, factsPreserved and passedFinalChecks. Already-clear text needs no model call. There are no automatic retries or stored idempotency results. Allow 75 seconds on the client; client cancellation does not guarantee upstream work has stopped. Access is free, without an API key, subject to shared capacity and a daily editing allowance across MCP, REST, CLI and the demo. Short-lived keyed daily client hashes coordinate abuse limits and are purged after the UTC day. This is best-effort capacity, not a reserved quota or SLA. Call from your application server; browser access is enabled only for https://zero-slop.ai and https://www.zero-slop.ai.",
+          description: "Send UTF-8 JSON, at most 128 KiB. Text is limited to 20,000 Unicode code points after trimming for editing; clean_text preserves raw text and counts its full length. Unknown JSON properties are ignored. HTTP 200 means the pipeline returned a result, not that a rewrite passed its checks: inspect status, factsPreserved and passedFinalChecks. Already-clear text needs no model call. There are no automatic retries or stored idempotency results. Allow 75 seconds on the client; client cancellation does not guarantee upstream work has stopped. Access is free, without an API key, subject to shared capacity and a daily editing allowance across MCP, REST, CLI and the demo. Short-lived keyed daily client hashes coordinate abuse limits and are purged after the UTC day. This is best-effort capacity, not a reserved quota or SLA. Call from your application server; browser access is enabled only for https://zero-slop.ai and https://www.zero-slop.ai.",
           security: [],
           requestBody: {
             required: true,

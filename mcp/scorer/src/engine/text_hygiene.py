@@ -47,7 +47,12 @@ def clean_text_hygiene(text):
             offset += len(line)
             continue
         plain = REMOVABLE.sub("", line)
-        protected = markup or fence or re.search(r"[^\x09\x0a\x0d\x20-\x7e]", plain) or PROTECTED.search(plain)
+        # Preserve unfenced commands and fragments: only conservative prose
+        # openers with sentence-ending punctuation are eligible for cleanup.
+        protected = (markup or fence or not re.match(r"\s*(?:the|this|hello|an?)\b", plain, re.I)
+                     or not re.search(r"[.!?]\s*$", plain)
+                     or re.search(r"[()[\]{};&]|(?:^|\s)--?[A-Za-z]", plain)
+                     or re.search(r"[^\x09\x0a\x0d\x20-\x7e]", plain) or PROTECTED.search(plain))
         if not protected and len(re.findall(r"[A-Za-z]+", plain)) >= 2:
             for match in re.finditer("[A-Za-z\u200b\u2060\ufeff]+", line):
                 word = match[0]

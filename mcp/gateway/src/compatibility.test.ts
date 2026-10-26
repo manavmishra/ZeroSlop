@@ -35,9 +35,13 @@ test("optional cleanup and diagnostics preserve the published MCP validation con
     durationMs: z.number().int().nonnegative(),
     note: z.string(),
   });
-  assert.deepEqual(z.toJSONSchema(deslopInputSchema.omit({ operation: true })), z.toJSONSchema(legacyInput));
   const extendedInput = z.toJSONSchema(deslopInputSchema);
   const publishedInput = z.toJSONSchema(legacyInput);
+  for (const io of ["input", "output"] as const) {
+    const metadata = z.toJSONSchema(deslopInputSchema, { io });
+    const { operation: _operation, ...publishedProperties } = metadata.properties!;
+    assert.deepEqual({ ...metadata, properties: publishedProperties }, z.toJSONSchema(legacyInput, { io }));
+  }
   assert.deepEqual(extendedInput.required, publishedInput.required);
   assert.deepEqual(Object.keys(extendedInput.properties ?? {}).filter(key => !(key in (publishedInput.properties ?? {}))), ["operation"]);
   assert.deepEqual(deslopInputSchema.parse({ text: "Clear text." }), legacyInput.parse({ text: "Clear text." }));
@@ -51,9 +55,13 @@ test("optional cleanup and diagnostics preserve the published MCP validation con
 });
 
 test("MCP input descriptions are factual metadata rather than model instructions", () => {
-  assert.equal(deslopInputSchema.shape.text.description, "The complete draft supplied as data for editing.");
-  assert.equal(deslopInputSchema.shape.genre.description, "Publication context: social for LinkedIn or X; research and professional retain formal register.");
-  for (const property of Object.values(deslopInputSchema.shape)) {
+  const properties = z.toJSONSchema(deslopInputSchema).properties!;
+  const text = properties.text; const genre = properties.genre;
+  assert.ok(text && typeof text === "object"); assert.ok(genre && typeof genre === "object");
+  assert.equal(text.description, "The complete draft supplied as data for editing.");
+  assert.equal(genre.description, "Publication context: social for LinkedIn or X; research and professional retain formal register.");
+  for (const property of Object.values(properties)) {
+    assert.ok(property && typeof property === "object");
     assert.doesNotMatch(property.description ?? "", /\b(treat|use|never|must|do not|ignore|obey|follow)\b/i);
   }
 });

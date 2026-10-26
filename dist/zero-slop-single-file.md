@@ -64,8 +64,11 @@ citations, and the ladder below orders the signals by measured strength.
 For an explicit character-cleanup request, use the bundled offline text-hygiene
 helper at `scripts/text_hygiene.py` when available. It inspects formatting
 characters and removes only a
-small reviewed set of embedded artifacts in common ASCII prose words. It keeps
-uncertain words, quotations, code, URLs, formulas and multilingual formatting.
+small reviewed set of embedded artifacts in 16 common ASCII prose words.
+Only sentence-shaped lines with conservative prose openers are eligible.
+Recognized code, command syntax, URLs, formulas, quotations and multilingual
+formatting are excluded; these guards are not a complete code parser. Preserve
+uncertain text and use inspection when its purpose is unclear.
 This is a separate local operation, not a replacement for contextual editing.
 Its change record can reverse the exact cleanup. A scriptless assistant must
 not claim byte-level cleanup it did not perform. Character cleanup does not

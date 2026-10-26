@@ -54,6 +54,8 @@ test("OpenAPI derives its complete input/output contract from runtime schemas", 
   assert.equal(document.info.version, "2.10.0");
   assert.equal(document.paths["/v1/deslop"].post.operationId, "deslop");
   const input = document.components.schemas.DeslopInput;
+  assert.equal(input.type, "object");
+  assert.ok(input.properties?.operation);
   assert.equal(typeof input.properties?.text === "object" && input.properties.text.maxLength, 20_000);
   assert.equal(typeof input.properties?.audience === "object" && input.properties.audience.maxLength, 200);
   assert.deepEqual(input.required, ["text"]);

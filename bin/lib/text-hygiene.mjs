@@ -30,7 +30,11 @@ export function createTextHygiene() {
         offset += line.length; continue;
       }
       const plain = line.replace(removable, '');
-      const protectedLine = fence || [...plain].some(char => (char.charCodeAt(0) < 32 && !'\t\n\r'.includes(char)) || char.charCodeAt(0) > 126)
+      // Sentence shape and a small set of prose openers keep unfenced commands
+      // and unknown fragments out of this deliberately conservative cleanup.
+      const protectedLine = fence || !/^\s*(?:the|this|hello|an?)\b/i.test(plain) || !/[.!?]\s*$/.test(plain)
+        || /[()[\]{};&]|(?:^|\s)--?[A-Za-z]/.test(plain)
+        || [...plain].some(char => (char.charCodeAt(0) < 32 && !'\t\n\r'.includes(char)) || char.charCodeAt(0) > 126)
         || /^ {4}|^\t|[`"'<>$=\\:|]|https?:|www\.|@|\]\(|\b(?:identifier|variable|function|path|command|token|password|code|regex|formula|equation)\b/i.test(plain)
         || /\b\w+[./_]\w+\b/.test(plain);
       const ordinaryWords = plain.match(/[A-Za-z]+/g) || [];

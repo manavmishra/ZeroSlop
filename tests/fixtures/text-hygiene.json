@@ -27,5 +27,14 @@
   {"name":"table","input":"| The te\u200bxt | is clear |","expected":"| The te\u200bxt | is clear |"},
   {"name":"html block","input":"<pre>\nThe te\u200bxt is clear.\n</pre>","expected":"<pre>\nThe te\u200bxt is clear.\n</pre>"},
   {"name":"bom frontmatter","input":"\ufeff---\ndescription: |\n  The te\u200bxt is clear.\n---","expected":"\ufeff---\ndescription: |\n  The te\u200bxt is clear.\n---"},
-  {"name":"empty","input":"","expected":""}
+  {"name":"empty","input":"","expected":""},
+  {"name":"unfenced shell","input":"echo te\u200bxt","expected":"echo te\u200bxt"},
+  {"name":"unfenced shell terminal punctuation","input":"echo te\u200bxt.","expected":"echo te\u200bxt."},
+  {"name":"unfenced SQL","input":"SELECT te\u200bxt FROM records","expected":"SELECT te\u200bxt FROM records"},
+  {"name":"unfenced function call","input":"print(te\u200bxt)","expected":"print(te\u200bxt)"},
+  {"name":"unfenced return","input":"return te\u200bxt;","expected":"return te\u200bxt;"},
+  {"name":"unfenced import","input":"import te\u200bxt","expected":"import te\u200bxt"},
+  {"name":"unfenced unknown command","input":"frobnicate te\u200bxt","expected":"frobnicate te\u200bxt"},
+  {"name":"command flag in prose-shaped line","input":"The te\u200bxt --clear.","expected":"The te\u200bxt --clear."},
+  {"name":"operator in prose-shaped line","input":"The te\u200bxt && clear.","expected":"The te\u200bxt && clear."}
 ]

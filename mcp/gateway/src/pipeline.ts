@@ -338,7 +338,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   const deadline = started + PIPELINE_BUDGET_MS;
   const control = { signal, editorRequested: false, deadline };
   checkCancelled(control);
-  const original = input.text.trim();
+  const original = input.operation === "clean_text" ? input.text : input.text.trim();
   const before = await scoreWriting(env, original, input.genre, control);
   checkCancelled(control);
 
