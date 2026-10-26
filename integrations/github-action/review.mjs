@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 
-export const CLI_VERSION = "2.10.0";
+export const CLI_VERSION = "3.0.0";
 export const MAX_LOCAL_BYTES = 100_000;
 export const MAX_REMOTE_CHARS = 20_000;
 const GENRES = new Set(["general", "social", "email", "research", "professional"]);

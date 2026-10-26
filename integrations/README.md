@@ -9,7 +9,7 @@ Use the same editing pipeline in the places where writing gets reviewed.
 | [Postman collection](postman/README.md) | Imports the contract and exercises a synthetic draft plus input rejection. | Importable collection; not published to the API Network. |
 | [n8n review workflow](n8n/README.md) | Runs one manual edit and routes warnings to human review. | Importable workflow; not an accepted Template Library listing. |
 
-The Action and Raycast integrations pin the `2.10.0` CLI release. Their hosted path uses
+Each integration pins its CLI dependency. Their hosted path uses
 `https://mcp.zero-slop.ai/mcp`; it does not duplicate the editorial prompt or
 introduce an independent rewriting service.
 

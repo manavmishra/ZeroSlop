@@ -7,7 +7,7 @@ not send drafts to an editor, change files, or post pull-request comments.
 ## Add to a workflow
 
 The action runs on a GitHub-hosted Ubuntu runner with Python 3. It installs the
-fixed `zero-slop@2.10.0` npm release in runner temporary storage. The scorer reads
+fixed `zero-slop@3.0.0` npm release in runner temporary storage. The scorer reads
 Git blobs, not scripts or configuration from the pull request. Markdown must be
 UTF-8; invalid text encoding fails the check instead of being silently replaced.
 
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.13'
-      - uses: manavmishra/ZeroSlop/integrations/github-action@v2.10.0
+      - uses: manavmishra/ZeroSlop/integrations/github-action@v3.0.0
         id: review
 ```
 
@@ -61,7 +61,7 @@ Hosted edits are rejected for fork pull requests, and every mode rejects
 `pull_request_target`.
 
 ```yaml
-- uses: manavmishra/ZeroSlop/integrations/github-action@v2.10.0
+- uses: manavmishra/ZeroSlop/integrations/github-action@v3.0.0
   id: review
   with:
     mode: deslop
