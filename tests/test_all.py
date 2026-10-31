@@ -30,6 +30,10 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
+if __package__:
+    from .skill_documents import read_required_skill
+else:
+    from skill_documents import read_required_skill
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -737,7 +741,7 @@ class CommunityReportedSignals(unittest.TestCase):
     that community frequency is a calibrated probability or a safe word list."""
 
     def test_runtime_names_the_reader_salience_pass_and_three_judgment_traits(self):
-        skill = (ROOT / "SKILL.md").read_text().lower()
+        skill = read_required_skill(ROOT).lower()
         tells = (ROOT / "references" / "tells.md").read_text().lower()
         readalong = (ROOT / "references" / "readalong.md").read_text().lower()
         evidence = (ROOT / "references" / "evidence.md").read_text().lower()
@@ -880,7 +884,7 @@ class CommunityReportedSignals(unittest.TestCase):
                 self.assertNotIn(forbidden, names)
 
     def test_incumbent_contextual_checks_are_explicit(self):
-        skill = (ROOT / "SKILL.md").read_text().lower()
+        skill = read_required_skill(ROOT).lower()
         tells = (ROOT / "references" / "tells.md").read_text().lower()
         readalong = (ROOT / "references" / "readalong.md").read_text().lower()
         for phrase in (
@@ -1983,6 +1987,7 @@ class DocsMatchReality(unittest.TestCase):
         cls.docs = {f: (ROOT / f).read_text()
                     for f in ("README.md", "SKILL.md", "ONE-PAGER.md",
                               "assets/engine.svg")}
+        cls.docs["SKILL.md"] = read_required_skill(ROOT)
 
     def _claims(self, text, unit):
         """Every '<number> <unit>' assertion in a document."""
@@ -4260,7 +4265,7 @@ class Personalization(unittest.TestCase):
 
     def test_profile_contract_is_described_without_full_style_claims(self):
         readme = " ".join((ROOT / "README.md").read_text().lower().split())
-        skill = " ".join((ROOT / "SKILL.md").read_text().lower().split())
+        skill = " ".join(read_required_skill(ROOT).lower().split())
         page = " ".join(
             (ROOT / "website" / "app" / "page.tsx").read_text().lower().split()
         )

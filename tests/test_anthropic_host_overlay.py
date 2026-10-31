@@ -12,6 +12,10 @@ import sys
 import tempfile
 import unittest
 import zipfile
+if __package__:
+    from .skill_documents import compose_required_skill
+else:
+    from skill_documents import compose_required_skill
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -103,7 +107,9 @@ class AnthropicHostOverlay(unittest.TestCase):
                 self.assertIsNone(build_plugin._PYTHON_COMMAND.search(text), name)
                 self.assertIsNone(build_plugin._INLINE_COMMAND.search(text), name)
                 self.assertIsNone(build_plugin._UNROUTED_COMMAND.search(text), name)
-        skill = files["skills/zero-slop/SKILL.md"].decode()
+        skill = compose_required_skill(
+            files["skills/zero-slop/SKILL.md"].decode(),
+            files["skills/zero-slop/references/detailed-workflow.md"].decode())
         for tool in ("version", "score", "portfolio", "heatmap", "register_delta", "rescue",
                      "predictability_probes", "predictability_score", "learn_reflect", "learn_voice"):
             self.assertIn(build_plugin.LOCAL_TOOL_PREFIX + tool, skill)
@@ -113,8 +119,12 @@ class AnthropicHostOverlay(unittest.TestCase):
 
     def test_source_editorial_algorithm_and_consent_survive(self):
         files = self.overlay()
-        skill = files["skills/zero-slop/SKILL.md"].decode()
-        source = self.canonical["skills/zero-slop/SKILL.md"].decode()
+        skill = compose_required_skill(
+            files["skills/zero-slop/SKILL.md"].decode(),
+            files["skills/zero-slop/references/detailed-workflow.md"].decode())
+        source = compose_required_skill(
+            self.canonical["skills/zero-slop/SKILL.md"].decode(),
+            self.canonical["skills/zero-slop/references/detailed-workflow.md"].decode())
         headings = lambda text: re.findall(r"^#{1,6} .*$", text, re.M)
         self.assertEqual([heading for heading in headings(skill) if heading != "## Local tool routing"], headings(source))
         for phrase in ("Fidelity.", "Flag hollow spans", "No over-correction", "affirmative",
@@ -125,8 +135,12 @@ class AnthropicHostOverlay(unittest.TestCase):
 
     def test_document_formats_do_not_delegate_execution_and_keep_honest_fallback(self):
         files = self.overlay()
-        skill = files["skills/zero-slop/SKILL.md"].decode()
-        source = self.canonical["skills/zero-slop/SKILL.md"].decode()
+        skill = compose_required_skill(
+            files["skills/zero-slop/SKILL.md"].decode(),
+            files["skills/zero-slop/references/detailed-workflow.md"].decode())
+        source = compose_required_skill(
+            self.canonical["skills/zero-slop/SKILL.md"].decode(),
+            self.canonical["skills/zero-slop/references/detailed-workflow.md"].decode())
         self.assertIn("use the docx skill", source)
         self.assertIn("use the pdf skill", source)
         self.assertIsNone(build_plugin._EXTERNAL_SKILL_COMMAND.search(skill))
@@ -134,10 +148,12 @@ class AnthropicHostOverlay(unittest.TestCase):
                        "approved plain-text alternative", "without launching custom code",
                        "Never claim that styles"):
             self.assertIn(phrase, skill)
-        self.assertEqual(self.canonical["skills/zero-slop/SKILL.md"].decode(), source)
+        self.assertEqual(self.canonical["skills/zero-slop/SKILL.md"].decode() + "\n\n" +
+                         self.canonical["skills/zero-slop/references/detailed-workflow.md"].decode(), source)
 
     def test_new_document_delegation_fails_closed_in_all_instruction_copies(self):
-        for name in ("skills/zero-slop/SKILL.md", "skills/zero-slop/references/reader-review.md"):
+        for name in ("skills/zero-slop/SKILL.md", "skills/zero-slop/references/detailed-workflow.md",
+                     "skills/zero-slop/references/reader-review.md"):
             for instruction in ("Use the docx skill", "invoke PDF skill", "run the conversion skill"):
                 files = dict(self.canonical)
                 files[name] += ("\n" + instruction + "\n").encode()
