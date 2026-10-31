@@ -21,6 +21,7 @@ OUT = ROOT / "dist" / "zero-slop-single-file.md"
 # in the order the loop consults them.
 PARTS = [
     "SKILL.md",
+    "references/detailed-workflow.md",
     "references/tells.md",
     "references/rewrite-moves.md",
     "references/platforms.md",

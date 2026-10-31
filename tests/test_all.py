@@ -4384,6 +4384,15 @@ class Diagram(unittest.TestCase):
             self.assertIn(f"# FILE: {required}", bundle,
                           f"single-file installs cannot run {required}")
 
+    def test_single_file_bundle_contains_required_workflow(self):
+        bundle = (ROOT / "dist" / "zero-slop-single-file.md").read_text()
+        required = "references/detailed-workflow.md"
+        workflow = (ROOT / required).read_text()
+        self.assertTrue(f"# FILE: {required}" in bundle,
+                        "single-file installs need the mandatory workflow inline")
+        self.assertTrue(workflow.rstrip() in bundle,
+                        "the complete mandatory workflow must ship in the bundle")
+
     def test_one_pager_pdf_is_current(self):
         try:
             import reportlab  # noqa: F401
