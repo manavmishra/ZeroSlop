@@ -32,6 +32,7 @@ jobs:
       - name: Create a runner-local acceptance tap
         run: |
           brew tap-new --no-git zero-slop/acceptance
+          brew trust zero-slop/acceptance
           tap_path="$(brew --repo zero-slop/acceptance)"
           install -m 644 "$RUNNER_TEMP/zero-slop.rb" "$tap_path/Formula/zero-slop.rb"
       - name: Audit the formula without relaxing the rules
