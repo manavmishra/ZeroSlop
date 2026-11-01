@@ -736,6 +736,24 @@ class CLI(unittest.TestCase):
             )
 
 
+def require_pinned_history(test):
+    """Fail with the cause when the audited commits are not in this checkout.
+
+    These tests rebuild old measurements with `git show`, so a shallow clone or
+    an archive export cannot run them. Without this check they fail with a bare
+    `git` exit status 128. They still fail: the audit must not pass unchecked.
+    """
+    sys.path.insert(0, str(ROOT / "bench"))
+    from pinned_runtime import COMMITS
+    missing = [f"{version} ({commit[:12]})" for version, commit in COMMITS.items()
+               if subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"],
+                                 cwd=ROOT, capture_output=True).returncode]
+    if missing:
+        test.fail("pinned release commits missing: " + ", ".join(missing)
+                  + ". Run this test in a full-history clone (git fetch --unshallow);"
+                  " a shallow clone or git archive export cannot rebuild them.")
+
+
 class CommunityReportedSignals(unittest.TestCase):
     """Reader-reported research changes editorial priority without pretending
     that community frequency is a calibrated probability or a safe word list."""
@@ -3289,6 +3307,7 @@ class SearchCorpus(unittest.TestCase):
         # README intentionally omits the detailed performance paragraph.
 
     def test_historical_version_comparison_is_source_bound_and_arithmetically_sound(self):
+        require_pinned_history(self)
         import hashlib
         import statistics
         sys.path.insert(0, str(ROOT / "bench"))
@@ -3437,6 +3456,7 @@ class RaidPlusCorpusAudit(unittest.TestCase):
         ))
 
     def test_historical_offline_contract_check(self):
+        require_pinned_history(self)
         result = run([str(self.ROOT / "audit.py"), "--check-historical"])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("historical 2.12.12 receipt", result.stdout)
@@ -3447,6 +3467,7 @@ class RaidPlusCorpusAudit(unittest.TestCase):
         self.assertIn("does not match the current scorer", result.stderr)
 
     def test_historical_receipt_rejects_any_aggregate_or_pin_relabel(self):
+        require_pinned_history(self)
         import copy
         spec = importlib.util.spec_from_file_location("raid_history_test", self.ROOT / "audit.py")
         module = importlib.util.module_from_spec(spec)
@@ -3708,6 +3729,7 @@ class FeatureAblation(unittest.TestCase):
     """Historical research stays pinned; current byte-changed code is replayed anew."""
 
     def test_historical_ablation_is_source_bound_and_caveated(self):
+        require_pinned_history(self)
         result = run([str(FEATURE_ABLATION)])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads((ROOT / "bench" / "feature-ablation" / "results.json").read_text())
@@ -3721,6 +3743,7 @@ class FeatureAblation(unittest.TestCase):
         self.assertEqual(report["candidate"]["production_path"], "single")
 
     def test_fresh_current_release_replay(self):
+        require_pinned_history(self)
         result = run([str(ROOT / "bench/release_replay.py"), "--check"])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
