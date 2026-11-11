@@ -214,7 +214,10 @@ test("REST and OpenAPI advertise supported methods and no cross-origin access", 
   }
   const spec = await handleRest(new Request("https://mcp.zero-slop.ai/openapi.json"), env, ctx, neverRun);
   assert.equal(spec.status, 200);
-  assert.deepEqual(await spec.json(), openApiDocument(env.SCORER_VERSION));
+  const document = openApiDocument(env.SCORER_VERSION);
+  assert.deepEqual(await spec.json(), document);
+  assert.match(document.info.description, /Cloudflare Workers AI/);
+  assert.match(document.info.description, /OpenRouter to a free model provider that may keep the draft and the edit or use them to train models/);
   const head = await handleRest(new Request("https://mcp.zero-slop.ai/openapi.json", { method: "HEAD" }), env, ctx, neverRun);
   assert.equal(await head.text(), "");
 });
@@ -222,8 +225,9 @@ test("REST and OpenAPI advertise supported methods and no cross-origin access", 
 test("only exact first-party browser origins receive CORS and preflight access", async () => {
   const { env } = environment(); const { ctx } = context();
   for (const origin of ["https://zero-slop.ai", "https://www.zero-slop.ai"]) {
-    const response = await handleRest(new Request("https://mcp.zero-slop.ai/v1/deslop", { method: "OPTIONS", headers: { origin, "access-control-request-method": "POST", "access-control-request-headers": "content-type" } }), env, ctx, neverRun);
+    const response = await handleRest(new Request("https://mcp.zero-slop.ai/v1/deslop", { method: "OPTIONS", headers: { origin, "access-control-request-method": "POST", "access-control-request-headers": "content-type, x-zero-slop-openrouter-notice" } }), env, ctx, neverRun);
     assert.equal(response.status, 204); assert.equal(response.headers.get("access-control-allow-origin"), origin); assert.equal(response.headers.get("access-control-allow-methods"), "POST");
+    assert.equal(response.headers.get("access-control-allow-headers")?.toLowerCase(), "content-type, x-zero-slop-openrouter-notice");
     assert.equal(response.headers.get("access-control-allow-credentials"), null); assert.match(response.headers.get("access-control-expose-headers") ?? "", /Retry-After/);
     assert.match(response.headers.get("vary") ?? "", /Access-Control-Request-Headers/);
     const failure = await handleRest(request({ text: " " }, { origin }), env, ctx, neverRun);

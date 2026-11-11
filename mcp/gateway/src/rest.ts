@@ -1,11 +1,14 @@
 import { countCapacityReject, countPipelineFailure, countPipelineResult } from "./counter";
 import { deslopInputSchema, deslopOutputSchema, MAX_REQUEST_BYTES, openApiDocument } from "./contract";
 import { runPipeline } from "./pipeline";
+import { hasCurrentOpenRouterNotice, OPENROUTER_NOTICE_HEADER, WEBSITE_ORIGINS } from "./editor-notice";
 import { HostedBudgetError, type CapacityScope } from "./budget";
 import { checkCancelled, PipelineCancelledError } from "./cancellation";
 import { inspectRestRequest, trackMcpRequest, trackCapacityLimit, trackPipelineResult, trackPipelineFailure, type McpRequestMeta } from "./telemetry";
 
 const BODY_TIMEOUT_MS = 10_000;
+const CORS_ALLOWED_HEADERS = ["Content-Type", OPENROUTER_NOTICE_HEADER];
+const corsAllowedHeaders = new Set(CORS_ALLOWED_HEADERS.map((header) => header.toLowerCase()));
 
 class RequestError extends Error {
   constructor(readonly status: number, readonly code: string, message: string) { super(message); }
@@ -74,7 +77,7 @@ export async function handleRest(
   const started = Date.now();
   const meta = inspectRestRequest(request);
   const origin = request.headers.get("origin");
-  const forbiddenOrigin = origin !== null && !["https://zero-slop.ai", "https://www.zero-slop.ai"].includes(origin);
+  const forbiddenOrigin = origin !== null && !WEBSITE_ORIGINS.has(origin);
   const response = forbiddenOrigin
     ? problem(403, "forbidden_origin", "This browser origin is not allowed.", crypto.randomUUID())
     : await handleRestRequest(request, env, ctx, pipeline, meta);
@@ -107,10 +110,10 @@ async function handleRestRequest(
   }
   if (request.method === "OPTIONS" && request.headers.has("origin")) {
     const requestedHeaders = (request.headers.get("access-control-request-headers") ?? "").toLowerCase().split(",").map((header) => header.trim()).filter(Boolean);
-    if (request.headers.get("access-control-request-method") !== "POST" || requestedHeaders.some((header) => header !== "content-type")) {
-      return problem(403, "forbidden_preflight", "Only POST with Content-Type is supported.", requestId);
+    if (request.headers.get("access-control-request-method") !== "POST" || requestedHeaders.some((header) => !corsAllowedHeaders.has(header))) {
+      return problem(403, "forbidden_preflight", "The browser requested an unsupported method or header.", requestId);
     }
-    return new Response(null, { status: 204, headers: { "access-control-allow-methods": "POST", "access-control-allow-headers": "Content-Type", vary: "Origin, Access-Control-Request-Method, Access-Control-Request-Headers" } });
+    return new Response(null, { status: 204, headers: { "access-control-allow-methods": "POST", "access-control-allow-headers": CORS_ALLOWED_HEADERS.join(", "), vary: "Origin, Access-Control-Request-Method, Access-Control-Request-Headers" } });
   }
   if (request.method !== "POST") return problem(405, "method_not_allowed", "Use POST with a JSON draft.", requestId, { allow: "POST" });
   const mediaType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
@@ -141,7 +144,7 @@ async function handleRestRequest(
       return problem(429, "capacity_limit", "Zero Slop is busy. Please wait at least 10 seconds before trying again.", requestId, { "retry-after": "10" });
     }
     const { text, genre, audience, operation } = parsed.data;
-    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}), ...(operation ? { operation } : {}) }, request.headers.get("cf-connecting-ip") ?? "", request.signal));
+    const result = deslopOutputSchema.parse(await pipeline(env, { text, genre, ...(audience ? { audience } : {}), ...(operation ? { operation } : {}) }, request.headers.get("cf-connecting-ip") ?? "", request.signal, hasCurrentOpenRouterNotice(request)));
     trackPipelineResult(env, meta, genre, text.length, result);
     ctx.waitUntil(countPipelineResult(env, result));
     console.log(JSON.stringify({ event: "rest_deslop_complete", status: result.status, chars: parsed.data.text.length, durationMs: result.durationMs }));

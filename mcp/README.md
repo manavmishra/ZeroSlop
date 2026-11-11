@@ -24,21 +24,23 @@ gateway Worker
     | service binding                    | HTTPS, HMAC, no-store
     v                                    v
 private scorer Worker              bounded hosted editor
-exact Zero Slop 2.12.37              same composite edit as /try/
+exact Zero Slop 2.12.38              same composite edit as /try/
 ```
 
 The split is deliberate. The TypeScript gateway owns the public protocol,
 input schema, deadlines, release policy, and security headers. A private
 Python Worker runs byte-for-byte copies of the shipped scorer modules. The
 five AI editorial responsibilities share one composite response, exactly as
-they do on `/try/`. The 2.12.13 release candidate makes one outbound request to
-the hosted editor, whose primary provider is Cloudflare Workers AI at temperature
-zero. If the primary cannot return a usable edit, the editor can make one bounded
-OpenRouter request routed among pinned free models. Each provider attempt is
-budget-gated; there are at most two provider calls, reported in `modelRequests`,
-and no second finishing request. Both paths retain the connector's no-store
-requirement. The scorer and source checks run before and after the returned edit.
-This describes the candidate contract, not proof that version 2.12.13 is deployed.
+they do on `/try/`. The gateway makes one request to the hosted editor. The editor
+tries Cloudflare Workers AI first. If it cannot return a usable edit, Zero Slop may
+send the draft and editing inputs through OpenRouter to a free model provider that
+may keep the draft and the edit or use them to train models. Zero Slop does not store the
+draft or rewrite. See the [privacy policy](https://zero-slop.ai/privacy/) for provider
+handling and usage records.
+
+Each provider attempt requires a budget reservation. The `modelRequests` field counts
+up to two provider calls. The scorer and source checks run before and after editing,
+with no second finishing request.
 
 The gateway marks a rewrite fully checked only when all of these are true:
 

@@ -9,10 +9,12 @@ levels.
 - A public TypeScript gateway validates MCP requests, enforces size and rate
   limits, and returns no-store responses.
 - A private Python Worker runs the exact scorer shipped in the tagged skill.
-- One signed request reaches the website editor, which makes at most one
-  Workers AI call. A bounded local edit remains available if that call fails.
-- Thirty-two Durable Object shards hold aggregate counters. Draft text is not
-  written to logs, analytics, counters, or durable storage.
+- One signed request reaches the website editor. The editor can make one Workers AI
+  call and one free OpenRouter fallback call. A conservative local edit may still be
+  available if neither returns a usable edit.
+- Thirty-two Durable Object shards hold aggregate counters. Zero Slop keeps draft text
+  out of its logs, analytics, counters and durable storage. Model providers have their
+  own policies, described in the [privacy policy](https://zero-slop.ai/privacy/).
 
 ## Operating targets
 
@@ -23,7 +25,7 @@ levels.
 | `deslop` completion, p95 | under 36 seconds |
 | Maximum request body | 128 KiB |
 | Maximum draft | 20,000 characters |
-| Model calls per edit | at most one |
+| Model calls per edit | at most two |
 | Unbounded retries | zero |
 
 The deployment is free to return a source-preserving local edit with a warning

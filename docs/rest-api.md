@@ -12,6 +12,11 @@ Use the [API sandbox](https://zero-slop.ai/sandbox/) to inspect a simulated resu
 before sending a draft. Its live mode requires an explicit request and uses this
 same endpoint.
 
+Cloudflare Workers AI handles hosted editing first. If it cannot return a usable edit,
+Zero Slop may send the draft and editing inputs through OpenRouter to a free model
+provider that may keep the draft and the edit or use them to train models. Zero Slop does not
+store the draft or rewrite. See the [privacy policy](https://zero-slop.ai/privacy/).
+
 ## Send a draft
 
 ```sh

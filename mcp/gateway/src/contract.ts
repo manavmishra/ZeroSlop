@@ -5,6 +5,7 @@ import { editorDiagnosticsSchema } from "./editor-diagnostics";
 
 export const MAX_DRAFT_CHARS = 20_000;
 export const MAX_REQUEST_BYTES = 128 * 1024;
+export const hostedProviderDisclosure = "Cloudflare Workers AI handles hosted editing first. If it cannot return a usable edit, the service may send the draft and editing inputs through OpenRouter to a free model provider that may keep the draft and the edit or use them to train models.";
 
 // The MCP tool, REST validator and OpenAPI document share these schemas.
 const deslopInputObject = z.object({
@@ -75,10 +76,11 @@ export function openApiDocument(version: string) {
     info: {
       title: "Zero Slop API",
       version,
-      description: "Edit one draft through the same hosted pipeline as the Zero Slop MCP tool. Drafts and rewrites are processed in memory, not stored by this service. Source checks are heuristic, not a guarantee of factual or semantic correctness. Review the result before publishing.",
+      description: `Edit one draft through the same hosted pipeline as the Zero Slop MCP tool. ${hostedProviderDisclosure} Zero Slop processes drafts and rewrites in memory without storing them. Source checks are heuristic. Review the result before publishing.`,
       termsOfService: "https://zero-slop.ai/terms/",
       contact: { name: "Zero Slop", url: "https://github.com/manavmishra/ZeroSlop/issues" },
     },
+    externalDocs: { description: "Privacy policy", url: "https://zero-slop.ai/privacy/" },
     servers: [{ url: "https://mcp.zero-slop.ai" }],
     tags: [{ name: "Writing", description: "One draft, the same checked result as MCP." }],
     paths: {

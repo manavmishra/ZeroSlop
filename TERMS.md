@@ -1,8 +1,8 @@
 # Zero Slop — Terms of Service
 
-**Effective 22 September 2026 · Version 1.2**
+**Effective 11 November 2026 · Version 1.3**
 
-Hosted editing provider information updated in this version.
+This version updates how the hosted editor uses its fallback model provider.
 
 These terms are an agreement between you and Garage Capital Ventures LLC ("we", "us", and "our"). They
 cover the Zero Slop website, the free browser editor, and the optional hosted MCP connector.
@@ -56,8 +56,8 @@ is outside what these terms permit.
 
 We do not claim ownership of your drafts or the edited text. You retain whatever rights you
 have in them and are responsible for having permission to submit the content. By requesting an
-edit, you authorise us and our service providers to process and transmit that content solely
-to provide the requested service.
+edit, you authorise us to process that content solely to provide the requested service. This
+includes sending it to the model providers described in Section 14.
 
 The [Privacy Policy](https://zero-slop.ai/privacy/) describes how the hosted services process
 drafts and collect operational data. Third-party infrastructure and model providers also have
@@ -149,10 +149,13 @@ are not free to share.
 
 ## 14. Third-party services
 
-The hosted services run on Cloudflare. Hosted editing uses Cloudflare Workers AI or OpenRouter
-with zero-data-retention routing. Your use of
-Zero Slop through a third-party client — ChatGPT, Claude, Cursor, Codex, or any other MCP host — is
-also governed by that provider's own terms and privacy policy, which we do not control.
+Cloudflare hosts the service. Cloudflare Workers AI handles hosted editing first.
+If that service cannot return a usable edit, Zero Slop may send your draft and editing
+inputs through OpenRouter to a free model provider. That provider may keep the draft and
+the edit or use them to train models under its own policy. See our
+[Privacy Policy](https://zero-slop.ai/privacy/) for details. If you use Zero Slop through
+ChatGPT, Claude, Cursor, Codex, or another MCP host, that host's terms and privacy policy
+also apply.
 
 ## 15. Changes to these terms
 

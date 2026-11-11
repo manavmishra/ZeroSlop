@@ -19,7 +19,7 @@ are not authentication or provenance evidence.
 Use `deslop` for hosted editing with MCP parity. Use `score` for offline checks.
 
 ```sh
-npm install --global zero-slop@2.12.37
+npm install --global zero-slop@2.12.38
 zero-slop deslop draft.md --genre professional
 zero-slop deslop - --genre email < draft.txt
 zero-slop deslop draft.md --json --require-approved
@@ -43,6 +43,10 @@ Homebrew update. Linux Homebrew has not been tested.
 `https://mcp.zero-slop.ai/mcp`, and writes the returned text to standard output.
 It never edits a source file in place. Warnings go to standard error. Capture
 standard output only when you intend to save it.
+
+The hosted editor can send the draft to Cloudflare Workers AI and, if needed,
+through OpenRouter to a free model provider that may keep the draft and edit or
+use them to train models. See the [privacy policy](https://zero-slop.ai/privacy/).
 
 ## Options and results
 

@@ -340,7 +340,8 @@ function editorFailureNote(reason: EditorFailure | null): string {
   }
 }
 
-export async function runPipeline(env: Env, input: DeslopInput, clientAddress = "", signal?: AbortSignal): Promise<PipelineResult> {
+export async function runPipeline(env: Env, input: DeslopInput, clientAddress = "", signal?: AbortSignal,
+  openRouterNoticeConfirmed = false): Promise<PipelineResult> {
   const started = Date.now();
   const deadline = started + PIPELINE_BUDGET_MS;
   const control = { signal, editorRequested: false, deadline };
@@ -387,7 +388,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   let editorDiagnostics: EditorDiagnostics = {};
   const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress, control,
     (count) => { observedProviderCalls = count; }, (reason) => { editorFailure = reason; },
-    (observed) => { editorDiagnostics = observed; });
+    (observed) => { editorDiagnostics = observed; }, openRouterNoticeConfirmed);
   checkCancelled(control);
   if (editorFailure) editorDiagnostics.failureReason = editorFailure;
   const resultDiagnostics = Object.keys(editorDiagnostics).length ? { editorDiagnostics } : {};

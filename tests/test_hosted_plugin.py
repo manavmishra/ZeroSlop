@@ -95,6 +95,7 @@ def validate_package(folder: Path, version: str) -> None:
     for phrase in (
         MCP_URL, "no local skill", "review candidate", "retention policies",
         "https://zero-slop.ai/privacy/", "Reporting a vulnerability",
+        "may keep the draft and the edit or use them to train models",
         "manav@prompeteer.com", "minimal synthetic reproduction",
         "not security, privacy, data-quality, or compliance certification",
     ):

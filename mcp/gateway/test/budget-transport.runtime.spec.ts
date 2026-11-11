@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 import { dailyBudgetClient } from "../src/budget";
+import { signedEditorHeaders } from "../src/model";
 
 const report = {
   score: 90, band: "rewrite", words: 20, sentences: 2, flaggedPhrases: 3,
@@ -74,4 +75,57 @@ describe("budget errors through the real Worker transports", () => {
       } finally { editor.mockRestore(); }
     });
   }
+});
+
+describe("OpenRouter notice through the real Worker transports", () => {
+  it("signs only the current browser notice or the published external client contract", async () => {
+    const notice = "2026-11-11";
+    const marker = "x-zero-slop-openrouter-notice";
+    const boundEnv = Object.assign({}, env, { SCORER: { async fetch() { return Response.json(report); } } }) as Env;
+    const pending: Promise<unknown>[] = [];
+    const ctx = { waitUntil(promise: Promise<unknown>) { pending.push(promise); } } as ExecutionContext;
+    const forwarded: unknown[] = [];
+    const editor = vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options) => {
+      expect(String(url)).toBe(env.EDITOR_ENDPOINT);
+      const body = String(options?.body);
+      const headers = new Headers(options?.headers);
+      const signed = await signedEditorHeaders(env.EDITOR_SHARED_SECRET, body, Number(headers.get("x-zero-slop-timestamp")));
+      expect(headers.get("x-zero-slop-signature")).toBe(signed["x-zero-slop-signature"]);
+      forwarded.push(JSON.parse(body).openRouterNotice);
+      return Response.json({ code: "usage_limit", capacityScope: "workers_daily" }, { status: 429, headers: { "retry-after": "60" } });
+    });
+    try {
+      for (const [channel, origin, header, expected] of [
+        ["rest", "https://zero-slop.ai", undefined, undefined],
+        ["rest", "https://www.zero-slop.ai", "2026-09-22", undefined],
+        ["rest", "https://zero-slop.ai", `${notice}, ${notice}`, undefined],
+        ["rest", "https://www.zero-slop.ai", notice, notice],
+        ["rest", undefined, undefined, notice],
+        ["mcp", "https://zero-slop.ai", undefined, undefined],
+        ["mcp", "https://zero-slop.ai:8443", notice, undefined],
+        ["mcp", "https://zero-slop.ai", notice, notice],
+        ["mcp", "https://chatgpt.com", undefined, notice],
+        ["mcp", undefined, undefined, notice],
+      ] as const) {
+        const rest = channel === "rest";
+        const args = { ...input, openRouterNotice: notice }; // Public JSON cannot set the signed field.
+        const request = new Request(`https://mcp.zero-slop.ai/${rest ? "v1/deslop" : "mcp"}`, {
+          method: "POST",
+          headers: {
+            host: "mcp.zero-slop.ai", "content-type": "application/json", accept: "application/json, text/event-stream",
+            ...(origin === undefined ? {} : { origin }), ...(header === undefined ? {} : { [marker]: header }),
+          },
+          body: JSON.stringify(rest ? args : { jsonrpc: "2.0", id: 7, method: "tools/call", params: { name: "deslop", arguments: args } }),
+        });
+        const response = await worker.fetch(request, boundEnv, ctx);
+        expect(response.status).toBe(rest ? 429 : 200);
+        await response.text();
+        expect(forwarded).toHaveLength(1);
+        expect(forwarded.pop()).toBe(expected);
+      }
+    } finally {
+      editor.mockRestore();
+      await Promise.all(pending);
+    }
+  });
 });

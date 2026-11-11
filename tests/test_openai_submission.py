@@ -65,6 +65,13 @@ class OpenAISubmission(unittest.TestCase):
                 self.assertEqual(svg.attrib["width"], svg.attrib["height"])
                 self.assertGreaterEqual(int(svg.attrib["width"]), 128)
 
+    def test_hosted_description_discloses_possible_provider_retention_and_training(self):
+        description = self.interface["longDescription"]
+        self.assertIn("Cloudflare Workers AI", description)
+        self.assertIn("OpenRouter to a free model provider", description)
+        self.assertIn("may keep the draft and the edit or use them to train models", description)
+        self.assertNotIn("require zero-data-retention routing", description)
+
     def test_five_positive_and_three_negative_cases(self):
         self.assertEqual(len(self.cases["positive"]), 5)
         self.assertEqual(len(self.cases["negative"]), 3)

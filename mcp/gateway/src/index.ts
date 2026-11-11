@@ -5,8 +5,9 @@ import { z } from "zod";
 
 import { runPipeline } from "./pipeline";
 import { scorerHealth } from "./scorer";
-import { deslopInputSchema, deslopOutputSchema as outputSchema, MAX_DRAFT_CHARS as MAX_CHARS, MAX_REQUEST_BYTES } from "./contract";
+import { deslopInputSchema, deslopOutputSchema as outputSchema, hostedProviderDisclosure, MAX_DRAFT_CHARS as MAX_CHARS, MAX_REQUEST_BYTES } from "./contract";
 import { handleRest } from "./rest";
+import { hasCurrentOpenRouterNotice } from "./editor-notice";
 import { completeListenStream, isListenRequest } from "./listen";
 import { HostedBudgetError } from "./budget";
 import { boundedOperation, PipelineCancelledError } from "./cancellation";
@@ -111,7 +112,7 @@ const SERVER_CAPABILITIES = { tools: { listChanged: false } };
 const securitySchemes = [{ type: "noauth" as const }];
 const toolConfig = {
   title: "Deslop writing",
-  description: "Processes pasted prose with server-side scoring and source-preservation checks, plus bounded hosted AI editing when needed. Inputs are text, genre, and an optional audience. Returns edited or unchanged text, exact before-and-after writing scores, completed-check metadata, and review warnings when editing targets are missed.",
+  description: `Edits pasted prose with server-side scoring and source-preservation checks. ${hostedProviderDisclosure} Returns edited or unchanged text, writing scores, completed checks, and any review warnings.`,
   inputSchema: deslopInputSchema,
   outputSchema,
   _meta: { securitySchemes },
@@ -152,7 +153,7 @@ const TOOLS_LIST_RESULT = deepFreeze({
   }],
 });
 
-function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext, clientAddress: string, signal: AbortSignal): McpServer {
+function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionContext, request: Request): McpServer {
   const server = new McpServer(
     { name: SERVER_NAME, version: env.SCORER_VERSION },
     { instructions: SERVER_INSTRUCTIONS, capabilities: SERVER_CAPABILITIES },
@@ -164,8 +165,8 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
     async ({ text, genre, audience, operation }, extra) => {
       const requestStarted = Date.now();
       try {
-        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}), ...(operation ? { operation } : {}) }, clientAddress,
-          AbortSignal.any([signal, extra.mcpReq.signal]));
+        const result = await runPipeline(env, { text, genre, ...(audience ? { audience } : {}), ...(operation ? { operation } : {}) },
+          request.headers.get("cf-connecting-ip") ?? "", AbortSignal.any([request.signal, extra.mcpReq.signal]), hasCurrentOpenRouterNotice(request));
         trackPipelineResult(env, requestMeta, genre, text.length, result);
         ctx.waitUntil(countPipelineResult(env, result));
         console.log(JSON.stringify({
@@ -310,7 +311,7 @@ export default {
         authentication: { required: false, schemes: [] },
         tools: [{
           name: "deslop",
-          description: "Rewrite AI-assisted prose while preserving source facts, with before and after writing scores.",
+          description: toolConfig.description,
           inputSchema: {
             type: "object",
             properties: {
@@ -381,7 +382,7 @@ export default {
 
     try {
       const allowedOriginHostnames = env.ALLOWED_ORIGINS.split(",").map((origin) => new URL(origin).hostname);
-      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx, request.headers.get("cf-connecting-ip") ?? "", request.signal), {
+      const handler = createMcpHandler(() => createServer(env, requestMeta, ctx, request), {
         route: "/mcp",
         allowedHostnames: ["mcp.zero-slop.ai"],
         allowedOriginHostnames,

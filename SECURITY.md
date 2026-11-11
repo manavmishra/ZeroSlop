@@ -56,10 +56,12 @@ stdlib-only Python runtime.
 
 The optional public MCP at `https://mcp.zero-slop.ai/mcp` is a separate remote
 service. A draft sent to that endpoint must leave the client to be edited. It is
-processed in memory, excluded from the demo cache, and routed through model endpoints
-configured for zero retention and no training. The gateway rejects any editor
-response that does not confirm `stored: false`. Zero Slop does not log or retain the
-draft or rewrite.
+processed in memory and excluded from the demo cache. Cloudflare Workers AI is the
+primary editor. If it cannot return a usable edit, Zero Slop may send the draft and
+editing inputs through OpenRouter to a free model provider that may keep the draft and
+the edit or use them to train models. See the [privacy policy](https://zero-slop.ai/privacy/)
+for details. Zero Slop does not log or retain the draft or rewrite. The gateway
+requires `stored: false` from Zero Slop's editor, which reports storage by that editor.
 
 The REST endpoint `https://mcp.zero-slop.ai/v1/deslop` calls this same pipeline.
 It accepts at most 128 KiB of UTF-8 JSON and one trimmed draft of 20,000 Unicode code

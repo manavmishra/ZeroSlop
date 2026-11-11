@@ -1,4 +1,5 @@
 import { readBoundedJson } from "./bounded-json";
+import { OPENROUTER_NOTICE } from "./editor-notice";
 import { dailyBudgetClient, HostedBudgetError } from "./budget";
 import { boundedOperation, checkCancelled, PipelineCancelledError, type PipelineControl } from "./cancellation";
 import { safeEditorDiagnostics, safeProviderAttempts, type EditorDiagnostics, type EditorFailure, type SafeProviderAttempt } from "./editor-diagnostics";
@@ -97,6 +98,7 @@ export async function callRole(
   onProviderCalls?: (count: 0 | 1 | 2) => void,
   onFailure?: (reason: EditorFailure) => void,
   onDiagnostics?: (diagnostics: EditorDiagnostics) => void,
+  openRouterNoticeConfirmed = false,
 ): Promise<ModelReply | null> {
   checkCancelled(control);
   const started = Date.now();
@@ -126,6 +128,7 @@ export async function callRole(
         noStore: true,
         budgetClient: await dailyBudgetClient(env.EDITOR_SHARED_SECRET, clientAddress),
         website: "",
+        ...(openRouterNoticeConfirmed ? { openRouterNotice: OPENROUTER_NOTICE } : {}),
       });
       const signatureHeaders = await signedEditorHeaders(env.EDITOR_SHARED_SECRET, body);
       checkCancelled(control);

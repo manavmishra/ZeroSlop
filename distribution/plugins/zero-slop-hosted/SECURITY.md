@@ -12,11 +12,12 @@ https://github.com/manavmishra/ZeroSlop/releases.
 ## Remote processing and limits
 
 The declared server receives the draft, genre, and optional audience supplied to
-it. Hosted processing uses Cloudflare and, when configured, a bounded OpenRouter
-fallback with eligible zero-data-retention providers. Zero Slop does not persist
-drafts or rewrites or activate private learning through this connector. Operational
-counters and infrastructure processing have separate retention policies described
-at https://zero-slop.ai/privacy/.
+it. Cloudflare Workers AI handles hosted editing first. If it cannot return a usable
+edit, Zero Slop may send the draft and editing inputs through OpenRouter to a free
+model provider that may keep the draft and the edit or use them to train models. Zero Slop
+does not keep drafts or rewrites or activate private learning through this connector.
+See https://zero-slop.ai/privacy/ for provider handling and separate retention policies
+for infrastructure and usage records.
 
 Capacity limits or unavailable providers can prevent an edit. Writing scores are
 heuristics, not AI-authorship probabilities; source checks are not a guarantee of

@@ -65,7 +65,9 @@ describe("MCP tool metadata in workerd", () => {
       idempotentHint: false,
       openWorldHint: true,
     });
-    expect(tool.description).toBe("Processes pasted prose with server-side scoring and source-preservation checks, plus bounded hosted AI editing when needed. Inputs are text, genre, and an optional audience. Returns edited or unchanged text, exact before-and-after writing scores, completed-check metadata, and review warnings when editing targets are missed.");
+    expect(tool.description).toMatch(/server-side scoring and source-preservation checks/);
+    expect(tool.description).toMatch(/Cloudflare Workers AI/);
+    expect(tool.description).toMatch(/OpenRouter to a free model provider that may keep the draft and the edit or use them to train models/);
     expect(tool.description).not.toMatch(/\b(use it|never|must|do not|ignore|obey|follow|Codex|Claude|Cowork|ChatGPT|skills|instructions)\b/i);
     expect(tool.description).not.toMatch(/https?:\/\/|[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u);
     expect(tool.inputSchema.properties.text?.description).toBe("The complete draft supplied as data for editing.");

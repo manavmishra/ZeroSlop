@@ -12,8 +12,9 @@ status, and review warnings. Scores are writing heuristics, not AI-authorship
 probabilities; source checks are not a guarantee of factual accuracy.
 
 Cloudflare hosts the service. Editing can use Cloudflare Workers AI and a bounded
-OpenRouter fallback, so both services may process the supplied writing. Hosted
-editing does not activate private learning or save local editing preferences.
+OpenRouter fallback, so both services may process the supplied writing. The
+fallback model provider may keep the draft and the edit or use them to train models.
+Hosted editing does not activate private learning or save local editing preferences.
 The application processes writing in memory; service metrics, infrastructure
 records, provider records, and the MCP host's conversation history have separate
 retention policies. See [our privacy policy](https://zero-slop.ai/privacy/)
