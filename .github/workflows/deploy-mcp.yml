@@ -16,6 +16,8 @@ on:
         required: false
       CF_ACCOUNT_ID:
         required: false
+      EDITOR_TEST_CLIENT_OVERRIDE:
+        required: false
     outputs:
       status:
         value: ${{ jobs.deploy.outputs.status }}
@@ -138,8 +140,34 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        # Omitted encrypted secrets stay on the existing Worker.
-        run: timeout 300s npm run deploy
+          EDITOR_TEST_CLIENT_OVERRIDE: ${{ secrets.EDITOR_TEST_CLIENT_OVERRIDE }}
+        run: |
+          set -euo pipefail
+          if [ "${EDITOR_TEST_CLIENT_OVERRIDE%% *}" != "$(date -u +%F)" ]; then
+            timeout 300s npm run deploy
+            exit
+          fi
+          umask 077
+          secret_file=$(mktemp "$RUNNER_TEMP/editor-test-client.XXXXXX")
+          trap 'rm -- "$secret_file"' EXIT
+          python3 - > "$secret_file" <<'PY'
+          import ipaddress
+          import json
+          import os
+
+          value = os.environ["EDITOR_TEST_CLIENT_OVERRIDE"]
+          try:
+              _, address = value.split(" ")
+              if "%" in address or ipaddress.ip_address(address) == ipaddress.ip_address("2a06:98c0:3600::103"):
+                  raise ValueError
+          except ValueError:
+              raise SystemExit("Invalid test client configuration") from None
+          print(json.dumps({"EDITOR_TEST_CLIENT_OVERRIDE": value}))
+          PY
+          unset EDITOR_TEST_CLIENT_OVERRIDE
+          # Adding this binding preserves other encrypted Worker secrets.
+          timeout 300s npm run deploy -- --secrets-file "$secret_file"
+          echo "Deployed today's optional test client allowance."
       - name: Verify only the deployed MCP runtime
         if: steps.current.outputs.status == 'current'
         env:

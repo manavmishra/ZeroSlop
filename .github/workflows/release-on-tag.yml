@@ -94,6 +94,7 @@ jobs:
     secrets:
       CF_WORKERS_DEPLOY_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
       CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      EDITOR_TEST_CLIENT_OVERRIDE: ${{ secrets.EDITOR_TEST_CLIENT_OVERRIDE }}
 
   website_sync:
     needs: [publish, deploy_mcp]

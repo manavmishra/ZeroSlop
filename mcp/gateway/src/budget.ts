@@ -1,7 +1,10 @@
-// Only the private editor binding may reserve inference. No draft, IP address,
-// or model output enters this coordinator; reservations are never refunded.
+import { isIP } from "node:net";
+
+// Only the private editor binding may reserve inference. Requests and stored
+// rows use daily keys instead of client IPs. Reservations are never refunded.
 export const EDITOR_BUDGET_NAME = "editor-budget-v1";
 const DAY_MS = 86_400_000;
+const ADDRESS = /^[a-f0-9:.]{1,64}$/i;
 const encoder = new TextEncoder();
 
 export class HostedBudgetError extends Error {
@@ -33,7 +36,7 @@ function humanRetryDelay(seconds: number): string {
 export async function dailyBudgetClient(secret: string, address = "", now = Date.now()) {
   if (typeof secret !== "string" || secret.length < 32) throw new HostedBudgetError("budget_unavailable");
   const day = new Date(now).toISOString().slice(0, 10);
-  const normalized = /^[a-f0-9:.]{1,64}$/i.test(address) ? address.toLowerCase() : "unknown";
+  const normalized = ADDRESS.test(address) ? address.toLowerCase() : "unknown";
   const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const digest = await crypto.subtle.sign("HMAC", key, encoder.encode(`zero-slop-editor-client-v1\n${day}\n${normalized}`));
   return { day, key: [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("") };
@@ -45,6 +48,19 @@ function configuredLimit(value: string | undefined, fallback: number, maximum: n
   const limit = Number(value);
   if (limit > maximum) throw new Error("invalid_budget_configuration");
   return limit;
+}
+
+async function matchesTestClient(env: Env, day: string, clientKey: string, now: number): Promise<boolean> {
+  const configured = env.EDITOR_TEST_CLIENT_OVERRIDE;
+  if (typeof configured !== "string" || configured.length > 80) return false;
+  const [testDay, address, extra] = configured.split(" ");
+  if (testDay !== day || !address || extra !== undefined || !ADDRESS.test(address) || !isIP(address)
+      || address.toLowerCase() === "2a06:98c0:3600::103") return false;
+  try {
+    return (await dailyBudgetClient(env.EDITOR_SHARED_SECRET, address, now)).key === clientKey;
+  } catch {
+    return false;
+  }
 }
 
 export class EditorBudgetStore {
@@ -88,6 +104,10 @@ export class EditorBudgetStore {
     // daily pseudonyms; alarm failure denies the request instead of leaking it.
     const alarm = await this.storage.getAlarm();
     if (alarm === null || alarm > nextDay || alarm <= now) await this.storage.setAlarm(nextDay);
+    // The optional one-day override adds one Workers AI reservation.
+    // The shared and per-minute ceilings still apply in the same transaction.
+    const extraTestCall = provider === "workers-ai" && clientDaily > 0 && clientDaily < 20
+      && await matchesTestClient(this.env, day, clientKey, now);
     const grantedAt = clock();
     if (new Date(grantedAt).toISOString().slice(0, 10) !== day) throw new Error("budget_day_changed");
     if (nextDay - grantedAt <= 60000) return Response.json({ allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "day_reset" });
@@ -106,7 +126,7 @@ export class EditorBudgetStore {
       if (provider === "openrouter" && openRouterCalls >= openRouterDaily) {
         return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "openrouter_daily" };
       }
-      if ((client?.calls ?? 0) >= clientDaily) {
+      if ((client?.calls ?? 0) >= clientDaily + Number(extraTestCall)) {
         return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((nextDay - grantedAt) / 1000)), reason: "client_daily" };
       }
       if (minuteCalls >= clientMinute) {

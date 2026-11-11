@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { evictDurableObject, runDurableObjectAlarm, runInDurableObject } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { EditorBudgetStore } from "../src/budget";
+import { dailyBudgetClient, EditorBudgetStore } from "../src/budget";
 
 const day = () => new Date().toISOString().slice(0, 10);
 const key = (index: number) => index.toString(16).padStart(64, "0");
@@ -58,6 +58,44 @@ describe("shared editor budget in SQLite", () => {
       expect(state.storage.sql.exec<{ reserved: number }>("SELECT reserved FROM editor_budget_days").one().reserved).toBe(8000);
       expect(state.storage.sql.exec<{ count: number }>("SELECT COUNT(*) AS count FROM editor_budget_clients").one().count).toBe(80);
       expect(await state.storage.getAlarm()).toBeGreaterThan(Date.now());
+    });
+  });
+
+  it("grants one expiring Workers AI test reservation while retaining the shared and minute caps", async () => {
+    const stub = env.MCP_COUNTER.getByName(`budget-test-client-${crypto.randomUUID()}`);
+    await runInDurableObject(stub, async (_instance, state) => {
+      const now = Date.parse(`${day()}T12:00:00Z`);
+      const address = "192.0.2.12";
+      const test = await dailyBudgetClient(env.EDITOR_SHARED_SECRET, address, now);
+      const other = await dailyBudgetClient(env.EDITOR_SHARED_SECRET, "192.0.2.13", now);
+      const unknown = await dailyBudgetClient(env.EDITOR_SHARED_SECRET, "", now);
+      const settings = { ...env, EDITOR_CLIENT_DAILY_CALLS: "1", EDITOR_CLIENT_MINUTE_CALLS: "1" };
+      const make = (override: string, limit = "8000", dailyCalls = "1") => new EditorBudgetStore(state.storage, {
+        ...settings, EDITOR_TEST_CLIENT_OVERRIDE: override, EDITOR_DAILY_NEURONS: limit, EDITOR_CLIENT_DAILY_CALLS: dailyCalls,
+      });
+      const override = `${test.day} ${address}`;
+      const budget = make(override);
+      const requestFor = ({ day, key }: typeof test) => ({ day, clientKey: key, neurons: 100 });
+      const request = requestFor(test);
+      const later = () => now + 60000;
+      expect(await (await budget.reserve(request, () => now)).json()).toMatchObject({ allowed: true });
+      expect(await (await budget.reserve(request, () => now)).json()).toMatchObject({ reason: "client_minute" });
+      expect(await (await budget.reserve({ day: test.day, clientKey: test.key }, later, "openrouter")).json()).toMatchObject({ reason: "client_daily" });
+      expect(await (await make(override, "100").reserve(request, later)).json()).toMatchObject({ reason: "workers_daily" });
+      expect(await (await make(override, "8000", "0").reserve(request, later)).json()).toMatchObject({ reason: "client_daily" });
+      for (const inactive of [`2000-01-01 ${address}`, `${test.day} ${address}/32`, `${override} other`]) {
+        expect(await (await make(inactive).reserve(request, later)).json()).toMatchObject({ reason: "client_daily" });
+      }
+      expect(await (await budget.reserve(requestFor(other), () => now)).json()).toMatchObject({ allowed: true });
+      expect(await (await budget.reserve(requestFor(other), later)).json()).toMatchObject({ reason: "client_daily" });
+      const scopedAddress = make(`${test.day} fe80::1%en0`);
+      expect(await (await scopedAddress.reserve(requestFor(unknown), () => now)).json()).toMatchObject({ allowed: true });
+      expect(await (await scopedAddress.reserve(requestFor(unknown), later)).json()).toMatchObject({ reason: "client_daily" });
+      const concurrent = await Promise.all([budget.reserve(request, later), budget.reserve(request, later)]);
+      const grants = await Promise.all(concurrent.map((response) => response.json<{ allowed: boolean }>()));
+      expect(grants.filter(({ allowed }) => allowed)).toHaveLength(1);
+      expect(await (await budget.reserve(request, () => now + 120000)).json()).toMatchObject({ reason: "client_daily" });
+      expect(state.storage.sql.exec<{ reserved: number }>("SELECT reserved FROM editor_budget_days").one().reserved).toBe(400);
     });
   });
 

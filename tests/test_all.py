@@ -3087,7 +3087,7 @@ class McpDeploymentChecks(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.module.validate_runtime("2.9.1", bad_health, bad_card)
 
-    def test_workflow_serializes_pinned_deployments_without_copying_runtime_secrets(self):
+    def test_workflow_serializes_pinned_deployments_without_copying_existing_runtime_secrets(self):
         workflow = (ROOT / ".github/workflows/deploy-mcp.yml").read_text()
         for required in (
             "workflow_call:", "workflow_dispatch:", "group: deploy-mcp-production",
@@ -3100,9 +3100,12 @@ class McpDeploymentChecks(unittest.TestCase):
         ):
             self.assertIn(required, workflow)
         self.assertLess(workflow.index("Deploy the private scorer"), workflow.index("Deploy the gateway"))
-        for forbidden in ("secret put", "--secrets-file", "CF_PAGES_TOKEN", "wrangler login",
+        for forbidden in ("secret put", "CF_PAGES_TOKEN", "wrangler login",
                           "check_release_surfaces.py", "EDITOR_SHARED_SECRET:"):
             self.assertNotIn(forbidden, workflow)
+        self.assertEqual(workflow.count("--secrets-file"), 1)
+        self.assertIn('"${EDITOR_TEST_CLIENT_OVERRIDE%% *}" != "$(date -u +%F)"', workflow)
+        self.assertIn('print(json.dumps({"EDITOR_TEST_CLIENT_OVERRIDE": value}))', workflow)
         release = (ROOT / ".github/workflows/release-on-tag.yml").read_text()
         self.assertIn("uses: ./.github/workflows/deploy-mcp.yml", release)
         self.assertIn("needs: publish", release)
