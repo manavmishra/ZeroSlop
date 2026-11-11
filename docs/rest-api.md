@@ -115,17 +115,19 @@ The optional `editorDiagnostics` field contains only bounded operational metadat
 | Field | Meaning |
 |---|---|
 | `endpointHttpStatus` | Observed HTTP status from the gateway's editor endpoint, from 100 to 599; distinct from this REST response's status |
+| `failureReason` | Fixed gateway outcome when it could not use the model reply |
 | `providerAttempts` | Up to two ordered attempts reported by the endpoint; each has a fixed `provider` and `outcome` |
 | `providerAttempts[].failureStage` | Optional `invoke`, `fetch`, `http`, or `body` stage reported for a failed attempt |
 | `providerAttempts[].httpStatus` | Optional observed provider HTTP status, from 100 to 599, for an `http` or `body` failure |
+| `providerAttempts[].outputStage` | Optional `response_shape`, `empty_output`, `source_preservation`, or `implausible_edit` check that rejected invalid output |
 
 Providers are `workers-ai` or `openrouter`. Outcomes are `success`, `timeout`,
 `cancelled`, `capacity`, `invalid_output`, `configuration`, or `unavailable`.
 Missing metadata remains unknown. Absence does not prove that an editor request or
 provider attempt never started. These fields contain no drafts, response bodies,
-headers, credentials, model names, or arbitrary error messages. They do not alter
-rewrite approval, source checks, model-attempt counts, or retry guidance, and are
-not added to aggregate analytics. Already-clear results omit this field.
+headers, credentials, model names, or arbitrary error messages. The aggregate
+report records only the fixed failure reason, stage, and provider. Already-clear
+results omit `editorDiagnostics`.
 
 `scoreChange` is after minus before, so a negative value means the measured score fell.
 The writing score is not a probability that AI wrote the draft.
@@ -177,6 +179,10 @@ For example, a usage-limit response has this shape; values here are illustrative
 The `Retry-After` response header gives the minimum delay in seconds. Read it
 from the header rather than parsing `detail`. Keep the problem code and request
 ID for troubleshooting without logging the draft or result.
+A `usage_limit` problem can include `capacityScope`. `client_daily` and
+`client_minute` refer to the client IP limits, `workers_daily` and
+`openrouter_daily` to shared provider limits, and `day_reset` to the rollover
+window. Older responses can omit this detail.
 
 Allow 75 seconds on the client. The service makes at most one editing-model request;
 scoring and source checks add their own bounded work. A client timeout or cancellation

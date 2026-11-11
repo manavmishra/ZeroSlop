@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { capacityScopes } from "./budget";
 import { writingReportSchema } from "./scorer";
 import { editorDiagnosticsSchema } from "./editor-diagnostics";
 
@@ -58,6 +59,7 @@ export const problemSchema = z.object({
   detail: z.string(),
   code: z.string(),
   requestId: z.string().uuid(),
+  capacityScope: z.enum(capacityScopes).optional(),
 });
 
 function jsonSchema(schema: z.ZodType, io: "input" | "output" = "output") {

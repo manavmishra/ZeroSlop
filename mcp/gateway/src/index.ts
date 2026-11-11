@@ -188,7 +188,10 @@ function createServer(env: Env, requestMeta: McpRequestMeta, ctx: ExecutionConte
           return {
             isError: true,
             content: [{ type: "text" as const, text: error.message }],
-            _meta: { "zero-slop/error": { code: error.code, status: error.status, retryAfterSeconds: error.retryAfterSeconds } },
+            _meta: { "zero-slop/error": {
+              code: error.code, status: error.status, retryAfterSeconds: error.retryAfterSeconds,
+              ...(error.capacityScope ? { capacityScope: error.capacityScope } : {}),
+            } },
           };
         }
         trackPipelineFailure(env, requestMeta, genre, text.length, Date.now() - requestStarted,

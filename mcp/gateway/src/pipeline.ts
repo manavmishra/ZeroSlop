@@ -384,12 +384,13 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   // alternate provider if its primary cannot return a usable edit.
   let observedProviderCalls: 0 | 1 | 2 | null = null;
   let editorFailure: EditorFailure | null = null;
-  let editorDiagnostics: EditorDiagnostics | undefined;
+  let editorDiagnostics: EditorDiagnostics = {};
   const modelReply = await callRole(env, "complete", original, diagnostics, deadline, clientAddress, control,
     (count) => { observedProviderCalls = count; }, (reason) => { editorFailure = reason; },
     (observed) => { editorDiagnostics = observed; });
   checkCancelled(control);
-  const resultDiagnostics = editorDiagnostics ? { editorDiagnostics } : {};
+  if (editorFailure) editorDiagnostics.failureReason = editorFailure;
+  const resultDiagnostics = Object.keys(editorDiagnostics).length ? { editorDiagnostics } : {};
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
   const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";
@@ -403,7 +404,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   if (Object.keys(candidates).length === 0) {
     return {
       ...unchanged(
-        original, modelReply ? "unchanged_no_better_version" : "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
+        original, modelReply || editorFailure === "unchanged_output" ? "unchanged_no_better_version" : "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
         modelReply
           ? !withinScorerLimit(cleanedModelReply)
             ? "Zero Slop kept the original because the model edit exceeded the scorer's input limit, and the local editor found no safe textual change."

@@ -110,7 +110,7 @@ test("Northstar provider outage and rejected source edit have distinct review wa
     assert.equal(unavailable.status, "rewritten_with_warnings");
     assert.equal(unavailable.passedFinalChecks, false);
     assert.equal(unavailable.factsPreserved, true);
-    assert.deepEqual(unavailable.editorDiagnostics, { endpointHttpStatus: 503 });
+    assert.deepEqual(unavailable.editorDiagnostics, { endpointHttpStatus: 503, failureReason: "unavailable" });
     assert.match(unavailable.note, /editor service was unavailable/);
     assert.doesNotMatch(unavailable.note, /did not pass the source check/);
 
@@ -288,6 +288,20 @@ test("a model response that cleans back to the source is not a service outage", 
     assert.doesNotMatch(result.note, /unavailable/);
     assert.equal(result.passedFinalChecks, false);
   } finally { globalThis.fetch = oldFetch; }
+});
+
+test("a provider echo with no local edit is an unchanged result rather than a service failure", async (t) => {
+  const text = "We are thrilled to announce that Maya owns the rollout on October 20 for 25 teams.";
+  t.mock.method(globalThis, "fetch", async () => Response.json({
+    rewrite: text, provider: "workers-ai", model: "fixture", stored: false, providerCalls: 1,
+    providerAttempts: [{ provider: "workers-ai", outcome: "success" }],
+  }));
+  const result = await runPipeline(env, { text, genre: "social" });
+  assert.equal(result.text, text);
+  assert.equal(result.status, "unchanged_no_better_version");
+  assert.equal(result.passedFinalChecks, false);
+  assert.equal(result.editorDiagnostics?.failureReason, "unchanged_output");
+  assert.match(result.note, /model returned the original text/);
 });
 
 test("a below-gate fallback is never advertised as a clean editorial rewrite", async () => {

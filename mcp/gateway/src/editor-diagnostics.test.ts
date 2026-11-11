@@ -36,10 +36,31 @@ test("unknown endpoint status and malformed provider attempts are omitted", () =
     { providerAttempts: [{ provider: "openrouter", outcome: "success" }] });
 });
 
+test("diagnostics preserve fixed output stages only for invalid provider output", () => {
+  const base = { provider: "workers-ai", outcome: "invalid_output" };
+  for (const outputStage of ["response_shape", "empty_output", "source_preservation", "implausible_edit"]) {
+    const providerAttempt = { ...base, outputStage };
+    const diagnostics = safeEditorDiagnostics(503, { failureReason: "deadline", providerAttempts: [
+      { ...providerAttempt, failureStage: "http", httpStatus: 500, detail: privateDetail },
+    ] });
+    assert.deepEqual(diagnostics, { endpointHttpStatus: 503, providerAttempts: [providerAttempt] });
+    assert.ok(editorDiagnosticsSchema.safeParse({ ...diagnostics, failureReason: "invalid_output" }).success);
+  }
+  assert.deepEqual(safeEditorDiagnostics(503, { providerAttempts: [{ ...base, outputStage: privateDetail }] }),
+    { endpointHttpStatus: 503, providerAttempts: [base] });
+  assert.deepEqual(safeEditorDiagnostics(200, { providerAttempts: [
+    { provider: "workers-ai", outcome: "success", outputStage: "empty_output" },
+  ] }), { endpointHttpStatus: 200, providerAttempts: [{ provider: "workers-ai", outcome: "success" }] });
+});
+
 test("public diagnostic schema rejects arbitrary fields, excessive attempts and invalid status/stage combinations", () => {
   for (const value of [
     { endpointHttpStatus: "503" }, { endpointHttpStatus: 99 }, { endpointHttpStatus: 600 },
     { endpointHttpStatus: 200.5 }, { endpointHttpStatus: 200, body: privateDetail },
+    { failureReason: privateDetail },
+    { providerAttempts: [{ provider: "workers-ai", outcome: "invalid_output", outputStage: privateDetail }] },
+    { providerAttempts: [{ provider: "workers-ai", outcome: "success", outputStage: "empty_output" }] },
+    { providerAttempts: [{ provider: "workers-ai", outcome: "invalid_output", outputStage: "empty_output", failureStage: "invoke" }] },
     { providerAttempts: [{ provider: privateDetail, outcome: "unavailable" }] },
     { providerAttempts: Array(3).fill({ provider: "workers-ai", outcome: "success" }) },
     { providerAttempts: [{ provider: "workers-ai", outcome: "success", failureStage: "http" }] },

@@ -131,6 +131,35 @@ test("result and quota metrics preserve numbers without prose or unknown model-c
   assert.doesNotMatch(JSON.stringify(points), /private|note|source/);
 });
 
+test("an unchanged result attributes its hosted failure using bounded aggregate categories", () => {
+  const points: AnalyticsEngineDataPoint[] = [];
+  const env = Object.assign({} as Env, { MCP_ANALYTICS: { writeDataPoint(point: AnalyticsEngineDataPoint) { points.push(point); } } });
+  const meta = inspectRestRequest(new Request("https://mcp.zero-slop.ai/v1/deslop"));
+  trackPipelineResult(env, meta, "professional", 500, {
+    ...result,
+    status: "unchanged_service_unavailable",
+    passedFinalChecks: false,
+    editorDiagnostics: {
+      endpointHttpStatus: 503,
+      failureReason: "invalid_output",
+      providerAttempts: [{ provider: "workers-ai", outcome: "invalid_output", outputStage: "source_preservation" }],
+    },
+  });
+  assert.deepEqual(points[0]?.blobs?.slice(16), ["review_required", "invalid_output", "source_preservation", "workers-ai"]);
+  trackPipelineResult(env, meta, "professional", 500, {
+    ...result,
+    status: "unchanged_service_unavailable",
+    passedFinalChecks: false,
+    editorDiagnostics: {
+      endpointHttpStatus: 503,
+      failureReason: "unavailable",
+      providerAttempts: [{ provider: "workers-ai", outcome: "unavailable", failureStage: "invoke" }],
+    },
+  });
+  assert.deepEqual(points[1]?.blobs?.slice(16), ["review_required", "unavailable", "invoke", "workers-ai"]);
+  assert.doesNotMatch(JSON.stringify(points), /private|note|editorDiagnostics|providerAttempts|endpointHttpStatus/);
+});
+
 test("analytics failure cannot fail delivery or log arbitrary binding text", (t) => {
   const logs: unknown[] = [];
   t.mock.method(console, "warn", (value: unknown) => logs.push(value));

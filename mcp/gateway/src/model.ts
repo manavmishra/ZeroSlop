@@ -1,7 +1,7 @@
 import { readBoundedJson } from "./bounded-json";
 import { dailyBudgetClient, HostedBudgetError } from "./budget";
 import { boundedOperation, checkCancelled, PipelineCancelledError, type PipelineControl } from "./cancellation";
-import { safeEditorDiagnostics, safeProviderAttempts, type EditorDiagnostics, type SafeProviderAttempt } from "./editor-diagnostics";
+import { safeEditorDiagnostics, safeProviderAttempts, type EditorDiagnostics, type EditorFailure, type SafeProviderAttempt } from "./editor-diagnostics";
 
 // The website may try two providers. Leave bounded room for both deadlines,
 // two budget checks, and the gateway-to-website response transit.
@@ -12,7 +12,7 @@ const MAX_EDITOR_OUTPUT_CHARS = 40_000;
 const encoder = new TextEncoder();
 
 export type ModelRole = "complete";
-export type EditorFailure = "deadline" | "timeout" | "cancelled" | "configuration" | "unavailable" | "invalid_output" | "unchanged_output" | "transport";
+export type { EditorFailure } from "./editor-diagnostics";
 class EditorInvalidResponseError extends Error {}
 
 export type ModelReply = {
@@ -170,7 +170,9 @@ export async function callRole(
           if (response.status === 429 && code === "usage_limit") {
             const retry = response.headers.get("retry-after") ?? "";
             if (!/^\d{1,5}$/.test(retry) || Number(retry) < 1 || Number(retry) > 86400) throw new HostedBudgetError("budget_unavailable");
-            throw new HostedBudgetError("usage_limit", Number(retry));
+            const capacityScope = errorBody && typeof errorBody === "object" && "capacityScope" in errorBody
+              ? errorBody.capacityScope : undefined;
+            throw new HostedBudgetError("usage_limit", Number(retry), capacityScope);
           }
           if (code === "budget_unavailable") throw new HostedBudgetError("budget_unavailable");
         }

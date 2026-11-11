@@ -3,21 +3,29 @@ import { z } from "zod";
 const providerSchema = z.enum(["workers-ai", "openrouter"]);
 const failureOutcomeSchema = z.enum(["timeout", "cancelled", "capacity", "invalid_output", "configuration", "unavailable"]);
 const httpStatusSchema = z.number().int().min(100).max(599);
+const outputStageSchema = z.enum(["response_shape", "empty_output", "source_preservation", "implausible_edit"]);
+const editorFailureSchema = z.enum([
+  "deadline", "timeout", "cancelled", "configuration", "unavailable", "invalid_output", "unchanged_output", "transport",
+]);
 // Keep the relationships expressible in the JSON Schema shared by MCP/OpenAPI.
 const providerAttemptSchema = z.union([
   z.object({ provider: providerSchema, outcome: z.literal("success"),
-    failureStage: z.never().optional(), httpStatus: z.never().optional() }).strict(),
+    failureStage: z.never().optional(), httpStatus: z.never().optional(), outputStage: z.never().optional() }).strict(),
   z.object({ provider: providerSchema, outcome: failureOutcomeSchema,
-    failureStage: z.enum(["invoke", "fetch"]).optional(), httpStatus: z.never().optional() }).strict(),
+    failureStage: z.enum(["invoke", "fetch"]).optional(), httpStatus: z.never().optional(), outputStage: z.never().optional() }).strict(),
   z.object({ provider: providerSchema, outcome: failureOutcomeSchema,
-    failureStage: z.enum(["http", "body"]), httpStatus: httpStatusSchema.optional() }).strict(),
+    failureStage: z.enum(["http", "body"]), httpStatus: httpStatusSchema.optional(), outputStage: z.never().optional() }).strict(),
+  z.object({ provider: providerSchema, outcome: z.literal("invalid_output"),
+    failureStage: z.never().optional(), httpStatus: z.never().optional(), outputStage: outputStageSchema }).strict(),
 ]);
 
 export const editorDiagnosticsSchema = z.object({
   endpointHttpStatus: httpStatusSchema.optional(),
+  failureReason: editorFailureSchema.optional(),
   providerAttempts: z.array(providerAttemptSchema).max(2).optional(),
 }).strict();
 
+export type EditorFailure = z.infer<typeof editorFailureSchema>;
 export type SafeProviderAttempt = z.infer<typeof providerAttemptSchema>;
 export type EditorDiagnostics = z.infer<typeof editorDiagnosticsSchema>;
 
@@ -32,6 +40,13 @@ export function safeProviderAttempts(value: unknown): SafeProviderAttempt[] {
   for (const attempt of attempts) {
     if (!attempt || typeof attempt !== "object" ||
         !["workers-ai", "openrouter"].includes(attempt.provider) || !outcomes.includes(attempt.outcome)) return [];
+    if (attempt.outcome === "invalid_output") {
+      const stage = outputStageSchema.safeParse(attempt.outputStage);
+      if (stage.success) {
+        safe.push({ provider: attempt.provider, outcome: "invalid_output", outputStage: stage.data });
+        continue;
+      }
+    }
     const entry: SafeProviderAttempt = { provider: attempt.provider, outcome: attempt.outcome };
     if (attempt.outcome !== "success" && ["invoke", "fetch", "http", "body"].includes(attempt.failureStage)) {
       entry.failureStage = attempt.failureStage;

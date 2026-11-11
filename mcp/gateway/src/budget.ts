@@ -7,16 +7,33 @@ const DAY_MS = 86_400_000;
 const ADDRESS = /^[a-f0-9:.]{1,64}$/i;
 const encoder = new TextEncoder();
 
+export const capacityScopes = ["client_daily", "client_minute", "workers_daily", "openrouter_daily", "day_reset"] as const;
+export type CapacityScope = typeof capacityScopes[number];
+
+const capacityMessages: Record<CapacityScope, string> = {
+  client_daily: "This client has used its free editing allowance for today.",
+  client_minute: "This client is editing too quickly for the free service.",
+  workers_daily: "The shared free editing allowance is exhausted for today.",
+  openrouter_daily: "The free fallback editing allowance is exhausted for today.",
+  day_reset: "The free editing allowance is resetting.",
+};
+
 export class HostedBudgetError extends Error {
+  readonly capacityScope: CapacityScope | undefined;
+
   constructor(
     readonly code: "usage_limit" | "budget_unavailable",
     readonly retryAfterSeconds: number | null = null,
+    reportedScope?: unknown,
   ) {
+    const scope = code === "usage_limit" ? capacityScopes.find(value => value === reportedScope) : undefined;
     super(code === "usage_limit"
-      ? "Hosted editing is temporarily busy or at its free usage limit. " + (retryAfterSeconds === null
-        ? "Please try again later."
-        : `Please wait ${humanRetryDelay(retryAfterSeconds)} before trying again.`)
+      ? (scope ? capacityMessages[scope] : "Hosted editing is temporarily busy or at its free usage limit.") + " "
+        + (retryAfterSeconds === null
+          ? "Please try again later."
+          : `Please wait ${humanRetryDelay(retryAfterSeconds)} before trying again.`)
       : "Hosted capacity could not be checked. No model request was started. Please try again later.");
+    this.capacityScope = scope;
   }
   get status(): 429 | 503 { return this.code === "usage_limit" ? 429 : 503; }
 }

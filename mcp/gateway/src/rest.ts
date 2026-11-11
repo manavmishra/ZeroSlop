@@ -1,7 +1,7 @@
 import { countCapacityReject, countPipelineFailure, countPipelineResult } from "./counter";
 import { deslopInputSchema, deslopOutputSchema, MAX_REQUEST_BYTES, openApiDocument } from "./contract";
 import { runPipeline } from "./pipeline";
-import { HostedBudgetError } from "./budget";
+import { HostedBudgetError, type CapacityScope } from "./budget";
 import { checkCancelled, PipelineCancelledError } from "./cancellation";
 import { inspectRestRequest, trackMcpRequest, trackCapacityLimit, trackPipelineResult, trackPipelineFailure, type McpRequestMeta } from "./telemetry";
 
@@ -50,7 +50,8 @@ async function readDraft(request: Request): Promise<unknown> {
   }
 }
 
-function problem(status: number, code: string, detail: string, requestId: string, extraHeaders: HeadersInit = {}) {
+function problem(status: number, code: string, detail: string, requestId: string, extraHeaders: HeadersInit = {},
+  capacityScope?: CapacityScope) {
   const titles: Record<number, string> = {
     400: "Bad Request", 403: "Forbidden", 405: "Method Not Allowed", 408: "Request Timeout", 413: "Content Too Large",
     415: "Unsupported Media Type", 429: "Too Many Requests", 503: "Service Unavailable",
@@ -58,7 +59,10 @@ function problem(status: number, code: string, detail: string, requestId: string
   const headers = new Headers(extraHeaders);
   headers.set("content-type", "application/problem+json");
   headers.set("x-request-id", requestId);
-  return Response.json({ type: "about:blank", title: titles[status] ?? "Request failed", status, detail, code, requestId }, { status, headers });
+  return Response.json({
+    type: "about:blank", title: titles[status] ?? "Request failed", status, detail, code, requestId,
+    ...(capacityScope ? { capacityScope } : {}),
+  }, { status, headers });
 }
 
 export async function handleRest(
@@ -147,7 +151,7 @@ async function handleRestRequest(
       trackPipelineFailure(env, meta, parsed.data.genre, parsed.data.text.length, Date.now() - started, error.code);
       ctx.waitUntil(error.status === 429 ? countCapacityReject(env) : countPipelineFailure(env));
       return problem(error.status, error.code, error.message, requestId,
-        error.retryAfterSeconds === null ? {} : { "retry-after": String(error.retryAfterSeconds) });
+        error.retryAfterSeconds === null ? {} : { "retry-after": String(error.retryAfterSeconds) }, error.capacityScope);
     }
     ctx.waitUntil(countPipelineFailure(env));
     trackPipelineFailure(env, meta, parsed.data.genre, parsed.data.text.length, Date.now() - started,

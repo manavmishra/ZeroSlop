@@ -1,4 +1,5 @@
 import type { Genre, PipelineResult } from "./types";
+import type { EditorDiagnostics, SafeProviderAttempt } from "./editor-diagnostics";
 
 const TELEMETRY_SCHEMA = "mcp-v1";
 const UNKNOWN = "unknown";
@@ -170,6 +171,9 @@ type EventFields = {
   httpStatus?: number;
   modelRequests?: number;
   approval?: ResultApproval;
+  editorFailure?: EditorDiagnostics["failureReason"];
+  editorStage?: SafeProviderAttempt["outputStage"] | SafeProviderAttempt["failureStage"];
+  editorProvider?: SafeProviderAttempt["provider"] | undefined;
 };
 
 export function telemetryPoint(meta: McpRequestMeta, fields: EventFields): AnalyticsEngineDataPoint {
@@ -195,6 +199,8 @@ export function telemetryPoint(meta: McpRequestMeta, fields: EventFields): Analy
       meta.origin,
       meta.channel ?? (meta.client === "zero-slop-cli" ? "cli" : "mcp"),
       fields.approval ?? "none",
+      // Append only the typed categories. Legacy rows have no failure details.
+      ...(fields.editorFailure ? [fields.editorFailure, fields.editorStage ?? "", fields.editorProvider ?? ""] : []),
     ],
     doubles: [
       1,
@@ -248,6 +254,8 @@ export function trackPipelineResult(
   inputChars: number,
   result: PipelineResult,
 ): void {
+  const failure = result.editorDiagnostics?.failureReason;
+  const terminalAttempt = failure ? result.editorDiagnostics?.providerAttempts?.at(-1) : undefined;
   write(env, meta, {
     event: "result",
     outcome: result.status,
@@ -273,6 +281,9 @@ export function trackPipelineResult(
     httpStatus: 200,
     modelRequests: result.modelRequests,
     approval: resultApproval(result),
+    editorFailure: failure,
+    editorStage: terminalAttempt?.outputStage ?? terminalAttempt?.failureStage,
+    editorProvider: terminalAttempt?.provider,
   });
 }
 
