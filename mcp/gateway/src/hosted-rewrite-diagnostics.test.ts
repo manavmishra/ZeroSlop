@@ -22,32 +22,76 @@ test("the observed fallback has the reported score without changing the scorer",
   assert.equal(report.flaggedPhrases, 4);
 });
 
-test("a protected product announcement gets a clearer fallback without claiming model approval", async () => {
-  const draft = "We are incredibly excited to announce Kairoset 4.0, a game-changing update. " +
-    "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. " +
-    "We have not measured retention beyond the first month.";
-  const oldFetch = globalThis.fetch;
+const versionedAnnouncement = "We are incredibly excited to announce Kairoset 4.0, a game-changing update. " +
+  "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. " +
+  "We have not measured retention beyond the first month.";
+const cleanVersionedAnnouncement = "We are incredibly excited about announcing Kairoset 4.0, an update. " +
+  "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. " +
+  "We have not measured retention beyond the first month.";
+
+for (const { name, rewrite, providerCalls, status, passed, note } of [
+  {
+    name: "a distinct provider edit of the stock appositive can pass final checks",
+    rewrite: versionedAnnouncement.replace("a game-changing update", "an update"),
+    providerCalls: 1, status: "rewritten", passed: true, note: /checks approved the exact text returned/,
+  },
+  {
+    name: "a provider echo uses the same local wording and still requires review",
+    rewrite: versionedAnnouncement,
+    providerCalls: 2, status: "rewritten_with_warnings", passed: false, note: /model returned the original text.*local edit was used/,
+  },
+  {
+    name: "a provider change to inter-word spacing still requires review",
+    rewrite: versionedAnnouncement.replace("Priya owns", "Priya  owns"),
+    providerCalls: 1, status: "rewritten_with_warnings", passed: false, note: /model returned the original text.*local edit was used/,
+  },
+  {
+    name: "a provider change to nonbreaking inter-word spacing still requires review",
+    rewrite: versionedAnnouncement.replace("Priya owns", "Priya\u202fowns"),
+    providerCalls: 1, status: "rewritten_with_warnings", passed: false, note: /model returned the original text.*local edit was used/,
+  },
+  {
+    name: "a provider change to the stock modifier's hyphen still requires review",
+    rewrite: versionedAnnouncement.replace("game-changing", "game\u2011changing"),
+    providerCalls: 1, status: "rewritten_with_warnings", passed: false, note: /model returned the original text.*local edit was used/,
+  },
+]) test(name, async t => {
   let calls = 0;
-  // The hosted provider can echo a sentence whose version number locks it.
-  globalThis.fetch = (async () => {
+  t.mock.method(globalThis, "fetch", async () => {
     calls++;
-    return Response.json({ rewrite: draft, provider: "mock", model: "mock", stored: false, providerCalls: 2 });
-  }) as typeof fetch;
-  try {
-    const result = await runPipeline(env, { text: draft, genre: "professional" });
-    assert.equal(calls, 1);
-    assert.equal(result.modelRequests, 2);
-    assert.equal(result.before.score, 95.4);
-    assert.equal(result.after.score, 21.6);
-    assert.equal(meetsReleaseGate(result.after), true);
-    assert.equal(result.text, "We are incredibly excited about announcing Kairoset 4.0, a useful update. " +
-      "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. " +
-      "We have not measured retention beyond the first month.");
-    assert.equal(result.factsPreserved, true);
-    assert.equal(result.status, "rewritten_with_warnings");
-    assert.equal(result.passedFinalChecks, false);
-    assert.match(result.note, /local edit was used/);
-  } finally { globalThis.fetch = oldFetch; }
+    return Response.json({ rewrite, provider: "mock", model: "mock", stored: false, providerCalls });
+  });
+  const result = await runPipeline(env, { text: versionedAnnouncement, genre: "professional" });
+  assert.equal(calls, 1);
+  assert.equal(result.modelRequests, providerCalls);
+  assert.equal(result.before.score, 95.4);
+  assert.equal(result.after.score, 21.6);
+  assert.equal(meetsReleaseGate(result.after), true);
+  assert.equal(result.text, cleanVersionedAnnouncement);
+  assert.equal(result.factsPreserved, true);
+  assert.equal(result.status, status);
+  assert.equal(result.passedFinalChecks, passed);
+  assert.equal(result.rolesCompleted, passed ? 8 : 4);
+  assert.match(result.note, note);
+});
+
+test("the unchanged comparison preserves line, paragraph and format boundaries", async t => {
+  const draft = "Maya owns the rollout.\nPriya reviews the co-owner’s plan.";
+  let rewrite = draft;
+  t.mock.method(globalThis, "fetch", async () =>
+    Response.json({ rewrite, provider: "mock", model: "mock", stored: false }));
+  for (const changed of [
+    draft.replace("\n", " "),
+    draft.replace("\n", "\n\n"),
+    draft.replace("\n", "\n  "),
+    draft.replace("\n", "  \n"),
+    draft.replace("Maya owns", "Maya\towns"),
+    draft.replace("co-owner", "co\u2011owner"),
+  ]) {
+    rewrite = changed;
+    const reply = await callRole(env, "complete", draft, {}, Date.now() + 2_000);
+    assert.equal(reply?.text, changed);
+  }
 });
 
 test("Northstar provider outage and rejected source edit have distinct review warnings", async () => {

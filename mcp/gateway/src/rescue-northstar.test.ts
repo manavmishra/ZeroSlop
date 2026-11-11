@@ -29,6 +29,13 @@ test("versioned announcement cleanup preserves the speaker, feeling and activity
   parity(opening + suffix, edited + suffix);
   parity(`The team approved it.\n\n${opening}${suffix}`, `The team approved it.\n\n${edited}${suffix}`);
   parity("We’re incredibly excited to announce Kairoset 4.0.", "We’re incredibly excited about announcing Kairoset 4.0.");
+  for (const hyphen of ["-", "‑"]) {
+    const appositive = `, a game${hyphen}changing update`;
+    parity(opening + appositive + suffix, edited + ", an update" + suffix);
+    parity(edited + ", an update" + suffix, edited + ", an update" + suffix);
+  }
+  parity("Maya called it a game-changing update.", "Maya called it a useful update.");
+  parity(opening + ", a game-changing update for Priya.", edited + ", a useful update for Priya.");
   assert.equal(sourceClaimRisk(opening + suffix, edited + suffix), false);
   assert.equal(sourceClaimRisk(opening + suffix, edited + suffix.replace("may not", "may")), true);
   for (const original of [

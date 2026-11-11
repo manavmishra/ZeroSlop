@@ -75,6 +75,17 @@ export function tooLong(source: string, output: string, _role: ModelRole = "comp
   return output.length > Math.min(MAX_EDITOR_OUTPUT_CHARS, Math.max(1_000, source.length * 1.75));
 }
 
+function equivalentEditorText(source: string, output: string): boolean {
+  if (source === output) return true;
+  // Compare ordinary and nonbreaking spaces inside a line. Preserve tabs,
+  // indentation, hard breaks and paragraph boundaries as format.
+  const spacing = /(\S)[ \u00a0\u202f]+(?=\S)/gu;
+  // The local cleanup treats both hyphens in this stock modifier alike.
+  const comparable = (text: string) => text.replace(spacing, "$1 ")
+    .replace(/\b(game)\u2011(changing)\b/gi, "$1-$2");
+  return comparable(source) === comparable(output);
+}
+
 export async function callRole(
   env: Env,
   role: ModelRole,
@@ -178,8 +189,10 @@ export async function callRole(
       captureDiagnostics(response.status, payload);
       const reply = editorReply(payload);
       if (reply) onProviderCalls?.(reply.providerCalls as 1 | 2);
-      if (!reply || tooShort(source, reply.text, role) || tooLong(source, reply.text, role) || reply.text === source) {
-        const failure = reply?.text === source ? "unchanged_output" : "invalid_output";
+      const validLength = reply && !tooShort(source, reply.text, role) && !tooLong(source, reply.text, role);
+      const unchanged = reply && validLength && equivalentEditorText(source, reply.text);
+      if (!reply || !validLength || unchanged) {
+        const failure = unchanged ? "unchanged_output" : "invalid_output";
         onFailure?.(failure);
         console.warn(JSON.stringify({
           event: "editor_request_rejected", role, reason: failure,

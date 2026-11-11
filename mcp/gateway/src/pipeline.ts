@@ -211,11 +211,12 @@ export function localRescue(text: string): string {
     /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e)(['’]re| are) thrilled to announce a game[-\u2011]changing update\b/g,
     (_match, prefix: string, subject: string, verb: string) => prefix + subject + verb + " thrilled to announce an update",
   );
-  // Recast a versioned release opener while retaining the exact authored
-  // feeling, degree, announcement and object. Match the Python rescue rule.
+  // Recast a versioned release opener without changing the authored feeling
+  // or product. Drop the stock modifier in a complete update appositive.
   out = out.replace(
-    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e(?:['’]re| are) incredibly excited) to announce(?=[ \t]+[A-Z][A-Za-z0-9_-]*(?:[ \t]+[A-Z][A-Za-z0-9_-]*){0,3}[ \t]+v?[0-9]+(?:\.[0-9]+){1,3}(?:[,.!?](?![0-9])|$))/g,
-    (_match, prefix: string, feeling: string) => prefix + feeling + " about announcing",
+    /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e(?:['’]re| are) incredibly excited) to announce([ \t]+[A-Z][A-Za-z0-9_-]*(?:[ \t]+[A-Z][A-Za-z0-9_-]*){0,3}[ \t]+v?[0-9]+(?:\.[0-9]+){1,3})(?=[,.!?](?![0-9])|$)(?:(,[ \t]+)a game[-\u2011]changing update(?=[.!?]|$))?/g,
+    (_match, prefix: string, feeling: string, product: string, appositiveSeparator?: string) =>
+      prefix + feeling + " about announcing" + product + (appositiveSeparator ? appositiveSeparator + "an update" : ""),
   );
   const changes: Array<[RegExp, string | ((...args: string[]) => string)]> = [
     [/\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that redefines what is possible in ([^.]+)\./gi,
