@@ -22,6 +22,34 @@ test("the observed fallback has the reported score without changing the scorer",
   assert.equal(report.flaggedPhrases, 4);
 });
 
+test("a protected product announcement gets a clearer fallback without claiming model approval", async () => {
+  const draft = "We are incredibly excited to announce Kairoset 4.0, a game-changing update. " +
+    "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. " +
+    "We have not measured retention beyond the first month.";
+  const oldFetch = globalThis.fetch;
+  let calls = 0;
+  // The hosted provider can echo a sentence whose version number locks it.
+  globalThis.fetch = (async () => {
+    calls++;
+    return Response.json({ rewrite: draft, provider: "mock", model: "mock", stored: false, providerCalls: 2 });
+  }) as typeof fetch;
+  try {
+    const result = await runPipeline(env, { text: draft, genre: "professional" });
+    assert.equal(calls, 1);
+    assert.equal(result.modelRequests, 2);
+    assert.equal(result.before.score, 95.4);
+    assert.equal(result.after.score, 21.6);
+    assert.equal(meetsReleaseGate(result.after), true);
+    assert.equal(result.text, "We are incredibly excited about announcing Kairoset 4.0, a useful update. " +
+      "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. " +
+      "We have not measured retention beyond the first month.");
+    assert.equal(result.factsPreserved, true);
+    assert.equal(result.status, "rewritten_with_warnings");
+    assert.equal(result.passedFinalChecks, false);
+    assert.match(result.note, /local edit was used/);
+  } finally { globalThis.fetch = oldFetch; }
+});
+
 test("Northstar provider outage and rejected source edit have distinct review warnings", async () => {
   const oldFetch = globalThis.fetch;
   try {

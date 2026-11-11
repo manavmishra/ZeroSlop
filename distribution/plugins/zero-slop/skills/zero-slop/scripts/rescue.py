@@ -147,6 +147,14 @@ def rescue_text(text: str) -> str:
         r"thrilled to announce a game[-\u2011]changing update\b",
         lambda m: m.group(1) + m.group(2) + m.group(3) + " thrilled to announce an update", out,
     )
+    # Recast a versioned release opener while retaining the exact authored
+    # feeling, degree, announcement and object. Match the gateway rescue rule.
+    out = re.sub(
+        r"(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)([Ww]e(?:['’]re| are) incredibly excited) "
+        r"to announce(?=[ \t]+[A-Z][A-Za-z0-9_-]*(?:[ \t]+[A-Z][A-Za-z0-9_-]*){0,3}"
+        r"[ \t]+v?[0-9]+(?:\.[0-9]+){1,3}(?:[,.!?](?![0-9])|$))",
+        r"\1\2 about announcing", out,
+    )
     rules: list[tuple[str, str | object]] = [
         (
             r"\bwe are thrilled to unveil ([^,\n]+),\s+a transformative release that "

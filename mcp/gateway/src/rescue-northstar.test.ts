@@ -22,6 +22,27 @@ function parity(input: string, output: string) {
   assert.equal(localRescue(output), output);
 }
 
+test("versioned announcement cleanup preserves the speaker, feeling and activity", () => {
+  const opening = "We are incredibly excited to announce Kairoset 4.0";
+  const edited = "We are incredibly excited about announcing Kairoset 4.0";
+  const suffix = ". Priya may not ship it before Friday.";
+  parity(opening + suffix, edited + suffix);
+  parity(`The team approved it.\n\n${opening}${suffix}`, `The team approved it.\n\n${edited}${suffix}`);
+  parity("We’re incredibly excited to announce Kairoset 4.0.", "We’re incredibly excited about announcing Kairoset 4.0.");
+  assert.equal(sourceClaimRisk(opening + suffix, edited + suffix), false);
+  assert.equal(sourceClaimRisk(opening + suffix, edited + suffix.replace("may not", "may")), true);
+  for (const original of [
+    `"${opening}."`,
+    `> ${opening}.`,
+    `Maya said we are incredibly excited to announce Kairoset 4.0.`,
+    "We are not incredibly excited to announce Kairoset 4.0.",
+    "We are incredibly excited to announce that the beta may not launch.",
+    "We are incredibly excited to announce Kairoset 4.0 on Friday.",
+    "We are incredibly excited to announce Monday at 4.00.",
+    "Maya wrote that\nwe are incredibly excited to announce Kairoset 4.0.",
+  ]) parity(original, original);
+});
+
 test("Northstar fallback removes hype without paraphrasing emotion or benefit", () => {
   parity(source, expected);
   assert.equal(sourceClaimRisk(source, expected), false);
