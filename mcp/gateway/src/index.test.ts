@@ -113,6 +113,21 @@ test("health fails closed when connector signing is not configured", async () =>
   });
 });
 
+test("the MCP host publishes crawl rules for the protocol endpoint", async () => {
+  const url = "https://mcp.zero-slop.ai/robots.txt";
+  const env = healthEnv("2.9.1");
+  const ctx = {} as ExecutionContext;
+  const response = await worker.fetch(new Request(url), env, ctx);
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/plain\b/);
+  assert.equal(await response.text(), "User-agent: Googlebot\nDisallow: /mcp$\nDisallow: /mcp?\n");
+
+  const head = await worker.fetch(new Request(url, { method: "HEAD" }), env, ctx);
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), "");
+});
+
 test("publishes a static server card for registry scanners", async () => {
   const response = await worker.fetch(
     new Request("https://mcp.zero-slop.ai/.well-known/mcp/server-card.json"),

@@ -234,6 +234,13 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === "/robots.txt" && (request.method === "GET" || request.method === "HEAD")) {
+      const rules = "User-agent: Googlebot\nDisallow: /mcp$\nDisallow: /mcp?\n";
+      return withSecurityHeaders(new Response(request.method === "HEAD" ? null : rules, {
+        headers: { "content-type": "text/plain; charset=utf-8" },
+      }));
+    }
+
     if (url.pathname === "/v1/deslop" || url.pathname === "/openapi.json") {
       return withSecurityHeaders(await handleRest(request, env, ctx));
     }
