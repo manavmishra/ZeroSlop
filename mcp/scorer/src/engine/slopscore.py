@@ -583,6 +583,7 @@ def score_text(text, data, formal=False):
     # regex scan when none is present; patterns without that guarantee run as
     # before.
     lowercase_text = None
+    emotion_degree_spans = None
     for weight, category, name, compiled, lower_rx, hints in _pattern_plan(data):
         if not weight:
             continue
@@ -592,6 +593,11 @@ def score_text(text, data, formal=False):
             if not any(hint in lowercase_text for hint in hints):
                 continue
         for m in compiled.finditer(scan_text):
+            if name == "filler-intensifier" and m.group(0).lower() == "incredibly":
+                if emotion_degree_spans is None:
+                    emotion_degree_spans = _emotion_degree_spans(scan_text)
+                if m.span() in emotion_degree_spans:
+                    continue
             hits.append({
                 "cat": category, "name": name, "w": weight,
                 "quote": m.group(0)[:90].strip(),
@@ -1264,10 +1270,12 @@ def facts(text, _other=""):
 # tight: "I felt/was <emotion>", "my heart/stomach ...", not every clause with
 # a feeling verb, because the goal is catching an INVENTED inner state, and the
 # comparison below cancels any that were already in the source.
+_INTERIOR_COSMETIC_ADVERBS = "very|really|extremely|quite|so|genuinely"
+INTERIOR_COSMETIC_INTENSITY = frozenset(_INTERIOR_COSMETIC_ADVERBS.split("|"))
 INTERIOR_STATE_RX = re.compile(
     r"\b(?P<subject>I|we)(?:(?P<contraction>['’](?:m|re))|\s+"
     r"(?:genuinely\s+)?(?P<verb>was|were|am|are|felt|feel|got)(?P<negative>n['’]t)?)\s+"
-    r"(?P<modifiers>(?:(?:very|really|extremely|quite|so|genuinely|not|never|hardly|"
+    rf"(?P<modifiers>(?:(?:{_INTERIOR_COSMETIC_ADVERBS}|incredibly|not|never|hardly|"
     r"barely|somewhat|slightly|partly|mostly|almost|nearly|probably|possibly|"
     r"perhaps|usually|sometimes|occasionally)\s+)*)"
     r"(?P<state>[A-Za-z]+)\b", re.I)
@@ -1281,7 +1289,6 @@ exhausted fearful familiar frustrated furious glad grateful happy hopeful humble
 hurt isolated lonely miserable nervous overwhelmed panicked pleased proud relieved
 sad safe scared shocked surprised terrified thrilled tired uncomfortable uncertain
 uneasy unhappy unsafe upset worried""".split())
-INTERIOR_COSMETIC_INTENSITY = frozenset("very really extremely quite so genuinely".split())
 INTERIOR_CONTEXT_RX = re.compile(
     r"\b(?:if|unless|provided|assuming|when|once|until|whether|wish|wished|"
     r"may|might|could|would|should|possibly|probably|perhaps|reportedly|"
@@ -1306,6 +1313,26 @@ COGNITION_CANON = {
     "panicked": "panic", "struggled": "struggle", "doubted": "doubt",
 }
 
+
+def _interior_contraction_matches(match):
+    contraction = match["contraction"]
+    if not contraction:
+        return True
+    expected = "'m" if match["subject"].lower() == "i" else "'re"
+    return contraction.replace("’", "'").lower() == expected
+
+
+def _emotion_degree_spans(text):
+    # The emotion's stated degree can carry meaning. Skip only its individual
+    # filler hit. Announcement templates and unrelated intensifiers still count.
+    spans = set()
+    for match in INTERIOR_STATE_RX.finditer(text):
+        if match["state"].lower() not in INTERIOR_EMOTIONS or not _interior_contraction_matches(match):
+            continue
+        start = match.start("modifiers")
+        for word in re.finditer(r"\bincredibly\b", match["modifiers"], re.I):
+            spans.add((start + word.start(), start + word.end()))
+    return spans
 
 def _quoted_interior_starts(text, starts):
     """Mark quotation/blockquote context in one forward delimiter scan."""
@@ -1366,10 +1393,9 @@ def _interior_states(text):
             match = matches[match_index]
             match_index += 1
             subject, state = match.group("subject").lower(), match.group("state").lower()
-            contraction = (match.group("contraction") or "").replace("’", "'").lower()
-            if contraction and contraction != ("'m" if subject == "i" else "'re"):
+            if not _interior_contraction_matches(match):
                 continue
-            if (contraction or match.group("verb").lower() == "are") and state not in INTERIOR_EMOTIONS:
+            if (match["contraction"] or match["verb"].lower() == "are") and state not in INTERIOR_EMOTIONS:
                 continue
             modifiers = [word.lower() for word in match.group("modifiers").split()
                          if word.lower() not in INTERIOR_COSMETIC_INTENSITY]

@@ -178,7 +178,7 @@ def rescue_text(text: str) -> str:
          "with built-in error handling"),
         (r"\bwe believe these improvements will fundamentally transform how your team "
          r"works,\s+and the release is available today\.", "The release is available today."),
-        (r"\bwe are incredibly excited to share(?: some news)? about\b", "We're excited about"),
+        (r"\bwe are incredibly excited to share(?: some news)? about\b", "We're incredibly excited about"),
         (r"\bwe(?:['’]re| are) excited to share(?: some news)? about\b", "We're excited about"),
         (r"\bwe are incredibly excited to share\b", "We're sharing"),
         (r"\bwe(?:['’]re| are) excited to share\b", "We're excited about"),

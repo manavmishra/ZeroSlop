@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import rerank
 import slopscore
+from rescue import rescue_text
 
 
 SOURCE = (
@@ -42,6 +44,77 @@ class InteriorEmotionFidelity(unittest.TestCase):
                         self.assertEqual(slopscore.interior_claims(source),
                                          slopscore.interior_claims(rewrite))
                         self.assertFalse(slopscore.fidelity(source, rewrite)["invented"])
+
+    def test_rescue_keeps_the_stated_feeling_and_its_degree(self):
+        source = "We are incredibly excited to share some news about our journey over the past 18 months."
+        rewrite = rescue_text(source)
+        self.assertIn("We're incredibly excited about", rewrite)
+        self.assertEqual(slopscore.interior_claims(source), {"we:incredibly:excited"})
+        self.assertEqual(slopscore.interior_claims(rewrite), {"we:incredibly:excited"})
+        result = slopscore.fidelity(source, rewrite)
+        self.assertTrue(result["preserved"], result)
+        self.assertFalse(result["invented"], result)
+
+    def test_cosmetic_emphasis_does_not_hide_a_new_feeling_or_a_changed_qualification(self):
+        for source, rewrite in (
+            ("The update shipped.", "We are incredibly excited."),
+            ("We're excited.", "We're incredibly disappointed."),
+            ("We are not incredibly excited.", "We're excited."),
+            ("We are not incredibly excited.", "We're not excited."),
+            ("We are incredibly excited.", "We're excited."),
+            ("We are excited.", "We're incredibly excited."),
+            ("We are incredibly excited.", "We're not excited."),
+            ("We are usually incredibly excited.", "We're excited."),
+            ("We are incredibly excited.", "We're occasionally excited."),
+            ("We're excited.", "I am incredibly excited."),
+        ):
+            with self.subTest(source=source, rewrite=rewrite):
+                self.assertTrue(slopscore.fidelity(source, rewrite)["invented"])
+
+    def test_protected_announcement_degree_does_not_fail_the_final_writing_check(self):
+        original = (
+            "We are incredibly excited to announce Kairoset 4.0, a game-changing update. "
+            "Priya owns the rollout on Friday. Setup fell from 11 hours to 3 hours. "
+            "We have not measured retention beyond the first month."
+        )
+        restored = original.replace("a game-changing", "an")
+        rewrite = rescue_text(restored)
+        self.assertIn("incredibly excited about announcing", rewrite)
+        patterns = slopscore.load_patterns()
+        for genre in ("social", "professional"):
+            with self.subTest(genre=genre):
+                formal = genre == "professional"
+                original_report = slopscore.score_text(original, patterns, formal=formal)
+                self.assertIn("announce-excited", {hit["name"] for hit in original_report["hits"]})
+                report = slopscore.score_text(rewrite, patterns, formal=formal)
+                self.assertLess(report["ai_likelihood"], 25, report)
+                self.assertEqual(report["hits"], [])
+                candidate, = rerank.rank(original, {"one-call edit": rewrite}, genre=genre)
+                self.assertTrue(candidate["preserved"], candidate)
+                self.assertFalse(candidate["invented"], candidate)
+                self.assertEqual(candidate["after_ai"], report["ai_likelihood"])
+
+    def test_emotional_degree_exception_does_not_mute_generic_filler(self):
+        patterns = slopscore.load_patterns()
+        report = slopscore.score_text(
+            "We felt incredibly relieved when the alarms stopped. The report was incredibly useful.",
+            patterns,
+        )
+        filler_hits = [hit for hit in report["hits"] if hit["name"] == "filler-intensifier"]
+        self.assertEqual([hit["quote"] for hit in filler_hits], ["incredibly"])
+        for text in (
+            "We’re not incredibly excited.",
+            "We are incredibly confident about the repair.",
+            "I'm INCredibly relieved.",
+        ):
+            with self.subTest(text=text):
+                names = {hit["name"] for hit in slopscore.score_text(text, patterns)["hits"]}
+                self.assertNotIn("filler-intensifier", names)
+        for text in ("We are incredibly useful.", "Our team was incredibly relieved.",
+                     "We were incredibly useful, and I was relieved."):
+            with self.subTest(text=text):
+                names = {hit["name"] for hit in slopscore.score_text(text, patterns)["hits"]}
+                self.assertIn("filler-intensifier", names)
 
     def test_new_positive_negative_and_qualified_feelings_remain_inventions(self):
         for rewrite in ("We're thrilled.", "We’re not thrilled.", "We are not thrilled.",
