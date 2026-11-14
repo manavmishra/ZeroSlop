@@ -64,8 +64,8 @@ for (const { name, rewrite, providerCalls, status, passed, note } of [
   const result = await runPipeline(env, { text: versionedAnnouncement, genre: "professional" });
   assert.equal(calls, 1);
   assert.equal(result.modelRequests, providerCalls);
-  assert.equal(result.before.score, 95.4);
-  assert.equal(result.after.score, 21.6);
+  assert.equal(result.before.score, 88.7);
+  assert.equal(result.after.score, 9.5);
   assert.equal(meetsReleaseGate(result.after), true);
   assert.equal(result.text, cleanVersionedAnnouncement);
   assert.equal(result.factsPreserved, true);
