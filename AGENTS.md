@@ -75,6 +75,21 @@ are examples, not limits.
   `zero-slop.ai`. Identify production by its domain, not its palette: the colour
   named here went stale the day the site was repainted.
 
+## Care about the codebase, not just the task
+
+- Working code is the minimum, not the goal. Leave every file you touch easier
+  to read and change than you found it.
+- Before adding code, look for what already exists and reuse it. Don't
+  duplicate a helper because searching felt slower.
+- Match the surrounding conventions: naming, structure, error handling,
+  comment density.
+- If the clean fix is bigger than the task, do the task cleanly, then say what
+  you'd restructure and why. Don't silently expand scope, and don't silently
+  leave a mess.
+- No dead code, debug leftovers, copy-pasted blocks or "temporary" hacks
+  without a note explaining them.
+- When you finish, re-read your diff as a reviewer would: would you approve it?
+
 ## Maintenance contract
 
 - Reviewed shared tells go in `data/learned.json` with a dated line in
