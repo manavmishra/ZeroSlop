@@ -43,7 +43,7 @@ const SENSITIVE_CLAIM_WORD = /\b(?:not|no|never|neither|nor|without|cannot|can't
 // Explicit relational language carries source context even when a reader could
 // infer it from adjacent details. Do not treat ordinary copulas alone as evidence.
 const RELATIONSHIP_CLAIM_MARKERS = [
-  /\b(?:must|shall|required|requires?|if|unless|except|excluding|provided that|as long as|subject to|only|always|all|every|any|each|solely|exclusively)\b/i,
+  /\b(?:must|shall|required|requires?|if|unless|except|excluding|provided that|as long as|subject to|only|always|all|every|any|each|both|solely|exclusively)\b/i,
   /\b(?:same|different|distinct|identical|equivalent|interchangeable|separate)\b/i,
   /\b(?:equals?|matches?|corresponds? to|defined as|means?|denotes?|refers? to|stands? for)\b/i,
   /\b(?:purpose|intent|intention|intended|designed to|meant to|aims? to|exists? to|serves? to)\b/i,
@@ -119,11 +119,19 @@ export function meetsReleaseGate(report: WritingReport): boolean {
     && (report.sentences < 8 || report.sentenceVariety === "natural");
 }
 
+const PROSE_DETERMINERS = new Set(["every", "each", "all", "any", "both"]);
+
 function withoutWrapper(match: string, prefix: string, word: string, offset: number, source: string): string {
   if (word === word.toLowerCase()) {
     const safeOpeners = new Set(["a", "an", "the", "i", "we", "our", "it", "its", "this", "that",
       "these", "those", "they", "you", "your", "use", "keep", "run", "do"]);
-    if (!safeOpeners.has(word) || /^[./\\([@:]/.test(source.charAt(offset + match.length))) return match;
+    const following = source.slice(offset + match.length);
+    // These quantifiers are ordinary prose openers only with a following word.
+    // Bare identifiers, calls, properties and assignments stay ambiguous.
+    const proseDeterminer = PROSE_DETERMINERS.has(word)
+      && /^[ \t]+[A-Za-z][A-Za-z0-9_-]*(?=[ \t]+|[,;!?]|\.(?:\s|$)|$)/.test(following)
+      && !/^[ \t]+[A-Za-z][A-Za-z0-9_-]*[ \t]*[=+*/<>]/.test(following);
+    if ((!safeOpeners.has(word) && !proseDeterminer) || /^[./\\([@:]/.test(following)) return match;
     return prefix + word.charAt(0).toUpperCase() + word.slice(1);
   }
   return prefix + word;

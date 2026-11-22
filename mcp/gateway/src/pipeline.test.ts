@@ -184,6 +184,33 @@ test("relationship protection does not blanket-protect copulas or vetted wrapper
   assert.equal(sourceClaimRisk("The two labels are distinct. The draft is genuinely brief.", "The two labels are distinct. The draft is brief."), false);
 });
 
+test("vetted wrapper removal preserves prose quantifiers under the scope guard", () => {
+  for (const phrase of [
+    "every record has a checksum.", "each visitor receives a map.",
+    "all entries retain their labels.", "any reviewer signs the log.",
+    "both owners receive a receipt.",
+  ]) {
+    const original = `It is important to note that ${phrase}`;
+    const edited = phrase.charAt(0).toUpperCase() + phrase.slice(1);
+    assert.equal(localRescue(original), edited);
+    assert.equal(sourceClaimRisk(original, edited), false);
+    assert.equal(sourceClaimRisk(original, edited.replace(/^(Every|Each|All|Any|Both) /, "Some ")), true);
+  }
+});
+
+test("prose quantifier openers do not expose bare identifiers or code boundaries", () => {
+  for (const suffix of [
+    "every", "each(value)", "all.records", "any: string", "both[0]",
+    "every_record.hasChecksum()", "every record.hasChecksum()",
+    "all = entries", "each entry = value", "both / values",
+  ]) {
+    const original = `It is important to note that ${suffix}`;
+    assert.equal(localRescue(original), original, suffix);
+  }
+  const fenced = "~~~js\nIt is important to note that all records have checksums.\n~~~";
+  assert.equal(localRescue(fenced), fenced);
+});
+
 test("scorer guidance is bounded and gives the editor exact targets", () => {
   const report = writingReport(88);
   report.flags = Array.from({ length: 20 }, (_, index) => ({
