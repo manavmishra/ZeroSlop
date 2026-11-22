@@ -119,7 +119,8 @@ class EvaluationTests(unittest.TestCase):
         corpus, runs, judges = fixture(1)
         target = corpus["drafts"][1]["target_spans"][0]
         half = (target["end"] - target["start"] + 1) // 2
-        runs[1]["findings"] = [{"start": target["start"], "end": target["start"] + half}]
+        runs[1]["findings"] = [{"start": target["start"], "end": target["start"] + half,
+                                 "action": "edit", "reason": "The phrase supplies no distinct information."}]
         self.assertEqual(evaluation.observations(corpus["drafts"], runs, judges)[1]["span_hits"], 1)
         runs[1]["findings"][0]["end"] -= 1
         self.assertEqual(evaluation.observations(corpus["drafts"], runs, judges)[1]["span_hits"], 0)
