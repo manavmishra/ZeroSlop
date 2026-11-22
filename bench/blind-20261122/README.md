@@ -37,3 +37,24 @@ Assess detection, editing, source fidelity and voice independently. Preserve abs
 ```sh
 python3 -m unittest discover -s bench/blind-20261122 -p 'test_*.py'
 ```
+
+## Preparing API-native web-policy replays
+
+`web_policy_replay.mjs` performs no inference. It snapshots the pinned website entrypoint and its local imports, adds temporary exports without changing the original source file, and invokes the real packet/protection functions. It prepares verbatim policy text, API-native packets, model response schema and hash receipts. `check` reuses the actual provider parser and local response validator; it distinguishes rejected or missing responses from accepted text. Acceptance is not proof of semantic fidelity.
+
+```sh
+node bench/blind-20261122/web_policy_replay.mjs prepare \
+  --repo /absolute/path/website-checkout --revision FULL_COMMIT \
+  --input /absolute/path/unlabeled-input.json --out /absolute/path/new-preparation \
+  --contract structured --batch-size 4
+node bench/blind-20261122/web_policy_replay.mjs check \
+  --prepared /absolute/path/new-preparation \
+  --responses /absolute/path/recorded-host-responses.json \
+  --out /absolute/path/local-validation.json
+```
+
+Use `--contract plaintext` for the published plaintext response policy. The response file contains `responses`, each with `id` and the exact `provider_response` string; the outer envelope is a benchmark transport, not the website API. Prepared cases deliberately use empty diagnostics in both policy arms. They do not expose the full skill experiment's author fact notes or voice brief, because those fields are absent from the actual API packet. Keep the experiments separate.
+
+The Codex replay embeds the exact `SYSTEM_PROMPT` in a user-level benchmark request. It cannot reproduce the provider's system-message priority, backend, seed or hosted limits. This adapter also does not run the gateway's routing, scoring, quota, fallback or final status policy. Calling it a complete gateway or SaaS replay would be incorrect. The pinned source hashes and saved random protected-token maps bind the exact policy packets that were prepared.
+
+Preflight used the actual pinned website source at `15f6cd09825ad3c8fee94fb3325f6aeb5046a515` and prototype `d90b6c4372cf5169fc1a7aa9464929c935347820`: manually constructed fictional fixture responses tested plaintext restoration, structured keep and rejection of an invented quote. These fixtures were not model generations or product benchmark results.
