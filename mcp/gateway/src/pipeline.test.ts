@@ -152,7 +152,7 @@ test("explicit relationships survive deletion and reframing even when inferable"
     ["The symbol denotes a shared queue. Keep the symbol on the diagram.", "Keep the symbol on the diagram."],
     ["The restart depends on the latch. Check the latch.", "The restart ignores the latch. Check the latch."],
     ["The room stays dry because the vent faces north. Inspect the vent.", "The room stays dry. Inspect the vent."],
-  ];
+  ] as const;
   for (const [source, rewrite] of cases) {
     assert.equal(sourceClaimRisk(source!, rewrite!), true, source);
     assert.equal(sourceClaimRisk(source!, source!), false, source);
@@ -169,7 +169,7 @@ test("obligations scope conditions and exceptions remain explicit", () => {
     ["If the light blinks, leave the case closed.", "Leave the case closed."],
     ["Keep the queue paused unless the owner consents.", "Keep the queue paused."],
     ["The permit covers the room except the south alcove.", "The permit covers the room."],
-  ];
+  ] as const;
   for (const [source, rewrite] of pairs) {
     assert.equal(sourceClaimRisk(source!, rewrite!), true, source);
     assert.equal(sourceClaimRisk(source!, source!), false, source);
