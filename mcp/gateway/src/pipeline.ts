@@ -408,7 +408,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
       ...unchanged(original, gap || !cleanEnough ? "unchanged_no_better_version" : "already_clear",
         before, started, env.SCORER_VERSION,
         gap
-          ? "The draft needs source information before it can be completed. The original is preserved; review the questions in the contextual findings."
+          ? `The draft needs source information before it can be completed. The original is preserved. Questions: ${modelReply.review.findings.map((finding) => finding.question).filter(Boolean).join(" ")}`
           : cleanEnough
             ? "One contextual model review found no justified edit. The original wording and voice are preserved."
             : "The contextual review kept the original, but local writing findings remain. Review them before publishing."),
@@ -471,11 +471,14 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     checkCancelled(control);
     if (sourceSafe(localOnly) && !sourceClaimRisk(original, localOnly.text)) checked = localOnly;
   }
-  if (!sourceSafe(checked)) {
+  const selectedClaimRisk = sourceClaimRisk(original, checked.text);
+  if (!sourceSafe(checked) || selectedClaimRisk) {
     return {
       ...unchanged(
         original, "unchanged_verification_failed", before, started, env.SCORER_VERSION,
-        "Every proposed edit changed protected source material, so the original is preserved.",
+        selectedClaimRisk
+          ? "Local checks flagged a possible change to a source claim's negation, direction, certainty, or timing. No safe alternative was available, so the original is preserved."
+          : "Every proposed edit changed protected source material, so the original is preserved.",
       ),
       modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
       rolesCompleted: modelReply ? 6 : 2,
@@ -487,9 +490,8 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   const after = await scoreWriting(env, current, input.genre, control);
   checkCancelled(control);
   const selectedModelEdit = checked.name === "one-call edit";
-  const claimUncertain = sourceClaimRisk(original, current);
   const passed = selectedModelEdit && Boolean(modelReply?.review?.decision === "edit")
-    && !claimUncertain && meetsReleaseGate(after);
+    && meetsReleaseGate(after);
   const warnings: string[] = [];
   if (!modelReply?.review) warnings.push("a source-bound contextual review was not completed");
   if (!selectedModelEdit) {
@@ -515,7 +517,6 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   if (after.register.findings.length > 0 || (after.shape.measured && after.shape.broetry)) {
     warnings.push("a document-level writing check remains");
   }
-  if (claimUncertain) warnings.push("a source claim's negation, direction, certainty, or timing changed and needs human review");
 
   return {
     text: current,
@@ -523,7 +524,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     before,
     after,
     scoreChange: Math.round((after.score - before.score) * 10) / 10,
-    factsPreserved: !claimUncertain,
+    factsPreserved: true,
     passedFinalChecks: passed,
     independentModelChecks: 0,
     modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,

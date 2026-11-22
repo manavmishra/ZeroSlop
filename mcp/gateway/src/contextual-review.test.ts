@@ -76,6 +76,7 @@ test("low-meter missing substance receives one request and preserves the source 
   assert.equal(result.independentModelChecks, 0);
   assert.deepEqual(result.contextualReview, { status: "reviewed", ...review });
   assert.equal(result.modelRequests, 1);
+  assert.match(result.note, /Which alternatives and criteria support this recommendation\?/);
 });
 
 test("reviewed keep retains informal voice verbatim without an alternate request", async () => {
@@ -135,7 +136,21 @@ test("a grounded diagnosis cannot override existing source-claim guards", async 
   const review: ContextualReview = { decision: "edit", findings: [{ kind: "style", quote: "do not", reason: "A claimed style improvement." }] };
   const { result } = await withReply(source, rewrite, review);
   assert.equal(result.passedFinalChecks, false);
-  assert.equal(result.factsPreserved, false);
-  assert.equal(result.status, "rewritten_with_warnings");
+  assert.equal(result.factsPreserved, true);
+  assert.equal(result.text, source);
+  assert.equal(result.status, "unchanged_verification_failed");
   assert.match(result.note, /source claim/);
+});
+
+
+test("a reviewed modality upgrade cannot replace Unicode source identifiers or certainty", async () => {
+  const source = "Zoë’s 東京 pilot may be viable. Ticket ABC-2048 belongs to Łukasz.";
+  const rewrite = source.replace("may be", "is");
+  const review: ContextualReview = { decision: "edit", findings: [{ kind: "style", quote: "may be viable", reason: "A claimed simplification." }] };
+  const { result } = await withReply(source, rewrite, review);
+  assert.equal(result.text, source);
+  assert.equal(result.status, "unchanged_verification_failed");
+  assert.equal(result.factsPreserved, true);
+  assert.equal(result.passedFinalChecks, false);
+  assert.deepEqual(result.contextualReview, { status: "reviewed", ...review });
 });

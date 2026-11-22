@@ -349,7 +349,7 @@ test("a 20,000-code-point model edit remains rankable", async () => {
   }
 });
 
-test("a reversed negative claim cannot be approved even if the scorer says it is preserved", async () => {
+test("a reversed negative claim returns the original even if the scorer says it is preserved", async () => {
   const original = "The pilot did not reduce costs. The importer is ready.";
   const reversed = "The pilot reduced costs. The importer is ready.";
   const base = scorerHarness(original, reversed);
@@ -362,18 +362,18 @@ test("a reversed negative claim cannot be approved even if the scorer says it is
       SCORER: base, SCORER_VERSION: "2.9.1",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
-    assert.equal(result.text, reversed);
-    assert.equal(result.status, "rewritten_with_warnings");
+    assert.equal(result.text, original);
+    assert.equal(result.status, "unchanged_verification_failed");
     assert.equal(result.passedFinalChecks, false);
-    assert.equal(result.factsPreserved, false);
-    assert.match(result.note, /source claim's negation, direction, certainty, or timing changed/);
+    assert.equal(result.factsPreserved, true);
+    assert.match(result.note, /possible change to a source claim's negation, direction, certainty, or timing/);
     assert.equal(result.modelRequests, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test("modal and tense upgrades remain review-required despite a source-safe scorer verdict", async () => {
+test("modal and tense upgrades return the original despite a source-safe scorer verdict", async () => {
   const cases = [
     ["The pilot may be viable. The importer is ready.", "The pilot is viable. The importer is ready."],
     ["The pilot was viable. The importer is ready.", "The pilot is viable. The importer is ready."],
@@ -392,11 +392,11 @@ test("modal and tense upgrades remain review-required despite a source-safe scor
         SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.9.1",
         EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
       } as unknown as Env, { text: original, genre: "general" });
-      assert.equal(result.text, rewrite);
-      assert.equal(result.status, "rewritten_with_warnings");
-      assert.equal(result.factsPreserved, false);
+      assert.equal(result.text, original);
+      assert.equal(result.status, "unchanged_verification_failed");
+      assert.equal(result.factsPreserved, true);
       assert.equal(result.passedFinalChecks, false);
-      assert.match(result.note, /source claim's negation, direction, certainty, or timing changed/);
+      assert.match(result.note, /possible change to a source claim's negation, direction, certainty, or timing/);
       assert.equal(result.modelRequests, 1);
       assert.equal(modelCalls, 1);
     }
