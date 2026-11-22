@@ -40,7 +40,7 @@ Keep sealed labels and private unblinding maps away from editors and judges. App
 
 ## Evaluator and selection pins before final freeze
 
-Operational evaluator commit: `370f7cc331f7dc55364363ea410246b0759269e9`; `evaluate.py` SHA256: `bbcc9295268c4171b24ef2f0a9ea714034d13172a818c6edb1690c7f3c548106`. Seventeen evaluator tests passed according to the coordinator. Final freeze must verify these bytes and include subsequent reviewed evaluator changes explicitly. Root verified the candidate gateway with 164 Node tests, 65 Worker tests and TypeScript checks after test-fixture-only commit `4d4b431882eff0695c42f8a8ec667bf469d44db2`; this is evidence about code contracts, not blinded editorial quality.
+Operational evaluator commit: `be0482609bd2674c653d3d2f0d17372069322f84`; corrected test-fixture commit: `5c552ce6c28f6f8764b796a524de1d999e4ede26`; `evaluate.py` SHA256: `44f69b975e12587ef35d60e96dc1d28d343a3c6171d8bb922f09649e6500e5c4`. Eighteen evaluator tests passed according to the coordinator. Final freeze must verify these bytes and include subsequent reviewed evaluator changes explicitly. Root verified the candidate gateway with 164 Node tests, 65 Worker tests and TypeScript checks after test-fixture-only commit `4d4b431882eff0695c42f8a8ec667bf469d44db2`; this is evidence about code contracts, not blinded editorial quality.
 
 Frozen panel IDs, in source-group pair order: `sealed-015`, `sealed-016`, `sealed-025`, `sealed-026`, `sealed-033`, `sealed-034`, `sealed-037`, `sealed-038`, `sealed-041`, `sealed-042`, `sealed-043`, `sealed-044`. No draft content or labels were used here.
 
@@ -53,3 +53,5 @@ Pre-unseal scope clarification recorded 2026-11-22T20:03:41.662128+00:00: the co
 Arithmetic correction before freeze: fifteen candidate calls plus twelve portable-panel calls yields a minimum of twenty-seven total calls, not fifteen. Baseline routing adds zero to fifteen, so the accepted total is 27–42. The 42-call/3h30m upper bound is unchanged.
 
 Published website source equivalence verified locally before freeze: all four staged endpoint/import files from `15f6cd09825ad3c8fee94fb3325f6aeb5046a515` are byte-identical at coordinator-identified live baseline `80fa2cddfa3b9df9fd5a6d19762d4fb9f817cc42`. This verifies repository source equivalence; it is not an independent deployment receipt. Matching paths are `functions/api/demo-rewrite.js`, `functions/lib/editor-budget.js`, `functions/lib/request-receipts.js`, and `functions/lib/text-hygiene.mjs`.
+
+Evaluator checkpoint 2026-11-22T20:07:35.558065+00:00: the pre-unseal update excludes KEEP findings from target-span credit. The half-overlap fixture now explicitly includes a valid action and reason; its existing assertions remain intact. Earlier evaluator pin370f and seventeen-test receipt remain in prior commits. This is not a relaxed threshold or a change informed by sealed results.
