@@ -63,7 +63,7 @@ test("bounded operation detaches the caller listener after success, failure, tim
 test("editor cancellation before signing completes starts zero requests", async () => {
   const controller = new AbortController();
   const control = { signal: controller.signal, editorRequested: false };
-  const pending = callRole({ EDITOR_ENDPOINT: "https://editor.invalid", EDITOR_SHARED_SECRET: randomBytes(32).toString("hex") } as Env,
+  const pending = callRole({ EDITOR_ENDPOINT: "https://editor.invalid", EDITOR_SHARED_SECRET: randomBytes(32).toString("hex") } as unknown as Env,
     "complete", "synthetic", {}, Date.now() + 5000, "", control);
   controller.abort();
   await assert.rejects(pending, (error: unknown) => error instanceof PipelineCancelledError && error.modelRequests === 0);
