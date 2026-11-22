@@ -35,6 +35,16 @@ class ContextPreservingRescue(unittest.TestCase):
             with self.subTest(source=source):
                 self.assertEqual(rescue_text(source), source)
 
+    def test_ambiguous_opening_cannot_fall_through_to_unconditional_deletion(self):
+        for source in (
+            "It is worth noting that operating costs were USD 18,600 above plan.",
+            "It is important to note that npm remains the installer.",
+            "The lesson says it is worth noting that iOS is supported.",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(rescue_text(source), source)
+                self.assertEqual(rescue_text(rescue_text(source)), source)
+
     def test_generic_process_never_becomes_onboarding(self):
         source = ("The payroll exporter is a platform that leverages intelligent automation "
                   "to streamline the entire process end to end.")

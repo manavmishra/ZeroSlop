@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from rescue import rescue_text
 
 folder = Path(__file__).resolve().parent
-raw = (folder / "drafts.json").read_bytes()
+raw = (Path(sys.argv[1]) if len(sys.argv) > 1 else folder / "drafts.json").read_bytes()
 rows = []
 for row in json.loads(raw):
     edited = rescue_text(row["source"])

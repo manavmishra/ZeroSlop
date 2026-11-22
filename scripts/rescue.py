@@ -198,8 +198,6 @@ def rescue_text(text: str) -> str:
         (r"\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b", "I'm sharing"),
         (r"\bour journey\b", "our work"),
         (r"\bour transformative journey\b", "our work"),
-        (r"\bit is important to note that\b[ \t]*", ""),
-        (r"\bit is worth noting that\b[ \t]*", ""),
         (r"\bwhat we did not realize was just how deeply it impacted everything downstream\.",
          "We underestimated its effect on the work that followed."),
         (r"\bonboarding is not a checklist\.\s*it is a promise\.",

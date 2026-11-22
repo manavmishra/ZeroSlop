@@ -253,8 +253,6 @@ export function localRescue(text: string): string {
     [/\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b/gi, "I'm sharing"],
     [/\bour journey\b/gi, "our work"],
     [/\bour transformative journey\b/gi, "our work"],
-    [/\bit is important to note that\b[ \t]*/gi, ""],
-    [/\bit is worth noting that\b[ \t]*/gi, ""],
     [/\bwhat we did not realize was just how deeply it impacted everything downstream\./gi,
       "We underestimated its effect on the work that followed."],
     [/\bonboarding is not a checklist\.\s*it is a promise\./gi, "We see onboarding as a promise."],

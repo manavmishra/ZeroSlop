@@ -1,7 +1,7 @@
 {
   "scope": "Synthetic local-fallback replay; no model rewrite or human voice evaluation",
   "drafts_sha256": "3a1abfa0a3da8e0cf73796002fa207a5269535b5537767b5ddb40d6ae8449911",
-  "runtime_sha256": "a2dd600b1b3d550c516fa1a218c6d03f88d9f1c3bcf3885cb6fbe6e47727573d",
+  "runtime_sha256": "d88b55b222661625489c92de14d678ff9414116c335fc016ef5a0f3b026bf8bf",
   "drafts": 12,
   "protected_span_failures": 0,
   "idempotence_failures": 0,
@@ -262,8 +262,8 @@
         "Turn the expected date into a commitment.",
         "Combine revenue and cash changes."
       ],
-      "edited": "operating costs were USD 18,600 above plan in August. Of this variance, USD 11,200 relates to a maintenance invoice recorded earlier than expected.\n\nThe remaining USD 7,400 has not yet been reconciled. We expect to finish that reconciliation by 6 September, but that is an estimate rather than a committed close date.\n\nRevenue was below plan by 3%, while cash receipts were above plan by 2%. These measures describe different periods of the customer cycle and should not be combined into a single growth figure.\n\nThe most important thing to note is that this commentary uses the management accounts. It has not been audited. Keep the timing explanation separate from any claim about a lasting increase in the cost base.",
-      "changed": true,
+      "edited": "It is worth noting that operating costs were USD 18,600 above plan in August. Of this variance, USD 11,200 relates to a maintenance invoice recorded earlier than expected.\n\nThe remaining USD 7,400 has not yet been reconciled. We expect to finish that reconciliation by 6 September, but that is an estimate rather than a committed close date.\n\nRevenue was below plan by 3%, while cash receipts were above plan by 2%. These measures describe different periods of the customer cycle and should not be combined into a single growth figure.\n\nThe most important thing to note is that this commentary uses the management accounts. It has not been audited. Keep the timing explanation separate from any claim about a lasting increase in the cost base.",
+      "changed": false,
       "protected_spans_preserved": true,
       "idempotent": true,
       "clean_control_unchanged": null

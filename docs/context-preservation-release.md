@@ -30,8 +30,11 @@ reuses the production helper and tests these names directly.
 
 Independent review of the first release attempt found two more failures: editing
 inside tilde fences and capitalizing lowercase identifiers. Both are retained as
-regression tests. The second attempt protects the fences and abstains on ambiguous
-capitalization. The research routines were not copied into the runtime.
+regression tests. The second attempt protected fences and abstained on ambiguous capitalization,
+but review found an older unconditional deletion could bypass that abstention.
+The user authorized a third attempt. It removes those obsolete deletion rules
+so an ambiguous opening stays intact, including when a contextual editor could
+remove it. This conservative fallback can leave some filler for the assistant. The research routines were not copied into the runtime.
 
 The existing claim guard remains conservative and incomplete. On a new challenge
 set it flags 8/16 unsafe rewrites and 6/16 safe paraphrases. These are results of a
@@ -48,9 +51,15 @@ explicit meaning, voice, and protected-content expectations.
 
 The 12-draft local-fallback replay preserves every declared protected span, changes
 none of the five clean controls, and is idempotent on all 12 drafts. Python and
-TypeScript outputs match exactly. Two drafts receive additional complete-opening
-cleanup relative to 2.12.40. The fallback does not perform every suggested editorial
+TypeScript outputs match exactly. Two drafts receive additional complete-opening cleanup relative to 2.12.40.
+The more conservative capitalization rule retains a frame in one financial draft
+that the prior release removed; it avoids guessing how to expose a lowercase token. The fallback does not perform every suggested editorial
 change or supply the missing substance in the two incomplete work documents.
+
+A second set of six drafts was independently frozen before the authorized third
+attempt. It also preserves every declared protected span, leaves all three clean
+controls unchanged, and is idempotent in every case. These six are the fresh
+unseen check for the final attempt; the earlier twelve are retained regressions.
 
 These synthetic checks do not measure population accuracy, human-rated voice, or
 improvement from the hosted model. Required meanings and tone also need contextual

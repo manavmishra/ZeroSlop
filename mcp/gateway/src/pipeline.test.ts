@@ -689,3 +689,12 @@ test("fallback never invents onboarding or conversations for an unspecified proc
     "The insights were significant: the error affects only the pilot.");
   assertRescueParity("The insights were game-changing.", "The insights were useful.");
 });
+
+
+test("ambiguous or mid-sentence frames never fall through to unconditional deletion", () => {
+  for (const source of ["It is worth noting that operating costs were USD 18,600 above plan.",
+    "It is important to note that npm remains the installer.",
+    "The lesson says it is worth noting that iOS is supported."]) {
+    assertRescueParity(source, source);
+  }
+});
