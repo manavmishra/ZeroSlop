@@ -181,7 +181,7 @@ def observations(drafts, run_rows, judge_rows):
                     for item in removal_evidence) for target in draft["target_spans"]))
         if removal_evidence_missing:
             removal = "missing"
-        spans = [finding_span(item, draft["text"]) for item in findings]
+        spans = [finding_span(item, draft["text"]) for item in actionable]
         hits = sum(any(span and max(0, min(span[1], target["end"]) - max(span[0], target["start"])) * 2
                        >= target["end"] - target["start"] for span in spans)
                    for target in draft["target_spans"])

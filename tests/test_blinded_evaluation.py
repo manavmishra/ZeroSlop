@@ -103,6 +103,15 @@ class EvaluationTests(unittest.TestCase):
         self.assertFalse(result["output_available"])
         self.assertFalse(result["successful_removal"])
 
+    def test_retaining_a_positive_target_does_not_count_as_span_detection(self):
+        corpus, runs, judges = fixture(1)
+        runs[1] = {"id": corpus["drafts"][1]["id"], "text": corpus["drafts"][1]["text"],
+                   "findings": [{"span": "Seamless progress.", "action": "keep",
+                                 "reason": "The method considers this justified."}]}
+        row = evaluation.observations(corpus["drafts"], runs, judges)[1]
+        self.assertIs(row["flagged"], False)
+        self.assertEqual(row["span_hits"], 0)
+
     def test_span_half_overlap_uses_codepoints_and_repeated_quotes_abstain(self):
         text = "😀abc😀abc"
         self.assertIsNone(evaluation.finding_span({"quote": "😀abc"}, text))
