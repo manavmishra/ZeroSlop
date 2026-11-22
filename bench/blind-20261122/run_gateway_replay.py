@@ -5,6 +5,7 @@ import concurrent.futures
 import datetime as dt
 import hashlib
 import json
+import random
 from pathlib import Path
 import subprocess
 import tempfile
@@ -52,10 +53,33 @@ def invoke(job, args, suite):
     print(name,batch['block'],record['status'],record['elapsed_seconds'],flush=True)
     return record,rows
 
+def judge_packets(suite, context_path, methods, case_ids):
+    payload=json.loads(context_path.read_text());contexts=payload['drafts'] if isinstance(payload,dict) else payload
+    lookup={row['id']:row for row in contexts};outputs={name:{row['id']:row for row in rows} for name,rows in methods.items()}
+    artifacts=[]
+    for pass_number in (1,2):
+        rng=random.Random(20261122+pass_number);packet=[];mapping={}
+        for index,id in enumerate(case_ids):
+            source=lookup[id];anonymous=f'item-{index+1:03d}'
+            names=[name for name,rows in outputs.items() if isinstance(rows.get(id,{}).get('text'),str)];rng.shuffle(names)
+            variants={};identities={}
+            for position,name in enumerate(names):
+                row=outputs[name][id];label=chr(65+position);review=row.get('pipelineResult',{}).get('contextualReview',{})
+                questions=[finding['question'] for finding in review.get('findings',[]) if isinstance(finding,dict) and isinstance(finding.get('question'),str) and finding['question'].strip()]
+                variants[label]={'text':row['text'],'author_questions':list(dict.fromkeys(questions))};identities[label]=name
+            packet.append({'id':anonymous,'genre':source['genre'],'brief':source.get('brief'),'source_notes':source.get('source'),'voice_constraints':source.get('voice_constraints',[]),'original':source['text'],'variants':variants})
+            mapping[anonymous]={'source_id':id,'methods':identities}
+        packet_path=suite/'judge-packets'/f'pass-{pass_number}.json';map_path=suite/'private-maps'/f'pass-{pass_number}.json'
+        write(packet_path,packet);write(map_path,mapping);map_path.parent.chmod(0o700);map_path.chmod(0o600)
+        artifacts.append({'pass':pass_number,'packet_sha256':sha(packet_path.read_bytes()),'mapping_sha256':sha(map_path.read_bytes())})
+    return artifacts
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--arms',type=Path,required=True)
     parser.add_argument('--suite',type=Path,required=True)
+    parser.add_argument('--judge-context',type=Path)
     parser.add_argument('--model',default='gpt-6.2-astra')
     parser.add_argument('--reasoning',default='high')
     parser.add_argument('--timeout',type=int,default=600)
@@ -72,6 +96,7 @@ def main():
         prepared=Path(arm['prepared']).resolve();manifest=json.loads((prepared/'manifest.json').read_text())
         if manifest.get('response_schema_sha256')!=sha((prepared/'response-schema.json').read_bytes()):parser.error('Prepared schema hash missing or mismatched')
         manifests[arm['name']]=manifest;sources[arm['name']]=prepared
+    if len({json.dumps(manifest.get('frozen_order'),sort_keys=True) for manifest in manifests.values()})!=1:parser.error('Policy arms do not share frozen input order')
     if len({manifest['input_sha256'] for manifest in manifests.values()})!=1:parser.error('Policy arms do not share input artifact')
     if len({manifest['batch_size'] for manifest in manifests.values()})!=1:parser.error('Policy arms do not share batch size')
     if len({manifest['response_schema_sha256'] for manifest in manifests.values()})!=1:parser.error('Policy arms do not share output schema')
@@ -96,6 +121,8 @@ def main():
         methods.update(json.loads(evaluation.read_text())['methods'])
         receipts[name]={'calls':records,'provider_responses_sha256':sha(response_path.read_bytes()),'pipeline_results_sha256':sha(replay.read_bytes()),'evaluation_sha256':sha(evaluation.read_bytes())}
     write(suite/'evaluation-runs.json',{'methods':methods})
-    write(suite/'manifest.json',{'kind':'same_host_actual_gateway_policy_replay_not_production','model':args.model,'reasoning':args.reasoning,'timeout_seconds':args.timeout,'codex_version':subprocess.check_output([args.codex,'--version'],text=True).strip(),'plan_sha256':sha((suite/'plan.json').read_bytes()),'evaluation_sha256':sha((suite/'evaluation-runs.json').read_bytes()),'methods':receipts})
+    case_ids=[row['source']['id'] for row in json.loads((next(iter(sources.values()))/'prepared-cases.json').read_text())]
+    packets=judge_packets(suite,args.judge_context,methods,case_ids) if args.judge_context else []
+    write(suite/'manifest.json',{'kind':'same_host_actual_gateway_policy_replay_not_production','model':args.model,'reasoning':args.reasoning,'timeout_seconds':args.timeout,'codex_version':subprocess.check_output([args.codex,'--version'],text=True).strip(),'plan_sha256':sha((suite/'plan.json').read_bytes()),'evaluation_sha256':sha((suite/'evaluation-runs.json').read_bytes()),'judge_context_sha256':sha(args.judge_context.read_bytes()) if args.judge_context else None,'judging_artifacts':packets,'methods':receipts})
 
 if __name__=='__main__':main()

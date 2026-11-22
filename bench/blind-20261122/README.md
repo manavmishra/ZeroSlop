@@ -81,3 +81,7 @@ For a reviewed code-only validation change, `prepare --protocol-cache /absolute/
 `run_panel.py` handles the separate twelve-case/four-arm portable panel. Pass `--corpus`, `--arms`, `--selection` and `--suite`; frozen selection IDs/order and seed are checked before execution. It uses deterministic arm permutations within each four-case block, fresh runtimes and two workers. All references remain included. These full-context skill results must not be pooled with the API-native product comparison.
 
 See `CONFIRMATION-PROPOSAL.md` for the accepted focused scope. The declined seven-arm/sixty-case proposal is retained only as history.
+
+Before confirmation, product preparation additionally requires `--order`, `--order-groups`, and `--order-scope primary`. The portable runner requires `--order` and `--groups` alongside `--selection`. These metadata-only files define the exact seeded first-valid permutations: no model batch contains two variants of one source, while source-group pairing remains intact for analysis. Both policy arms and all panel arms share their experiment's order. `order.py` verifies it independently of source text and labels.
+
+Pass `--judge-context` to the product runner to generate two method-hidden source/voice packets with actual delivered `author_questions`. Expected labels, target spans, scorer values, statuses and findings reasons are excluded; private method/source maps remain separate. Keep the global two-call concurrency limit across generation, panel and judging stages.

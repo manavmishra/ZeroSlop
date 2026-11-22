@@ -7,6 +7,7 @@ from pathlib import Path
 import random
 import subprocess
 import run as matched
+import order as frozen_order
 
 
 def main():
@@ -14,6 +15,8 @@ def main():
     p.add_argument('--corpus',type=Path,required=True)
     p.add_argument('--arms',type=Path,required=True)
     p.add_argument('--selection',type=Path,required=True)
+    p.add_argument('--order',type=Path,required=True)
+    p.add_argument('--groups',type=Path,required=True)
     p.add_argument('--suite',type=Path,required=True)
     p.add_argument('--seed',type=int,default=20261122)
     p.add_argument('--model',default=matched.MODEL)
@@ -29,11 +32,13 @@ def main():
     source=json.loads(args.corpus.read_text());source=source['drafts'] if isinstance(source,dict) else source
     if len(source)!=12:p.error('The frozen small panel requires exactly12 drafts')
     selection=json.loads(args.selection.read_text())
-    if [row['id'] for row in source]!=selection['draft_ids']:p.error('Input does not match frozen panel selection/order')
+    if {row['id'] for row in source}!=set(selection['draft_ids']):p.error('Input does not match frozen panel selection set')
     if args.seed!=selection['seed']:p.error('Seed differs from frozen panel metadata')
-    if all('source_group' in row for row in source):
-        expected=[group for group in selection['source_groups'] for _ in range(2)]
-        if [row['source_group'] for row in source]!=expected:p.error('Source-group pairs differ from frozen selection')
+    order_metadata=json.loads(args.order.read_text());groups=json.loads(args.groups.read_text())
+    try:ids=frozen_order.validate(order_metadata,groups,'panel',[row['id'] for row in source])
+    except ValueError as error:p.error(str(error))
+    if all('source_group' in row for row in source) and any(row['source_group']!=groups['source_group_by_id'][row['id']] for row in source):p.error('Source groups differ from owner metadata')
+    lookup={row['id']:row for row in source};source=[lookup[id] for id in ids]
     corpus=[{key:row[key] for key in matched.FIELDS if key in row} for row in source]
     arms=json.loads(args.arms.read_text())
     if len(arms)!=4:p.error('The frozen small panel requires exactly4 arms')
@@ -45,7 +50,7 @@ def main():
             matched.write(root/'schema.json',matched.SCHEMA)
             jobs.append((arm,corpus[offset:offset+4],root))
     matched.write(suite/'input.json',corpus)
-    matched.write(suite/'plan.json',{'kind':'matched_portable_skill_panel_not_product_policy','seed':args.seed,'model':args.model,'reasoning':args.reasoning,'timeout_seconds':args.timeout,'workers':args.workers,'input_sha256':matched.sha(args.corpus.read_bytes()),'arms_sha256':matched.sha(args.arms.read_bytes()),'selection_metadata_sha256':matched.sha(args.selection.read_bytes()),'scheduler_sha256':matched.sha(Path(__file__).read_bytes()),'worker_sha256':matched.sha(Path(matched.__file__).read_bytes()),'jobs':[{'method':arm[0],'ids':[row['id'] for row in rows],'path':str(root)} for arm,rows,root in jobs]})
+    matched.write(suite/'plan.json',{'kind':'matched_portable_skill_panel_not_product_policy','seed':args.seed,'model':args.model,'reasoning':args.reasoning,'timeout_seconds':args.timeout,'workers':args.workers,'input_sha256':matched.sha(args.corpus.read_bytes()),'arms_sha256':matched.sha(args.arms.read_bytes()),'selection_metadata_sha256':matched.sha(args.selection.read_bytes()),'order_metadata_sha256':matched.sha(args.order.read_bytes()),'group_metadata_sha256':matched.sha(args.groups.read_bytes()),'order_sha256':order_metadata['panel']['order_sha256'],'scheduler_sha256':matched.sha(Path(__file__).read_bytes()),'worker_sha256':matched.sha(Path(matched.__file__).read_bytes()),'jobs':[{'method':arm[0],'ids':[row['id'] for row in rows],'path':str(root)} for arm,rows,root in jobs]})
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures=[executor.submit(matched.run_arm,arm,rows,args,root) for arm,rows,root in jobs]
         records=[future.result() for future in futures]
