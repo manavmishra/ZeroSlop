@@ -18,7 +18,7 @@ MCP client
     v
 gateway Worker
     |-- per-colocation capacity limit
-    |-- 36 second end-to-end budget
+    |-- 75 second end-to-end budget
     |-- one editor request, then local checks
     |
     | service binding                    | HTTPS, HMAC, no-store
@@ -44,19 +44,28 @@ with no second finishing request.
 
 The gateway marks a rewrite fully checked only when all of these are true:
 
-- deterministic reranking finds no dropped or invented facts;
+- deterministic reranking finds no dropped or invented tracked source details;
 - the final writing score is below 25;
 - register and document-shape checks are clean;
-- the one editorial response completed the copy-desk, read-aloud, and
-  fresh-eyes responsibilities; and
+- the editorial response includes a valid source-bound contextual edit review; and
 - the final local recheck approves the exact text returned.
 
 Missing an editorial target does not start another model request. The safest
 source-preserving edit comes back with a clear review warning. If the hosted
 editor request fails or changes protected material, a conservative local editor removes
 known stock wording without changing source details. It follows the same fixtures as
-the installed `scripts/rescue.py` command and the browser demo. A clean source returns
-after scoring and is never sent to the model.
+the installed `scripts/rescue.py` command and the browser demo. Every normal hosted
+editing request receives contextual review, including drafts with low local scores.
+Clean inputs can therefore consume model allowance and latency. Explicit
+`clean_text` remains local character cleanup.
+
+A valid `keep` decision preserves the original. A `gap` decision also preserves it
+and reports questions in the findings and plain-language note; missing evidence
+must not be invented. If local source checks flag a possible claim change and no safe
+alternative exists, the original returns as `unchanged_verification_failed`.
+The claim guard can reject valid paraphrases and does not establish semantic truth.
+The model's review and rewrite share one response, so they are not independent
+checks. See the [API result contract](../docs/rest-api.md#read-the-result).
 
 ## Connect
 

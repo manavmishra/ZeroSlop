@@ -161,12 +161,19 @@ model's review is not independent proof of meaning or factual truth. Inspect
 to eight exact-source findings about the model proposal (an edit can still fail
 subsequent source checks), while `unavailable` means no usable contextual
 review completed and `not_requested` identifies local character cleanup. Missing
-substance stays in the original and its questions are reported separately; it is
+substance stays in the original and its questions appear in both the findings
+and the plain-language `note`; it is
 not an approved completed edit. Normal editing requests this review even with a
 low writing score, so clean inputs can consume model allowance and latency.
-Do not reject a reviewed keep solely on the final-check boolean. Source checks protect tracked
-details; they cannot certify factual truth or every change in meaning. Human review
-remains necessary before publication.
+If local checks flag a possible change to a source claim's negation, direction,
+certainty, or timing, the gateway selects a source-safe alternative or returns the
+original as `unchanged_verification_failed`. In that unchanged result,
+`factsPreserved: true` describes the returned original, not the rejected proposal.
+These conservative checks may reject valid paraphrases.
+
+Do not reject a reviewed keep solely on the final-check boolean. Source checks
+protect tracked details; they cannot certify factual truth or every change in
+meaning. Human review remains necessary before publication.
 
 ## Errors and retries
 
