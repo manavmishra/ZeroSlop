@@ -1,0 +1,1163 @@
+{
+  "scope": "Synthetic editorial-quality development labels, not AI provenance or field accuracy",
+  "corpus_sha256": "49d620e884f8cd7d086683865028eebb09e7121396781982df38f884dccf2239",
+  "operating_points": {
+    "zero_slop": "default non-formal score>=25",
+    "avoid": "published CLI count>6, technical/rendered-markdown"
+  },
+  "runtime_receipts": {
+    "2.12.13": {
+      "commit": "5dc573740f79b32449ec5f25e9a1c443e7ab8e36",
+      "files": {
+        "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+        "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+        "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+        "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+        "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+        "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+        "scripts/slopscore.py": "d4f55a6a7fb8a102ed143f08ee42b5196973d712659260c0c0cd4cba55b139b5"
+      },
+      "private_learning": "empty per-runtime location"
+    },
+    "2.12.40": {
+      "commit": "42e4c952de7216ae915270b8cb0658ec08857650",
+      "files": {
+        "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+        "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+        "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+        "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+        "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+        "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+        "scripts/slopscore.py": "90228f6ae29f9c7536504b28e134fda5f6b36a908ab9172b408068fe24999650"
+      },
+      "private_learning": "empty per-runtime location"
+    },
+    "2.12.41": {
+      "commit": "cd8429d079b867270964e9ea8d0b8d500cdc7849",
+      "files": {
+        "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+        "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+        "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+        "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+        "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+        "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+        "scripts/slopscore.py": "90228f6ae29f9c7536504b28e134fda5f6b36a908ab9172b408068fe24999650"
+      },
+      "private_learning": "empty per-runtime location"
+    },
+    "candidate": {
+      "commit": "4d4b431882eff0695c42f8a8ec667bf469d44db2",
+      "files": {
+        "data/learned.json": "326a19ab0f19a9073981de7f78253011c12b8b78f81a8276a335b13a7bd686ea",
+        "data/patterns.json": "a20499d0c135a4d1df60e104f1b3ff7b382ea67f065eda946ac0fb63b08aeed6",
+        "scripts/predictability.py": "b011f21ba6bfddb41e859273db51fc5a3dc5f7f5de979b2013e5bfca48bd2aa2",
+        "scripts/register.py": "3e1ba55c281a32081910bf0aac506912b521ca8edf06836e47c2e654b732a844",
+        "scripts/rerank.py": "2d4b80556e1ba389dde38fe6e7991610cc3c21a85baa8bf2d70dfdcaff69b7a7",
+        "scripts/safeio.py": "a2e7f2ae689d39bec3482e52a4f3228abfaa2d8b70174baa487c086362c5753b",
+        "scripts/slopscore.py": "b2698f9e8ec0df302556e91708e2ada3e71ad76b47ed7514feb1eb7b12dde93f"
+      },
+      "private_learning": "empty per-runtime location"
+    },
+    "avoid-current-published-gate": {
+      "commit": "a5d6bae7c0d762dbcff74ca86c17a7ac9fee4151",
+      "detector_files": {
+        "detector/categories.test.js": "571144f75dbbc36f7b7a816739413b4d603419baf5e0b5d18db477cb23647a5c",
+        "detector/patterns.js": "1190e31a7d49f42251d953a513374cd9b613eebc426662cf94bc8c311de17720",
+        "detector/patterns.test.js": "a471afd321654f06570e6833dfad3b043a2b2253b84e4a2016a6cdfbe2aa3021",
+        "detector/validate.js": "4461521d801a7e83e19b3d0810a60a69e1a28ac9f749740eabc0dfa7e1717495",
+        "detector/validate.test.js": "07665fc61569b122d8ca026b582e978694ca89f02eaf246e3bbe84f5acf7828d"
+      },
+      "private_learning": "not used by this detector"
+    }
+  },
+  "summaries": {
+    "2.12.13": {
+      "tp": 4,
+      "tn": 12,
+      "fp": 0,
+      "fn": 8
+    },
+    "2.12.40": {
+      "tp": 4,
+      "tn": 12,
+      "fp": 0,
+      "fn": 8
+    },
+    "2.12.41": {
+      "tp": 4,
+      "tn": 12,
+      "fp": 0,
+      "fn": 8
+    },
+    "candidate": {
+      "tp": 4,
+      "tn": 12,
+      "fp": 0,
+      "fn": 8
+    },
+    "avoid-current-published-gate": {
+      "tp": 0,
+      "tn": 12,
+      "fp": 0,
+      "fn": 12
+    }
+  },
+  "rows": {
+    "2.12.13": [
+      {
+        "id": "dev-001",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-002",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-003",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-004",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-005",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-006",
+        "score": 48.9,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "marketing",
+            "name": "unlock-potential",
+            "w": 4.5,
+            "quote": "unlock new opportunities"
+          },
+          {
+            "cat": "lexicon",
+            "name": "holistic",
+            "w": 3,
+            "quote": "holistic"
+          }
+        ]
+      },
+      {
+        "id": "dev-007",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-008",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-009",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-010",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-011",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-012",
+        "score": 66.1,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "At the end of the day"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "the key takeaway"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "tacked-on-moral",
+            "w": 4,
+            "quote": "takeaway is"
+          }
+        ]
+      },
+      {
+        "id": "dev-013",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-014",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-015",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-016",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-017",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-018",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "drama",
+            "name": "cannot-be-overstated",
+            "w": 4.5,
+            "quote": "cannot be overstated"
+          },
+          {
+            "cat": "marketing",
+            "name": "possibilities-endless",
+            "w": 5,
+            "quote": "implications are profound"
+          }
+        ]
+      },
+      {
+        "id": "dev-019",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-020",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-021",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-022",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-023",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-024",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "puffery",
+            "name": "rich-tapestry",
+            "w": 4,
+            "quote": "rich tapestry"
+          },
+          {
+            "cat": "linkedin",
+            "name": "journey-gratitude",
+            "w": 3,
+            "quote": "the journey ahead"
+          },
+          {
+            "cat": "cliche",
+            "name": "paints-picture",
+            "w": 3.5,
+            "quote": "speaks volumes"
+          }
+        ]
+      }
+    ],
+    "2.12.40": [
+      {
+        "id": "dev-001",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-002",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-003",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-004",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-005",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-006",
+        "score": 48.9,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "marketing",
+            "name": "unlock-potential",
+            "w": 4.5,
+            "quote": "unlock new opportunities"
+          },
+          {
+            "cat": "lexicon",
+            "name": "holistic",
+            "w": 3,
+            "quote": "holistic"
+          }
+        ]
+      },
+      {
+        "id": "dev-007",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-008",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-009",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-010",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-011",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-012",
+        "score": 66.1,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "At the end of the day"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "the key takeaway"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "tacked-on-moral",
+            "w": 4,
+            "quote": "takeaway is"
+          }
+        ]
+      },
+      {
+        "id": "dev-013",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-014",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-015",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-016",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-017",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-018",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "drama",
+            "name": "cannot-be-overstated",
+            "w": 4.5,
+            "quote": "cannot be overstated"
+          },
+          {
+            "cat": "marketing",
+            "name": "possibilities-endless",
+            "w": 5,
+            "quote": "implications are profound"
+          }
+        ]
+      },
+      {
+        "id": "dev-019",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-020",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-021",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-022",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-023",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-024",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "puffery",
+            "name": "rich-tapestry",
+            "w": 4,
+            "quote": "rich tapestry"
+          },
+          {
+            "cat": "linkedin",
+            "name": "journey-gratitude",
+            "w": 3,
+            "quote": "the journey ahead"
+          },
+          {
+            "cat": "cliche",
+            "name": "paints-picture",
+            "w": 3.5,
+            "quote": "speaks volumes"
+          }
+        ]
+      }
+    ],
+    "2.12.41": [
+      {
+        "id": "dev-001",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-002",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-003",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-004",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-005",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-006",
+        "score": 48.9,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "marketing",
+            "name": "unlock-potential",
+            "w": 4.5,
+            "quote": "unlock new opportunities"
+          },
+          {
+            "cat": "lexicon",
+            "name": "holistic",
+            "w": 3,
+            "quote": "holistic"
+          }
+        ]
+      },
+      {
+        "id": "dev-007",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-008",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-009",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-010",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-011",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-012",
+        "score": 66.1,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "At the end of the day"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "the key takeaway"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "tacked-on-moral",
+            "w": 4,
+            "quote": "takeaway is"
+          }
+        ]
+      },
+      {
+        "id": "dev-013",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-014",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-015",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-016",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-017",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-018",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "drama",
+            "name": "cannot-be-overstated",
+            "w": 4.5,
+            "quote": "cannot be overstated"
+          },
+          {
+            "cat": "marketing",
+            "name": "possibilities-endless",
+            "w": 5,
+            "quote": "implications are profound"
+          }
+        ]
+      },
+      {
+        "id": "dev-019",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-020",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-021",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-022",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-023",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-024",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "puffery",
+            "name": "rich-tapestry",
+            "w": 4,
+            "quote": "rich tapestry"
+          },
+          {
+            "cat": "linkedin",
+            "name": "journey-gratitude",
+            "w": 3,
+            "quote": "the journey ahead"
+          },
+          {
+            "cat": "cliche",
+            "name": "paints-picture",
+            "w": 3.5,
+            "quote": "speaks volumes"
+          }
+        ]
+      }
+    ],
+    "candidate": [
+      {
+        "id": "dev-001",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-002",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-003",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-004",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-005",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-006",
+        "score": 48.9,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "marketing",
+            "name": "unlock-potential",
+            "w": 4.5,
+            "quote": "unlock new opportunities"
+          },
+          {
+            "cat": "lexicon",
+            "name": "holistic",
+            "w": 3,
+            "quote": "holistic"
+          }
+        ]
+      },
+      {
+        "id": "dev-007",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-008",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-009",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-010",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-011",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-012",
+        "score": 66.1,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "At the end of the day"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "conclusion-scaffold",
+            "w": 4,
+            "quote": "the key takeaway"
+          },
+          {
+            "cat": "scaffolding",
+            "name": "tacked-on-moral",
+            "w": 4,
+            "quote": "takeaway is"
+          }
+        ]
+      },
+      {
+        "id": "dev-013",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-014",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-015",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-016",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-017",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-018",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "drama",
+            "name": "cannot-be-overstated",
+            "w": 4.5,
+            "quote": "cannot be overstated"
+          },
+          {
+            "cat": "marketing",
+            "name": "possibilities-endless",
+            "w": 5,
+            "quote": "implications are profound"
+          }
+        ]
+      },
+      {
+        "id": "dev-019",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-020",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-021",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-022",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-023",
+        "score": 10.2,
+        "flagged": false,
+        "findings": []
+      },
+      {
+        "id": "dev-024",
+        "score": 59.8,
+        "flagged": true,
+        "findings": [
+          {
+            "cat": "puffery",
+            "name": "rich-tapestry",
+            "w": 4,
+            "quote": "rich tapestry"
+          },
+          {
+            "cat": "linkedin",
+            "name": "journey-gratitude",
+            "w": 3,
+            "quote": "the journey ahead"
+          },
+          {
+            "cat": "cliche",
+            "name": "paints-picture",
+            "w": 3.5,
+            "quote": "speaks volumes"
+          }
+        ]
+      }
+    ],
+    "avoid-current-published-gate": [
+      {
+        "id": "dev-001",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-002",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-003",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-004",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-005",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-006",
+        "score": 3,
+        "issues": 1,
+        "flagged": false,
+        "declined": false,
+        "findings": [
+          {
+            "type": "tier1",
+            "text": "holistic",
+            "severity": "high",
+            "suggestion": "complete, full, whole"
+          }
+        ]
+      },
+      {
+        "id": "dev-007",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-008",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-009",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-010",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-011",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-012",
+        "score": 1,
+        "issues": 1,
+        "flagged": false,
+        "declined": false,
+        "findings": [
+          {
+            "type": "transition",
+            "text": "At the end of the day",
+            "index": 260,
+            "severity": "medium",
+            "suggestion": null
+          }
+        ]
+      },
+      {
+        "id": "dev-013",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-014",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-015",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-016",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-017",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-018",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-019",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-020",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-021",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-022",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-023",
+        "score": 0,
+        "issues": 0,
+        "flagged": false,
+        "declined": false,
+        "findings": []
+      },
+      {
+        "id": "dev-024",
+        "score": 3,
+        "issues": 1,
+        "flagged": false,
+        "declined": false,
+        "findings": [
+          {
+            "type": "tier1",
+            "text": "tapestry",
+            "severity": "high",
+            "suggestion": "complex structure, rich history"
+          }
+        ]
+      }
+    ]
+  }
+}
