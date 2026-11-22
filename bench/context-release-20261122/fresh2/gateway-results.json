@@ -1,0 +1,190 @@
+{
+  "drafts": [
+    {
+      "id": "s201",
+      "edited": "We can move the training session, but we cannot move the inspection. The inspector has confirmed Friday at 09:00, and the room must be empty by then.\n\nI propose running the session on Thursday afternoon. That would give the setup team one evening to clear the equipment. It would not add another day to the contract.\n\nPlease confirm the room booking by noon on Wednesday. If that booking fails, keep the existing session time and reduce the equipment list instead. Do not cancel the session before we have a replacement.\n\nThis is a scheduling choice, not a request for extra budget. Finance has approved the current amount only."
+    },
+    {
+      "id": "s202",
+      "edited": "The fixture checks whether the parser returns the text between matching delimiters. The sample wording is intentionally repetitive. Keep it exactly as supplied.\n\nThe first sample uses a tilde fence:\n\n~~~~text\nIn conclusion, quic.connect remains the entry point.\n~~~\nThe shorter delimiter above is sample content.\n~~~~\n\nThe second sample is quoted inline: “It is worth noting that oauth2_proxy remains lowercase.”\n\nNeither sample describes a deployment policy. They are inputs to the parser. A change to the wording would change what the fixture tests, even if the sentence sounded better afterward. The expected record contains both the delimiters and the original text."
+    },
+    {
+      "id": "s203",
+      "edited": "OpenSearch receives only the redacted event stream. The raw payload stays in the restricted bucket and is not copied into the search index.\n\nThe migration covers the staging workspace first. We will consider production only after the access review passes. A successful staging run does not approve production access.\n\nThe migration changes the index destination, not the retention period. Keep the existing 45-day retention rule.\n\nUse `sink_id = \"redacted_v2\"` for the staging task. The task writes no raw message body. If a raw body appears in the preview, stop the run and preserve the preview for the security reviewer."
+    },
+    {
+      "id": "s204",
+      "edited": "It is worth noting that stripe is the integration name stored in our routing table. It is not the display name used in the billing screen.\n\nThe router compares that value exactly. Replacing it with a title-cased version would point to a different key. The display label can change without changing the routing value.\n\nIt is important to note that stripe handles only the card route in this workspace. Bank transfers use the separate route shown in the configuration table. This note does not establish which provider should handle a new payment method.\n\nKeep the current mapping until the integration owner approves a migration. A renamed screen label is not that approval."
+    },
+    {
+      "id": "s205",
+      "edited": "We may need to revise the forecast after the freight review. The current estimate assumes that the temporary surcharge ends in October.\n\nThe reserve is EUR 9,700, while the open invoice is USD 9,700. These are different amounts in different currencies. Do not net them against each other.\n\nThe reserve is an estimate. It has not been approved as a supplier credit, and it should not appear in the cash receipts schedule.\n\nIf the surcharge continues into November, ask Finance for a revised estimate. Do not automatically carry the October figure into the next month. We have not yet received enough evidence to calculate that figure."
+    },
+    {
+      "id": "s206",
+      "edited": "The trial delivered meaningful insights and demonstrated the strength of our approach. Participants responded positively, and the team believes there is a strong opportunity to build on this momentum.\n\nThe findings make a compelling case for expansion. The next phase will allow us to create an even more seamless experience and unlock additional value.\n\nWe should align on the right next steps and act with confidence. The opportunity is clear, and continued progress will help the organization move forward.\n\nPlease approve a wider rollout. The team is ready to begin once the decision is made."
+    }
+  ],
+  "pairs": [
+    {
+      "id": "rh01",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh02",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh03",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh04",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh05",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh06",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh07",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh08",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh09",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh10",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh11",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh12",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh13",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh14",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh15",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh16",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh17",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh18",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh19",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh20",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh21",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh22",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh23",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh24",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh25",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh26",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh27",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh28",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh29",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh30",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh31",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh32",
+      "expected_review": true,
+      "review": true
+    }
+  ]
+}

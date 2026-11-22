@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { localRescue, sourceClaimRisk } from "../../mcp/gateway/src/pipeline";
 
-const drafts = JSON.parse(readFileSync(new URL("./drafts.json", import.meta.url), "utf8"));
+const drafts = JSON.parse(readFileSync(process.argv[2] ?? new URL("./drafts.json", import.meta.url), "utf8"));
 const pairs = JSON.parse(readFileSync(new URL("./pairs.json", import.meta.url), "utf8"));
 console.log(JSON.stringify({
   drafts: drafts.map((row: { id: string; source: string }) => ({ id: row.id, edited: localRescue(row.source) })),

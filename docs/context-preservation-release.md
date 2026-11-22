@@ -79,6 +79,22 @@ The evaluator prints results without changing the stored evidence. The probe mak
 no model or network request. Keep the original fixtures frozen; future tuning
 requires a fresh unseen evaluation.
 
+## Performance and regression checks
+
+The full local Python suite completed 598 tests with one optional dependency test
+skipped. The gateway check passed 154 Node tests and 65 Worker tests. Distribution
+manifests, generated mirrors, scorer packaging, and release replay receipts passed.
+The deterministic replay covers 152 surface and 114 regression documents; it adds
+no new quality judgments.
+
+Nine interleaved timings per fixture on this Mac measured 20,000-character prose
+at a 13.982 ms median versus 11.799 ms for the baseline. The 20,000-character fenced
+fixture measured 1.963 ms versus 9.501 ms, and an unmatched-fence 200,000-character
+fixture measured 15.663 ms versus 103.283 ms. The small prose overhead is retained
+as an explicit tradeoff for protection. These are synthetic in-process timings,
+not load testing, production latency, or a field-scale reliability claim. See
+`bench/context-release-20261122/performance.json`.
+
 ## Research basis
 
 [October 2026 work on processing difficulty](https://arxiv.org/abs/2610.29162)
