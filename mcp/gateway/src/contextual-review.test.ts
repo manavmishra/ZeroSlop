@@ -154,3 +154,43 @@ test("a reviewed modality upgrade cannot replace Unicode source identifiers or c
   assert.equal(result.passedFinalChecks, false);
   assert.deepEqual(result.contextualReview, { status: "reviewed", ...review });
 });
+
+
+test("a contextual redundancy label cannot delete stated relationships or purpose", async () => {
+  for (const statement of [
+    "The violet seal and copper seal have distinct roles.",
+    "The trail marker exists to guide visitors toward the quiet entrance.",
+    "The blue symbol denotes a shared lane.",
+  ]) {
+    const source = `${statement} Inspect the marker at the north entrance.`;
+    const review: ContextualReview = { decision: "edit", findings: [{ kind: "redundancy", quote: statement,
+      reason: "The relationship is allegedly inferable from context." }] };
+    const { result } = await withReply(source, "Inspect the marker at the north entrance.", review);
+    assert.equal(result.text, source);
+    assert.equal(result.status, "unchanged_verification_failed");
+    assert.equal(result.passedFinalChecks, false);
+    assert.equal(result.factsPreserved, true);
+  }
+});
+
+test("a rejected relational edit yields to a safe wrapper-only fallback", async () => {
+  const statement = "The violet seal has a distinct role.";
+  const source = `It is important to note that ${statement.charAt(0).toLowerCase() + statement.slice(1)}`;
+  const review: ContextualReview = { decision: "edit", findings: [{ kind: "redundancy", quote: source,
+    reason: "The relationship is allegedly redundant." }] };
+  const { result } = await withReply(source, "Inspect the violet seal near the entrance.", review);
+  assert.equal(result.text, statement);
+  assert.equal(result.status, "rewritten_with_warnings");
+  assert.equal(result.factsPreserved, true);
+  assert.equal(result.passedFinalChecks, false);
+});
+
+test("a valid edit elsewhere can retain the explicit relationship and pass", async () => {
+  const source = "The blue symbol denotes a shared lane. The draft is genuinely brief.";
+  const rewrite = "The blue symbol denotes a shared lane. The draft is brief.";
+  const review: ContextualReview = { decision: "edit", findings: [{ kind: "style", quote: "genuinely", reason: "An unnecessary intensifier." }] };
+  const { result } = await withReply(source, rewrite, review);
+  assert.equal(result.text, rewrite);
+  assert.equal(result.status, "rewritten");
+  assert.equal(result.passedFinalChecks, true);
+});

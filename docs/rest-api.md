@@ -165,9 +165,9 @@ substance stays in the original and its questions appear in both the findings
 and the plain-language `note`; it is
 not an approved completed edit. Normal editing requests this review even with a
 low writing score, so clean inputs can consume model allowance and latency.
-If local checks flag a possible change to a source claim's negation, direction,
-certainty, or timing, the gateway selects a source-safe alternative or returns the
-original as `unchanged_verification_failed`. In that unchanged result,
+If local checks flag a possible change to a source claim's polarity, certainty,
+obligations, scope, conditions, timing, identity, purpose, or explicit relationships,
+the gateway selects a source-safe alternative or returns the original as `unchanged_verification_failed`. In that unchanged result,
 `factsPreserved: true` describes the returned original, not the rejected proposal.
 These conservative checks may reject valid paraphrases.
 

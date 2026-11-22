@@ -143,6 +143,47 @@ test("a vetted local deletion of empty framing does not make a preserved future 
     "Maya wrote that as we move forward, the team will review the proposal.");
 });
 
+test("explicit relationships survive deletion and reframing even when inferable", () => {
+  const cases = [
+    ["The blue seal and red seal have distinct roles. Inspect both seals.", "Inspect both seals."],
+    ["Both checks yield the same digest. Keep both records.", "The checks yield unrelated digests. Keep both records."],
+    ["The marker exists to guide visitors toward the quiet entrance. The entrance opens at noon.", "The entrance opens at noon."],
+    ["The stripe is for locating the return bin. Place it near the door.", "Place it near the door."],
+    ["The symbol denotes a shared queue. Keep the symbol on the diagram.", "Keep the symbol on the diagram."],
+    ["The restart depends on the latch. Check the latch.", "The restart ignores the latch. Check the latch."],
+    ["The room stays dry because the vent faces north. Inspect the vent.", "The room stays dry. Inspect the vent."],
+  ];
+  for (const [source, rewrite] of cases) {
+    assert.equal(sourceClaimRisk(source!, rewrite!), true, source);
+    assert.equal(sourceClaimRisk(source!, source!), false, source);
+  }
+});
+
+test("obligations scope conditions and exceptions remain explicit", () => {
+  const pairs = [
+    ["The archive must retain consent records. Keep the index.", "The archive retains consent records. Keep the index."],
+    ["The reviewer shall sign the manifest.", "The reviewer signs the manifest."],
+    ["A receipt is required for reimbursement.", "A receipt accompanies reimbursement."],
+    ["The rebate applies only to annual plans.", "The rebate applies to plans."],
+    ["Every batch has a checksum.", "Batches have a checksum."],
+    ["If the light blinks, leave the case closed.", "Leave the case closed."],
+    ["Keep the queue paused unless the owner consents.", "Keep the queue paused."],
+    ["The permit covers the room except the south alcove.", "The permit covers the room."],
+  ];
+  for (const [source, rewrite] of pairs) {
+    assert.equal(sourceClaimRisk(source!, rewrite!), true, source);
+    assert.equal(sourceClaimRisk(source!, source!), false, source);
+  }
+  assert.equal(sourceClaimRisk("It is important to note that the owner signs only the manifest.", "The owner signs only the manifest."), false);
+});
+
+test("relationship protection does not blanket-protect copulas or vetted wrappers", () => {
+  assert.equal(sourceClaimRisk("The crate is sturdy. Its walls are robust.", "The crate is sturdy. Its walls are strong."), false);
+  assert.equal(sourceClaimRisk("It is important to note that the red seal has a distinct role.", "The red seal has a distinct role."), false);
+  assert.equal(sourceClaimRisk("In conclusion, the marker exists to guide visitors.", "The marker exists to guide visitors."), false);
+  assert.equal(sourceClaimRisk("The two labels are distinct. The draft is genuinely brief.", "The two labels are distinct. The draft is brief."), false);
+});
+
 test("scorer guidance is bounded and gives the editor exact targets", () => {
   const report = writingReport(88);
   report.flags = Array.from({ length: 20 }, (_, index) => ({
@@ -366,7 +407,7 @@ test("a reversed negative claim returns the original even if the scorer says it 
     assert.equal(result.status, "unchanged_verification_failed");
     assert.equal(result.passedFinalChecks, false);
     assert.equal(result.factsPreserved, true);
-    assert.match(result.note, /possible change to a source claim's negation, direction, certainty, or timing/);
+    assert.match(result.note, /possible change to a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship/);
     assert.equal(result.modelRequests, 1);
   } finally {
     globalThis.fetch = originalFetch;
@@ -396,7 +437,7 @@ test("modal and tense upgrades return the original despite a source-safe scorer 
       assert.equal(result.status, "unchanged_verification_failed");
       assert.equal(result.factsPreserved, true);
       assert.equal(result.passedFinalChecks, false);
-      assert.match(result.note, /possible change to a source claim's negation, direction, certainty, or timing/);
+      assert.match(result.note, /possible change to a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship/);
       assert.equal(result.modelRequests, 1);
       assert.equal(modelCalls, 1);
     }
@@ -429,7 +470,7 @@ test("a polarity-risk model edit yields to an available source-bound local edit"
     assert.equal(result.status, "rewritten_with_warnings");
     assert.equal(result.factsPreserved, true);
     assert.equal(result.passedFinalChecks, false);
-    assert.match(result.note, /model response changed a source claim's negation, direction, certainty, or timing/);
+    assert.match(result.note, /model response changed a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship/);
     assert.equal(result.modelRequests, 1);
   } finally {
     globalThis.fetch = originalFetch;

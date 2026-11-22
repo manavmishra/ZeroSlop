@@ -34,16 +34,28 @@ function sourceSafe(checked: RankedRewrite): boolean {
 }
 
 // The scorer protects concrete details, but cannot adjudicate changes in a
-// claim's negation, direction, certainty, or timing. Keep sentences with such
-// markers unchanged (apart from case and whitespace) for auto-approval. A
-// harmless paraphrase may therefore require review; a stronger unsupported
-// assertion must never be silently approved.
+// claim's polarity, timing, or explicit relationships. Keep sentences with
+// these markers unchanged (apart from case and whitespace) after normalizing
+// vetted stock wrappers. A valid paraphrase can be rejected: this is a bounded
+// conservative guard, not a semantic equivalence test.
 const SENSITIVE_CLAIM_WORD = /\b(?:not|no|never|neither|nor|without|cannot|can't|won't|isn't|aren't|wasn't|weren't|doesn't|don't|didn't|hasn't|haven't|hadn't|shouldn't|couldn't|wouldn't|unable|unavailable|increase(?:d|s|ing)?|decrease(?:d|s|ing)?|rises?|rose|rising|falls?|fell|falling|drops?|dropped|dropping|reduc(?:e|ed|es|ing)|more|less|fewer|above|below|before|after|earlier|later|approved|rejected|may|might|could|can|should|likely|unlikely|possible|possibly|probable|probably|uncertain|estimated?|estimates|preliminary|suggests?|suggested|appears?|appeared|seems?|seemed|reportedly|allegedly|potentially|tentative|expected|forecast(?:ed)?|projected|was|were|had|did|will|would|previously|formerly|currently|now|yesterday|today|tomorrow|(?:last|next|this)\s+(?:week|month|year|quarter))\b/i;
+
+// Explicit relational language carries source context even when a reader could
+// infer it from adjacent details. Do not treat ordinary copulas alone as evidence.
+const RELATIONSHIP_CLAIM_MARKERS = [
+  /\b(?:must|shall|required|requires?|if|unless|except|excluding|provided that|as long as|subject to|only|always|all|every|any|each|solely|exclusively)\b/i,
+  /\b(?:same|different|distinct|identical|equivalent|interchangeable|separate)\b/i,
+  /\b(?:equals?|matches?|corresponds? to|defined as|means?|denotes?|refers? to|stands? for)\b/i,
+  /\b(?:purpose|intent|intention|intended|designed to|meant to|aims? to|exists? to|serves? to)\b/i,
+  /\b(?:(?:is|are|be)\s+(?:there to|for)|to\s+(?:help|enable|allow|support|prevent|ensure))\b/i,
+  /\b(?:because|therefore|due to|causes?|caused|results? in|leads? to|depends? on)\b/i,
+];
 
 function sensitiveSentences(text: string): string[] {
   return (text.replace(/’/g, "'").match(/[^.!?\n]+(?:[.!?]+|$)/g) ?? [])
     .map((sentence) => sentence.trim().toLowerCase().replace(/\s+/g, " "))
-    .filter((sentence) => SENSITIVE_CLAIM_WORD.test(sentence))
+    .filter((sentence) => SENSITIVE_CLAIM_WORD.test(sentence)
+      || RELATIONSHIP_CLAIM_MARKERS.some((marker) => marker.test(sentence)))
     .sort();
 }
 
@@ -477,7 +489,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
       ...unchanged(
         original, "unchanged_verification_failed", before, started, env.SCORER_VERSION,
         selectedClaimRisk
-          ? "Local checks flagged a possible change to a source claim's negation, direction, certainty, or timing. No safe alternative was available, so the original is preserved."
+          ? "Local checks flagged a possible change to a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship. No safe alternative was available, so the original is preserved."
           : "Every proposed edit changed protected source material, so the original is preserved.",
       ),
       modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
@@ -496,7 +508,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   if (!modelReply?.review) warnings.push("a source-bound contextual review was not completed");
   if (!selectedModelEdit) {
     warnings.push(modelClaimUncertain
-      ? "the model response changed a source claim's negation, direction, certainty, or timing, so the local edit was used"
+      ? "the model response changed a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship, so the local edit was used"
       : modelSourceRejected
         ? "the model response did not pass the source check, so the local edit was used"
       : safeModelEdit

@@ -35,9 +35,9 @@ is low. That review can propose an edit, keep the wording, or flag missing subst
 with questions. It adds model latency and uses the hosted allowance; explicit
 `clean_text` character cleanup remains local. See the [API result contract](docs/rest-api.md#read-the-result).
 
-If local checks flag a possible change to a claim's negation, certainty, direction,
-or timing, the gateway uses a safe alternative or returns the original. Missing
-facts stay missing: the editor asks rather than inventing a basis. These checks
+If local checks flag a possible change to a claim's polarity, certainty, obligations,
+scope, conditions, timing, identity, purpose, or explicit relationships, the gateway
+uses a safe alternative or returns the original. Missing facts stay missing: the editor asks rather than inventing a basis. These checks
 are conservative and can reject valid paraphrases; they cannot certify every
 meaning or preserve every aspect of voice. The same model's review is not
 independent proof. The [earlier local-fallback evaluation](docs/context-preservation-release.md)
