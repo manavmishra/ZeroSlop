@@ -125,7 +125,7 @@ def packets(suite, corpus):
         rng.shuffle(order)
         anonymous_id = f'item-{index+1:03d}'
         mapping[anonymous_id] = {chr(65+i): name for i,name in enumerate(order)}
-        packet.append({'id': anonymous_id, 'genre': row['genre'], 'brief': row.get('brief'), 'source': row.get('source'), 'original': row['text'], 'candidates': {chr(65+i): available[name][row['id']]['text'] for i,name in enumerate(order)}})
+        packet.append({'id': anonymous_id, 'genre': row['genre'], 'brief': row.get('brief'), 'voice_constraints': row.get('voice_constraints', []), 'source': row.get('source'), 'original': row['text'], 'candidates': {chr(65+i): available[name][row['id']]['text'] for i,name in enumerate(order)}})
     write(suite/'judge-packets'/'anonymous.json', packet)
     write(suite/'private-maps'/'mapping.json', mapping)
     (suite/'private-maps').chmod(0o700)
@@ -157,6 +157,6 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as pool:
         records=list(pool.map(lambda arm:run_arm(arm,corpus,args,suite),arms))
     packets(suite,corpus)
-    write(suite/'manifest.json',{'schema':1,'kind':'matched_skill_guided_comparison','model':args.model,'reasoning':args.reasoning,'harness_sha256':sha(Path(__file__).read_bytes()),'arms_config_sha256':sha(args.arms.read_bytes()),'input_sha256':sha((suite/'input.json').read_bytes()),'runs':records})
+    write(suite/'manifest.json',{'schema':1,'kind':'matched_skill_guided_comparison','model':args.model,'reasoning':args.reasoning,'harness_sha256':sha(Path(__file__).read_bytes()),'arms_config_sha256':sha(args.arms.read_bytes()),'input_sha256':sha((suite/'input.json').read_bytes()),'judge_packet_sha256':sha((suite/'judge-packets'/'anonymous.json').read_bytes()),'private_mapping_sha256':sha((suite/'private-maps'/'mapping.json').read_bytes()),'runs':records})
 
 if __name__=='__main__': main()
