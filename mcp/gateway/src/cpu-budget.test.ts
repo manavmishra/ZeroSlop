@@ -22,8 +22,9 @@ Headers.prototype.get = function get(this: Headers, name: string) {
 };
 
 // The scorer is a separate Worker reached over a service binding. The stub
-// reports every draft as already clear, so a deslop call runs the gateway's
-// own validation, scoring round trip and result shaping without a model call.
+// reports a low local score. Missing editor configuration exercises the cheap
+// unreviewed failure path, including validation, scoring and result shaping.
+// Provider-backed latency is covered separately; this is a local CPU guard.
 const cleanReport = {
   score: 5, band: "clear", words: 7, sentences: 1, flaggedPhrases: 0, sentenceVariety: "natural", readability: "clear",
   highWeightFlags: 0, punctuation: { dashes: 0, emoji: 0, hashtags: 0 },
@@ -83,14 +84,14 @@ const probes: Probe[] = [
   {
     name: "2025-era tools/call deslop",
     request: legacy("tools/call", { name: "deslop", arguments: { text: "The importer now maps CSV headers automatically." } }),
-    expect: '"status":"already_clear"',
+    expect: '"status":"unchanged_service_unavailable"',
   },
   {
     // The largest draft the contract accepts: 20,000 four-byte characters,
     // about 80 KiB of the 128 KiB body limit.
     name: "2025-era tools/call deslop, maximum draft",
     request: legacy("tools/call", { name: "deslop", arguments: { text: "🧭".repeat(20_000) } }),
-    expect: '"status":"already_clear"',
+    expect: '"status":"unchanged_service_unavailable"',
   },
   { name: "server card", request: () => new Request("https://mcp.zero-slop.ai/.well-known/mcp/server-card.json") },
 ];

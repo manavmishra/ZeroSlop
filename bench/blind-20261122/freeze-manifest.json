@@ -1,0 +1,28 @@
+{
+  "frozen_utc": "2026-11-22T19:02:15.929839+00:00",
+  "data_owner": "/root/benchmark_sealed_corpus",
+  "final_revision": 2,
+  "files": {
+    "/private/tmp/zs-blind-development-20261122-v2.json": "49d620e884f8cd7d086683865028eebb09e7121396781982df38f884dccf2239",
+    "/private/tmp/zs-blind-sealed-20261122/sealed-v2.json": "64f90247fa4cea78db387b4bd0a2708a8bf976e0e5dc302f1c249c4f9ee62407",
+    "/private/tmp/zs-blind-preregistration-20261122-v2.md": "d0ecc7d3973648b6891b054854fc4b51b361c5b12d974d6cc795c1212b0eef4c"
+  },
+  "superseded_revision_1": {
+    "development_sha256": "4eed52a02fad1793e91c87f16e6224a20a8dfe55e56a4946567cffe77633ae4c",
+    "sealed_sha256": "7cb96d76bf6dbf80b8240fa03c1a637bc6cec529216c6f2a070d3c768ee67298",
+    "bytes_preserved_by_owner": false,
+    "reason": "Regenerated before receiving preserve-original-bytes instruction; chronology retained, no measurements informed revision."
+  },
+  "sealed_counts": {
+    "drafts": 60,
+    "source_groups": 30,
+    "slop": 30,
+    "clean": 30
+  },
+  "development_counts": {
+    "drafts": 24,
+    "source_groups": 12,
+    "slop": 12,
+    "clean": 12
+  }
+}

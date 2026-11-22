@@ -143,6 +143,74 @@ test("a vetted local deletion of empty framing does not make a preserved future 
     "Maya wrote that as we move forward, the team will review the proposal.");
 });
 
+test("explicit relationships survive deletion and reframing even when inferable", () => {
+  const cases = [
+    ["The blue seal and red seal have distinct roles. Inspect both seals.", "Inspect both seals."],
+    ["Both checks yield the same digest. Keep both records.", "The checks yield unrelated digests. Keep both records."],
+    ["The marker exists to guide visitors toward the quiet entrance. The entrance opens at noon.", "The entrance opens at noon."],
+    ["The stripe is for locating the return bin. Place it near the door.", "Place it near the door."],
+    ["The symbol denotes a shared queue. Keep the symbol on the diagram.", "Keep the symbol on the diagram."],
+    ["The restart depends on the latch. Check the latch.", "The restart ignores the latch. Check the latch."],
+    ["The room stays dry because the vent faces north. Inspect the vent.", "The room stays dry. Inspect the vent."],
+  ] as const;
+  for (const [source, rewrite] of cases) {
+    assert.equal(sourceClaimRisk(source!, rewrite!), true, source);
+    assert.equal(sourceClaimRisk(source!, source!), false, source);
+  }
+});
+
+test("obligations scope conditions and exceptions remain explicit", () => {
+  const pairs = [
+    ["The archive must retain consent records. Keep the index.", "The archive retains consent records. Keep the index."],
+    ["The reviewer shall sign the manifest.", "The reviewer signs the manifest."],
+    ["A receipt is required for reimbursement.", "A receipt accompanies reimbursement."],
+    ["The rebate applies only to annual plans.", "The rebate applies to plans."],
+    ["Every batch has a checksum.", "Batches have a checksum."],
+    ["If the light blinks, leave the case closed.", "Leave the case closed."],
+    ["Keep the queue paused unless the owner consents.", "Keep the queue paused."],
+    ["The permit covers the room except the south alcove.", "The permit covers the room."],
+  ] as const;
+  for (const [source, rewrite] of pairs) {
+    assert.equal(sourceClaimRisk(source!, rewrite!), true, source);
+    assert.equal(sourceClaimRisk(source!, source!), false, source);
+  }
+  assert.equal(sourceClaimRisk("It is important to note that the owner signs only the manifest.", "The owner signs only the manifest."), false);
+});
+
+test("relationship protection does not blanket-protect copulas or vetted wrappers", () => {
+  assert.equal(sourceClaimRisk("The crate is sturdy. Its walls are robust.", "The crate is sturdy. Its walls are strong."), false);
+  assert.equal(sourceClaimRisk("It is important to note that the red seal has a distinct role.", "The red seal has a distinct role."), false);
+  assert.equal(sourceClaimRisk("In conclusion, the marker exists to guide visitors.", "The marker exists to guide visitors."), false);
+  assert.equal(sourceClaimRisk("The two labels are distinct. The draft is genuinely brief.", "The two labels are distinct. The draft is brief."), false);
+});
+
+test("vetted wrapper removal preserves prose quantifiers under the scope guard", () => {
+  for (const phrase of [
+    "every record has a checksum.", "each visitor receives a map.",
+    "all entries retain their labels.", "any reviewer signs the log.",
+    "both owners receive a receipt.",
+  ]) {
+    const original = `It is important to note that ${phrase}`;
+    const edited = phrase.charAt(0).toUpperCase() + phrase.slice(1);
+    assert.equal(localRescue(original), edited);
+    assert.equal(sourceClaimRisk(original, edited), false);
+    assert.equal(sourceClaimRisk(original, edited.replace(/^(Every|Each|All|Any|Both) /, "Some ")), true);
+  }
+});
+
+test("prose quantifier openers do not expose bare identifiers or code boundaries", () => {
+  for (const suffix of [
+    "every", "each(value)", "all.records", "any: string", "both[0]",
+    "every_record.hasChecksum()", "every record.hasChecksum()",
+    "all = entries", "each entry = value", "both / values",
+  ]) {
+    const original = `It is important to note that ${suffix}`;
+    assert.equal(localRescue(original), original, suffix);
+  }
+  const fenced = "~~~js\nIt is important to note that all records have checksums.\n~~~";
+  assert.equal(localRescue(fenced), fenced);
+});
+
 test("scorer guidance is bounded and gives the editor exact targets", () => {
   const report = writingReport(88);
   report.flags = Array.from({ length: 20 }, (_, index) => ({
@@ -203,13 +271,15 @@ test("an expired editor deadline makes no request", async () => {
   }
 });
 
-test("clean text exits after scoring without a model request", async () => {
+test("unavailable contextual review does not certify low-score text as clear", async () => {
   const scorer = { fetch: async () => Response.json(writingReport(9.5)) };
   const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.9.1" } as unknown as Env,
     { text: "The importer now maps CSV headers automatically.", genre: "general" });
-  assert.equal(result.status, "already_clear");
+  assert.equal(result.status, "unchanged_service_unavailable");
   assert.equal(result.modelRequests, 0);
   assert.equal(result.rolesCompleted, 1);
+  assert.deepEqual(result.contextualReview, { status: "unavailable" });
+  assert.match(result.note, /contextual review was not completed/);
 });
 
 test("the release gate rejects low scores with unresolved high-weight, readability, or rhythm findings", () => {
@@ -242,7 +312,7 @@ test("the complete MCP edit uses one remote model request", async () => {
     assert.equal(editorRequests, 1);
     assert.equal(result.modelRequests, 1);
     assert.equal(result.text, rewrite);
-    assert.equal(result.status, "rewritten");
+    assert.equal(result.status, "rewritten_with_warnings");
     assert.equal(result.rolesCompleted, 8);
     assert.equal(result.finishingRounds, 1);
     assert.equal(result.independentModelChecks, 0);
@@ -267,7 +337,7 @@ test("the MCP result reports both provider attempts behind one editor request", 
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(requests, 1);
     assert.equal(result.modelRequests, 2);
-    assert.equal(result.status, "rewritten");
+    assert.equal(result.status, "rewritten_with_warnings");
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -341,13 +411,13 @@ test("a 20,000-code-point model edit remains rankable", async () => {
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(rankCalls, 1);
     assert.equal(result.text, exact);
-    assert.equal(result.status, "rewritten");
+    assert.equal(result.status, "rewritten_with_warnings");
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test("a reversed negative claim cannot be approved even if the scorer says it is preserved", async () => {
+test("a reversed negative claim returns the original even if the scorer says it is preserved", async () => {
   const original = "The pilot did not reduce costs. The importer is ready.";
   const reversed = "The pilot reduced costs. The importer is ready.";
   const base = scorerHarness(original, reversed);
@@ -360,18 +430,18 @@ test("a reversed negative claim cannot be approved even if the scorer says it is
       SCORER: base, SCORER_VERSION: "2.9.1",
       EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
     } as unknown as Env, { text: original, genre: "general" });
-    assert.equal(result.text, reversed);
-    assert.equal(result.status, "rewritten_with_warnings");
+    assert.equal(result.text, original);
+    assert.equal(result.status, "unchanged_verification_failed");
     assert.equal(result.passedFinalChecks, false);
-    assert.equal(result.factsPreserved, false);
-    assert.match(result.note, /source claim's negation, direction, certainty, or timing changed/);
+    assert.equal(result.factsPreserved, true);
+    assert.match(result.note, /possible change to a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship/);
     assert.equal(result.modelRequests, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test("modal and tense upgrades remain review-required despite a source-safe scorer verdict", async () => {
+test("modal and tense upgrades return the original despite a source-safe scorer verdict", async () => {
   const cases = [
     ["The pilot may be viable. The importer is ready.", "The pilot is viable. The importer is ready."],
     ["The pilot was viable. The importer is ready.", "The pilot is viable. The importer is ready."],
@@ -390,11 +460,11 @@ test("modal and tense upgrades remain review-required despite a source-safe scor
         SCORER: scorerHarness(original, rewrite), SCORER_VERSION: "2.9.1",
         EDITOR_ENDPOINT: "https://zero-slop.ai/api/demo-rewrite", EDITOR_SHARED_SECRET: signingKeyForTests(),
       } as unknown as Env, { text: original, genre: "general" });
-      assert.equal(result.text, rewrite);
-      assert.equal(result.status, "rewritten_with_warnings");
-      assert.equal(result.factsPreserved, false);
+      assert.equal(result.text, original);
+      assert.equal(result.status, "unchanged_verification_failed");
+      assert.equal(result.factsPreserved, true);
       assert.equal(result.passedFinalChecks, false);
-      assert.match(result.note, /source claim's negation, direction, certainty, or timing changed/);
+      assert.match(result.note, /possible change to a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship/);
       assert.equal(result.modelRequests, 1);
       assert.equal(modelCalls, 1);
     }
@@ -427,7 +497,7 @@ test("a polarity-risk model edit yields to an available source-bound local edit"
     assert.equal(result.status, "rewritten_with_warnings");
     assert.equal(result.factsPreserved, true);
     assert.equal(result.passedFinalChecks, false);
-    assert.match(result.note, /model response changed a source claim's negation, direction, certainty, or timing/);
+    assert.match(result.note, /model response changed a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship/);
     assert.equal(result.modelRequests, 1);
   } finally {
     globalThis.fetch = originalFetch;

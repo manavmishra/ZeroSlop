@@ -14,7 +14,7 @@ It finds AI slop and workslop, guides the edit, and checks that the key details 
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.12.41" src="https://img.shields.io/badge/version-2.12.41-72528F?color=C15732">
+  <img alt="Version 2.13.0" src="https://img.shields.io/badge/version-2.13.0-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -30,10 +30,18 @@ certainty, technical terms, and voice. Its local fallback removes complete fille
 openings while preserving names such as iOS and eBay. It does not infer customer
 conversations from unspecified insights or invent a process such as onboarding.
 
-The local checks protect source details; they cannot certify that every paraphrase
-means the same thing. The assistant must compare the complete claims and flag missing
-substance rather than invent it. See the [release evaluation](docs/context-preservation-release.md)
-for the measured scope and remaining limits.
+Hosted editing requests one contextual review even when the local writing score
+is low. That review can propose an edit, keep the wording, or flag missing substance
+with questions. It adds model latency and uses the hosted allowance; explicit
+`clean_text` character cleanup remains local. See the [API result contract](docs/rest-api.md#read-the-result).
+
+If local checks flag a possible change to a claim's polarity, certainty, obligations,
+scope, conditions, timing, identity, purpose, or explicit relationships, the gateway
+uses a safe alternative or returns the original. Missing facts stay missing: the editor asks rather than inventing a basis. These checks
+are conservative and can reject valid paraphrases; they cannot certify every
+meaning or preserve every aspect of voice. The same model's review is not
+independent proof. The [earlier local-fallback evaluation](docs/context-preservation-release.md)
+records the measured scope of version 2.12.41, not results for this candidate.
 
 ## Why it exists
 
@@ -183,12 +191,20 @@ From a cloned checkout, check a folder against the review threshold of 25:
 python3 scripts/slopscore.py --batch drafts/ --gate 25
 ```
 
+The JSON field `type_token_ratio` is mean word variety across every overlapping
+200-token window: distinct case-folded word tokens divided by 200, averaged over
+the windows. It is `null` below 200 tokens. This replaces whole-document variety,
+which can fall merely because a document is longer. A value below 0.40 supplies
+one weak corroborating signal, not an authorship verdict. Repeated technical terms
+can be appropriate; this measurement change does not establish better detection
+or editing accuracy.
+
 ### Command line
 
 The CLI sends a file to the hosted editor without changing the file on disk:
 
 ```sh
-npx --yes zero-slop@2.12.41 deslop draft.md --genre professional
+npx --yes zero-slop@2.13.0 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` prints the result but exits nonzero when review is needed. Requires Node.js 22+; offline `score` also needs Python 3. [CLI options and privacy](docs/cli.md).

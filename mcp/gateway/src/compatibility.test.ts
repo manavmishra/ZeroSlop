@@ -47,11 +47,11 @@ test("optional cleanup and diagnostics preserve the published MCP validation con
   assert.deepEqual(deslopInputSchema.parse({ text: "Clear text." }), legacyInput.parse({ text: "Clear text." }));
   assert.equal(deslopInputSchema.parse({ text: "Clear text.", operation: "clean_text" }).operation, "clean_text");
   assert.equal(deslopInputSchema.safeParse({ text: "Clear text.", operation: "unknown" }).success, false);
-  assert.deepEqual(z.toJSONSchema(deslopOutputSchema.omit({ editorDiagnostics: true })), z.toJSONSchema(legacyOutput));
+  assert.deepEqual(z.toJSONSchema(deslopOutputSchema.omit({ editorDiagnostics: true, contextualReview: true })), z.toJSONSchema(legacyOutput));
   const extended = z.toJSONSchema(deslopOutputSchema);
   const legacy = z.toJSONSchema(legacyOutput);
   assert.deepEqual(extended.required, legacy.required);
-  assert.deepEqual(Object.keys(extended.properties ?? {}).filter(key => !(key in (legacy.properties ?? {}))), ["editorDiagnostics"]);
+  assert.deepEqual(Object.keys(extended.properties ?? {}).filter(key => !(key in (legacy.properties ?? {}))), ["editorDiagnostics", "contextualReview"]);
 });
 
 test("MCP input descriptions are factual metadata rather than model instructions", () => {

@@ -82,7 +82,9 @@ async function readRequestBody(request: Request, maximumBytes = MAX_REQUEST_BYTE
 
 function resultText(result: PipelineResult): string {
   const releaseLine = result.status === "already_clear"
-    ? "Release decision: already clear; no editing-model checks were needed."
+    ? result.contextualReview?.status === "reviewed"
+      ? "Release decision: original retained after a contextual model review."
+      : "Release decision: already clear; no contextual model review was reported."
     : `Final checks: ${result.passedFinalChecks ? "passed" : "did not all pass"}. Facts preserved: ${result.factsPreserved ? "yes" : "not confirmed"}.`;
   return [
     result.text,
@@ -92,6 +94,10 @@ function resultText(result: PipelineResult): string {
     `Two-part contrasts / announcements: ${result.before.register.twoPartContrasts} / ${result.before.register.announcements} before, ${result.after.register.twoPartContrasts} / ${result.after.register.announcements} after.`,
     releaseLine,
     result.note,
+    ...(result.contextualReview?.status === "reviewed"
+      ? result.contextualReview.findings.map((finding) =>
+        `Review finding: ${finding.reason}${finding.question ? ` Question: ${finding.question}` : ""}`)
+      : []),
   ].join("\n");
 }
 

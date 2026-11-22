@@ -113,7 +113,11 @@ class OpenAISubmission(unittest.TestCase):
             self.assertRegex(case["expected_behavior"].lower(), r"unchanged|fallback|warning|failed checks|actual status")
         cases = self.cases["positive"]
         self.assertIn("already_clear", cases[0]["expected_behavior"])
-        self.assertIn('original, "already_clear"', self.pipeline)
+        # A low meter alone cannot certify clean writing: the unchanged result
+        # now follows a valid contextual keep decision and the local clean gate.
+        self.assertIn('modelReply?.review && modelReply.review.decision !== "edit"', self.pipeline)
+        self.assertIn('original, gap || !cleanEnough ? "unchanged_no_better_version" : "already_clear"', self.pipeline)
+        self.assertIn('contextualReviewRequired: true', self.pipeline)
         self.assertIn("40%", cases[1]["prompt"])
         self.assertIn("Project Northstar", cases[1]["prompt"])
         self.assertIn('"Send the draft on Friday."', cases[2]["prompt"])

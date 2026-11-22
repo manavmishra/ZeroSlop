@@ -23,6 +23,7 @@ The phrase lists live beside this script in ../data/patterns.json and
 ../data/learned.json. Editing those files requires no code change.
 """
 import bisect
+from collections import Counter
 import functools
 import hashlib
 import importlib.util
@@ -454,7 +455,9 @@ def _term_candidates(text, terms):
 
 
 def strip_noise(text):
-    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    text = _mask_fenced(text)
+    text = re.sub(r"<!--[\s\S]*?(?:-->|$)",
+                  lambda match: re.sub(r"[^\n]", " ", match.group(0)), text)
     # Markdown table rules are layout syntax, not repeated dashes in prose.
     # Leave the table's words available to the language and rhythm checks, but
     # remove delimiter rows such as ``|---|---:|`` before punctuation scoring.
@@ -464,8 +467,7 @@ def strip_noise(text):
         " ",
         text,
     )
-    # Inline `code` spans still render as visible prose, so their words are
-    # scored; only the backticks go. Fenced blocks are genuinely code.
+    # Inline formatting does not make ordinary prose exempt from review.
     text = re.sub(r"`([^`\n]*)`", r"\1", text)
     # URLs are otherwise noise, but a model-specific tracking parameter is a
     # machine artifact in its own right. Preserve only the artifact token so
@@ -541,6 +543,26 @@ def cv(values):
     return math.sqrt(var) / m
 
 
+def _windowed_word_variety(words, window=200):
+    """Mean fixed-window diversity; document length alone cannot lower it.
+
+    This follows the measurement correction reviewed in avoid-ai-writing
+    a5d6bae, independently implemented here with a linear sliding counter.
+    """
+    if len(words) < window:
+        return None
+    counts = Counter(word.casefold() for word in words[:window])
+    total = len(counts)
+    for index in range(window, len(words)):
+        leaving = words[index - window].casefold()
+        counts[leaving] -= 1
+        if not counts[leaving]:
+            del counts[leaving]
+        counts[words[index].casefold()] += 1
+        total += len(counts)
+    return total / ((len(words) - window + 1) * window)
+
+
 def score_text(text, data, formal=False):
     if not isinstance(text, str):
         raise TypeError("text must be a string")
@@ -549,8 +571,7 @@ def score_text(text, data, formal=False):
     words = WORD.findall(text)
     n_words = len(words)
     word_den = max(n_words, 1)
-    type_token_ratio = (len({word.casefold() for word in words}) / word_den
-                        if n_words >= 200 else None)
+    type_token_ratio = _windowed_word_variety(words)
     sent_spans = _sentence_spans(text)
     sents = [text[a:b].replace("\n", " ") for a, b in sent_spans]
     # Same string with quotations blanked out, used only by the phrase meter
@@ -575,7 +596,7 @@ def score_text(text, data, formal=False):
     if type_token_ratio is not None and type_token_ratio < 0.40:
         hits.append({
             "cat": "rhythm", "name": "low-word-variety", "w": 1.5,
-            "quote": f"{type_token_ratio:.0%} distinct words across {n_words} words",
+            "quote": f"{type_token_ratio:.0%} mean distinct words per 200-word window",
         })
 
     # 1. Pattern tells (regex, weighted). A reviewed pattern may include literal
@@ -1449,9 +1470,24 @@ PATH_RX = re.compile(
 
 
 def _mask_fenced(text):
-    return FENCED_CODE_RX.sub(
-        lambda match: re.sub(r"[^\n]", " ", match.group(0)), text
-    )
+    # A fence closes only with its own marker and at least its opening length.
+    # An unmatched block remains literal source through the end of the input.
+    opening = None
+    parts = []
+    for line in text.splitlines(keepends=True):
+        match = re.match(r"^[ \t]{0,3}(`{3,}|~{3,})([^\r\n]*)", line)
+        if opening is None:
+            if match:
+                opening = (match.group(1)[0], len(match.group(1)))
+                parts.append(re.sub(r"[^\r\n]", " ", line))
+            else:
+                parts.append(line)
+        else:
+            parts.append(re.sub(r"[^\r\n]", " ", line))
+            if (match and match.group(1)[0] == opening[0]
+                    and len(match.group(1)) >= opening[1] and not match.group(2).strip()):
+                opening = None
+    return "".join(parts)
 
 
 def _line_blocks(text, predicate):

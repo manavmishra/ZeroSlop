@@ -140,8 +140,12 @@ export function inspectRestRequest(request: Request): McpRequestMeta {
 }
 
 export function resultApproval(result: PipelineResult): ResultApproval {
-  if (result.status === "rewritten" && result.factsPreserved && result.passedFinalChecks) return "approved_rewrite";
-  if (result.status === "already_clear" && result.factsPreserved && result.modelRequests === 0
+  if (result.status === "rewritten" && result.factsPreserved && result.passedFinalChecks
+    && (result.contextualReview === undefined || (result.contextualReview.status === "reviewed" && result.contextualReview.decision === "edit"))) return "approved_rewrite";
+  const retainedAfterReview = result.contextualReview?.status === "reviewed"
+    && result.contextualReview.decision === "keep" && result.contextualReview.findings.length === 0;
+  const legacyLocalClear = result.contextualReview === undefined && result.modelRequests === 0;
+  if (result.status === "already_clear" && result.factsPreserved && (retainedAfterReview || legacyLocalClear)
     && result.scoreChange === 0 && result.before.score === result.after.score) return "already_clear";
   return "review_required";
 }

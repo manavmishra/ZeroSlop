@@ -1,0 +1,224 @@
+{
+  "schema": 1,
+  "audited_at": "2026-11-22T19:03:49.546929+00:00",
+  "scope": "Selective primary-repository delta audit, not execution quality ranking. Open-source skill competitors only; hosted services not assessed.",
+  "selection": "Established comparable public agent writing skills; metadata popularity helps coverage selection, never establishes quality.",
+  "baseline_source": "ZeroSlop bench/competitor-capabilities.json and bench/fresh-replay/runs, August2026pins (capability audit lastupdatedSeptember10).",
+  "repositories": [
+    {
+      "id": "avoid-ai-writing",
+      "repository": "https://github.com/conorbronsdon/avoid-ai-writing",
+      "baseline_commit": "40328bd292bc682d46010a6f9ac2cdbf4fb4ceca",
+      "baseline_audited_on": "2026-08-30",
+      "current_commit": "a5d6bae7c0d762dbcff74ca86c17a7ac9fee4151",
+      "current_commit_date": "2026-11-17T23:19:59-08:00",
+      "commits_since_baseline": 504,
+      "root_license": "MIT",
+      "license_sha256": "4da9b9f0bb899269b6e79fb383b4c3f24ebcadf7352f970871bae3e215401589",
+      "license_path": "/private/tmp/zs-competitors-20261122/avoid-ai-writing/LICENSE",
+      "instructions": [
+        {
+          "path": "SKILL.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/avoid-ai-writing/SKILL.md",
+          "bytes": 33256,
+          "sha256": "3b6fc4f3fe495c0d6e158b83a30114f8fe0c59bc258f8868a25928f463f571aa",
+          "immutable_url": "https://github.com/conorbronsdon/avoid-ai-writing/blob/a5d6bae7c0d762dbcff74ca86c17a7ac9fee4151/SKILL.md"
+        },
+        {
+          "path": "references/patterns.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/avoid-ai-writing/references/patterns.md",
+          "bytes": 125649,
+          "sha256": "840beca03abb387cba0d04bfee6701ba8b199e17c86a6bee2af601abd2da3351",
+          "immutable_url": "https://github.com/conorbronsdon/avoid-ai-writing/blob/a5d6bae7c0d762dbcff74ca86c17a7ac9fee4151/references/patterns.md"
+        }
+      ]
+    },
+    {
+      "id": "humanizer",
+      "repository": "https://github.com/blader/humanizer",
+      "baseline_commit": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5",
+      "baseline_audited_on": "2026-08-30",
+      "current_commit": "a32f24407364c74c812b43c15926d638bee1e072",
+      "current_commit_date": "2026-11-19T10:53:14-08:00",
+      "commits_since_baseline": 76,
+      "root_license": "MIT",
+      "license_sha256": "4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96",
+      "license_path": "/private/tmp/zs-competitors-20261122/humanizer/LICENSE",
+      "instructions": [
+        {
+          "path": "SKILL.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/humanizer/SKILL.md",
+          "bytes": 33628,
+          "sha256": "3013910ef5433dab12f0d2b86d9cf9e3421a253ef986518a68ef07aa29629bdc",
+          "immutable_url": "https://github.com/blader/humanizer/blob/a32f24407364c74c812b43c15926d638bee1e072/SKILL.md"
+        }
+      ]
+    },
+    {
+      "id": "no-ai-slop",
+      "repository": "https://github.com/petergyang/no-ai-slop",
+      "baseline_commit": "d30eddb9e04562234f2070b5ee63ca4649d9a05e",
+      "baseline_audited_on": "2026-08-30",
+      "current_commit": "000650b156983f5159695b441477f4e63b25dc85",
+      "current_commit_date": "2026-09-01T21:19:00-07:00",
+      "commits_since_baseline": 1,
+      "root_license": "MIT",
+      "license_sha256": "b7a7fe370cc4c9e974528c7cea7841cf8ac886bc9ed947edb11b289441fba4a8",
+      "license_path": "/private/tmp/zs-competitors-20261122/no-ai-slop/LICENSE",
+      "instructions": [
+        {
+          "path": "skills/no-ai-slop/SKILL.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/no-ai-slop/skills/no-ai-slop/SKILL.md",
+          "bytes": 10853,
+          "sha256": "992b365f51a2f62cf4c1c5ed22049a9ee551dfea677550c1a72b371c0ceadd62",
+          "immutable_url": "https://github.com/petergyang/no-ai-slop/blob/000650b156983f5159695b441477f4e63b25dc85/skills/no-ai-slop/SKILL.md"
+        },
+        {
+          "path": "skills/no-ai-slop/eval.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/no-ai-slop/skills/no-ai-slop/eval.md",
+          "bytes": 3214,
+          "sha256": "8ad8d83ed1abe7fc054ad74966bfca64fc182bc71f59d701b24b962c39d11ad7",
+          "immutable_url": "https://github.com/petergyang/no-ai-slop/blob/000650b156983f5159695b441477f4e63b25dc85/skills/no-ai-slop/eval.md"
+        }
+      ]
+    },
+    {
+      "id": "stop-slop",
+      "repository": "https://github.com/hardikpandya/stop-slop",
+      "baseline_commit": "8da1f030185bdfe8471220585162991eaeb970e9",
+      "baseline_audited_on": "2026-08-30",
+      "current_commit": "8da1f030185bdfe8471220585162991eaeb970e9",
+      "current_commit_date": "2026-03-18T00:20:36+05:30",
+      "commits_since_baseline": 0,
+      "root_license": "MIT",
+      "license_sha256": "2e2b2beaf41cc0ce28485455a62aed81777cdcdf68702e142427aef1cd720f2c",
+      "license_path": "/private/tmp/zs-competitors-20261122/stop-slop/LICENSE",
+      "instructions": [
+        {
+          "path": "SKILL.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/stop-slop/SKILL.md",
+          "bytes": 2629,
+          "sha256": "7432a1d9ebdd42b27666da8458af252edf549f723fb14bcd4791425103930310",
+          "immutable_url": "https://github.com/hardikpandya/stop-slop/blob/8da1f030185bdfe8471220585162991eaeb970e9/SKILL.md"
+        },
+        {
+          "path": "references/phrases.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/stop-slop/references/phrases.md",
+          "bytes": 2915,
+          "sha256": "4ca1b7e97123b5c67eff3dc97e5e977332e0b24021265c1553888a93ec33fa93",
+          "immutable_url": "https://github.com/hardikpandya/stop-slop/blob/8da1f030185bdfe8471220585162991eaeb970e9/references/phrases.md"
+        },
+        {
+          "path": "references/structures.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/stop-slop/references/structures.md",
+          "bytes": 5255,
+          "sha256": "ffbf1316c7fb5aaf552de005609a64a9639b546ecd76bfb0e482864d5bbe6f58",
+          "immutable_url": "https://github.com/hardikpandya/stop-slop/blob/8da1f030185bdfe8471220585162991eaeb970e9/references/structures.md"
+        },
+        {
+          "path": "references/examples.md",
+          "local_path": "/private/tmp/zs-competitors-20261122/stop-slop/references/examples.md",
+          "bytes": 1686,
+          "sha256": "49c592899eb4457f95d0767e15e3143569e2cef50f2927c3174e62432984cd3d",
+          "immutable_url": "https://github.com/hardikpandya/stop-slop/blob/8da1f030185bdfe8471220585162991eaeb970e9/references/examples.md"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "render-aware-scoring",
+      "priority": 1,
+      "source": "avoid-ai-writing",
+      "source_paths": [
+        "detector/patterns.js",
+        "detector/validate.js",
+        "CHANGELOG.md"
+      ],
+      "delta": "Rendered-Markdown mode excludes document wrappers, fenced code and comments where appropriate; glossary entries excluded from rhythm; linear scanner and source highlight mappings preserve boundaries.",
+      "zs_gap": "scripts/slopscore.py score_text uses mask_quoted for weighted scan, not fenced-code masking; quotation masking excludes phrase counts only.",
+      "proposal": "Test a single source-offset-preserving prose mask used by phrase scanning and relevant style measurements. Keep quoted-example/technical clean controls, tilde/backtick/unmatched/indented fence adversaries and performance scaling.",
+      "do_not_import": "Do not hide all quoted content from every editorial check or count masked tokens as proof of content quality.",
+      "proof": "Requires held-out precision/recall and unchanged source-output test."
+    },
+    {
+      "id": "windowed-diversity",
+      "priority": 2,
+      "source": "avoid-ai-writing",
+      "source_paths": [
+        "CHANGELOG.md",
+        "detector/patterns.js"
+      ],
+      "delta": "3.37 replaces whole-document TTR with average 200-token window diversity.",
+      "zs_gap": "scripts/slopscore.py currently computes whole-text type-token ratio for n_words>=200 and flags <.40.",
+      "proposal": "Evaluate windowed diversity on matched lengths, genre controls and current source-grouped benchmark.",
+      "do_not_import": "Do not reuse the competitor's corpus-specific percentages as ZS accuracy or new weight justification.",
+      "proof": "Competitor reports false-positive reduction on its controls, not independently verified ZS gain."
+    },
+    {
+      "id": "conditional-rhetoric",
+      "priority": 2,
+      "source": "avoid-ai-writing",
+      "source_paths": [
+        "CHANGELOG.md",
+        "references/patterns.md"
+      ],
+      "delta": "Negative parallelism adds recurrence/proximity gates; acknowledgment-loop moved to judgment-only; neutral scientific evolution/step-toward uses and features-as-noun receive carve-outs.",
+      "zs_gap": "Existing broad contrast and acknowledgment-loop weights can fire where meaning calls for a contrast or reply orientation.",
+      "proposal": "Separate a lexical candidate from a justified finding. Test repeated inflation versus genuine technical contrasts and useful reply orientation.",
+      "do_not_import": "Do not treat phrase hit count, contrast punctuation, or acknowledgment wording as authorship proof.",
+      "proof": "Gate-level before/after changes need independent labeled quality cases."
+    },
+    {
+      "id": "editorial-cards",
+      "priority": 2,
+      "source": "avoid-ai-writing",
+      "source_paths": [
+        "SKILL.md",
+        "references/patterns.md"
+      ],
+      "delta": "Stable editorial decision cards specify apply/edit/keep/gap examples and partial detector mappings. Preservation repairs and corrective edits share the same bounded two-pass budget.",
+      "zs_gap": "ZS already has source/voice/genre guidance; named task-bound decisions can make it more consistently executable.",
+      "proposal": "Use original claim/evidence/voice invariants and distinguish unsupported substance from repairable style within current single-call pipeline.",
+      "do_not_import": "Do not add mandatory multi-agent/model network calls or mistake a mechanical preservation check for meaning verification.",
+      "proof": "Same-host rewriting comparison with hidden method labels and independently scored context/voice."
+    },
+    {
+      "id": "informal-register-guard",
+      "priority": 2,
+      "source": "humanizer",
+      "source_paths": [
+        "SKILL.md",
+        "CHANGELOG.md"
+      ],
+      "delta": "Current informal writing keeps lowercase, abbreviations, fragments and anger; isolated weak cue alone does not justify whole-draft rewriting. Adds context-known-to-reader and placeholder noun stand-in review.",
+      "zs_gap": "ZS broad stock-word removal may flatten ordinary informal voice or re-explain context; existing overcorrection guidance overlaps.",
+      "proposal": "Test informal no-edit controls and remove context-redundant filler only when supplied reader context establishes redundancy.",
+      "do_not_import": "Never require two cues for genuine strong artifacts merely to copy a heuristic; never delete all stand-in nouns or authentic reactions.",
+      "proof": "No-edit rate, meaning and voice quality evaluated separately from slop removal."
+    },
+    {
+      "id": "reject-unbounded-specificity",
+      "priority": "safety",
+      "source": "humanizer",
+      "source_paths": [
+        "SKILL.md",
+        "CHANGELOG.md"
+      ],
+      "delta": "4.0 explicitly permits adding known-true details to generic source and reactions where the writer would have them.",
+      "zs_gap": "Not a gap: conflicts with ZS source-bound no-fabrication contract.",
+      "proposal": "Retain ZS no-added-facts/experience/stance rule. Common benchmark brief must bind every method to supplied source facts.",
+      "do_not_import": "Do not add facts, interior experience, feelings or causal mechanisms from model knowledge to improve apparent specificity.",
+      "proof": "Judge added/dropped/changed claims independently; source-bound task is fair common constraint."
+    }
+  ],
+  "execution_status": "No installers or remote API editing calls run. Inspected dependency-free avoid-ai-writing detector module and invoked its analyzeText for two synthetic diagnostic examples only.",
+  "copyright": "All four root licenses are MIT; retain exact copyright/license notices for substantial code or text redistribution. Humanizer explicitly credits Wikipedia Signs of AI Writing; do not assume root MIT relicenses underlying Wikipedia-derived text. Prefer original implementation and short attributed paraphrase; store immutable source URLs+hashes rather than committing full competitor prose.",
+  "fairness": [
+    "Pin each current main commit and include mandatory references; avoid-ai-writing SKILL.full.md is official self-contained alternative.",
+    "Use same host model/settings/task scope and source-bound user brief; separate editing results from deterministic detector comparisons.",
+    "Avoid-ai-writing current published gate is finding count >6 (technical/rendered-markdown), not a numeric score cutoff or authorship classification.",
+    "Record native workflow output differences; extract final rewrite using declared embedded mode, not by discarding inconvenient intermediate outputs.",
+    "No scored quality/rank/superiority conclusion is established by repository feature presence or pattern counts."
+  ]
+}

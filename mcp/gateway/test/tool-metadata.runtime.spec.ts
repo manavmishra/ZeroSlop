@@ -108,7 +108,10 @@ describe("MCP tool metadata in workerd", () => {
     }) as Env;
     const pending: Promise<unknown>[] = [];
     const ctx = { waitUntil(promise: Promise<unknown>) { pending.push(promise); } } as ExecutionContext;
-    const outbound = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Unexpected editor request"));
+    const outbound = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      rewrite: text, provider: "workers-ai", model: "fixture", stored: false, providerCalls: 1,
+      review: { decision: "keep", findings: [] },
+    }));
     try {
       const response = await worker.fetch(new Request("https://mcp.zero-slop.ai/mcp", {
         method: "POST",
@@ -127,11 +130,12 @@ describe("MCP tool metadata in workerd", () => {
       expect(message.error).toBeUndefined();
       expect(message.result.isError).not.toBe(true);
       expect(message.result.structuredContent).toMatchObject({
-        text, status: "already_clear", scorerVersion: env.SCORER_VERSION, modelRequests: 0,
+        text, status: "already_clear", scorerVersion: env.SCORER_VERSION, modelRequests: 1,
+        contextualReview: { status: "reviewed", decision: "keep", findings: [] },
         before: { score: 16.6 }, after: { score: 16.6 },
       });
       expect(score).toHaveBeenCalledTimes(1);
-      expect(outbound).not.toHaveBeenCalled();
+      expect(outbound).toHaveBeenCalledTimes(1);
       await Promise.all(pending);
       score.mockClear();
       const invalid = await worker.fetch(new Request("https://mcp.zero-slop.ai/mcp", {
@@ -152,7 +156,7 @@ describe("MCP tool metadata in workerd", () => {
       expect(invalidMessage.result.structuredContent).toBeUndefined();
       expect(invalidMessage.result.content[0].text).toContain("Input validation error");
       expect(score).not.toHaveBeenCalled();
-      expect(outbound).not.toHaveBeenCalled();
+      expect(outbound).toHaveBeenCalledTimes(1);
       await Promise.all(pending);
     } finally {
       outbound.mockRestore();

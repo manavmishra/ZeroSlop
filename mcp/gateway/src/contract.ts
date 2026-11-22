@@ -51,6 +51,19 @@ export const deslopOutputSchema = z.object({
   durationMs: z.number().int().nonnegative(),
   note: z.string(),
   editorDiagnostics: editorDiagnosticsSchema.optional(),
+  contextualReview: z.union([
+    z.object({
+      status: z.literal("reviewed"),
+      decision: z.enum(["edit", "keep", "gap"]),
+      findings: z.array(z.object({
+        kind: z.enum(["style", "redundancy", "unsupported_claim", "missing_substance"]),
+        quote: z.string().min(1).max(400),
+        reason: z.string().min(1).max(500),
+        question: z.string().min(1).max(300).optional(),
+      })).max(8),
+    }),
+    z.object({ status: z.enum(["unavailable", "not_requested"]) }),
+  ]).optional(),
 });
 
 export const problemSchema = z.object({
@@ -89,7 +102,7 @@ export function openApiDocument(version: string) {
           operationId: "deslop",
           tags: ["Writing"],
           summary: "Edit a draft",
-          description: "Send UTF-8 JSON, at most 128 KiB. Text is limited to 20,000 Unicode code points after trimming for editing; clean_text preserves raw text and counts its full length. Unknown JSON properties are ignored. HTTP 200 means the pipeline returned a result, not that a rewrite passed its checks: inspect status, factsPreserved and passedFinalChecks. Already-clear text needs no model call. There are no automatic retries or stored idempotency results. Allow 75 seconds on the client; client cancellation does not guarantee upstream work has stopped. Access is free, without an API key, subject to shared capacity and a daily editing allowance across MCP, REST, CLI and the demo. Short-lived keyed daily client hashes coordinate abuse limits and are purged after the UTC day. This is best-effort capacity, not a reserved quota or SLA. Call from your application server; browser access is enabled only for https://zero-slop.ai and https://www.zero-slop.ai.",
+          description: "Send UTF-8 JSON, at most 128 KiB. Text is limited to 20,000 Unicode code points after trimming for editing; clean_text preserves raw text and counts its full length. Unknown JSON properties are ignored. HTTP 200 means the pipeline returned a result, not that a rewrite passed its checks: inspect status, factsPreserved, passedFinalChecks and contextualReview. Normal editing requests a contextual review even when local checks find nothing; this consumes editing allowance and may leave clean text unchanged. clean_text stays local. There are no automatic client retries or stored idempotency results. Allow 75 seconds on the client; client cancellation does not guarantee upstream work has stopped. Access is free, without an API key, subject to shared capacity and a daily editing allowance across MCP, REST, CLI and the demo. Short-lived keyed daily client hashes coordinate abuse limits and are purged after the UTC day. This is best-effort capacity, not a reserved quota or SLA. Call from your application server; browser access is enabled only for https://zero-slop.ai and https://www.zero-slop.ai.",
           security: [],
           requestBody: {
             required: true,

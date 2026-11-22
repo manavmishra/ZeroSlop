@@ -3,6 +3,8 @@ import { OPENROUTER_NOTICE } from "./editor-notice";
 import { dailyBudgetClient, HostedBudgetError } from "./budget";
 import { boundedOperation, checkCancelled, PipelineCancelledError, type PipelineControl } from "./cancellation";
 import { safeEditorDiagnostics, safeProviderAttempts, type EditorDiagnostics, type EditorFailure, type SafeProviderAttempt } from "./editor-diagnostics";
+import { contextualReview } from "./contextual-review";
+import type { ContextualReview } from "./types";
 
 // The website may try two providers. Leave bounded room for both deadlines,
 // two budget checks, and the gateway-to-website response transit.
@@ -20,6 +22,7 @@ export type ModelReply = {
   text: string;
   rung: string;
   providerCalls: number;
+  review?: ContextualReview;
 };
 
 function hex(bytes: ArrayBuffer): string {
@@ -45,6 +48,7 @@ type EditorResponse = {
   model?: unknown;
   stored?: unknown;
   providerCalls?: unknown;
+  review?: unknown;
 };
 
 function safeRungPart(value: unknown): string | null {
@@ -54,7 +58,7 @@ function safeRungPart(value: unknown): string | null {
   return normalized;
 }
 
-export function editorReply(value: unknown): ModelReply | null {
+export function editorReply(value: unknown, source?: string): ModelReply | null {
   if (!value || typeof value !== "object") return null;
   const data = value as EditorResponse;
   if (data.stored !== false) return null;
@@ -64,7 +68,11 @@ export function editorReply(value: unknown): ModelReply | null {
   if (!provider || !model) return null;
   const providerCalls = data.providerCalls === undefined ? 1 : data.providerCalls;
   if (!Number.isSafeInteger(providerCalls) || Number(providerCalls) < 1 || Number(providerCalls) > 2) return null;
-  return { text: data.rewrite.trim(), rung: `${provider}:${model}`, providerCalls: Number(providerCalls) };
+  const review = data.review === undefined ? undefined
+    : typeof source === "string" ? contextualReview(data.review, source, data.rewrite) : null;
+  if (review === null) return null;
+  return { text: review ? data.rewrite : data.rewrite.trim(), rung: `${provider}:${model}`,
+    providerCalls: Number(providerCalls), ...(review ? { review } : {}) };
 }
 
 export function tooShort(source: string, output: string, _role: ModelRole = "complete"): boolean {
@@ -102,8 +110,16 @@ export async function callRole(
 ): Promise<ModelReply | null> {
   checkCancelled(control);
   const started = Date.now();
+  // Missing configuration cannot perform a review. Do not hash, reserve an
+  // allowance, or claim a model request was sent in this local failure path.
+  if (typeof env.EDITOR_ENDPOINT !== "string" || !env.EDITOR_ENDPOINT.trim()) {
+    onProviderCalls?.(0);
+    onFailure?.("configuration");
+    return null;
+  }
   const remaining = deadline - Date.now();
   if (remaining < MIN_ATTEMPT_MS) {
+    onProviderCalls?.(0);
     onFailure?.("deadline");
     console.warn(JSON.stringify({ event: "editor_request_skipped", role, reason: "deadline" }));
     return null;
@@ -192,11 +208,15 @@ export async function callRole(
       try { payload = await readBoundedJson(response, MAX_EDITOR_RESPONSE_BYTES); }
       catch { throw new EditorInvalidResponseError(); }
       captureDiagnostics(response.status, payload);
-      const reply = editorReply(payload);
+      if (payload && typeof payload === "object" && "providerCalls" in payload
+        && (payload.providerCalls === 0 || payload.providerCalls === 1 || payload.providerCalls === 2)) {
+        onProviderCalls?.(payload.providerCalls);
+      }
+      const reply = editorReply(payload, source);
       if (reply) onProviderCalls?.(reply.providerCalls as 1 | 2);
       const validLength = reply && !tooShort(source, reply.text, role) && !tooLong(source, reply.text, role);
       const unchanged = reply && validLength && equivalentEditorText(source, reply.text);
-      if (!reply || !validLength || unchanged) {
+      if (!reply || !validLength || (unchanged && !reply.review)) {
         const failure = unchanged ? "unchanged_output" : "invalid_output";
         onFailure?.(failure);
         console.warn(JSON.stringify({

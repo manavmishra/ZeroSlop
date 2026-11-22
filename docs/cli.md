@@ -19,7 +19,7 @@ are not authentication or provenance evidence.
 Use `deslop` for hosted editing with MCP parity. Use `score` for offline checks.
 
 ```sh
-npm install --global zero-slop@2.12.41
+npm install --global zero-slop@2.13.0
 zero-slop deslop draft.md --genre professional
 zero-slop deslop - --genre email < draft.txt
 zero-slop deslop draft.md --json --require-approved
@@ -65,7 +65,15 @@ stay local. See the [remote-service privacy boundary](../SECURITY.md#remote-serv
 
 Inspect the [six result statuses](rest-api.md#read-the-result). In particular,
 `rewritten_with_warnings` is an edit to review, not an approved result.
-`already_clear` returns the original without an editing-model request.
+`already_clear` can retain the original after a contextual model review. Normal
+editing uses the hosted review allowance even when local checks find no issues;
+`clean_text` remains local. Inspect `contextualReview` to distinguish a reviewed
+keep from an unavailable review. Older servers may report local-only clear results.
+
+`--require-approved` preserves compatibility with older gateway results that omit
+`contextualReview`; an accepted legacy result does not prove contextual review.
+Callers requiring the new review must also check
+`result.contextualReview?.status === "reviewed"` in the JSON response.
 
 | Exit code | Meaning |
 |---|---|

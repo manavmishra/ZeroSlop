@@ -34,16 +34,28 @@ function sourceSafe(checked: RankedRewrite): boolean {
 }
 
 // The scorer protects concrete details, but cannot adjudicate changes in a
-// claim's negation, direction, certainty, or timing. Keep sentences with such
-// markers unchanged (apart from case and whitespace) for auto-approval. A
-// harmless paraphrase may therefore require review; a stronger unsupported
-// assertion must never be silently approved.
+// claim's polarity, timing, or explicit relationships. Keep sentences with
+// these markers unchanged (apart from case and whitespace) after normalizing
+// vetted stock wrappers. A valid paraphrase can be rejected: this is a bounded
+// conservative guard, not a semantic equivalence test.
 const SENSITIVE_CLAIM_WORD = /\b(?:not|no|never|neither|nor|without|cannot|can't|won't|isn't|aren't|wasn't|weren't|doesn't|don't|didn't|hasn't|haven't|hadn't|shouldn't|couldn't|wouldn't|unable|unavailable|increase(?:d|s|ing)?|decrease(?:d|s|ing)?|rises?|rose|rising|falls?|fell|falling|drops?|dropped|dropping|reduc(?:e|ed|es|ing)|more|less|fewer|above|below|before|after|earlier|later|approved|rejected|may|might|could|can|should|likely|unlikely|possible|possibly|probable|probably|uncertain|estimated?|estimates|preliminary|suggests?|suggested|appears?|appeared|seems?|seemed|reportedly|allegedly|potentially|tentative|expected|forecast(?:ed)?|projected|was|were|had|did|will|would|previously|formerly|currently|now|yesterday|today|tomorrow|(?:last|next|this)\s+(?:week|month|year|quarter))\b/i;
+
+// Explicit relational language carries source context even when a reader could
+// infer it from adjacent details. Do not treat ordinary copulas alone as evidence.
+const RELATIONSHIP_CLAIM_MARKERS = [
+  /\b(?:must|shall|required|requires?|if|unless|except|excluding|provided that|as long as|subject to|only|always|all|every|any|each|both|solely|exclusively)\b/i,
+  /\b(?:same|different|distinct|identical|equivalent|interchangeable|separate)\b/i,
+  /\b(?:equals?|matches?|corresponds? to|defined as|means?|denotes?|refers? to|stands? for)\b/i,
+  /\b(?:purpose|intent|intention|intended|designed to|meant to|aims? to|exists? to|serves? to)\b/i,
+  /\b(?:(?:is|are|be)\s+(?:there to|for)|to\s+(?:help|enable|allow|support|prevent|ensure))\b/i,
+  /\b(?:because|therefore|due to|causes?|caused|results? in|leads? to|depends? on)\b/i,
+];
 
 function sensitiveSentences(text: string): string[] {
   return (text.replace(/’/g, "'").match(/[^.!?\n]+(?:[.!?]+|$)/g) ?? [])
     .map((sentence) => sentence.trim().toLowerCase().replace(/\s+/g, " "))
-    .filter((sentence) => SENSITIVE_CLAIM_WORD.test(sentence))
+    .filter((sentence) => SENSITIVE_CLAIM_WORD.test(sentence)
+      || RELATIONSHIP_CLAIM_MARKERS.some((marker) => marker.test(sentence)))
     .sort();
 }
 
@@ -107,11 +119,19 @@ export function meetsReleaseGate(report: WritingReport): boolean {
     && (report.sentences < 8 || report.sentenceVariety === "natural");
 }
 
+const PROSE_DETERMINERS = new Set(["every", "each", "all", "any", "both"]);
+
 function withoutWrapper(match: string, prefix: string, word: string, offset: number, source: string): string {
   if (word === word.toLowerCase()) {
     const safeOpeners = new Set(["a", "an", "the", "i", "we", "our", "it", "its", "this", "that",
       "these", "those", "they", "you", "your", "use", "keep", "run", "do"]);
-    if (!safeOpeners.has(word) || /^[./\\([@:]/.test(source.charAt(offset + match.length))) return match;
+    const following = source.slice(offset + match.length);
+    // These quantifiers are ordinary prose openers only with a following word.
+    // Bare identifiers, calls, properties and assignments stay ambiguous.
+    const proseDeterminer = PROSE_DETERMINERS.has(word)
+      && /^[ \t]+[A-Za-z][A-Za-z0-9_-]*(?=[ \t]+|[,;!?]|\.(?:\s|$)|$)/.test(following)
+      && !/^[ \t]+[A-Za-z][A-Za-z0-9_-]*[ \t]*[=+*/<>]/.test(following);
+    if ((!safeOpeners.has(word) && !proseDeterminer) || /^[./\\([@:]/.test(following)) return match;
     return prefix + word.charAt(0).toUpperCase() + word.slice(1);
   }
   return prefix + word;
@@ -371,24 +391,20 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
           : "No supported character cleanup was needed. Ambiguous formatting was preserved. Statistical watermark removal has not been verified."),
       after,
       scoreChange: Math.round((after.score - before.score) * 10) / 10,
+      contextualReview: { status: "not_requested" },
     };
   }
 
-  // A short clean note should not incur an AI call merely because document-
-  // level statistics need more words. Positive findings still force an edit.
+  // A low local score cannot identify missing substance or a circular claim.
+  // Every normal editing request gets the same bounded contextual review.
   const cleanEnough = meetsReleaseGate(before)
     && before.flaggedPhrases === 0;
-  if (cleanEnough) {
-    return unchanged(
-      original, "already_clear", before, started, env.SCORER_VERSION,
-      "The draft already reads cleanly, so Zero Slop did not spend a model request on it.",
-    );
-  }
 
   const diagnostics = {
     genre: input.genre,
     audience: input.audience ?? "",
     localChecks: JSON.parse(scorerGuidance(before)),
+    contextualReviewRequired: true,
   };
   // Exactly one outbound editor request. The endpoint may use one bounded
   // alternate provider if its primary cannot return a usable edit.
@@ -400,10 +416,41 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     (observed) => { editorDiagnostics = observed; }, openRouterNoticeConfirmed);
   checkCancelled(control);
   if (editorFailure) editorDiagnostics.failureReason = editorFailure;
-  const resultDiagnostics = Object.keys(editorDiagnostics).length ? { editorDiagnostics } : {};
+  const resultDiagnostics = {
+    ...(Object.keys(editorDiagnostics).length ? { editorDiagnostics } : {}),
+    contextualReview: modelReply?.review
+      ? { status: "reviewed" as const, ...modelReply.review }
+      : { status: "unavailable" as const },
+  };
+  if (modelReply?.review && modelReply.review.decision !== "edit") {
+    const gap = modelReply.review.decision === "gap";
+    return {
+      ...unchanged(original, gap || !cleanEnough ? "unchanged_no_better_version" : "already_clear",
+        before, started, env.SCORER_VERSION,
+        gap
+          ? `The draft needs source information before it can be completed. The original is preserved. Questions: ${modelReply.review.findings.map((finding) => finding.question).filter(Boolean).join(" ")}`
+          : cleanEnough
+            ? "One contextual model review found no justified edit. The original wording and voice are preserved."
+            : "The contextual review kept the original, but local writing findings remain. Review them before publishing."),
+      modelRequests: modelReply.providerCalls,
+      rolesCompleted: 2,
+      ...resultDiagnostics,
+    };
+  }
+  if (!modelReply && cleanEnough) {
+    return {
+      ...unchanged(original, "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
+        `The original is preserved because ${editorFailureNote(editorFailure)}. Local checks found no issues, but a contextual review was not completed.`),
+      modelRequests: observedProviderCalls ?? 1,
+      ...resultDiagnostics,
+    };
+  }
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
-  const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";
+  // A reviewed model text is the exact proposal. Do not silently apply new
+  // local wording changes after its contextual review.
+  const cleanedModelReply = modelReply?.text
+    ? modelReply.review ? modelReply.text : localRescue(modelReply.text) : "";
   if (cleanedModelReply && cleanedModelReply !== original && withinScorerLimit(cleanedModelReply)) {
     candidates["one-call edit"] = cleanedModelReply;
   }
@@ -444,11 +491,14 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     checkCancelled(control);
     if (sourceSafe(localOnly) && !sourceClaimRisk(original, localOnly.text)) checked = localOnly;
   }
-  if (!sourceSafe(checked)) {
+  const selectedClaimRisk = sourceClaimRisk(original, checked.text);
+  if (!sourceSafe(checked) || selectedClaimRisk) {
     return {
       ...unchanged(
         original, "unchanged_verification_failed", before, started, env.SCORER_VERSION,
-        "Every proposed edit changed protected source material, so the original is preserved.",
+        selectedClaimRisk
+          ? "Local checks flagged a possible change to a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship. No safe alternative was available, so the original is preserved."
+          : "Every proposed edit changed protected source material, so the original is preserved.",
       ),
       modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
       rolesCompleted: modelReply ? 6 : 2,
@@ -460,12 +510,13 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   const after = await scoreWriting(env, current, input.genre, control);
   checkCancelled(control);
   const selectedModelEdit = checked.name === "one-call edit";
-  const claimUncertain = sourceClaimRisk(original, current);
-  const passed = selectedModelEdit && !claimUncertain && meetsReleaseGate(after);
+  const passed = selectedModelEdit && Boolean(modelReply?.review?.decision === "edit")
+    && meetsReleaseGate(after);
   const warnings: string[] = [];
+  if (!modelReply?.review) warnings.push("a source-bound contextual review was not completed");
   if (!selectedModelEdit) {
     warnings.push(modelClaimUncertain
-      ? "the model response changed a source claim's negation, direction, certainty, or timing, so the local edit was used"
+      ? "the model response changed a source claim's polarity, certainty, obligation, scope, conditions, timing, identity, purpose, or relationship, so the local edit was used"
       : modelSourceRejected
         ? "the model response did not pass the source check, so the local edit was used"
       : safeModelEdit
@@ -486,7 +537,6 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   if (after.register.findings.length > 0 || (after.shape.measured && after.shape.broetry)) {
     warnings.push("a document-level writing check remains");
   }
-  if (claimUncertain) warnings.push("a source claim's negation, direction, certainty, or timing changed and needs human review");
 
   return {
     text: current,
@@ -494,7 +544,7 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     before,
     after,
     scoreChange: Math.round((after.score - before.score) * 10) / 10,
-    factsPreserved: !claimUncertain,
+    factsPreserved: true,
     passedFinalChecks: passed,
     independentModelChecks: 0,
     modelRequests: modelReply?.providerCalls ?? observedProviderCalls ?? 1,
