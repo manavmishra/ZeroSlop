@@ -664,3 +664,37 @@ test("intro removal preserves the protected release fixture and quoted/code/link
     assertRescueParity("In today’s rapidly evolving world, Maya kept the date.\n\n" + span, "Maya kept the date.\n\n" + span);
   }
 });
+
+
+test("complete closing frames retain mixed-case names and source conditions", () => {
+  for (const name of ["iOS", "eBay", "eBPF", "NASA"]) {
+    assertRescueParity(`In conclusion, ${name} may accept 18 files only if the checksum matches.`,
+      `${name} may accept 18 files only if the checksum matches.`);
+  }
+  for (const source of ['She wrote, "In conclusion, iOS is supported."',
+    "`In conclusion, eBPF is supported.`", "> In conclusion, the pilot may expand.",
+    "In conclusion,", "In conclusion, 東京 remains the export label.",
+    "In conclusion, os.path.exists returned False.", "In conclusion, npm remains the installer.",
+    "~~~text\nIn conclusion, eBPF is supported.\n~~~",
+    "~~~~text\nIn conclusion, eBPF is supported.\n~~~\n~~~~",
+    "~~~text\nIn conclusion, eBPF is supported."]) {
+    assertRescueParity(source, source);
+  }
+});
+
+test("fallback never invents onboarding or conversations for an unspecified process or insight", () => {
+  assertRescueParity("The payroll exporter is a platform that leverages intelligent automation to streamline the entire process end to end.",
+    "The payroll exporter is a platform that uses intelligent automation to streamline the entire process.");
+  assertRescueParity("The insights were significant: the error affects only the pilot.",
+    "The insights were significant: the error affects only the pilot.");
+  assertRescueParity("The insights were game-changing.", "The insights were useful.");
+});
+
+
+test("ambiguous or mid-sentence frames never fall through to unconditional deletion", () => {
+  for (const source of ["It is worth noting that operating costs were USD 18,600 above plan.",
+    "It is important to note that npm remains the installer.",
+    "The lesson says it is worth noting that iOS is supported."]) {
+    assertRescueParity(source, source);
+  }
+});

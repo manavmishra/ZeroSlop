@@ -1,0 +1,197 @@
+{
+  "scope": "Synthetic local-fallback replay; no model rewrite or human voice evaluation",
+  "drafts_sha256": "11a36efc0a1a32d8ccadc373eceb33399981a8255e7104ed5684d8a949441a21",
+  "runtime_sha256": "d88b55b222661625489c92de14d678ff9414116c335fc016ef5a0f3b026bf8bf",
+  "drafts": 6,
+  "protected_span_failures": 0,
+  "idempotence_failures": 0,
+  "clean_controls": 3,
+  "clean_control_changes": 0,
+  "results": [
+    {
+      "id": "s201",
+      "role": "Operations director",
+      "genre": "decision memo",
+      "brief": "Leave a clear decision memo unchanged. Preserve a necessary contrast and the approval boundary.",
+      "source": "We can move the training session, but we cannot move the inspection. The inspector has confirmed Friday at 09:00, and the room must be empty by then.\n\nI propose running the session on Thursday afternoon. That would give the setup team one evening to clear the equipment. It would not add another day to the contract.\n\nPlease confirm the room booking by noon on Wednesday. If that booking fails, keep the existing session time and reduce the equipment list instead. Do not cancel the session before we have a replacement.\n\nThis is a scheduling choice, not a request for extra budget. Finance has approved the current amount only.",
+      "expected_action": "keep",
+      "protected_spans": [
+        "Friday at 09:00",
+        "noon on Wednesday"
+      ],
+      "required_meaning": [
+        "Inspection time is fixed while training may move.",
+        "Thursday is a proposal contingent on booking.",
+        "A failed booking retains the existing time with reduced equipment.",
+        "No additional contract day or budget is approved."
+      ],
+      "voice": "Direct, complete operational sentences with useful contrasts.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Remove negative or conditional clauses.",
+        "Turn the proposal into a confirmed booking.",
+        "Add cost or capacity claims."
+      ],
+      "edited": "We can move the training session, but we cannot move the inspection. The inspector has confirmed Friday at 09:00, and the room must be empty by then.\n\nI propose running the session on Thursday afternoon. That would give the setup team one evening to clear the equipment. It would not add another day to the contract.\n\nPlease confirm the room booking by noon on Wednesday. If that booking fails, keep the existing session time and reduce the equipment list instead. Do not cancel the session before we have a replacement.\n\nThis is a scheduling choice, not a request for extra budget. Finance has approved the current amount only.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "s202",
+      "role": "Documentation engineer",
+      "genre": "parser fixture explanation",
+      "brief": "Preserve every quoted and fenced literal. This is a technical fixture description, not a request to edit its sample prose.",
+      "source": "The fixture checks whether the parser returns the text between matching delimiters. The sample wording is intentionally repetitive. Keep it exactly as supplied.\n\nThe first sample uses a tilde fence:\n\n~~~~text\nIn conclusion, quic.connect remains the entry point.\n~~~\nThe shorter delimiter above is sample content.\n~~~~\n\nThe second sample is quoted inline: “It is worth noting that oauth2_proxy remains lowercase.”\n\nNeither sample describes a deployment policy. They are inputs to the parser. A change to the wording would change what the fixture tests, even if the sentence sounded better afterward. The expected record contains both the delimiters and the original text.",
+      "expected_action": "keep",
+      "protected_spans": [
+        "In conclusion, quic.connect remains the entry point.",
+        "~~~\nThe shorter delimiter above is sample content.",
+        "“It is worth noting that oauth2_proxy remains lowercase.”"
+      ],
+      "required_meaning": [
+        "The samples are literals rather than editorial source prose.",
+        "The shorter internal tilde line does not close the four-tilde fence.",
+        "The quoted identifier remains lowercase.",
+        "The fixture keeps original delimiters and content."
+      ],
+      "voice": "Precise explanatory prose with functional Markdown.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Remove a wrapper from either sample.",
+        "Capitalize or otherwise alter an identifier.",
+        "Treat a parser fixture as a deployment claim."
+      ],
+      "edited": "The fixture checks whether the parser returns the text between matching delimiters. The sample wording is intentionally repetitive. Keep it exactly as supplied.\n\nThe first sample uses a tilde fence:\n\n~~~~text\nIn conclusion, quic.connect remains the entry point.\n~~~\nThe shorter delimiter above is sample content.\n~~~~\n\nThe second sample is quoted inline: “It is worth noting that oauth2_proxy remains lowercase.”\n\nNeither sample describes a deployment policy. They are inputs to the parser. A change to the wording would change what the fixture tests, even if the sentence sounded better afterward. The expected record contains both the delimiters and the original text.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "s203",
+      "role": "Data platform engineer",
+      "genre": "migration note",
+      "brief": "Remove empty framing where safe. Preserve the data boundary and exact identifiers.",
+      "source": "It is important to note that OpenSearch receives only the redacted event stream. The raw payload stays in the restricted bucket and is not copied into the search index.\n\nThe migration covers the staging workspace first. We will consider production only after the access review passes. A successful staging run does not approve production access.\n\nIn conclusion, The migration changes the index destination, not the retention period. Keep the existing 45-day retention rule.\n\nUse `sink_id = \"redacted_v2\"` for the staging task. The task writes no raw message body. If a raw body appears in the preview, stop the run and preserve the preview for the security reviewer.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "OpenSearch",
+        "45-day",
+        "sink_id = \"redacted_v2\""
+      ],
+      "required_meaning": [
+        "Only redacted events enter search; raw payload remains restricted.",
+        "Production is conditional on a separate access review.",
+        "Retention is unchanged at 45 days.",
+        "The staging task must stop if raw content appears."
+      ],
+      "voice": "Practical migration instructions with necessary caution.",
+      "acceptable_changes": [
+        "Delete the two empty introductory frames while preserving the exposed names and sentence case."
+      ],
+      "prohibited_changes": [
+        "Imply production approval.",
+        "Remove or weaken the raw-data boundary.",
+        "Change code or retention."
+      ],
+      "edited": "OpenSearch receives only the redacted event stream. The raw payload stays in the restricted bucket and is not copied into the search index.\n\nThe migration covers the staging workspace first. We will consider production only after the access review passes. A successful staging run does not approve production access.\n\nThe migration changes the index destination, not the retention period. Keep the existing 45-day retention rule.\n\nUse `sink_id = \"redacted_v2\"` for the staging task. The task writes no raw message body. If a raw body appears in the preview, stop the run and preserve the preview for the security reviewer.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "s204",
+      "role": "Billing integration owner",
+      "genre": "vendor note",
+      "brief": "The external integration name is deliberately lowercase. Preserve it exactly and keep the cautionary wording if removal would require a capitalization guess.",
+      "source": "It is worth noting that stripe is the integration name stored in our routing table. It is not the display name used in the billing screen.\n\nThe router compares that value exactly. Replacing it with a title-cased version would point to a different key. The display label can change without changing the routing value.\n\nIt is important to note that stripe handles only the card route in this workspace. Bank transfers use the separate route shown in the configuration table. This note does not establish which provider should handle a new payment method.\n\nKeep the current mapping until the integration owner approves a migration. A renamed screen label is not that approval.",
+      "expected_action": "keep",
+      "protected_spans": [
+        "It is worth noting that stripe",
+        "It is important to note that stripe"
+      ],
+      "required_meaning": [
+        "stripe is an exact case-sensitive routing key.",
+        "A display label is separate from the routing key.",
+        "The integration covers only the card route.",
+        "Mapping changes require explicit owner approval."
+      ],
+      "voice": "Cautious technical prose. Retained framing is acceptable to protect identifier spelling.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Capitalize stripe or infer a new provider assignment.",
+        "Remove the explicit authorization boundary."
+      ],
+      "edited": "It is worth noting that stripe is the integration name stored in our routing table. It is not the display name used in the billing screen.\n\nThe router compares that value exactly. Replacing it with a title-cased version would point to a different key. The display label can change without changing the routing value.\n\nIt is important to note that stripe handles only the card route in this workspace. Bank transfers use the separate route shown in the configuration table. This note does not establish which provider should handle a new payment method.\n\nKeep the current mapping until the integration owner approves a migration. A renamed screen label is not that approval.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "s205",
+      "role": "Financial analyst",
+      "genre": "forecast note",
+      "brief": "Make only safe local cuts. Keep uncertain outcomes, sign, and currency associations exact.",
+      "source": "In conclusion, we may need to revise the forecast after the freight review. The current estimate assumes that the temporary surcharge ends in October.\n\nIt is worth noting that the reserve is EUR 9,700, while the open invoice is USD 9,700. These are different amounts in different currencies. Do not net them against each other.\n\nThe reserve is an estimate. It has not been approved as a supplier credit, and it should not appear in the cash receipts schedule.\n\nIf the surcharge continues into November, ask Finance for a revised estimate. Do not automatically carry the October figure into the next month. We have not yet received enough evidence to calculate that figure.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "EUR 9,700",
+        "USD 9,700",
+        "October",
+        "November"
+      ],
+      "required_meaning": [
+        "Forecast revision is possible and conditional on freight review.",
+        "Reserve and invoice use different currencies and cannot be netted.",
+        "Reserve is estimated rather than approved credit or cash.",
+        "November requires new evidence rather than copying October."
+      ],
+      "voice": "Measured financial commentary.",
+      "acceptable_changes": [
+        "Remove safe framing before we and the without changing the remaining wording."
+      ],
+      "prohibited_changes": [
+        "Swap currencies or labels.",
+        "Upgrade forecast certainty.",
+        "Invent a November amount."
+      ],
+      "edited": "We may need to revise the forecast after the freight review. The current estimate assumes that the temporary surcharge ends in October.\n\nThe reserve is EUR 9,700, while the open invoice is USD 9,700. These are different amounts in different currencies. Do not net them against each other.\n\nThe reserve is an estimate. It has not been approved as a supplier credit, and it should not appear in the cash receipts schedule.\n\nIf the surcharge continues into November, ask Finance for a revised estimate. Do not automatically carry the October figure into the next month. We have not yet received enough evidence to calculate that figure.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "s206",
+      "role": "Customer research lead",
+      "genre": "research readout",
+      "brief": "Prepare a decision on whether to expand the trial. Identify the missing sample, outcome, comparison, and approval facts before making that decision.",
+      "source": "The trial delivered meaningful insights and demonstrated the strength of our approach. Participants responded positively, and the team believes there is a strong opportunity to build on this momentum.\n\nIn conclusion, the findings make a compelling case for expansion. The next phase will allow us to create an even more seamless experience and unlock additional value.\n\nWe should align on the right next steps and act with confidence. The opportunity is clear, and continued progress will help the organization move forward.\n\nPlease approve a wider rollout. The team is ready to begin once the decision is made.",
+      "expected_action": "ask_for_substance",
+      "protected_spans": [],
+      "required_meaning": [
+        "The text requests expansion but supplies no sample size, measured outcome, comparison, or risk evidence.",
+        "The team is awaiting approval.",
+        "No factual basis for rollout size or success is supplied."
+      ],
+      "voice": "Neutral research synthesis. Keep unsupported assertions visibly unresolved.",
+      "acceptable_changes": [
+        "Ask for or identify missing decision evidence.",
+        "Make limited local wording cuts without inventing a result."
+      ],
+      "prohibited_changes": [
+        "Invent participant counts, success rates, benefits, dates, or approved rollout scope.",
+        "Treat positive wording as verified evidence."
+      ],
+      "edited": "The trial delivered meaningful insights and demonstrated the strength of our approach. Participants responded positively, and the team believes there is a strong opportunity to build on this momentum.\n\nThe findings make a compelling case for expansion. The next phase will allow us to create an even more seamless experience and unlock additional value.\n\nWe should align on the right next steps and act with confidence. The opportunity is clear, and continued progress will help the organization move forward.\n\nPlease approve a wider rollout. The team is ready to begin once the decision is made.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    }
+  ]
+}

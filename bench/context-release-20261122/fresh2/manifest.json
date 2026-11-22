@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "scope": "Six original synthetic drafts, independently authored before inspecting attempt 3 repair. No real customer data.",
+  "drafts_sha256": "11a36efc0a1a32d8ccadc373eceb33399981a8255e7104ed5684d8a949441a21",
+  "count": 6,
+  "expected_actions": {
+    "keep": 3,
+    "edit": 2,
+    "ask_for_substance": 1
+  },
+  "assessment": "Evaluate local cleanup safety separately from full assistant editorial effectiveness."
+}

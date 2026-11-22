@@ -18,6 +18,7 @@ import sys
 
 MAX_INPUT_BYTES = 4 * 1024 * 1024
 PROTECTED = re.compile(
+    r"^[ \t]{0,3}(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?(?:^[ \t]{0,3}\1[ \t]*(?:\n|$)|(?![\s\S]))|$)|"
     r"```[\s\S]*?```|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|"
     r"`[^`\n]+`|\[[^\]\n]+\]\([^)]+\)|https?://[^\s<]+",
     re.MULTILINE,
@@ -106,6 +107,13 @@ def _without_wrapper(match: re.Match[str]) -> str:
     # Capitalize the exposed sentence, but leave names such as iOS and eBay
     # byte-for-byte. This applies only where a sentence wrapper was removed.
     if word.islower():
+        # Unknown lowercase tokens may be brands or identifiers. The model
+        # can adjudicate them; a local deletion must not guess their spelling.
+        safe_openers = {"a", "an", "the", "i", "we", "our", "it", "its", "this", "that",
+                        "these", "those", "they", "you", "your", "use", "keep", "run", "do"}
+        following = match.string[match.end():match.end() + 1]
+        if word not in safe_openers or following in {".", "/", "\\", "(", "[", "@", ":"}:
+            return match.group(0)
         word = word[:1].upper() + word[1:]
     return prefix + word
 
@@ -134,6 +142,11 @@ def rescue_text(text: str) -> str:
     out = re.sub(
         r"(^|[.!?][ \t]+|\n[ \t]*)(?:it is important to note that|it is worth noting that)"
         r"[ \t]+([A-Za-z][A-Za-z0-9_-]*)",
+        _without_wrapper, out, flags=re.IGNORECASE,
+    )
+    # Remove a complete closing frame, preserving exposed mixed-case names.
+    out = re.sub(
+        r"(^|[.!?][ \t]+|\n[ \t]*)in conclusion,[ \t]+([A-Za-z][A-Za-z0-9_-]*)",
         _without_wrapper, out, flags=re.IGNORECASE,
     )
     out = re.sub(
@@ -185,21 +198,16 @@ def rescue_text(text: str) -> str:
         (r"\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b", "I'm sharing"),
         (r"\bour journey\b", "our work"),
         (r"\bour transformative journey\b", "our work"),
-        (r"\bit is important to note that\b[ \t]*", ""),
-        (r"\bit is worth noting that\b[ \t]*", ""),
         (r"\bwhat we did not realize was just how deeply it impacted everything downstream\.",
          "We underestimated its effect on the work that followed."),
         (r"\bonboarding is not a checklist\.\s*it is a promise\.",
          "We see onboarding as a promise."),
         (r"\bonboarding isn['’]t a checklist\s*[-—]\s*it['’]s a promise\.",
          "We see onboarding as a promise."),
-        (r"\bthe insights were game[-\u2011]changing\.",
-         lambda m: ("Those" if m.group(0)[0].isupper() else "those")
-         + " conversations changed our approach."),
-        (r"\bthe insights were (?:transformative|clear|significant):\s*",
-         "Those conversations showed that "),
+        # Do not infer what produced an insight or name an unspecified process.
         (r"\ba platform that leverages intelligent automation to streamline the entire "
-         r"process end to end\b", "a platform that automates onboarding from start to finish"),
+         r"process end to end\b",
+         "a platform that uses intelligent automation to streamline the entire process"),
         (r"\bthe results speak for themselves:\s*([a-z])",
          lambda m: m.group(1).upper()),
         (r"\bthe results speak for themselves\.\s*", ""),

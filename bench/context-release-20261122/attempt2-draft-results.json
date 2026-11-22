@@ -1,0 +1,401 @@
+{
+  "scope": "Synthetic local-fallback replay; no model rewrite or human voice evaluation",
+  "drafts_sha256": "3a1abfa0a3da8e0cf73796002fa207a5269535b5537767b5ddb40d6ae8449911",
+  "runtime_sha256": "a2dd600b1b3d550c516fa1a218c6d03f88d9f1c3bcf3885cb6fbe6e47727573d",
+  "drafts": 12,
+  "protected_span_failures": 0,
+  "idempotence_failures": 0,
+  "clean_controls": 5,
+  "clean_control_changes": 0,
+  "results": [
+    {
+      "id": "rd01",
+      "role": "Software engineer",
+      "genre": "incident handoff",
+      "brief": "Polish only where needed for the next on-call engineer. Preserve diagnostic precision and avoid adding a conclusion.",
+      "source": "The stalled requests belong to the reporting queue, not the payment queue. That distinction matters because the payment workers share a host but use a separate connection pool.\n\nAt 14:20 UTC, I reduced reporting concurrency from 12 to 8. Queue depth fell, but the oldest request is still 17 minutes old. We have not established whether the change caused the improvement.\n\nLeave the payment settings alone. If reporting age exceeds 25 minutes, page the database owner before restarting a worker. The restart clears the evidence we need.\n\nThe trace bundle is in `./traces/run_B2`. Read `queue_age_ms` as milliseconds. The dashboard label is a rounded value, so use the trace for the incident timeline.",
+      "expected_action": "keep",
+      "protected_spans": [
+        "14:20 UTC",
+        "./traces/run_B2",
+        "queue_age_ms"
+      ],
+      "required_meaning": [
+        "Only the reporting queue is stalled.",
+        "Observed improvement does not establish causality.",
+        "The threshold is reporting age above 25 minutes.",
+        "Page the database owner before any worker restart.",
+        "Payment settings stay untouched."
+      ],
+      "voice": "Plain operational prose. Preserve the necessary queue contrast and complete sentences.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Change concurrency, timing, thresholds, units, or causal certainty.",
+        "Remove the warning about losing diagnostic evidence.",
+        "Rewrite useful technical distinctions as generic benefits."
+      ],
+      "edited": "The stalled requests belong to the reporting queue, not the payment queue. That distinction matters because the payment workers share a host but use a separate connection pool.\n\nAt 14:20 UTC, I reduced reporting concurrency from 12 to 8. Queue depth fell, but the oldest request is still 17 minutes old. We have not established whether the change caused the improvement.\n\nLeave the payment settings alone. If reporting age exceeds 25 minutes, page the database owner before restarting a worker. The restart clears the evidence we need.\n\nThe trace bundle is in `./traces/run_B2`. Read `queue_age_ms` as milliseconds. The dashboard label is a rounded value, so use the trace for the incident timeline.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "rd02",
+      "role": "Compliance officer",
+      "genre": "records policy",
+      "brief": "Keep this formal internal policy precise. Shorter or more casual wording is not required.",
+      "source": "Records covered by policy R-28 must be retained for seven years after the contract ends. This period applies to the executed contract and its signed amendments. Working drafts follow the ordinary project retention schedule.\n\nAn open legal hold overrides deletion under this policy. The records owner must confirm that no hold applies before approving disposal. Silence from the legal team does not count as approval.\n\nAccess is limited to staff assigned to the matter and the designated reviewer. A request from another department requires written authorization from the matter owner.\n\nThe procedure records authorization; it does not determine whether a legal hold should exist. Refer that question to counsel. Do not infer an exception from the absence of an entry in the project folder.",
+      "expected_action": "keep",
+      "protected_spans": [
+        "policy R-28"
+      ],
+      "required_meaning": [
+        "Retention lasts seven years after contract end for executed contracts and signed amendments.",
+        "Working drafts have a different schedule.",
+        "A legal hold overrides deletion.",
+        "The owner must actively confirm eligibility before disposal.",
+        "The procedure does not decide whether a hold should exist."
+      ],
+      "voice": "Formal, cautious, and explicit. Necessary repeated conditions may remain.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Change obligations into permissions.",
+        "Remove exceptions or imply legal approval.",
+        "Add jurisdiction-specific legal conclusions."
+      ],
+      "edited": "Records covered by policy R-28 must be retained for seven years after the contract ends. This period applies to the executed contract and its signed amendments. Working drafts follow the ordinary project retention schedule.\n\nAn open legal hold overrides deletion under this policy. The records owner must confirm that no hold applies before approving disposal. Silence from the legal team does not count as approval.\n\nAccess is limited to staff assigned to the matter and the designated reviewer. A request from another department requires written authorization from the matter owner.\n\nThe procedure records authorization; it does not determine whether a legal hold should exist. Refer that question to counsel. Do not infer an exception from the absence of an entry in the project folder.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "rd03",
+      "role": "Support specialist",
+      "genre": "customer email",
+      "brief": "Retain the courteous, direct response and its limits.",
+      "source": "Hi Rowan,\n\nThanks for sending the receipt. I found the duplicate charge and submitted a refund request for GBP 36. The request is awaiting approval; the money has not been returned yet.\n\nI will send another update by Thursday, even if approval is still pending. You do not need to submit a second request. Doing so would create another ticket for the same charge.\n\nThe order itself is active, so your delivery date has not changed. If the duplicate charge disappears from your statement before Thursday, reply here and I will add that information to the existing ticket.\n\nThanks for giving us the details we needed to investigate.\n\nMina",
+      "expected_action": "keep",
+      "protected_spans": [
+        "GBP 36",
+        "Thursday"
+      ],
+      "required_meaning": [
+        "The refund request is submitted and pending, not completed.",
+        "The next update is due by Thursday regardless of approval.",
+        "No second request is needed.",
+        "The active order and delivery date are unaffected."
+      ],
+      "voice": "Warm without enthusiasm or a sales pitch. Keep the greeting and signature.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Promise a refund completion date.",
+        "Invent compensation.",
+        "Remove the pending status or conditional request for an update."
+      ],
+      "edited": "Hi Rowan,\n\nThanks for sending the receipt. I found the duplicate charge and submitted a refund request for GBP 36. The request is awaiting approval; the money has not been returned yet.\n\nI will send another update by Thursday, even if approval is still pending. You do not need to submit a second request. Doing so would create another ticket for the same charge.\n\nThe order itself is active, so your delivery date has not changed. If the duplicate charge disappears from your statement before Thursday, reply here and I will add that information to the existing ticket.\n\nThanks for giving us the details we needed to investigate.\n\nMina",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "rd04",
+      "role": "Community organizer",
+      "genre": "newsletter vignette",
+      "brief": "Leave this short fictional vignette in its plain narrative voice.",
+      "source": "By the time the rain stopped, the volunteers had moved the last box inside. Someone put the kettle on. We had planned a tidy photograph of the new shelves, but the floor was covered in wet coats and nobody wanted to move them again.\n\nThe books were dry. That was enough for the evening.\n\nOn Saturday, the room opens at ten. Bring a book if you have one to spare. If you do not, come anyway. The point is to have somewhere to sit and read, and a person to ask when you cannot find the book you came for.",
+      "expected_action": "keep",
+      "protected_spans": [],
+      "required_meaning": [
+        "The books stayed dry.",
+        "The room opens on Saturday at ten.",
+        "Donating a book is optional.",
+        "The account is a fictional vignette, not a real testimonial."
+      ],
+      "voice": "Quiet, specific, conversational. Preserve the short middle paragraph and unshowy cadence.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Add a moral or inspirational ending.",
+        "Replace ordinary wording with promotional claims.",
+        "Invent emotions, attendance, or outcomes."
+      ],
+      "edited": "By the time the rain stopped, the volunteers had moved the last box inside. Someone put the kettle on. We had planned a tidy photograph of the new shelves, but the floor was covered in wet coats and nobody wanted to move them again.\n\nThe books were dry. That was enough for the evening.\n\nOn Saturday, the room opens at ten. Bring a book if you have one to spare. If you do not, come anyway. The point is to have somewhere to sit and read, and a person to ask when you cannot find the book you came for.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "rd05",
+      "role": "Teacher writing in a second language",
+      "genre": "class update",
+      "brief": "Keep the clear English update. Do not replace its straightforward voice with an institutional announcement.",
+      "source": "We finished the first practice today. Some students wanted more time, so we will repeat the exercise on Tuesday before starting the next topic.\n\nThe practice is for learning. It is not part of the final mark. Students may use their notes, but they should try the first question without them and then compare the two attempts.\n\nPlease bring the worksheet back on Tuesday. A photograph is fine if the paper is missing. There is no need to print another copy.\n\nI have put the example answer in the shared folder. It shows one reasonable approach, not the only acceptable answer. We will look at other approaches together in class.",
+      "expected_action": "keep",
+      "protected_spans": [
+        "Tuesday"
+      ],
+      "required_meaning": [
+        "Practice does not count toward the final mark.",
+        "Students may use notes after an initial unaided attempt.",
+        "A photograph can replace a lost worksheet.",
+        "The example is one reasonable approach rather than the sole valid answer."
+      ],
+      "voice": "Clear, patient, everyday English. Preserve useful repetition and ordinary words.",
+      "acceptable_changes": [],
+      "prohibited_changes": [
+        "Make notes forbidden.",
+        "Turn the practice into an assessment.",
+        "Replace the non-native style merely to make it more idiomatic."
+      ],
+      "edited": "We finished the first practice today. Some students wanted more time, so we will repeat the exercise on Tuesday before starting the next topic.\n\nThe practice is for learning. It is not part of the final mark. Students may use their notes, but they should try the first question without them and then compare the two attempts.\n\nPlease bring the worksheet back on Tuesday. A photograph is fine if the paper is missing. There is no need to print another copy.\n\nI have put the example answer in the shared folder. It shows one reasonable approach, not the only acceptable answer. We will look at other approaches together in class.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": true
+    },
+    {
+      "id": "rd06",
+      "role": "Mobile release engineer",
+      "genre": "release note",
+      "brief": "Remove empty framing and duplication while keeping exact product names and rollout conditions.",
+      "source": "It is important to note that iPadOS remains on the previous build while the signing check is pending. We will move that client only after the release owner signs the checklist.\n\nThe Android build fixes the empty-state label and leaves the import format unchanged. The import format has not changed in this build.\n\nIt is worth noting that OpenTelemetry collection is disabled in offline mode. The client stores no diagnostic events for later upload in that mode.\n\nFor the canary cohort, use `release.channel = \"canary\"`. Do not change the default channel for other customers. If the crash rate exceeds 0.4%, pause the rollout and keep the previous binary available.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "iPadOS",
+        "Android",
+        "OpenTelemetry",
+        "release.channel = \"canary\"",
+        "0.4%"
+      ],
+      "required_meaning": [
+        "iPadOS stays on the old build pending approval.",
+        "Android import format is unchanged.",
+        "Offline mode neither collects nor queues diagnostic events.",
+        "Only the canary cohort uses the canary channel.",
+        "Crash rate above 0.4% requires pausing."
+      ],
+      "voice": "Short release notes with precise conditions and mixed-case identifiers.",
+      "acceptable_changes": [
+        "Delete the two empty introductory wrappers.",
+        "Remove one statement of the unchanged import format."
+      ],
+      "prohibited_changes": [
+        "Capitalize the first letter of a mixed-case identifier.",
+        "Claim the signing check has passed.",
+        "Broaden the canary rollout."
+      ],
+      "edited": "iPadOS remains on the previous build while the signing check is pending. We will move that client only after the release owner signs the checklist.\n\nThe Android build fixes the empty-state label and leaves the import format unchanged. The import format has not changed in this build.\n\nOpenTelemetry collection is disabled in offline mode. The client stores no diagnostic events for later upload in that mode.\n\nFor the canary cohort, use `release.channel = \"canary\"`. Do not change the default channel for other customers. If the crash rate exceeds 0.4%, pause the rollout and keep the previous binary available.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "rd07",
+      "role": "Supply chain product manager",
+      "genre": "pilot update",
+      "brief": "Cut repetition and stock framing. Preserve owners, quantities, and the decision requested.",
+      "source": "In conclusion, the receiving pilot is ready for a limited second week, subject to the warehouse lead approving the revised slot plan.\n\nKiran will reserve 5 morning slots. Jo will reserve 2 afternoon slots. The change does not add carrier capacity; it redistributes the slots we already have.\n\nThe pilot ran at Dock C for 3 days. Across those 3 days, Dock C was the only location included in the pilot. We have no result for the other docks.\n\nPlease approve the revised plan by Wednesday or tell us which constraint still needs work. Until we have that approval, keep the current slot assignments. This represents a significant milestone in our journey toward a more seamless receiving experience.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "Kiran",
+        "Jo",
+        "Dock C",
+        "Wednesday"
+      ],
+      "required_meaning": [
+        "The second week depends on warehouse-lead approval.",
+        "Kiran owns five morning slots and Jo two afternoon slots.",
+        "Total carrier capacity is unchanged.",
+        "Only Dock C was tested, for three days.",
+        "Current assignments remain until approval."
+      ],
+      "voice": "Practical operational update. Keep the direct request.",
+      "acceptable_changes": [
+        "Remove empty framing and the final unsupported celebratory sentence.",
+        "Combine duplicate pilot-scope statements."
+      ],
+      "prohibited_changes": [
+        "Swap owners or slot periods.",
+        "Generalize pilot results to other docks.",
+        "Treat the revised plan as approved."
+      ],
+      "edited": "The receiving pilot is ready for a limited second week, subject to the warehouse lead approving the revised slot plan.\n\nKiran will reserve 5 morning slots. Jo will reserve 2 afternoon slots. The change does not add carrier capacity; it redistributes the slots we already have.\n\nThe pilot ran at Dock C for 3 days. Across those 3 days, Dock C was the only location included in the pilot. We have no result for the other docks.\n\nPlease approve the revised plan by Wednesday or tell us which constraint still needs work. Until we have that approval, keep the current slot assignments. This represents a significant milestone in our work toward a more seamless receiving experience.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "rd08",
+      "role": "Accountant",
+      "genre": "financial variance commentary",
+      "brief": "Make the commentary concise without strengthening estimated or unaudited figures.",
+      "source": "It is worth noting that operating costs were USD 18,600 above plan in August. Of this variance, USD 11,200 relates to a maintenance invoice recorded earlier than expected.\n\nThe remaining USD 7,400 has not yet been reconciled. We expect to finish that reconciliation by 6 September, but that is an estimate rather than a committed close date.\n\nRevenue was below plan by 3%, while cash receipts were above plan by 2%. These measures describe different periods of the customer cycle and should not be combined into a single growth figure.\n\nThe most important thing to note is that this commentary uses the management accounts. It has not been audited. Keep the timing explanation separate from any claim about a lasting increase in the cost base.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "USD 18,600",
+        "USD 11,200",
+        "USD 7,400",
+        "6 September",
+        "3%",
+        "2%"
+      ],
+      "required_meaning": [
+        "Operating cost variance is above plan.",
+        "The maintenance timing item explains only part of the variance.",
+        "The remainder is unreconciled.",
+        "The reconciliation date is estimated.",
+        "Revenue is below plan while receipts are above plan.",
+        "Management accounts are unaudited."
+      ],
+      "voice": "Measured financial commentary with necessary qualifications.",
+      "acceptable_changes": [
+        "Remove introductory emphasis that adds no fact.",
+        "Tighten wording while retaining every figure and its association."
+      ],
+      "prohibited_changes": [
+        "Describe figures as audited.",
+        "Turn the expected date into a commitment.",
+        "Combine revenue and cash changes."
+      ],
+      "edited": "operating costs were USD 18,600 above plan in August. Of this variance, USD 11,200 relates to a maintenance invoice recorded earlier than expected.\n\nThe remaining USD 7,400 has not yet been reconciled. We expect to finish that reconciliation by 6 September, but that is an estimate rather than a committed close date.\n\nRevenue was below plan by 3%, while cash receipts were above plan by 2%. These measures describe different periods of the customer cycle and should not be combined into a single growth figure.\n\nThe most important thing to note is that this commentary uses the management accounts. It has not been audited. Keep the timing explanation separate from any claim about a lasting increase in the cost base.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "rd09",
+      "role": "Research scientist",
+      "genre": "methods summary",
+      "brief": "Remove redundant wording while preserving study boundaries, the exact quote, and all uncertainty.",
+      "source": "It is important to note that the study estimates association, not causation. The sample contains 38 returning volunteers recruited through the same local program.\n\nIn the second session, 24 participants completed the delayed recall task. The remaining participants did not complete that task, so the result should not be presented as a measure of the full sample.\n\nThe preregistered note states, “Exclude trials with a missing timestamp.” Keep that rule separate from participant-level exclusion. A missing trial does not automatically remove a person from the analysis.\n\nThe preliminary estimate may change after the timestamp audit. At this stage, the estimate remains preliminary, and we should describe it as preliminary when sharing the summary.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "38",
+        "24",
+        "“Exclude trials with a missing timestamp.”"
+      ],
+      "required_meaning": [
+        "The study estimates association rather than causation.",
+        "The sample consists of returning volunteers from one local program.",
+        "The delayed-recall result applies to 24 completers.",
+        "Trial exclusion differs from participant exclusion.",
+        "The estimate may change after audit."
+      ],
+      "voice": "Careful research prose. Preserve technical distinctions and qualifications.",
+      "acceptable_changes": [
+        "Cut the empty opening wrapper.",
+        "Condense the repeated preliminary-status wording into one clear qualification."
+      ],
+      "prohibited_changes": [
+        "Generalize to the full population.",
+        "Change the exact quoted rule.",
+        "State a causal effect or final audited result."
+      ],
+      "edited": "The study estimates association, not causation. The sample contains 38 returning volunteers recruited through the same local program.\n\nIn the second session, 24 participants completed the delayed recall task. The remaining participants did not complete that task, so the result should not be presented as a measure of the full sample.\n\nThe preregistered note states, “Exclude trials with a missing timestamp.” Keep that rule separate from participant-level exclusion. A missing trial does not automatically remove a person from the analysis.\n\nThe preliminary estimate may change after the timestamp audit. At this stage, the estimate remains preliminary, and we should describe it as preliminary when sharing the summary.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "rd10",
+      "role": "Technical writer",
+      "genre": "configuration guide",
+      "brief": "Cut empty framing while preserving functional Markdown, exact commands, and multilingual labels.",
+      "source": "It is worth noting that the adapter reads UTF-8 input. Keep the field “français_β” and the display label “台北” exactly as they appear in the source file.\n\nRun the validation before creating an archive:\n\n```sh\npython -m archive_check --schema v3 --read-only\n```\n\nThe command reports an error if a required field is missing. It does not repair the source file.\n\n| Setting | Meaning |\n| --- | --- |\n| dry_run | Validate without writing |\n| commit | Write after validation |\n\nIn conclusion, use `dry_run` while reviewing an unfamiliar export. Change to `commit` only after validation succeeds and the operator approves the write. A successful check confirms the declared schema, not the accuracy of every field value.",
+      "expected_action": "edit",
+      "protected_spans": [
+        "UTF-8",
+        "“français_β”",
+        "“台北”",
+        "python -m archive_check --schema v3 --read-only",
+        "dry_run",
+        "commit"
+      ],
+      "required_meaning": [
+        "Input is UTF-8.",
+        "Validation precedes archiving.",
+        "Validation reports errors without repair.",
+        "Writing requires both successful validation and operator approval.",
+        "Schema validation does not establish factual accuracy."
+      ],
+      "voice": "Plain instructions. Preserve the code block and functional table.",
+      "acceptable_changes": [
+        "Remove the two empty wrappers.",
+        "Retain the rest if it is already clear."
+      ],
+      "prohibited_changes": [
+        "Change code, table cells, field spelling, or Unicode characters.",
+        "Remove approval or validation conditions.",
+        "Promise that validation proves factual accuracy."
+      ],
+      "edited": "The adapter reads UTF-8 input. Keep the field “français_β” and the display label “台北” exactly as they appear in the source file.\n\nRun the validation before creating an archive:\n\n```sh\npython -m archive_check --schema v3 --read-only\n```\n\nThe command reports an error if a required field is missing. It does not repair the source file.\n\n| Setting | Meaning |\n| --- | --- |\n| dry_run | Validate without writing |\n| commit | Write after validation |\n\nUse `dry_run` while reviewing an unfamiliar export. Change to `commit` only after validation succeeds and the operator approves the write. A successful check confirms the declared schema, not the accuracy of every field value.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "rd11",
+      "role": "Marketing lead",
+      "genre": "campaign approval request",
+      "brief": "Prepare a campaign approval request with the proposed audience, evidence for the claim, budget, and decision needed. Ask for missing source information rather than inventing it.",
+      "source": "Our transformative campaign will unlock exceptional growth and position the brand as the clear category leader. It brings together a compelling story, an innovative approach, and a seamless customer journey.\n\nThe concept is ready to move forward. The team believes the results will speak for themselves, and we are excited about the opportunity to make a significant impact.\n\nWe should act decisively and make this campaign a success. With the right alignment, the possibilities are endless.\n\nPlease approve the campaign so we can begin.",
+      "expected_action": "ask_for_substance",
+      "protected_spans": [],
+      "required_meaning": [
+        "The supplied text requests campaign approval.",
+        "The source supplies no audience, budget, test result, causal mechanism, or evidence of superiority.",
+        "The omitted information must be requested or identified as missing."
+      ],
+      "voice": "Direct and constructive. Preserve uncertainty about unsupported claims.",
+      "acceptable_changes": [
+        "Identify the missing audience, evidence, budget, and concrete approval decision.",
+        "Remove empty wording without filling factual gaps."
+      ],
+      "prohibited_changes": [
+        "Invent customer segments, spend, performance, dates, channels, or evidence.",
+        "Present an unsupported leadership or growth claim as established."
+      ],
+      "edited": "Our transformative campaign will unlock exceptional growth and position the brand as the clear category leader. It brings together a compelling story, an innovative approach, and a seamless customer journey.\n\nThe concept is ready to move forward. The team believes the results will speak for themselves, and we are excited about the opportunity to make a significant impact.\n\nWe should act decisively and make this campaign a success. With the right alignment, the possibilities are endless.\n\nPlease approve the campaign so we can begin.",
+      "changed": false,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    },
+    {
+      "id": "rd12",
+      "role": "Procurement analyst",
+      "genre": "supplier recommendation",
+      "brief": "Recommend a supplier only if the supplied facts support the choice. The decision needs price, scope, delivery assumptions, and the unresolved risk.",
+      "source": "The preferred supplier offers a robust solution and a strong commitment to customer success. Its comprehensive capabilities make it the natural choice for our evolving needs.\n\nThe alternative also has considerable strengths. Both suppliers bring valuable experience to the table, and either could support the organization as it enters its next phase.\n\nOverall, we believe the preferred supplier represents the best path forward. It is important to note that the final decision should reflect our strategic priorities.\n\nPlease authorize the purchase.",
+      "expected_action": "ask_for_substance",
+      "protected_spans": [],
+      "required_meaning": [
+        "The draft favors an unnamed supplier but provides no price, defined scope, delivery assumption, or risk comparison.",
+        "No defensible supplier recommendation follows from the supplied evidence.",
+        "Missing facts should be surfaced before authorization is requested as a settled recommendation."
+      ],
+      "voice": "Neutral procurement analysis. Avoid enthusiasm and invented certainty.",
+      "acceptable_changes": [
+        "Ask for the missing commercial terms and comparison basis.",
+        "Flag the unsupported recommendation."
+      ],
+      "prohibited_changes": [
+        "Invent supplier names, prices, certifications, delivery dates, risk ratings, or comparative findings.",
+        "Convert generic preference into evidence of superiority."
+      ],
+      "edited": "The preferred supplier offers a robust solution and a strong commitment to customer success. Its comprehensive capabilities make it the natural choice for our evolving needs.\n\nThe alternative also has considerable strengths. Both suppliers bring valuable experience to the table, and either could support the organization as it enters its next phase.\n\nOverall, we believe the preferred supplier represents the best path forward. The final decision should reflect our strategic priorities.\n\nPlease authorize the purchase.",
+      "changed": true,
+      "protected_spans_preserved": true,
+      "idempotent": true,
+      "clean_control_unchanged": null
+    }
+  ]
+}

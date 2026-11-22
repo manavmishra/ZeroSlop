@@ -1,0 +1,214 @@
+{
+  "drafts": [
+    {
+      "id": "rd01",
+      "edited": "The stalled requests belong to the reporting queue, not the payment queue. That distinction matters because the payment workers share a host but use a separate connection pool.\n\nAt 14:20 UTC, I reduced reporting concurrency from 12 to 8. Queue depth fell, but the oldest request is still 17 minutes old. We have not established whether the change caused the improvement.\n\nLeave the payment settings alone. If reporting age exceeds 25 minutes, page the database owner before restarting a worker. The restart clears the evidence we need.\n\nThe trace bundle is in `./traces/run_B2`. Read `queue_age_ms` as milliseconds. The dashboard label is a rounded value, so use the trace for the incident timeline."
+    },
+    {
+      "id": "rd02",
+      "edited": "Records covered by policy R-28 must be retained for seven years after the contract ends. This period applies to the executed contract and its signed amendments. Working drafts follow the ordinary project retention schedule.\n\nAn open legal hold overrides deletion under this policy. The records owner must confirm that no hold applies before approving disposal. Silence from the legal team does not count as approval.\n\nAccess is limited to staff assigned to the matter and the designated reviewer. A request from another department requires written authorization from the matter owner.\n\nThe procedure records authorization; it does not determine whether a legal hold should exist. Refer that question to counsel. Do not infer an exception from the absence of an entry in the project folder."
+    },
+    {
+      "id": "rd03",
+      "edited": "Hi Rowan,\n\nThanks for sending the receipt. I found the duplicate charge and submitted a refund request for GBP 36. The request is awaiting approval; the money has not been returned yet.\n\nI will send another update by Thursday, even if approval is still pending. You do not need to submit a second request. Doing so would create another ticket for the same charge.\n\nThe order itself is active, so your delivery date has not changed. If the duplicate charge disappears from your statement before Thursday, reply here and I will add that information to the existing ticket.\n\nThanks for giving us the details we needed to investigate.\n\nMina"
+    },
+    {
+      "id": "rd04",
+      "edited": "By the time the rain stopped, the volunteers had moved the last box inside. Someone put the kettle on. We had planned a tidy photograph of the new shelves, but the floor was covered in wet coats and nobody wanted to move them again.\n\nThe books were dry. That was enough for the evening.\n\nOn Saturday, the room opens at ten. Bring a book if you have one to spare. If you do not, come anyway. The point is to have somewhere to sit and read, and a person to ask when you cannot find the book you came for."
+    },
+    {
+      "id": "rd05",
+      "edited": "We finished the first practice today. Some students wanted more time, so we will repeat the exercise on Tuesday before starting the next topic.\n\nThe practice is for learning. It is not part of the final mark. Students may use their notes, but they should try the first question without them and then compare the two attempts.\n\nPlease bring the worksheet back on Tuesday. A photograph is fine if the paper is missing. There is no need to print another copy.\n\nI have put the example answer in the shared folder. It shows one reasonable approach, not the only acceptable answer. We will look at other approaches together in class."
+    },
+    {
+      "id": "rd06",
+      "edited": "iPadOS remains on the previous build while the signing check is pending. We will move that client only after the release owner signs the checklist.\n\nThe Android build fixes the empty-state label and leaves the import format unchanged. The import format has not changed in this build.\n\nOpenTelemetry collection is disabled in offline mode. The client stores no diagnostic events for later upload in that mode.\n\nFor the canary cohort, use `release.channel = \"canary\"`. Do not change the default channel for other customers. If the crash rate exceeds 0.4%, pause the rollout and keep the previous binary available."
+    },
+    {
+      "id": "rd07",
+      "edited": "The receiving pilot is ready for a limited second week, subject to the warehouse lead approving the revised slot plan.\n\nKiran will reserve 5 morning slots. Jo will reserve 2 afternoon slots. The change does not add carrier capacity; it redistributes the slots we already have.\n\nThe pilot ran at Dock C for 3 days. Across those 3 days, Dock C was the only location included in the pilot. We have no result for the other docks.\n\nPlease approve the revised plan by Wednesday or tell us which constraint still needs work. Until we have that approval, keep the current slot assignments. This represents a significant milestone in our work toward a more seamless receiving experience."
+    },
+    {
+      "id": "rd08",
+      "edited": "It is worth noting that operating costs were USD 18,600 above plan in August. Of this variance, USD 11,200 relates to a maintenance invoice recorded earlier than expected.\n\nThe remaining USD 7,400 has not yet been reconciled. We expect to finish that reconciliation by 6 September, but that is an estimate rather than a committed close date.\n\nRevenue was below plan by 3%, while cash receipts were above plan by 2%. These measures describe different periods of the customer cycle and should not be combined into a single growth figure.\n\nThe most important thing to note is that this commentary uses the management accounts. It has not been audited. Keep the timing explanation separate from any claim about a lasting increase in the cost base."
+    },
+    {
+      "id": "rd09",
+      "edited": "The study estimates association, not causation. The sample contains 38 returning volunteers recruited through the same local program.\n\nIn the second session, 24 participants completed the delayed recall task. The remaining participants did not complete that task, so the result should not be presented as a measure of the full sample.\n\nThe preregistered note states, “Exclude trials with a missing timestamp.” Keep that rule separate from participant-level exclusion. A missing trial does not automatically remove a person from the analysis.\n\nThe preliminary estimate may change after the timestamp audit. At this stage, the estimate remains preliminary, and we should describe it as preliminary when sharing the summary."
+    },
+    {
+      "id": "rd10",
+      "edited": "The adapter reads UTF-8 input. Keep the field “français_β” and the display label “台北” exactly as they appear in the source file.\n\nRun the validation before creating an archive:\n\n```sh\npython -m archive_check --schema v3 --read-only\n```\n\nThe command reports an error if a required field is missing. It does not repair the source file.\n\n| Setting | Meaning |\n| --- | --- |\n| dry_run | Validate without writing |\n| commit | Write after validation |\n\nUse `dry_run` while reviewing an unfamiliar export. Change to `commit` only after validation succeeds and the operator approves the write. A successful check confirms the declared schema, not the accuracy of every field value."
+    },
+    {
+      "id": "rd11",
+      "edited": "Our transformative campaign will unlock exceptional growth and position the brand as the clear category leader. It brings together a compelling story, an innovative approach, and a seamless customer journey.\n\nThe concept is ready to move forward. The team believes the results will speak for themselves, and we are excited about the opportunity to make a significant impact.\n\nWe should act decisively and make this campaign a success. With the right alignment, the possibilities are endless.\n\nPlease approve the campaign so we can begin."
+    },
+    {
+      "id": "rd12",
+      "edited": "The preferred supplier offers a robust solution and a strong commitment to customer success. Its comprehensive capabilities make it the natural choice for our evolving needs.\n\nThe alternative also has considerable strengths. Both suppliers bring valuable experience to the table, and either could support the organization as it enters its next phase.\n\nOverall, we believe the preferred supplier represents the best path forward. The final decision should reflect our strategic priorities.\n\nPlease authorize the purchase."
+    }
+  ],
+  "pairs": [
+    {
+      "id": "rh01",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh02",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh03",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh04",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh05",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh06",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh07",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh08",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh09",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh10",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh11",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh12",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh13",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh14",
+      "expected_review": false,
+      "review": true
+    },
+    {
+      "id": "rh15",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh16",
+      "expected_review": false,
+      "review": false
+    },
+    {
+      "id": "rh17",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh18",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh19",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh20",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh21",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh22",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh23",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh24",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh25",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh26",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh27",
+      "expected_review": true,
+      "review": true
+    },
+    {
+      "id": "rh28",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh29",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh30",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh31",
+      "expected_review": true,
+      "review": false
+    },
+    {
+      "id": "rh32",
+      "expected_review": true,
+      "review": true
+    }
+  ]
+}

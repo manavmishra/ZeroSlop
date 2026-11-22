@@ -107,6 +107,16 @@ export function meetsReleaseGate(report: WritingReport): boolean {
     && (report.sentences < 8 || report.sentenceVariety === "natural");
 }
 
+function withoutWrapper(match: string, prefix: string, word: string, offset: number, source: string): string {
+  if (word === word.toLowerCase()) {
+    const safeOpeners = new Set(["a", "an", "the", "i", "we", "our", "it", "its", "this", "that",
+      "these", "those", "they", "you", "your", "use", "keep", "run", "do"]);
+    if (!safeOpeners.has(word) || /^[./\\([@:]/.test(source.charAt(offset + match.length))) return match;
+    return prefix + word.charAt(0).toUpperCase() + word.slice(1);
+  }
+  return prefix + word;
+}
+
 // Availability fallback for the single-call service. Every transform is a
 // bounded line edit: it removes a stock wrapper, contracts a phrase, or
 // changes paragraphing. Names, figures, links, examples, and claims remain.
@@ -114,7 +124,7 @@ export function localRescue(text: string): string {
   const original = String(text || "").trim();
   const protectedSpans: string[] = [];
   const base = [...original.matchAll(
-    /\x60{3}[\s\S]*?\x60{3}|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+/gm,
+    /^[ \t]{0,3}(\x60{3,}|~{3,})[^\n]*(?:\n[\s\S]*?(?:^[ \t]{0,3}\1[ \t]*(?:\n|$)|(?![\s\S]))|$)|\x60{3}[\s\S]*?\x60{3}|^[ \t]*>[^\n]*(?:\n[ \t]*>[^\n]*)*|\x60[^\x60\n]+\x60|\[[^\]\n]+\]\([^)]+\)|https?:\/\/[^\s<]+/gm,
   )].map((match): [number, number] => {
     let end = match.index + match[0].length;
     if (/^https?:\/\//.test(match[0])) {
@@ -193,13 +203,16 @@ export function localRescue(text: string): string {
   // A single unpunctuated line break may be a wrapped sentence, not a start.
   out = out.replace(
     /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)in today['’]s rapidly evolving (?:landscape|world),[ \t]+([A-Za-z][A-Za-z0-9_-]*)/gi,
-    (_match, prefix: string, word: string) => prefix + (word === word.toLowerCase()
-      ? word.charAt(0).toUpperCase() + word.slice(1) : word),
+    withoutWrapper,
   );
   out = out.replace(
     /(^|[.!?][ \t]+|\n[ \t]*)(?:it is important to note that|it is worth noting that)[ \t]+([A-Za-z][A-Za-z0-9_-]*)/gi,
-    (_match, prefix: string, word: string) => prefix + (word === word.toLowerCase()
-      ? word.charAt(0).toUpperCase() + word.slice(1) : word),
+    withoutWrapper,
+  );
+  // Match a complete word so iOS, eBay and eBPF retain their spelling.
+  out = out.replace(
+    /(^|[.!?][ \t]+|\n[ \t]*)in conclusion,[ \t]+([A-Za-z][A-Za-z0-9_-]*)/gi,
+    withoutWrapper,
   );
   out = out.replace(
     /(^|[.!?][ \t\r\n]+|\r?\n[ \t]*\r?\n[ \t]*)as we move forward,[ \t]+the team will\b/gi,
@@ -240,18 +253,14 @@ export function localRescue(text: string): string {
     [/\bi(?:['’]m| am) incredibly excited to (?:share|announce)\b/gi, "I'm sharing"],
     [/\bour journey\b/gi, "our work"],
     [/\bour transformative journey\b/gi, "our work"],
-    [/\bit is important to note that\b[ \t]*/gi, ""],
-    [/\bit is worth noting that\b[ \t]*/gi, ""],
     [/\bwhat we did not realize was just how deeply it impacted everything downstream\./gi,
       "We underestimated its effect on the work that followed."],
     [/\bonboarding is not a checklist\.\s*it is a promise\./gi, "We see onboarding as a promise."],
     [/\bonboarding isn['’]t a checklist\s*[-—]\s*it['’]s a promise\./gi,
       "We see onboarding as a promise."],
-    [/\bthe insights were game[-\u2011]changing\./gi, "Those conversations changed our approach."],
-    [/\bthe insights were (?:transformative|clear|significant):\s*/gi,
-      "Those conversations showed that "],
+    // Keep the source's subject and process; neither implies conversations or onboarding.
     [/\ba platform that leverages intelligent automation to streamline the entire process end to end\b/gi,
-      "a platform that automates onboarding from start to finish"],
+      "a platform that uses intelligent automation to streamline the entire process"],
     [/\bthe results speak for themselves:\s*([a-z])/gi,
       (_match: string, first: string) => first.toUpperCase()],
     [/\bthe results speak for themselves\.\s*/gi, ""],

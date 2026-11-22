@@ -1,0 +1,43 @@
+{
+  "scope": "9 interleaved in-process synthetic timings per method on this Mac; not load testing or production latency",
+  "baseline": "42e4c952",
+  "candidate_runtime_sha256": "d88b55b222661625489c92de14d678ff9414116c335fc016ef5a0f3b026bf8bf",
+  "rows": [
+    {
+      "fixture": "prose_20000",
+      "characters": 20000,
+      "median_ms": {
+        "baseline": 11.799,
+        "candidate": 13.982
+      },
+      "max_ms": {
+        "baseline": 28.699,
+        "candidate": 21.392
+      }
+    },
+    {
+      "fixture": "fenced_20000",
+      "characters": 20000,
+      "median_ms": {
+        "baseline": 9.501,
+        "candidate": 1.963
+      },
+      "max_ms": {
+        "baseline": 11.062,
+        "candidate": 2.805
+      }
+    },
+    {
+      "fixture": "unmatched_fence_200000",
+      "characters": 200000,
+      "median_ms": {
+        "baseline": 103.283,
+        "candidate": 15.663
+      },
+      "max_ms": {
+        "baseline": 238.875,
+        "candidate": 22.911
+      }
+    }
+  ]
+}
