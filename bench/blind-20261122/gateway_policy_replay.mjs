@@ -68,6 +68,7 @@ async function verify(directory, manifest) {
 
 async function prepare(args) {
   for (const key of ['core-repo', 'core-revision', 'web-repo', 'web-revision', 'input', 'out', 'contract']) if (!args[key]) throw new Error(`Missing --${key}`);
+  if (!['plaintext', 'structured'].includes(args.contract)) throw new Error('Contract must be plaintext or structured');
   const out = resolve(args.out);
   try { await readFile(join(out, 'manifest.json')); throw new Error('Output already prepared'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   const core = await stageCore(resolve(args['core-repo']), args['core-revision'], join(out, 'core'));
@@ -153,7 +154,7 @@ async function replay(args) {
       try {
         const protocol = { ...item.request.protocol, removableFrames: new Map(item.request.protocol.removableFrames) };
         accepted = module.checkedProviderEdit(module.providerText({ response: response.provider_response }), protocol, item.request.body.text);
-      } catch (error) { providerRejection = error.name; }
+      } catch (error) { providerRejection = ['response_shape', 'empty_output', 'source_preservation', 'implausible_edit'].includes(error.outputStage) ? error.outputStage : error.name; }
     }
     const replayed = await actualPipeline(directory, item.source, () => {
       if (providerRejection) return Response.json({ error: 'editor_invalid_output', editorOutcome: 'invalid_output', providerCalls: 1 }, { status: 503 });

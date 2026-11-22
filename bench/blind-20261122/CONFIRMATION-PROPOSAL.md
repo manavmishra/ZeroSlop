@@ -28,7 +28,7 @@ No extra previous-release model inference is planned. Native historical meter co
 
 ## Planning estimate and stop policy
 
-Primary generation needs fifteen candidate calls and zero to fifteen baseline calls, determined by actual routing; the portable panel adds twelve. Total **15–42 calls**, with a strict **3h30m ceiling** if all 42 calls use 600 seconds at two continuously occupied workers. Primary inference alone is at most 2h30m; the twelve-call panel is at most one hour. Local replay, judging and release checks are additional.
+Primary generation needs fifteen candidate calls and zero to fifteen baseline calls, determined by actual routing; the portable panel adds twelve. Total **27–42 calls**, with a strict **3h30m ceiling** if all 42 calls use 600 seconds at two continuously occupied workers. Primary inference alone is at most 2h30m; the twelve-call panel is at most one hour. Local replay, judging and release checks are additional.
 
 The authorized eight-case development API pilot used three calls: one baseline case in 10.358 seconds and two four-case candidate batches in 32.417 and 31.020 seconds. All three returned schema-valid outer envelopes and used no tools. Actual website validation still rejected two edits; those failures were retained and diagnosed before confirmation. Generation time does not establish semantic quality. Completed usage was 85,596 aggregate input tokens and 3,044 output tokens, with no reported cache hits.
 
@@ -49,3 +49,7 @@ Parsing uses the exact pinned website parser and source-restoration validator. U
 Source preservation, voice and target removal require blinded source/output judgments with exact quote evidence and explicit uncertainty. Missing judgments never count as safe, successful removal or zero context loss. Source-group bootstrap intervals, abstentions and undefined precision samples must remain visible.
 
 Pre-unseal scope clarification recorded 2026-11-22T20:03:41.662128+00:00: the coordinator selected final candidate portable Zero Slop 2.13.0 for the small panel, replacing the initially proposed current 2.12.41 arm. This tests the new distribution against three pinned competitors at the same twelve-call cost. The primary product pair still uses published 2.12.41 versus the candidate. The earlier development candidate/current result (six ties, two current-release wins) remains reported; this amendment does not reinterpret it.
+
+Arithmetic correction before freeze: fifteen candidate calls plus twelve portable-panel calls yields a minimum of twenty-seven total calls, not fifteen. Baseline routing adds zero to fifteen, so the accepted total is 27–42. The 42-call/3h30m upper bound is unchanged.
+
+Published website source equivalence verified locally before freeze: all four staged endpoint/import files from `15f6cd09825ad3c8fee94fb3325f6aeb5046a515` are byte-identical at coordinator-identified live baseline `80fa2cddfa3b9df9fd5a6d19762d4fb9f817cc42`. This verifies repository source equivalence; it is not an independent deployment receipt. Matching paths are `functions/api/demo-rewrite.js`, `functions/lib/editor-budget.js`, `functions/lib/request-receipts.js`, and `functions/lib/text-hygiene.mjs`.
