@@ -23,6 +23,7 @@ for (const path of [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", "
   });
 }
 const rules = [
+  ["DISTRIBUTION.md", /(uses: manavmishra\/ZeroSlop@v)[0-9.]+/, `$1${version}`],
   ["SKILL.md", /(^\s*version:\s*")[0-9.]+(")/m, `$1${version}$2`],
   ["README.md", /(alt="Version )[0-9.]+(")/, `$1${version}$2`],
   ["README.md", /(badge\/version-)[0-9.]+(-72528F)/, `$1${version}$2`],
