@@ -349,6 +349,19 @@
       "status": "reviewed",
       "result": "signals require local context gates and human-safety regression",
       "source_pin": "page revision required for future imports"
+    },
+    {
+      "id": "zs-blinded-context-quality-20261122-v2",
+      "name": "Blinded source-bound synthetic context quality panel, revision 2",
+      "url": "bench/blind-20261122/PROTOCOL.md",
+      "license": "repository-authored synthetic test data; MIT project terms; no private drafts",
+      "label_semantics": "single-agent editorial slop/clean labels and exact target spans; not authorship labels or human ground truth",
+      "intended_use": "exploratory development and source-grouped sealed contextual-policy comparison; not field accuracy or universal competitive ranking",
+      "tier": "release_research",
+      "access": "development bundled; sealed confirmation kept separate until candidate freeze",
+      "status": "measured",
+      "result": "24 development drafts explored; 60 confirmation drafts remain unopened; preliminary revision overwrite and generation failures retained in protocol",
+      "source_pin": "development SHA-256 49d620e884f8cd7d086683865028eebb09e7121396781982df38f884dccf2239; sealed SHA-256 64f90247fa4cea78db387b4bd0a2708a8bf976e0e5dc302f1c249c4f9ee62407"
     }
   ]
 }

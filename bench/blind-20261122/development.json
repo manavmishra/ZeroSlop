@@ -1,0 +1,1193 @@
+{
+  "schema": "zs-editorial-quality-1",
+  "created_utc": "2026-11-22T19:01:24.538930+00:00",
+  "label_semantics": "Editorially unnecessary, unsupported filler, not AI authorship or provenance detection.",
+  "provenance": "Single-agent synthetic authorship and labels, authored before inspecting current candidate or competitor implementations. No human adjudication.",
+  "limitations": [
+    "Synthetic labels reflect one author judgment, not human truth.",
+    "Paired clean/slop variants are correlated; effective sample size is source groups, not drafts.",
+    "One deliberately removable sentence per positive gives a narrower task than natural mixed-quality drafting.",
+    "Genre context templates and repeated controls limit linguistic diversity and may inflate transfer within this test.",
+    "No claim about real customer drafts, model provenance, full prose quality, factual validity, or all competitor capabilities."
+  ],
+  "split_policy": "Source groups are disjoint between development and sealed sets; paired variants stay together.",
+  "split": "dev",
+  "drafts": [
+    {
+      "id": "dev-001",
+      "source_group": "source-01",
+      "genre": "social",
+      "brief": "Edit this social draft for its stated audience while retaining every supported fact. Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Library returns",
+        "facts": "The library recovered 34 overdue books during its fee waiver week. Returns can go into the blue box until Friday. Lost items still need a replacement conversation. Staff have not estimated how many people will return next week.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Library returns. The library recovered 34 overdue books during its fee waiver week. Returns can go into the blue box until Friday. Lost items still need a replacement conversation. Staff have not estimated how many people will return next week. Please pass the practical details to anyone planning to come. The organizers will post a correction if arrangements change. Questions about individual circumstances should go to the contact on the notice. We want the information to be easy to find when someone is making plans, including people who read this on a small phone screen. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The library recovered 34 overdue books during its fee waiver week. Returns can go into the blue box until Friday. Lost items still need a replacement conversation. Staff have not estimated how many people will return next week.",
+        "The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The library recovered 34 overdue books during its fee waiver week.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Returns can go into the blue box until Friday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Lost items still need a replacement conversation.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Staff have not estimated how many people will return next week.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 135,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-002",
+      "source_group": "source-01",
+      "genre": "social",
+      "brief": "Edit this social draft for its stated audience while retaining every supported fact. Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Library returns",
+        "facts": "The library recovered 34 overdue books during its fee waiver week. Returns can go into the blue box until Friday. Lost items still need a replacement conversation. Staff have not estimated how many people will return next week.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Library returns. The library recovered 34 overdue books during its fee waiver week. Returns can go into the blue box until Friday. Lost items still need a replacement conversation. Staff have not estimated how many people will return next week. The next step for library returns is to determine the appropriate next steps and proceed accordingly. Please pass the practical details to anyone planning to come. The organizers will post a correction if arrangements change. Questions about individual circumstances should go to the contact on the notice. We want the information to be easy to find when someone is making plans, including people who read this on a small phone screen. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The next step for library returns is to determine the appropriate next steps and proceed accordingly.",
+          "start": 245,
+          "end": 346,
+          "rationale": "Tautological next-step recommendation supplies no actual action, actor, timing, or decision rule beyond the concrete source. Remove it or ask the author for the missing substance; do not invent a plan.",
+          "category": "missing_substance"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The library recovered 34 overdue books during its fee waiver week. Returns can go into the blue box until Friday. Lost items still need a replacement conversation. Staff have not estimated how many people will return next week.",
+        "The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The library recovered 34 overdue books during its fee waiver week.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Returns can go into the blue box until Friday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Lost items still need a replacement conversation.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Staff have not estimated how many people will return next week.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 151,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-003",
+      "source_group": "source-02",
+      "genre": "email",
+      "brief": "Edit this email draft for its stated audience while retaining every supported fact. Keep a courteous direct email voice and preserve the requested action and deadline.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Late workshop",
+        "facts": "The ceramics workshop now starts at 18:30 on Tuesday. The kiln inspection delayed access to the room. Anyone unable to attend can request a refund by Monday. We do not yet have a date for the next beginners class.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Late workshop. The ceramics workshop now starts at 18:30 on Tuesday. The kiln inspection delayed access to the room. Anyone unable to attend can request a refund by Monday. We do not yet have a date for the next beginners class. Please reply in this thread so the team can keep the details together. If any part of the request is unclear, identify the specific item before taking action. We will send a short confirmation when the next step is recorded. Thank you for checking the information before forwarding it to someone who may be affected. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The review field is named \"robustness\"; keep that label when copying it into the form.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The ceramics workshop now starts at 18:30 on Tuesday. The kiln inspection delayed access to the room. Anyone unable to attend can request a refund by Monday. We do not yet have a date for the next beginners class.",
+        "The review field is named \"robustness\"; keep that label when copying it into the form."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The ceramics workshop now starts at 18:30 on Tuesday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The kiln inspection delayed access to the room.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Anyone unable to attend can request a refund by Monday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "We do not yet have a date for the next beginners class.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a courteous direct email voice and preserve the requested action and deadline.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 136,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-004",
+      "source_group": "source-02",
+      "genre": "email",
+      "brief": "Edit this email draft for its stated audience while retaining every supported fact. Keep a courteous direct email voice and preserve the requested action and deadline.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Late workshop",
+        "facts": "The ceramics workshop now starts at 18:30 on Tuesday. The kiln inspection delayed access to the room. Anyone unable to attend can request a refund by Monday. We do not yet have a date for the next beginners class.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Late workshop. The ceramics workshop now starts at 18:30 on Tuesday. The kiln inspection delayed access to the room. Anyone unable to attend can request a refund by Monday. We do not yet have a date for the next beginners class. The details about late workshop should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances. Please reply in this thread so the team can keep the details together. If any part of the request is unclear, identify the specific item before taking action. We will send a short confirmation when the next step is recorded. Thank you for checking the information before forwarding it to someone who may be affected. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The review field is named \"robustness\"; keep that label when copying it into the form.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The details about late workshop should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances.",
+          "start": 229,
+          "end": 383,
+          "rationale": "Contextual-sounding process advice restates that relevant facts are relevant without specifying a consideration or its consequence. The sentence can be removed without losing source information.",
+          "category": "contextual_redundancy"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The ceramics workshop now starts at 18:30 on Tuesday. The kiln inspection delayed access to the room. Anyone unable to attend can request a refund by Monday. We do not yet have a date for the next beginners class.",
+        "The review field is named \"robustness\"; keep that label when copying it into the form."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The ceramics workshop now starts at 18:30 on Tuesday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The kiln inspection delayed access to the room.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Anyone unable to attend can request a refund by Monday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "We do not yet have a date for the next beginners class.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a courteous direct email voice and preserve the requested action and deadline.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 160,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-005",
+      "source_group": "source-03",
+      "genre": "PRD",
+      "brief": "Edit this PRD draft for its stated audience while retaining every supported fact. Use testable product language; preserve requirement strength and exclusions.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Draft recovery",
+        "facts": "The editor saves a local draft every 20 seconds. Recovery applies to the same browser profile. Clearing site data removes the draft. The first release does not sync drafts between devices.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Draft recovery. The editor saves a local draft every 20 seconds. Recovery applies to the same browser profile. Clearing site data removes the draft. The first release does not sync drafts between devices. Acceptance review should cover both the ordinary flow and the stated limit. The product owner will record unresolved questions in the release checklist. A passing demonstration of the ordinary flow does not settle the boundary cases. Documentation must describe the behavior users can rely on today, and any proposed extension needs a separate decision before it is promised. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The editor saves a local draft every 20 seconds. Recovery applies to the same browser profile. Clearing site data removes the draft. The first release does not sync drafts between devices.",
+        "The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The editor saves a local draft every 20 seconds.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Recovery applies to the same browser profile.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Clearing site data removes the draft.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The first release does not sync drafts between devices.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Use testable product language; preserve requirement strength and exclusions.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 135,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-006",
+      "source_group": "source-03",
+      "genre": "PRD",
+      "brief": "Edit this PRD draft for its stated audience while retaining every supported fact. Use testable product language; preserve requirement strength and exclusions.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Draft recovery",
+        "facts": "The editor saves a local draft every 20 seconds. Recovery applies to the same browser profile. Clearing site data removes the draft. The first release does not sync drafts between devices.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Draft recovery. The editor saves a local draft every 20 seconds. Recovery applies to the same browser profile. Clearing site data removes the draft. The first release does not sync drafts between devices. By embracing a holistic approach, we can unlock new opportunities and drive meaningful impact. Acceptance review should cover both the ordinary flow and the stated limit. The product owner will record unresolved questions in the release checklist. A passing demonstration of the ordinary flow does not settle the boundary cases. Documentation must describe the behavior users can rely on today, and any proposed extension needs a separate decision before it is promised. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "By embracing a holistic approach, we can unlock new opportunities and drive meaningful impact.",
+          "start": 205,
+          "end": 299,
+          "rationale": "Generic recommendation supplies no actors, action, mechanism or defined outcome supported by the brief.",
+          "category": "hollow_recommendation"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The editor saves a local draft every 20 seconds. Recovery applies to the same browser profile. Clearing site data removes the draft. The first release does not sync drafts between devices.",
+        "The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The editor saves a local draft every 20 seconds.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Recovery applies to the same browser profile.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Clearing site data removes the draft.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The first release does not sync drafts between devices.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Use testable product language; preserve requirement strength and exclusions.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 149,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-007",
+      "source_group": "source-04",
+      "genre": "research",
+      "brief": "Edit this research draft for its stated audience while retaining every supported fact. Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Bus survey",
+        "facts": "The survey covered 86 bus riders at two stops on one weekday. Forty respondents reported waiting more than ten minutes. The sample excludes people who stopped using the route. These results cannot estimate the experience of all city residents.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Bus survey. The survey covered 86 bus riders at two stops on one weekday. Forty respondents reported waiting more than ten minutes. The sample excludes people who stopped using the route. These results cannot estimate the experience of all city residents. The analysis should report those limitations beside the result. A later study could use a broader sample and a prespecified protocol, but that work has not been done. Readers should be able to distinguish what the observations support from what remains a hypothesis. The current notes contain no independent replication and no basis for assigning an exact probability to the explanation. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The survey covered 86 bus riders at two stops on one weekday. Forty respondents reported waiting more than ten minutes. The sample excludes people who stopped using the route. These results cannot estimate the experience of all city residents.",
+        "The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The survey covered 86 bus riders at two stops on one weekday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Forty respondents reported waiting more than ten minutes.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The sample excludes people who stopped using the route.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "These results cannot estimate the experience of all city residents.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 143,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-008",
+      "source_group": "source-04",
+      "genre": "research",
+      "brief": "Edit this research draft for its stated audience while retaining every supported fact. Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Bus survey",
+        "facts": "The survey covered 86 bus riders at two stops on one weekday. Forty respondents reported waiting more than ten minutes. The sample excludes people who stopped using the route. These results cannot estimate the experience of all city residents.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Bus survey. The survey covered 86 bus riders at two stops on one weekday. Forty respondents reported waiting more than ten minutes. The sample excludes people who stopped using the route. These results cannot estimate the experience of all city residents. The next step for bus survey is to determine the appropriate next steps and proceed accordingly. The analysis should report those limitations beside the result. A later study could use a broader sample and a prespecified protocol, but that work has not been done. Readers should be able to distinguish what the observations support from what remains a hypothesis. The current notes contain no independent replication and no basis for assigning an exact probability to the explanation. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The next step for bus survey is to determine the appropriate next steps and proceed accordingly.",
+          "start": 256,
+          "end": 352,
+          "rationale": "Tautological next-step recommendation supplies no actual action, actor, timing, or decision rule beyond the concrete source. Remove it or ask the author for the missing substance; do not invent a plan.",
+          "category": "missing_substance"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The survey covered 86 bus riders at two stops on one weekday. Forty respondents reported waiting more than ten minutes. The sample excludes people who stopped using the route. These results cannot estimate the experience of all city residents.",
+        "The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The survey covered 86 bus riders at two stops on one weekday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Forty respondents reported waiting more than ten minutes.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The sample excludes people who stopped using the route.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "These results cannot estimate the experience of all city residents.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 159,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-009",
+      "source_group": "source-05",
+      "genre": "technical",
+      "brief": "Edit this technical draft for its stated audience while retaining every supported fact. Preserve exact identifiers, operational order, negation, and code literal values.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Queue timeout",
+        "facts": "The worker waits 15 seconds for a job before retrying. An empty queue returns status 204. The client must not treat that response as a failed delivery. The trace identifier is `ñ-queue-17`.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Queue timeout. The worker waits 15 seconds for a job before retrying. An empty queue returns status 204. The client must not treat that response as a failed delivery. The trace identifier is `ñ-queue-17`. Test the ordinary case and the documented failure case before relying on this behavior. The runbook should record the observed response and the relevant identifier. An operator reading the log needs enough detail to decide the next step without reconstructing the whole deployment. The current example describes one component and does not promise the same behavior for every external integration. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. This draft uses plain English as a second language; keep the direct wording where its meaning is clear.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The worker waits 15 seconds for a job before retrying. An empty queue returns status 204. The client must not treat that response as a failed delivery. The trace identifier is `ñ-queue-17`.",
+        "This draft uses plain English as a second language; keep the direct wording where its meaning is clear."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The worker waits 15 seconds for a job before retrying.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "An empty queue returns status 204.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The client must not treat that response as a failed delivery.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The trace identifier is `ñ-queue-17`.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve exact identifiers, operational order, negation, and code literal values.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 137,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-010",
+      "source_group": "source-05",
+      "genre": "technical",
+      "brief": "Edit this technical draft for its stated audience while retaining every supported fact. Preserve exact identifiers, operational order, negation, and code literal values.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Queue timeout",
+        "facts": "The worker waits 15 seconds for a job before retrying. An empty queue returns status 204. The client must not treat that response as a failed delivery. The trace identifier is `ñ-queue-17`.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Queue timeout. The worker waits 15 seconds for a job before retrying. An empty queue returns status 204. The client must not treat that response as a failed delivery. The trace identifier is `ñ-queue-17`. The details about queue timeout should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances. Test the ordinary case and the documented failure case before relying on this behavior. The runbook should record the observed response and the relevant identifier. An operator reading the log needs enough detail to decide the next step without reconstructing the whole deployment. The current example describes one component and does not promise the same behavior for every external integration. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. This draft uses plain English as a second language; keep the direct wording where its meaning is clear.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The details about queue timeout should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances.",
+          "start": 205,
+          "end": 359,
+          "rationale": "Contextual-sounding process advice restates that relevant facts are relevant without specifying a consideration or its consequence. The sentence can be removed without losing source information.",
+          "category": "contextual_redundancy"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The worker waits 15 seconds for a job before retrying. An empty queue returns status 204. The client must not treat that response as a failed delivery. The trace identifier is `ñ-queue-17`.",
+        "This draft uses plain English as a second language; keep the direct wording where its meaning is clear."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The worker waits 15 seconds for a job before retrying.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "An empty queue returns status 204.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The client must not treat that response as a failed delivery.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The trace identifier is `ñ-queue-17`.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve exact identifiers, operational order, negation, and code literal values.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 161,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-011",
+      "source_group": "source-06",
+      "genre": "compliance",
+      "brief": "Edit this compliance draft for its stated audience while retaining every supported fact. Keep formal obligation terms such as must and preserve exceptions; this is fictional policy text.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Access retention",
+        "facts": "Access logs are retained for 90 days under the internal schedule. A legal hold can suspend deletion for named records. The hold requires written approval from counsel. This schedule does not establish compliance with every local requirement.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Access retention. Access logs are retained for 90 days under the internal schedule. A legal hold can suspend deletion for named records. The hold requires written approval from counsel. This schedule does not establish compliance with every local requirement. The policy owner must retain evidence of the decision and identify the responsible team. When the facts are incomplete, the record should say what is unknown. A reviewer must check the applicable policy version before closing the item. This summary is an operational instruction for the fictional organization; it does not resolve questions that require a separate legal assessment. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "Access logs are retained for 90 days under the internal schedule. A legal hold can suspend deletion for named records. The hold requires written approval from counsel. This schedule does not establish compliance with every local requirement.",
+        "The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Access logs are retained for 90 days under the internal schedule.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "A legal hold can suspend deletion for named records.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The hold requires written approval from counsel.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "This schedule does not establish compliance with every local requirement.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep formal obligation terms such as must and preserve exceptions; this is fictional policy text.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 141,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-012",
+      "source_group": "source-06",
+      "genre": "compliance",
+      "brief": "Edit this compliance draft for its stated audience while retaining every supported fact. Keep formal obligation terms such as must and preserve exceptions; this is fictional policy text.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Access retention",
+        "facts": "Access logs are retained for 90 days under the internal schedule. A legal hold can suspend deletion for named records. The hold requires written approval from counsel. This schedule does not establish compliance with every local requirement.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Access retention. Access logs are retained for 90 days under the internal schedule. A legal hold can suspend deletion for named records. The hold requires written approval from counsel. This schedule does not establish compliance with every local requirement. At the end of the day, the key takeaway is that this really matters in more ways than one. The policy owner must retain evidence of the decision and identify the responsible team. When the facts are incomplete, the record should say what is unknown. A reviewer must check the applicable policy version before closing the item. This summary is an operational instruction for the fictional organization; it does not resolve questions that require a separate legal assessment. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "At the end of the day, the key takeaway is that this really matters in more ways than one.",
+          "start": 260,
+          "end": 350,
+          "rationale": "Circular summary substitutes emphasis for identifying any relevant consequence.",
+          "category": "empty_summary"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "Access logs are retained for 90 days under the internal schedule. A legal hold can suspend deletion for named records. The hold requires written approval from counsel. This schedule does not establish compliance with every local requirement.",
+        "The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Access logs are retained for 90 days under the internal schedule.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "A legal hold can suspend deletion for named records.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The hold requires written approval from counsel.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "This schedule does not establish compliance with every local requirement.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep formal obligation terms such as must and preserve exceptions; this is fictional policy text.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 160,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-013",
+      "source_group": "source-07",
+      "genre": "financial",
+      "brief": "Edit this financial draft for its stated audience while retaining every supported fact. Preserve units, assumptions, exclusions, uncertainty and distinctions between cash and accounting; fictional only.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Cafe forecast",
+        "facts": "The cafe forecast assumes 80 orders each weekday at an average price of $9. Ingredient cost is estimated at 31 percent of sales. Rent is excluded from that percentage. The projection is a planning scenario, not an observed return.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Cafe forecast. The cafe forecast assumes 80 orders each weekday at an average price of $9. Ingredient cost is estimated at 31 percent of sales. Rent is excluded from that percentage. The projection is a planning scenario, not an observed return. The worksheet should show the assumptions alongside the calculated figures so a reviewer can change them. No sensitivity case has been approved as the budget. A decision should account for costs outside the figures shown here. The next review will compare the scenario with actual records, explain material differences, and retain the original assumptions so the comparison remains interpretable. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The cafe forecast assumes 80 orders each weekday at an average price of $9. Ingredient cost is estimated at 31 percent of sales. Rent is excluded from that percentage. The projection is a planning scenario, not an observed return.",
+        "The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The cafe forecast assumes 80 orders each weekday at an average price of $9.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Ingredient cost is estimated at 31 percent of sales.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Rent is excluded from that percentage.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The projection is a planning scenario, not an observed return.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve units, assumptions, exclusions, uncertainty and distinctions between cash and accounting; fictional only.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 140,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-014",
+      "source_group": "source-07",
+      "genre": "financial",
+      "brief": "Edit this financial draft for its stated audience while retaining every supported fact. Preserve units, assumptions, exclusions, uncertainty and distinctions between cash and accounting; fictional only.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Cafe forecast",
+        "facts": "The cafe forecast assumes 80 orders each weekday at an average price of $9. Ingredient cost is estimated at 31 percent of sales. Rent is excluded from that percentage. The projection is a planning scenario, not an observed return.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Cafe forecast. The cafe forecast assumes 80 orders each weekday at an average price of $9. Ingredient cost is estimated at 31 percent of sales. Rent is excluded from that percentage. The projection is a planning scenario, not an observed return. The next step for cafe forecast is to determine the appropriate next steps and proceed accordingly. The worksheet should show the assumptions alongside the calculated figures so a reviewer can change them. No sensitivity case has been approved as the budget. A decision should account for costs outside the figures shown here. The next review will compare the scenario with actual records, explain material differences, and retain the original assumptions so the comparison remains interpretable. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The next step for cafe forecast is to determine the appropriate next steps and proceed accordingly.",
+          "start": 246,
+          "end": 345,
+          "rationale": "Tautological next-step recommendation supplies no actual action, actor, timing, or decision rule beyond the concrete source. Remove it or ask the author for the missing substance; do not invent a plan.",
+          "category": "missing_substance"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The cafe forecast assumes 80 orders each weekday at an average price of $9. Ingredient cost is estimated at 31 percent of sales. Rent is excluded from that percentage. The projection is a planning scenario, not an observed return.",
+        "The contrast is practical: a confirmed arrangement can guide plans; an estimate still needs checking."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The cafe forecast assumes 80 orders each weekday at an average price of $9.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Ingredient cost is estimated at 31 percent of sales.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Rent is excluded from that percentage.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The projection is a planning scenario, not an observed return.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve units, assumptions, exclusions, uncertainty and distinctions between cash and accounting; fictional only.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 156,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-015",
+      "source_group": "source-08",
+      "genre": "commercial",
+      "brief": "Edit this commercial draft for its stated audience while retaining every supported fact. Preserve scope, price, conditions and contractual modality; avoid new promises.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Pilot scope",
+        "facts": "The pilot includes five accounts and two training calls. The quoted fee is $600 before applicable tax. Extra accounts require a separate written change. The pilot gives no guarantee of a later discount.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Pilot scope. The pilot includes five accounts and two training calls. The quoted fee is $600 before applicable tax. Extra accounts require a separate written change. The pilot gives no guarantee of a later discount. Please compare the proposed terms with the order form before agreeing to the next step. Any change must identify the affected provision and receive written approval. The summary helps the parties review the offer but does not supply missing terms. Questions about an unusual case should be resolved in writing while both parties still have time to consider the consequences. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The review field is named \"robustness\"; keep that label when copying it into the form.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The pilot includes five accounts and two training calls. The quoted fee is $600 before applicable tax. Extra accounts require a separate written change. The pilot gives no guarantee of a later discount.",
+        "The review field is named \"robustness\"; keep that label when copying it into the form."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The pilot includes five accounts and two training calls.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The quoted fee is $600 before applicable tax.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Extra accounts require a separate written change.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The pilot gives no guarantee of a later discount.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve scope, price, conditions and contractual modality; avoid new promises.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 135,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-016",
+      "source_group": "source-08",
+      "genre": "commercial",
+      "brief": "Edit this commercial draft for its stated audience while retaining every supported fact. Preserve scope, price, conditions and contractual modality; avoid new promises.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Pilot scope",
+        "facts": "The pilot includes five accounts and two training calls. The quoted fee is $600 before applicable tax. Extra accounts require a separate written change. The pilot gives no guarantee of a later discount.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Pilot scope. The pilot includes five accounts and two training calls. The quoted fee is $600 before applicable tax. Extra accounts require a separate written change. The pilot gives no guarantee of a later discount. The details about pilot scope should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances. Please compare the proposed terms with the order form before agreeing to the next step. Any change must identify the affected provision and receive written approval. The summary helps the parties review the offer but does not supply missing terms. Questions about an unusual case should be resolved in writing while both parties still have time to consider the consequences. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The review field is named \"robustness\"; keep that label when copying it into the form.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The details about pilot scope should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances.",
+          "start": 216,
+          "end": 368,
+          "rationale": "Contextual-sounding process advice restates that relevant facts are relevant without specifying a consideration or its consequence. The sentence can be removed without losing source information.",
+          "category": "contextual_redundancy"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The pilot includes five accounts and two training calls. The quoted fee is $600 before applicable tax. Extra accounts require a separate written change. The pilot gives no guarantee of a later discount.",
+        "The review field is named \"robustness\"; keep that label when copying it into the form."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The pilot includes five accounts and two training calls.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The quoted fee is $600 before applicable tax.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Extra accounts require a separate written change.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The pilot gives no guarantee of a later discount.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve scope, price, conditions and contractual modality; avoid new promises.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 159,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-017",
+      "source_group": "source-09",
+      "genre": "social",
+      "brief": "Edit this social draft for its stated audience while retaining every supported fact. Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Trail volunteer",
+        "facts": "Eight volunteers cleared the eastern trail on Sunday. The western bridge remains closed after rain damage. Visitors should use the signed detour. The ranger has not announced a reopening date.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Trail volunteer. Eight volunteers cleared the eastern trail on Sunday. The western bridge remains closed after rain damage. Visitors should use the signed detour. The ranger has not announced a reopening date. Please pass the practical details to anyone planning to come. The organizers will post a correction if arrangements change. Questions about individual circumstances should go to the contact on the notice. We want the information to be easy to find when someone is making plans, including people who read this on a small phone screen. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "Eight volunteers cleared the eastern trail on Sunday. The western bridge remains closed after rain damage. Visitors should use the signed detour. The ranger has not announced a reopening date.",
+        "The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Eight volunteers cleared the eastern trail on Sunday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The western bridge remains closed after rain damage.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Visitors should use the signed detour.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The ranger has not announced a reopening date.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 131,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-018",
+      "source_group": "source-09",
+      "genre": "social",
+      "brief": "Edit this social draft for its stated audience while retaining every supported fact. Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Trail volunteer",
+        "facts": "Eight volunteers cleared the eastern trail on Sunday. The western bridge remains closed after rain damage. Visitors should use the signed detour. The ranger has not announced a reopening date.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Trail volunteer. Eight volunteers cleared the eastern trail on Sunday. The western bridge remains closed after rain damage. Visitors should use the signed detour. The ranger has not announced a reopening date. The implications are profound, and the significance of this development cannot be overstated. Please pass the practical details to anyone planning to come. The organizers will post a correction if arrangements change. Questions about individual circumstances should go to the contact on the notice. We want the information to be easy to find when someone is making plans, including people who read this on a small phone screen. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The implications are profound, and the significance of this development cannot be overstated.",
+          "start": 210,
+          "end": 303,
+          "rationale": "Unbounded significance is not supported by this limited source and adds no explanation.",
+          "category": "unsupported_emphasis"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "Eight volunteers cleared the eastern trail on Sunday. The western bridge remains closed after rain damage. Visitors should use the signed detour. The ranger has not announced a reopening date.",
+        "The archived example reads \"unlock endless possibilities\" and is quoted here only so staff can locate the old notice."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Eight volunteers cleared the eastern trail on Sunday.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The western bridge remains closed after rain damage.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Visitors should use the signed detour.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The ranger has not announced a reopening date.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a neighborly, matter of fact voice; do not invent personal feelings or testimonies.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 144,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-019",
+      "source_group": "source-10",
+      "genre": "email",
+      "brief": "Edit this email draft for its stated audience while retaining every supported fact. Keep a courteous direct email voice and preserve the requested action and deadline.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Invoice correction",
+        "facts": "Invoice INV-ö-42 listed twelve hours instead of ten. A corrected invoice reduces the balance by $140. The payment deadline remains 30 November. If payment already went through, accounting will arrange a credit.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Invoice correction. Invoice INV-ö-42 listed twelve hours instead of ten. A corrected invoice reduces the balance by $140. The payment deadline remains 30 November. If payment already went through, accounting will arrange a credit. Please reply in this thread so the team can keep the details together. If any part of the request is unclear, identify the specific item before taking action. We will send a short confirmation when the next step is recorded. Thank you for checking the information before forwarding it to someone who may be affected. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "Invoice INV-ö-42 listed twelve hours instead of ten. A corrected invoice reduces the balance by $140. The payment deadline remains 30 November. If payment already went through, accounting will arrange a credit.",
+        "The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Invoice INV-ö-42 listed twelve hours instead of ten.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "A corrected invoice reduces the balance by $140.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The payment deadline remains 30 November.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "If payment already went through, accounting will arrange a credit.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a courteous direct email voice and preserve the requested action and deadline.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 130,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-020",
+      "source_group": "source-10",
+      "genre": "email",
+      "brief": "Edit this email draft for its stated audience while retaining every supported fact. Keep a courteous direct email voice and preserve the requested action and deadline.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Invoice correction",
+        "facts": "Invoice INV-ö-42 listed twelve hours instead of ten. A corrected invoice reduces the balance by $140. The payment deadline remains 30 November. If payment already went through, accounting will arrange a credit.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Invoice correction. Invoice INV-ö-42 listed twelve hours instead of ten. A corrected invoice reduces the balance by $140. The payment deadline remains 30 November. If payment already went through, accounting will arrange a credit. The next step for invoice correction is to determine the appropriate next steps and proceed accordingly. Please reply in this thread so the team can keep the details together. If any part of the request is unclear, identify the specific item before taking action. We will send a short confirmation when the next step is recorded. Thank you for checking the information before forwarding it to someone who may be affected. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The next step for invoice correction is to determine the appropriate next steps and proceed accordingly.",
+          "start": 231,
+          "end": 335,
+          "rationale": "Tautological next-step recommendation supplies no actual action, actor, timing, or decision rule beyond the concrete source. Remove it or ask the author for the missing substance; do not invent a plan.",
+          "category": "missing_substance"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "Invoice INV-ö-42 listed twelve hours instead of ten. A corrected invoice reduces the balance by $140. The payment deadline remains 30 November. If payment already went through, accounting will arrange a credit.",
+        "The record owner is Zoë; the reference is Δ-17, and neither spelling should be silently changed."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Invoice INV-ö-42 listed twelve hours instead of ten.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "A corrected invoice reduces the balance by $140.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The payment deadline remains 30 November.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "If payment already went through, accounting will arrange a credit.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Keep a courteous direct email voice and preserve the requested action and deadline.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 146,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-021",
+      "source_group": "source-11",
+      "genre": "PRD",
+      "brief": "Edit this PRD draft for its stated audience while retaining every supported fact. Use testable product language; preserve requirement strength and exclusions.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Keyboard menu",
+        "facts": "The menu opens with Alt plus M. Escape closes it and returns focus to the trigger. Arrow keys move between enabled items. Screen reader announcements still need a manual review before release.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Keyboard menu. The menu opens with Alt plus M. Escape closes it and returns focus to the trigger. Arrow keys move between enabled items. Screen reader announcements still need a manual review before release. Acceptance review should cover both the ordinary flow and the stated limit. The product owner will record unresolved questions in the release checklist. A passing demonstration of the ordinary flow does not settle the boundary cases. Documentation must describe the behavior users can rely on today, and any proposed extension needs a separate decision before it is promised. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. This draft uses plain English as a second language; keep the direct wording where its meaning is clear.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "The menu opens with Alt plus M. Escape closes it and returns focus to the trigger. Arrow keys move between enabled items. Screen reader announcements still need a manual review before release.",
+        "This draft uses plain English as a second language; keep the direct wording where its meaning is clear."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The menu opens with Alt plus M.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Escape closes it and returns focus to the trigger.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Arrow keys move between enabled items.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Screen reader announcements still need a manual review before release.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Use testable product language; preserve requirement strength and exclusions.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 135,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-022",
+      "source_group": "source-11",
+      "genre": "PRD",
+      "brief": "Edit this PRD draft for its stated audience while retaining every supported fact. Use testable product language; preserve requirement strength and exclusions.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Keyboard menu",
+        "facts": "The menu opens with Alt plus M. Escape closes it and returns focus to the trigger. Arrow keys move between enabled items. Screen reader announcements still need a manual review before release.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Keyboard menu. The menu opens with Alt plus M. Escape closes it and returns focus to the trigger. Arrow keys move between enabled items. Screen reader announcements still need a manual review before release. The details about keyboard menu should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances. Acceptance review should cover both the ordinary flow and the stated limit. The product owner will record unresolved questions in the release checklist. A passing demonstration of the ordinary flow does not settle the boundary cases. Documentation must describe the behavior users can rely on today, and any proposed extension needs a separate decision before it is promised. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. This draft uses plain English as a second language; keep the direct wording where its meaning is clear.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "The details about keyboard menu should be considered in relation to the situation, taking into account the factors that are relevant to the circumstances.",
+          "start": 208,
+          "end": 362,
+          "rationale": "Contextual-sounding process advice restates that relevant facts are relevant without specifying a consideration or its consequence. The sentence can be removed without losing source information.",
+          "category": "contextual_redundancy"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "The menu opens with Alt plus M. Escape closes it and returns focus to the trigger. Arrow keys move between enabled items. Screen reader announcements still need a manual review before release.",
+        "This draft uses plain English as a second language; keep the direct wording where its meaning is clear."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "The menu opens with Alt plus M.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Escape closes it and returns focus to the trigger.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Arrow keys move between enabled items.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Screen reader announcements still need a manual review before release.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Use testable product language; preserve requirement strength and exclusions.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 159,
+      "pair_member": 1
+    },
+    {
+      "id": "dev-023",
+      "source_group": "source-12",
+      "genre": "research",
+      "brief": "Edit this research draft for its stated audience while retaining every supported fact. Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Soil trial",
+        "facts": "Six garden beds received compost and six did not. Both groups used the same watering schedule. Harvest weight was measured once at the end of eight weeks. The small trial cannot separate every soil difference from the treatment effect.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Soil trial. Six garden beds received compost and six did not. Both groups used the same watering schedule. Harvest weight was measured once at the end of eight weeks. The small trial cannot separate every soil difference from the treatment effect. The analysis should report those limitations beside the result. A later study could use a broader sample and a prespecified protocol, but that work has not been done. Readers should be able to distinguish what the observations support from what remains a hypothesis. The current notes contain no independent replication and no basis for assigning an exact probability to the explanation. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person.",
+      "expected_label": "clean",
+      "target_spans": [],
+      "clean_rationale": "Concrete source-backed details, relevant operational context and deliberate controls; no editorial removal is required. Formality and uncertainty are not defects.",
+      "protected_spans": [
+        "Six garden beds received compost and six did not. Both groups used the same watering schedule. Harvest weight was measured once at the end of eight weeks. The small trial cannot separate every soil difference from the treatment effect.",
+        "The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Six garden beds received compost and six did not.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Both groups used the same watering schedule.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Harvest weight was measured once at the end of eight weeks.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The small trial cannot separate every soil difference from the treatment effect.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Leave as written; small copyedits are acceptable but no improvement is required.",
+      "word_count": 145,
+      "pair_member": 0
+    },
+    {
+      "id": "dev-024",
+      "source_group": "source-12",
+      "genre": "research",
+      "brief": "Edit this research draft for its stated audience while retaining every supported fact. Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+      "source": {
+        "kind": "new synthetic scenario authored for this benchmark",
+        "title": "Soil trial",
+        "facts": "Six garden beds received compost and six did not. Both groups used the same watering schedule. Harvest weight was measured once at the end of eight weeks. The small trial cannot separate every soil difference from the treatment effect.",
+        "provenance": "No real organization, observed result or customer draft is represented."
+      },
+      "text": "Soil trial. Six garden beds received compost and six did not. Both groups used the same watering schedule. Harvest weight was measured once at the end of eight weeks. The small trial cannot separate every soil difference from the treatment effect. Together, these details weave a rich tapestry that speaks volumes about the journey ahead. The analysis should report those limitations beside the result. A later study could use a broader sample and a prespecified protocol, but that work has not been done. Readers should be able to distinguish what the observations support from what remains a hypothesis. The current notes contain no independent replication and no basis for assigning an exact probability to the explanation. Keep the current version with the supporting notes, and use the stated contact or review process if a reader needs a detail that is missing. The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person.",
+      "expected_label": "slop",
+      "target_spans": [
+        {
+          "text": "Together, these details weave a rich tapestry that speaks volumes about the journey ahead.",
+          "start": 248,
+          "end": 338,
+          "rationale": "Decorative metaphor and vague implications obscure rather than explain the supplied details.",
+          "category": "decorative_abstraction"
+        }
+      ],
+      "clean_rationale": null,
+      "protected_spans": [
+        "Six garden beds received compost and six did not. Both groups used the same watering schedule. Harvest weight was measured once at the end of eight weeks. The small trial cannot separate every soil difference from the treatment effect.",
+        "The word \"must\" marks a requirement in the checklist, while \"may\" leaves a choice to the responsible person."
+      ],
+      "immutable_claim_relationships": [
+        {
+          "verbatim": "Six garden beds received compost and six did not.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Both groups used the same watering schedule.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "Harvest weight was measured once at the end of eight weeks.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        },
+        {
+          "verbatim": "The small trial cannot separate every soil difference from the treatment effect.",
+          "rule": "Preserve subject, predicate, quantity, qualification, negation and temporal or conditional scope; paraphrase is allowed."
+        }
+      ],
+      "voice_constraints": [
+        "Preserve cautious academic reasoning, sample limits, and distinction between observation and causation.",
+        "Do not fabricate motives, emotions, firsthand experience, or stronger evidence."
+      ],
+      "acceptable_editing_goal": "Remove the annotated filler sentence without changing protected facts or voice; supported connective edits are acceptable.",
+      "word_count": 159,
+      "pair_member": 1
+    }
+  ]
+}
