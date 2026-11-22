@@ -127,7 +127,10 @@ async function check(args) {
   console.log(JSON.stringify({ accepted: results.filter(row => row.status === 'accepted').length, rejected: results.filter(row => row.status === 'rejected').length, missing: results.filter(row => row.status === 'missing').length }));
 }
 
-const [command, ...rest] = process.argv.slice(2);
-if (command === 'prepare') await prepare(options(rest));
-else if (command === 'check') await check(options(rest));
-else throw new Error('Use prepare or check; neither performs inference');
+export { snapshot, moduleFor, hash, save, load, options };
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const [command, ...rest] = process.argv.slice(2);
+  if (command === 'prepare') await prepare(options(rest));
+  else if (command === 'check') await check(options(rest));
+  else throw new Error('Use prepare or check; neither performs inference');
+}

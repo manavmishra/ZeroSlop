@@ -58,3 +58,26 @@ Use `--contract plaintext` for the published plaintext response policy. The resp
 The Codex replay embeds the exact `SYSTEM_PROMPT` in a user-level benchmark request. It cannot reproduce the provider's system-message priority, backend, seed or hosted limits. This adapter also does not run the gateway's routing, scoring, quota, fallback or final status policy. Calling it a complete gateway or SaaS replay would be incorrect. The pinned source hashes and saved random protected-token maps bind the exact policy packets that were prepared.
 
 Preflight used the actual pinned website source at `15f6cd09825ad3c8fee94fb3325f6aeb5046a515` and prototype `d90b6c4372cf5169fc1a7aa9464929c935347820`: manually constructed fictional fixture responses tested plaintext restoration, structured keep and rejection of an invented quote. These fixtures were not model generations or product benchmark results.
+
+## Actual offline gateway policy replay
+
+`gateway_policy_replay.mjs` now supplies the separate full local policy adapter. It archives the pinned gateway and scorer, bundles the actual pipeline, executes the real Python scorer and captures the actual gateway editor envelope. It then uses the real pinned website packet/protection/parser functions and replays captured host responses through actual gateway selection. Production fetches are disabled. The public signing fixture is only used locally; it is not an API credential or production quota bypass.
+
+```sh
+node bench/blind-20261122/gateway_policy_replay.mjs prepare \
+  --core-repo /absolute/path/core --core-revision FULL_CORE_COMMIT \
+  --web-repo /absolute/path/website --web-revision FULL_WEB_COMMIT \
+  --input /absolute/path/unlabeled-input.json --out /absolute/path/new-preparation \
+  --contract structured --batch-size 4
+python3 bench/blind-20261122/run_gateway_replay.py \
+  --arms /absolute/path/prepared-arms.json --suite /absolute/path/new-run \
+  --timeout 600 --workers 2
+```
+
+`prepared-arms.json` is a list of objects with `name` and `prepared` paths. Preparation does not call a model. The run command does call the existing Codex account and must wait for the coordinator's explicit candidate freeze before confirmation. Only actual gateway-requested cases enter inference. Baseline early-clear cases retain their genuine no-call result. The scheduler is block/arm round-robin, with a common host model/settings/schema/budget and no tools or automatic retries. Every output is retained even when a website validator rejects it; the actual gateway then handles that rejection. Evaluator input appears in `evaluation-runs.json`; raw provider strings, host traces and receipts remain separate.
+
+For a reviewed code-only validation change, `prepare --protocol-cache /absolute/path/previous-preparation` can reuse realized token maps. It requires the same editorial policy, exact native diagnostic context, identical canonical source-protection coverage and identical user packets. Compare whole batch prompt hashes before sharing an existing model generation. This is transparent generation reuse, not a second independent observation.
+
+`run_panel.py` handles the separate twelve-case/four-arm portable panel. Pass `--corpus`, `--arms`, `--selection` and `--suite`; frozen selection IDs/order and seed are checked before execution. It uses deterministic arm permutations within each four-case block, fresh runtimes and two workers. All references remain included. These full-context skill results must not be pooled with the API-native product comparison.
+
+See `CONFIRMATION-PROPOSAL.md` for the accepted focused scope. The declined seven-arm/sixty-case proposal is retained only as history.
