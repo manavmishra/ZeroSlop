@@ -70,6 +70,11 @@ editing uses the hosted review allowance even when local checks find no issues;
 `clean_text` remains local. Inspect `contextualReview` to distinguish a reviewed
 keep from an unavailable review. Older servers may report local-only clear results.
 
+`--require-approved` preserves compatibility with older gateway results that omit
+`contextualReview`; an accepted legacy result does not prove contextual review.
+Callers requiring the new review must also check
+`result.contextualReview?.status === "reviewed"` in the JSON response.
+
 | Exit code | Meaning |
 |---|---|
 | `0` | A valid result was returned; inspect its status before using it |
