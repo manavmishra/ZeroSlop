@@ -1,0 +1,226 @@
+[
+  {
+    "id": "rh01",
+    "source": "On iPhone, eBPF diagnostics are unavailable; use the server trace instead.",
+    "rewrite": "Use the server trace on iPhone, where eBPF diagnostics are unavailable.",
+    "expected_review": false,
+    "reason": "The technical identifiers, limitation, and recommended substitute retain their meaning."
+  },
+  {
+    "id": "rh02",
+    "source": "The survey found an association, not a causal effect.",
+    "rewrite": "The survey found an association. It did not establish a causal effect.",
+    "expected_review": false,
+    "reason": "A necessary research distinction is preserved when the contrast is split into two sentences."
+  },
+  {
+    "id": "rh03",
+    "source": "Under policy Q-19, retain the signed approval for six years.",
+    "rewrite": "Retain the signed approval for six years under policy Q-19.",
+    "expected_review": false,
+    "reason": "The policy reference and retention duration are unchanged."
+  },
+  {
+    "id": "rh04",
+    "source": "Nadia ships 6 pallets; Ellis ships 3 pallets.",
+    "rewrite": "Ellis ships 3 pallets, while Nadia ships 6 pallets.",
+    "expected_review": false,
+    "reason": "The order changes without changing either owner or quantity."
+  },
+  {
+    "id": "rh05",
+    "source": "Finance estimates the credit at EUR 420, excluding tax.",
+    "rewrite": "The estimated credit is EUR 420 excluding tax, according to Finance.",
+    "expected_review": false,
+    "reason": "The estimate, attribution, amount, currency, and tax qualification are preserved."
+  },
+  {
+    "id": "rh06",
+    "source": "In this sample, the intervention may improve recall among returning participants.",
+    "rewrite": "The intervention may improve recall among returning participants in this sample.",
+    "expected_review": false,
+    "reason": "The uncertainty, participant restriction, and sample scope stay intact."
+  },
+  {
+    "id": "rh07",
+    "source": "Thanks for the screenshot. The account is active, and I have reopened the ticket.",
+    "rewrite": "Thanks for the screenshot. The account is active, and I have reopened the ticket.",
+    "expected_review": false,
+    "reason": "This clear support response needs no stylistic intervention."
+  },
+  {
+    "id": "rh08",
+    "source": "A preview is a promise about the next screen, not a picture of the last one.",
+    "rewrite": "A preview is a promise about the next screen, not a picture of the last one.",
+    "expected_review": false,
+    "reason": "The deliberate design contrast is useful and should remain intact."
+  },
+  {
+    "id": "rh09",
+    "source": "The hall was quiet by then. We stacked the chairs and went home.",
+    "rewrite": "By then, the hall was quiet. We stacked the chairs and went home.",
+    "expected_review": false,
+    "reason": "The brief narrative retains its sequence, subject, and plain voice."
+  },
+  {
+    "id": "rh10",
+    "source": "All uploaded manifests must include the schema version.",
+    "rewrite": "The schema version must be included in all uploaded manifests.",
+    "expected_review": false,
+    "reason": "The passive reformulation preserves universal scope and the requirement."
+  },
+  {
+    "id": "rh11",
+    "source": "Keep the review excerpt “Small enough to read, complete enough to use.” unchanged.",
+    "rewrite": "Leave “Small enough to read, complete enough to use.” unchanged in the review excerpt.",
+    "expected_review": false,
+    "reason": "The exact quotation and preservation instruction are retained."
+  },
+  {
+    "id": "rh12",
+    "source": "The export contains the field “mañana_Δ” and the location “서울”.",
+    "rewrite": "The field “mañana_Δ” and the location “서울” are present in the export.",
+    "expected_review": false,
+    "reason": "The multilingual field and location are byte-identical and preserve their roles."
+  },
+  {
+    "id": "rh13",
+    "source": "Run `python -m audit --read-only` from `./ops/review`.",
+    "rewrite": "From `./ops/review`, run `python -m audit --read-only`.",
+    "expected_review": false,
+    "reason": "The protected command and path retain their exact spelling."
+  },
+  {
+    "id": "rh14",
+    "source": "Reviewers may access the archive only if their training is current.",
+    "rewrite": "Only reviewers whose training is current may access the archive.",
+    "expected_review": false,
+    "reason": "The same role, permission, and necessary eligibility condition are expressed."
+  },
+  {
+    "id": "rh15",
+    "source": "The transfer normally takes 2–4 minutes, depending on file size.",
+    "rewrite": "Depending on file size, the transfer normally takes 2–4 minutes.",
+    "expected_review": false,
+    "reason": "The range, typicality, unit, and dependency remain unchanged."
+  },
+  {
+    "id": "rh16",
+    "source": "| Region | Status |\n| --- | --- |\n| West | Pending |\n| East | Approved |",
+    "rewrite": "| Region | Status |\n| --- | --- |\n| West | Pending |\n| East | Approved |",
+    "expected_review": false,
+    "reason": "A functional status table requires no prose edit."
+  },
+  {
+    "id": "rh17",
+    "source": "The supported client is iPadOS; the identifier is case-sensitive.",
+    "rewrite": "The supported client is IPadOS; the identifier is case-sensitive.",
+    "expected_review": true,
+    "reason": "Changing a mixed-case product identifier violates its explicit preservation requirement."
+  },
+  {
+    "id": "rh18",
+    "source": "Approve reimbursement only when the amount is less than GBP 250.",
+    "rewrite": "Approve reimbursement only when the amount is at most GBP 250.",
+    "expected_review": true,
+    "reason": "The boundary changes to include exactly GBP 250."
+  },
+  {
+    "id": "rh19",
+    "source": "The north cohort had 22 completions out of 30. The south cohort had 8 out of 10.",
+    "rewrite": "The north cohort had 22 completions out of 10. The south cohort had 8 out of 30.",
+    "expected_review": true,
+    "reason": "The same numbers are retained but denominators are assigned to the wrong groups."
+  },
+  {
+    "id": "rh20",
+    "source": "The alarm sounded because pressure crossed the limit.",
+    "rewrite": "Pressure crossed the limit because the alarm sounded.",
+    "expected_review": true,
+    "reason": "The cause and consequence are reversed."
+  },
+  {
+    "id": "rh21",
+    "source": "The patch was tested before the migration started.",
+    "rewrite": "The migration started before the patch was tested.",
+    "expected_review": true,
+    "reason": "The ordering of the two events is reversed."
+  },
+  {
+    "id": "rh22",
+    "source": "Not every branch received the revised checklist.",
+    "rewrite": "No branch received the revised checklist.",
+    "expected_review": true,
+    "reason": "A partial exclusion becomes a universal negative."
+  },
+  {
+    "id": "rh23",
+    "source": "The reviewer must sign the exception record.",
+    "rewrite": "The reviewer may sign the exception record.",
+    "expected_review": true,
+    "reason": "A mandatory action becomes optional permission."
+  },
+  {
+    "id": "rh24",
+    "source": "The estimated saving is 11 hours per quarter.",
+    "rewrite": "The audited saving is 11 hours per quarter.",
+    "expected_review": true,
+    "reason": "An estimate becomes an audited result without supporting evidence."
+  },
+  {
+    "id": "rh25",
+    "source": "The invoice total is USD 980, payable in that currency.",
+    "rewrite": "The invoice total is CAD 980, payable in that currency.",
+    "expected_review": true,
+    "reason": "The currency changes while the numeric amount is retained."
+  },
+  {
+    "id": "rh26",
+    "source": "The vendor sends the signed contract to the procurement officer.",
+    "rewrite": "The procurement officer sends the signed contract to the vendor.",
+    "expected_review": true,
+    "reason": "Sender and recipient exchange roles."
+  },
+  {
+    "id": "rh27",
+    "source": "> The device may disconnect during calibration.",
+    "rewrite": "> The device will disconnect during calibration.",
+    "expected_review": true,
+    "reason": "The protected quotation changes a possibility into a certainty."
+  },
+  {
+    "id": "rh28",
+    "source": "Renewals generated 15 cases in April and 9 cases in June.",
+    "rewrite": "Renewals generated 9 cases in April and 15 cases in June.",
+    "expected_review": true,
+    "reason": "Counts are assigned to different reporting months."
+  },
+  {
+    "id": "rh29",
+    "source": "Reject the run when `p >= 0.05`; keep the comparison exact.",
+    "rewrite": "Reject the run when `p > 0.05`; keep the comparison exact.",
+    "expected_review": true,
+    "reason": "The protected comparison changes behavior at the equality boundary."
+  },
+  {
+    "id": "rh30",
+    "source": "Among survey respondents, 64% preferred weekly updates.",
+    "rewrite": "64% of customers preferred weekly updates.",
+    "expected_review": true,
+    "reason": "The denominator expands from respondents to the full customer population."
+  },
+  {
+    "id": "rh31",
+    "source": "Delete temporary exports except those attached to an open investigation.",
+    "rewrite": "Delete all temporary exports, including those attached to an open investigation.",
+    "expected_review": true,
+    "reason": "An explicit preservation exception is reversed."
+  },
+  {
+    "id": "rh32",
+    "source": "The prototype runs only while the signing service is available.",
+    "rewrite": "The prototype runs even when the signing service is unavailable.",
+    "expected_review": true,
+    "reason": "A required runtime dependency becomes an independence claim."
+  }
+]

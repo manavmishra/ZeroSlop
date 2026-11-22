@@ -30,7 +30,7 @@ Source: https://github.com/manavmishra/ZeroSlop   MIT
 name: zero-slop
 license: MIT
 metadata:
-  version: "2.12.40"
+  version: "2.12.41"
   author: manavmishra
 description: Edit drafts into natural prose, inspect AI-sounding patterns, or review how a specified audience might respond passage by passage. Zero Slop runs inside the user's existing AI assistant with local tools that protect source details. Use for humanizing or de-slopping writing, polishing outward-facing prose, social drafts, final editorial checks, or an explicit simulated reader review. Preserve facts, voice and format; reader simulations are hypotheses, not human feedback.
 ---
@@ -153,6 +153,18 @@ I keep coming back to is 119,000” becomes the sentence that states what 119,00
 measures. Then apply the removal test to the next sentence too. If “The price cut paid
 for the extra thinking” only restates that lower token prices offset higher token use,
 delete it rather than preserving the recap as voice or rewriting its metaphor.
+
+Before changing a claim, bind its actor, action, object, quantities, units, population,
+time, conditions, negation, and certainty to the original passage. Keeping the same
+names and numbers does not preserve meaning when their relationships change. Compare
+every final edit with the immutable original. When equivalence is uncertain, retain
+the source wording and flag the uncertainty.
+
+For work documents, check whether the supplied brief's requested decision or next
+action is answered. Ask for missing context, evidence, owners, or dates when the brief
+requires them. Never invent them to make a draft appear complete. Unpack dense noun
+stacks and long dependencies only when the intended meaning is clear; preserve
+necessary technical terms, qualifications, and the writer's level of formality.
 
 Keep local and AI responsibilities distinct:
 
@@ -2954,3 +2966,20 @@ survives, the less the collapse.
 Together these are the argument for the product's shape: measure and rewrite the
 author's own draft, personalise to the author's own voice, and never optimise
 against a detector, because the detector is both defeatable and beside the point.
+
+
+## Context-preserving release research, November 2026
+
+Sentence patterns, vocabulary and rhythm are contextual editorial cues. They do
+not establish authorship or justify universal deletion rules. A fixed sentence-length
+CV target is a heuristic, not a research-validated quality threshold across genres
+and sample sizes. Preserve formal and technical writing where its precision is useful.
+
+[October 2026 research on processing difficulty](https://arxiv.org/abs/2610.29162)
+motivates reviewing noun stacks and long dependencies in context.
+[ACL 2026 post-editing research](https://aclanthology.org/2026.acl-long.2030/)
+motivates measuring voice preservation separately from a writing score.
+Neither establishes Zero Slop performance. The release evaluation in
+`docs/context-preservation-release.md` records the bounded local-edit tests and
+rejected experimental claim classifier. No new detector weights or trained model
+were admitted from these studies.

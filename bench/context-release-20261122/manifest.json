@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scope": "Original synthetic challenge material. Not real customer data or a population accuracy estimate.",
+  "provenance": "Authored by independent reviewer before inspecting the release implementation. Frozen before evaluation.",
+  "pairs": {
+    "path": "pairs.json",
+    "count": 32,
+    "expected_review": 16,
+    "safe": 16
+  },
+  "drafts": {
+    "path": "drafts.json",
+    "count": 12,
+    "expected_actions": {
+      "keep": 5,
+      "edit": 5,
+      "ask_for_substance": 2
+    }
+  },
+  "files": {
+    "pairs.json": "89eea994668256f8da1d0d999d80214fdb5fcd668074c65d0ef0f9fd55952e45",
+    "drafts.json": "3a1abfa0a3da8e0cf73796002fa207a5269535b5537767b5ddb40d6ae8449911"
+  },
+  "holdout_policy": "Do not tune using these labels. Any post-exposure changes require a fresh unseen evaluation."
+}

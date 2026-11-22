@@ -14,7 +14,7 @@ It finds AI slop and workslop, guides the edit, and checks that the key details 
 
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.12.40" src="https://img.shields.io/badge/version-2.12.40-72528F?color=C15732">
+  <img alt="Version 2.12.41" src="https://img.shields.io/badge/version-2.12.41-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -22,6 +22,18 @@ It finds AI slop and workslop, guides the edit, and checks that the key details 
   <a href="https://hol.org/registry/plugins/manav-mishra%2Fzero-slop"><img alt="Listed in the HOL plugin registry" src="https://img.shields.io/badge/HOL%20registry-listed-2C6E8F"></a>
   <a href="https://hol.org/guard/plugins?badge=manav-mishra%2Fzero-slop"><img alt="Verify Zero Slop on HOL Guard" src="https://img.shields.io/badge/HOL%20Guard-verify%20listing-2C6E8F"></a>
 </p>
+
+## Context-preserving edits
+
+The editor keeps the original draft as its reference for claims, conditions,
+certainty, technical terms, and voice. Its local fallback removes complete filler
+openings while preserving names such as iOS and eBay. It does not infer customer
+conversations from unspecified insights or invent a process such as onboarding.
+
+The local checks protect source details; they cannot certify that every paraphrase
+means the same thing. The assistant must compare the complete claims and flag missing
+substance rather than invent it. See the [release evaluation](docs/context-preservation-release.md)
+for the measured scope and remaining limits.
 
 ## Why it exists
 
@@ -176,7 +188,7 @@ python3 scripts/slopscore.py --batch drafts/ --gate 25
 The CLI sends a file to the hosted editor without changing the file on disk:
 
 ```sh
-npx --yes zero-slop@2.12.40 deslop draft.md --genre professional
+npx --yes zero-slop@2.12.41 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` prints the result but exits nonzero when review is needed. Requires Node.js 22+; offline `score` also needs Python 3. [CLI options and privacy](docs/cli.md).

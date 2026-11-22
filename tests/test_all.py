@@ -3886,13 +3886,13 @@ class Fidelity(unittest.TestCase):
     SRC = ("Acme raised $4.2M led by Basis Ventures. Setup time fell 40%. "
            "See https://acme.io/blog for the numbers.")
 
-    def test_local_fallback_keeps_sentence_case_after_a_conjunction(self):
+    def test_local_fallback_preserves_the_subject_of_an_insight(self):
         import rescue
         source = "Our team spoke to 40 customers, and the insights were game-changing."
         self.assertEqual(rescue.rescue_text(source),
-                         "Our team spoke to 40 customers, and those conversations changed our approach.")
+                         "Our team spoke to 40 customers, and the insights were useful.")
         self.assertEqual(rescue.rescue_text("The insights were game-changing."),
-                         "Those conversations changed our approach.")
+                         "The insights were useful.")
 
     def test_local_fallback_cleans_short_hosted_fixtures_without_losing_claims(self):
         import rescue

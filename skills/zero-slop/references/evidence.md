@@ -402,3 +402,20 @@ survives, the less the collapse.
 Together these are the argument for the product's shape: measure and rewrite the
 author's own draft, personalise to the author's own voice, and never optimise
 against a detector, because the detector is both defeatable and beside the point.
+
+
+## Context-preserving release research, November 2026
+
+Sentence patterns, vocabulary and rhythm are contextual editorial cues. They do
+not establish authorship or justify universal deletion rules. A fixed sentence-length
+CV target is a heuristic, not a research-validated quality threshold across genres
+and sample sizes. Preserve formal and technical writing where its precision is useful.
+
+[October 2026 research on processing difficulty](https://arxiv.org/abs/2610.29162)
+motivates reviewing noun stacks and long dependencies in context.
+[ACL 2026 post-editing research](https://aclanthology.org/2026.acl-long.2030/)
+motivates measuring voice preservation separately from a writing score.
+Neither establishes Zero Slop performance. The release evaluation in
+`docs/context-preservation-release.md` records the bounded local-edit tests and
+rejected experimental claim classifier. No new detector weights or trained model
+were admitted from these studies.
