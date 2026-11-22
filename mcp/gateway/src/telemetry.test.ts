@@ -167,3 +167,15 @@ test("analytics failure cannot fail delivery or log arbitrary binding text", (t)
   assert.doesNotThrow(() => trackPipelineResult(env, inspectRestRequest(new Request("https://mcp.zero-slop.ai/v1/deslop")), "general", 1, result));
   assert.doesNotMatch(JSON.stringify(logs), /private|credential/);
 });
+
+
+test("contextual approval accepts reviewed keep and never approves a gap or unavailable review", () => {
+  const clear: PipelineResult = { ...result, status: "already_clear", before: report, after: report,
+    scoreChange: 0, passedFinalChecks: false, contextualReview: { status: "reviewed", decision: "keep", findings: [] } };
+  assert.equal(resultApproval(clear), "already_clear");
+  assert.equal(resultApproval({ ...clear, contextualReview: { status: "unavailable" } }), "review_required");
+  assert.equal(resultApproval({ ...result, contextualReview: { status: "unavailable" } }), "review_required");
+  assert.equal(resultApproval({ ...clear, contextualReview: { status: "reviewed", decision: "gap", findings: [
+    { kind: "missing_substance", quote: "source", reason: "No basis.", question: "What is the basis?" },
+  ] } }), "review_required");
+});

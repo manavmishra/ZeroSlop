@@ -371,24 +371,20 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
           : "No supported character cleanup was needed. Ambiguous formatting was preserved. Statistical watermark removal has not been verified."),
       after,
       scoreChange: Math.round((after.score - before.score) * 10) / 10,
+      contextualReview: { status: "not_requested" },
     };
   }
 
-  // A short clean note should not incur an AI call merely because document-
-  // level statistics need more words. Positive findings still force an edit.
+  // A low local score cannot identify missing substance or a circular claim.
+  // Every normal editing request gets the same bounded contextual review.
   const cleanEnough = meetsReleaseGate(before)
     && before.flaggedPhrases === 0;
-  if (cleanEnough) {
-    return unchanged(
-      original, "already_clear", before, started, env.SCORER_VERSION,
-      "The draft already reads cleanly, so Zero Slop did not spend a model request on it.",
-    );
-  }
 
   const diagnostics = {
     genre: input.genre,
     audience: input.audience ?? "",
     localChecks: JSON.parse(scorerGuidance(before)),
+    contextualReviewRequired: true,
   };
   // Exactly one outbound editor request. The endpoint may use one bounded
   // alternate provider if its primary cannot return a usable edit.
@@ -400,10 +396,41 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
     (observed) => { editorDiagnostics = observed; }, openRouterNoticeConfirmed);
   checkCancelled(control);
   if (editorFailure) editorDiagnostics.failureReason = editorFailure;
-  const resultDiagnostics = Object.keys(editorDiagnostics).length ? { editorDiagnostics } : {};
+  const resultDiagnostics = {
+    ...(Object.keys(editorDiagnostics).length ? { editorDiagnostics } : {}),
+    contextualReview: modelReply?.review
+      ? { status: "reviewed" as const, ...modelReply.review }
+      : { status: "unavailable" as const },
+  };
+  if (modelReply?.review && modelReply.review.decision !== "edit") {
+    const gap = modelReply.review.decision === "gap";
+    return {
+      ...unchanged(original, gap || !cleanEnough ? "unchanged_no_better_version" : "already_clear",
+        before, started, env.SCORER_VERSION,
+        gap
+          ? "The draft needs source information before it can be completed. The original is preserved; review the questions in the contextual findings."
+          : cleanEnough
+            ? "One contextual model review found no justified edit. The original wording and voice are preserved."
+            : "The contextual review kept the original, but local writing findings remain. Review them before publishing."),
+      modelRequests: modelReply.providerCalls,
+      rolesCompleted: 2,
+      ...resultDiagnostics,
+    };
+  }
+  if (!modelReply && cleanEnough) {
+    return {
+      ...unchanged(original, "unchanged_service_unavailable", before, started, env.SCORER_VERSION,
+        `The original is preserved because ${editorFailureNote(editorFailure)}. Local checks found no issues, but a contextual review was not completed.`),
+      modelRequests: observedProviderCalls ?? 1,
+      ...resultDiagnostics,
+    };
+  }
   const rescue = localRescue(original);
   const candidates: Record<string, string> = {};
-  const cleanedModelReply = modelReply?.text ? localRescue(modelReply.text) : "";
+  // A reviewed model text is the exact proposal. Do not silently apply new
+  // local wording changes after its contextual review.
+  const cleanedModelReply = modelReply?.text
+    ? modelReply.review ? modelReply.text : localRescue(modelReply.text) : "";
   if (cleanedModelReply && cleanedModelReply !== original && withinScorerLimit(cleanedModelReply)) {
     candidates["one-call edit"] = cleanedModelReply;
   }
@@ -461,8 +488,10 @@ export async function runPipeline(env: Env, input: DeslopInput, clientAddress = 
   checkCancelled(control);
   const selectedModelEdit = checked.name === "one-call edit";
   const claimUncertain = sourceClaimRisk(original, current);
-  const passed = selectedModelEdit && !claimUncertain && meetsReleaseGate(after);
+  const passed = selectedModelEdit && Boolean(modelReply?.review?.decision === "edit")
+    && !claimUncertain && meetsReleaseGate(after);
   const warnings: string[] = [];
+  if (!modelReply?.review) warnings.push("a source-bound contextual review was not completed");
   if (!selectedModelEdit) {
     warnings.push(modelClaimUncertain
       ? "the model response changed a source claim's negation, direction, certainty, or timing, so the local edit was used"

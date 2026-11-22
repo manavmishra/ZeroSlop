@@ -69,12 +69,27 @@ function validReport(value) {
       && number(flag.strength, 0) && string(flag.issue, 2_000) && string(flag.direction, 2_000));
 }
 
+function validContextualReview(value) {
+  if (!object(value)) return false;
+  if (["unavailable", "not_requested"].includes(value.status)) return Object.keys(value).length === 1;
+  if (value.status !== "reviewed" || !["edit", "keep", "gap"].includes(value.decision)
+    || !array(value.findings, 8, (finding) => object(finding)
+      && ["style", "redundancy", "unsupported_claim", "missing_substance"].includes(finding.kind)
+      && string(finding.quote, 400) && finding.quote.trim().length > 0
+      && string(finding.reason, 500) && finding.reason.trim().length > 0
+      && (finding.question === undefined || (string(finding.question, 300) && finding.question.trim().length > 0)))) return false;
+  if (value.decision === "keep") return value.findings.length === 0;
+  if (value.decision === "edit") return value.findings.length > 0;
+  return value.findings.some((finding) => ["missing_substance", "unsupported_claim"].includes(finding.kind) && finding.question);
+}
+
 export function validateResult(result) {
   if (!object(result) || !string(result.text) || !RESULT_STATUSES.includes(result.status)
     || !validReport(result.before) || !validReport(result.after) || !number(result.scoreChange, -100, 100)
     || typeof result.factsPreserved !== "boolean" || typeof result.passedFinalChecks !== "boolean"
     || ![result.independentModelChecks, result.modelRequests, result.rolesCompleted, result.finishingRounds, result.durationMs].every(integer)
-    || result.modelRequests > 2 || !string(result.scorerVersion) || !string(result.note)) {
+    || result.modelRequests > 2 || !string(result.scorerVersion) || !string(result.note)
+    || (result.contextualReview !== undefined && !validContextualReview(result.contextualReview))) {
     throw new DeslopError("invalid_response", "The MCP service returned an invalid structured result.");
   }
   // Return the original object, including additive fields; never rewrite its status.
@@ -84,8 +99,12 @@ export function validateResult(result) {
 export function isApprovedResult(result) {
   try { validateResult(result); } catch { return false; }
   return result?.factsPreserved === true && (
-    (result.status === "rewritten" && result.passedFinalChecks === true)
-    || (result.status === "already_clear" && result.modelRequests === 0
+    (result.status === "rewritten" && result.passedFinalChecks === true
+      && (result.contextualReview === undefined || (result.contextualReview.status === "reviewed" && result.contextualReview.decision === "edit")))
+    || (result.status === "already_clear"
+      && ((result.contextualReview === undefined && result.modelRequests === 0)
+        || (result.contextualReview?.status === "reviewed" && result.contextualReview.decision === "keep"
+          && Array.isArray(result.contextualReview.findings) && result.contextualReview.findings.length === 0))
       && result.scoreChange === 0 && result.before?.score === result.after?.score)
   );
 }

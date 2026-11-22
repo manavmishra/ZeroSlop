@@ -69,9 +69,9 @@ test("all 14 required fields, optional diagnostics and six statuses are preserve
   const schemaSource = await readFile(join(root, "mcp/gateway/src/contract.ts"), "utf8");
   const schema = schemaSource.split("const deslopOutputSchema = z.object({")[1].split("\n});")[0];
   const keys = [...schema.matchAll(/^  (\w+):/gm)].map((match) => match[1]);
-  const requiredKeys = keys.filter(key => key !== "editorDiagnostics");
+  const requiredKeys = keys.filter(key => !["editorDiagnostics", "contextualReview"].includes(key));
   assert.equal(requiredKeys.length, 14);
-  assert.deepEqual(keys.filter(key => !requiredKeys.includes(key)), ["editorDiagnostics"]);
+  assert.deepEqual(keys.filter(key => !requiredKeys.includes(key)), ["editorDiagnostics", "contextualReview"]);
   assert.match(schema, /editorDiagnostics: editorDiagnosticsSchema\.optional\(\)/);
   for (const status of RESULT_STATUSES) {
     const value = result(status);
@@ -81,7 +81,7 @@ test("all 14 required fields, optional diagnostics and six statuses are preserve
       { provider: "openrouter", outcome: "unavailable", failureStage: "http", httpStatus: 401 },
     ] } };
     assert.equal(validateResult(extended), extended);
-    assert.deepEqual(Object.keys(extended), keys);
+    assert.deepEqual(Object.keys(extended), keys.filter(key => key !== "contextualReview"));
     assert.equal(isApprovedResult(extended), isApprovedResult(value));
     assert.ok(schema.includes(`"${status}"`));
   }
@@ -361,4 +361,24 @@ test("version/help/local scoring never call the hosted service", async () => {
   assert.equal(score.code, 0, score.stderr);
   assert.equal(typeof JSON.parse(score.stdout).ai_likelihood, "number");
   assert.equal(score.messages.length, 0);
+});
+
+
+test("contextual review metadata is bounded and controls approval without breaking legacy replies", () => {
+  const keep = { ...result("already_clear"), modelRequests: 1,
+    contextualReview: { status: "reviewed", decision: "keep", findings: [] } };
+  assert.equal(isApprovedResult(keep), true);
+  assert.equal(isApprovedResult({ ...keep, contextualReview: { status: "unavailable" } }), false);
+  assert.equal(isApprovedResult({ ...result(), contextualReview: { status: "unavailable" } }), false);
+  const gap = { ...result("unchanged_no_better_version"), contextualReview: { status: "reviewed", decision: "gap", findings: [
+    { kind: "missing_substance", quote: "source", reason: "No basis.", question: "What is the basis?" },
+  ] } };
+  assert.equal(validateResult(gap), gap);
+  assert.equal(isApprovedResult(gap), false);
+  for (const contextualReview of [null, { status: "reviewed", decision: "keep", findings: [{}] },
+    { status: "reviewed", decision: "edit", findings: [] },
+    { status: "reviewed", decision: "gap", findings: [{ kind: "style", quote: "x", reason: "x" }] },
+    { status: "reviewed", decision: "edit", findings: [{ kind: "style", quote: "x", reason: "x".repeat(501) }] }]) {
+    assert.throws(() => validateResult({ ...result(), contextualReview }), { code: "invalid_response" });
+  }
 });

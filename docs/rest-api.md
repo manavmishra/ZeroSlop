@@ -91,7 +91,7 @@ every check.
 | `status` | What to do |
 |---|---|
 | `rewritten` | Review the edit; the model edit passed the local writing and source checks |
-| `already_clear` | Keep the original; no editing-model call was needed |
+| `already_clear` | Keep the original after a contextual review; older servers may report a local-only clear result |
 | `rewritten_with_warnings` | Read `note` and review the result before using it |
 | `unchanged_no_better_version` | Keep the original; no better version was selected |
 | `unchanged_verification_failed` | Keep the original; proposed edits failed source checks |
@@ -131,8 +131,9 @@ Providers are `workers-ai` or `openrouter`. Outcomes are `success`, `timeout`,
 Missing metadata remains unknown. Absence does not prove that an editor request or
 provider attempt never started. These fields contain no drafts, response bodies,
 headers, credentials, model names, or arbitrary error messages. The aggregate
-report records only the fixed failure reason, stage, and provider. Already-clear
-results omit `editorDiagnostics`.
+report records only the fixed failure reason, stage, and provider. Reviewed
+unchanged results may include `editorDiagnostics`; older local-only clear results
+omit it.
 
 `scoreChange` is after minus before, so a negative value means the measured score fell.
 The writing score is not a probability that AI wrote the draft.
@@ -141,14 +142,29 @@ For an automation that must stop on a warning, use this condition:
 
 ```js
 const approved = result.factsPreserved === true && (
-  (result.status === "already_clear" && result.modelRequests === 0 &&
+  (result.status === "already_clear" &&
+   ((result.contextualReview?.status === "reviewed" &&
+     result.contextualReview.decision === "keep" &&
+     result.contextualReview.findings.length === 0) ||
+    (result.contextualReview === undefined && result.modelRequests === 0)) &&
    result.scoreChange === 0 && result.before.score === result.after.score) ||
-  (result.status === "rewritten" && result.passedFinalChecks === true)
+  (result.status === "rewritten" && result.passedFinalChecks === true &&
+   (result.contextualReview === undefined ||
+    (result.contextualReview.status === "reviewed" && result.contextualReview.decision === "edit")))
 );
 ```
 
-`already_clear` has `passedFinalChecks: false` because editing-model checks were not
-needed. Do not reject it solely on that boolean. Source checks protect tracked
+`already_clear` has `passedFinalChecks: false` because no rewritten document was
+approved. A contextual keep decision preserves the original verbatim; the same
+model's review is not independent proof of meaning or factual truth. Inspect
+`contextualReview`: `reviewed` includes `decision` (`edit`, `keep`, or `gap`) and up
+to eight exact-source findings about the model proposal (an edit can still fail
+subsequent source checks), while `unavailable` means no usable contextual
+review completed and `not_requested` identifies local character cleanup. Missing
+substance stays in the original and its questions are reported separately; it is
+not an approved completed edit. Normal editing requests this review even with a
+low writing score, so clean inputs can consume model allowance and latency.
+Do not reject a reviewed keep solely on the final-check boolean. Source checks protect tracked
 details; they cannot certify factual truth or every change in meaning. Human review
 remains necessary before publication.
 

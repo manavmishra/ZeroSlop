@@ -203,13 +203,15 @@ test("an expired editor deadline makes no request", async () => {
   }
 });
 
-test("clean text exits after scoring without a model request", async () => {
+test("unavailable contextual review does not certify low-score text as clear", async () => {
   const scorer = { fetch: async () => Response.json(writingReport(9.5)) };
   const result = await runPipeline({ SCORER: scorer, SCORER_VERSION: "2.9.1" } as unknown as Env,
     { text: "The importer now maps CSV headers automatically.", genre: "general" });
-  assert.equal(result.status, "already_clear");
+  assert.equal(result.status, "unchanged_service_unavailable");
   assert.equal(result.modelRequests, 0);
   assert.equal(result.rolesCompleted, 1);
+  assert.deepEqual(result.contextualReview, { status: "unavailable" });
+  assert.match(result.note, /contextual review was not completed/);
 });
 
 test("the release gate rejects low scores with unresolved high-weight, readability, or rhythm findings", () => {
@@ -242,7 +244,7 @@ test("the complete MCP edit uses one remote model request", async () => {
     assert.equal(editorRequests, 1);
     assert.equal(result.modelRequests, 1);
     assert.equal(result.text, rewrite);
-    assert.equal(result.status, "rewritten");
+    assert.equal(result.status, "rewritten_with_warnings");
     assert.equal(result.rolesCompleted, 8);
     assert.equal(result.finishingRounds, 1);
     assert.equal(result.independentModelChecks, 0);
@@ -267,7 +269,7 @@ test("the MCP result reports both provider attempts behind one editor request", 
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(requests, 1);
     assert.equal(result.modelRequests, 2);
-    assert.equal(result.status, "rewritten");
+    assert.equal(result.status, "rewritten_with_warnings");
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -341,7 +343,7 @@ test("a 20,000-code-point model edit remains rankable", async () => {
     } as unknown as Env, { text: original, genre: "general" });
     assert.equal(rankCalls, 1);
     assert.equal(result.text, exact);
-    assert.equal(result.status, "rewritten");
+    assert.equal(result.status, "rewritten_with_warnings");
   } finally {
     globalThis.fetch = originalFetch;
   }

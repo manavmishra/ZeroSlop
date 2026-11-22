@@ -65,7 +65,10 @@ stay local. See the [remote-service privacy boundary](../SECURITY.md#remote-serv
 
 Inspect the [six result statuses](rest-api.md#read-the-result). In particular,
 `rewritten_with_warnings` is an edit to review, not an approved result.
-`already_clear` returns the original without an editing-model request.
+`already_clear` can retain the original after a contextual model review. Normal
+editing uses the hosted review allowance even when local checks find no issues;
+`clean_text` remains local. Inspect `contextualReview` to distinguish a reviewed
+keep from an unavailable review. Older servers may report local-only clear results.
 
 | Exit code | Meaning |
 |---|---|

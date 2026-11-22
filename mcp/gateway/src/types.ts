@@ -2,6 +2,20 @@ import type { EditorDiagnostics } from "./editor-diagnostics";
 
 export type Genre = "general" | "social" | "email" | "research" | "professional";
 
+export type ContextualReview = {
+  decision: "edit" | "keep" | "gap";
+  findings: Array<{
+    kind: "style" | "redundancy" | "unsupported_claim" | "missing_substance";
+    quote: string;
+    reason: string;
+    question?: string | undefined;
+  }>;
+};
+
+export type ContextualReviewResult =
+  | ({ status: "reviewed" } & ContextualReview)
+  | { status: "unavailable" | "not_requested" };
+
 export type WritingReport = {
   score: number;
   band: string;
@@ -92,4 +106,5 @@ export type PipelineResult = {
   durationMs: number;
   note: string;
   editorDiagnostics?: EditorDiagnostics | undefined;
+  contextualReview?: ContextualReviewResult | undefined;
 };

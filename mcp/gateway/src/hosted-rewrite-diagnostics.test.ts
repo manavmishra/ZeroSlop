@@ -31,9 +31,9 @@ const cleanVersionedAnnouncement = "We are incredibly excited about announcing K
 
 for (const { name, rewrite, providerCalls, status, passed, note } of [
   {
-    name: "a distinct provider edit of the stock appositive can pass final checks",
+    name: "a legacy provider edit without contextual review still requires review",
     rewrite: versionedAnnouncement.replace("a game-changing update", "an update"),
-    providerCalls: 1, status: "rewritten", passed: true, note: /checks approved the exact text returned/,
+    providerCalls: 1, status: "rewritten_with_warnings", passed: false, note: /contextual review was not completed/,
   },
   {
     name: "a provider echo uses the same local wording and still requires review",
@@ -71,7 +71,7 @@ for (const { name, rewrite, providerCalls, status, passed, note } of [
   assert.equal(result.factsPreserved, true);
   assert.equal(result.status, status);
   assert.equal(result.passedFinalChecks, passed);
-  assert.equal(result.rolesCompleted, passed ? 8 : 4);
+  assert.equal(result.rolesCompleted, rewrite === versionedAnnouncement.replace("a game-changing update", "an update") ? 8 : 4);
   assert.match(result.note, note);
 });
 
@@ -262,16 +262,17 @@ test("successful provider records cannot carry failure metadata", async () => {
   } finally { globalThis.fetch = oldFetch; console.log = oldLog; }
 });
 
-test("already clear Northstar facts require no provider request", async () => {
+test("Northstar facts stay unchanged with an unavailable contextual review", async () => {
   const text = "Starting October 20, teams can export their weekly report as a CSV file. Maya owns the rollout, and the beta is limited to 25 teams.";
   const oldFetch = globalThis.fetch;
   globalThis.fetch = (async () => { throw new Error("must not call editor"); }) as typeof fetch;
   try {
     const result = await runPipeline(env, { text, genre: "social" });
     assert.equal(result.text, text);
-    assert.equal(result.status, "already_clear");
-    assert.equal(result.modelRequests, 0);
-    assert.ok(!Object.hasOwn(result, "editorDiagnostics"));
+    assert.equal(result.status, "unchanged_service_unavailable");
+    assert.equal(result.modelRequests, 1);
+    assert.deepEqual(result.contextualReview, { status: "unavailable" });
+    assert.equal(result.editorDiagnostics?.failureReason, "transport");
     assert.equal(result.passedFinalChecks, false);
   } finally { globalThis.fetch = oldFetch; }
 });
