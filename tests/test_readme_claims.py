@@ -11,13 +11,13 @@ class ReadmeClaims(unittest.TestCase):
     def setUp(self):
         self.introduction = README.read_text().split("## Context-preserving edits", 1)[0]
 
-    def test_ranking_names_the_review_and_its_test_scope(self):
+    def test_ranking_keeps_the_review_link_without_the_methodology_sentence(self):
         self.assertIn("Ranked #2 for finding and fixing AI slop.", self.introduction)
         self.assertIn(
             "[Read the review](https://growthmethod.com/ai-writing-skills-avoid-slop/#2-zero-slop)",
             self.introduction,
         )
-        self.assertRegex(self.introduction, r"ten skills.*one article.*AI judges")
+        self.assertNotIn("The review compared ten skills on one article using AI judges.", self.introduction)
         self.assertNotRegex(self.introduction, r"(?i)#2 (?:on the internet|worldwide|of 73)")
 
     def test_worldwide_reach_is_dated_network_activity_not_a_user_count(self):
