@@ -12,9 +12,13 @@ Remove AI writing patterns from your drafts without losing your core message. Ze
 
 It finds AI slop and workslop, guides the edit, and checks that the key details of your message survive. If your AI setup does not support agent skills, [try the browser editor](https://zero-slop.ai/try/) or use our [MCP connector](https://mcp.zero-slop.ai/mcp).
 
+**Ranked #2 for finding and fixing AI slop.** [Read the review](https://growthmethod.com/ai-writing-skills-avoid-slop/#2-zero-slop). The review compared ten skills on one article using AI judges.
+
+**Worldwide reach:** Product activity was recorded in 82 countries and territories through November 23, 2026. These counts reflect network activity and may include automation. [Measurement notes](https://zero-slop.ai/press/measurement-notes/).
+
 <p align="center">
   <a href="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/manavmishra/ZeroSlop/actions/workflows/validate.yml/badge.svg"></a>
-  <img alt="Version 2.12.41" src="https://img.shields.io/badge/version-2.12.41-72528F?color=C15732">
+  <img alt="Version 2.12.42" src="https://img.shields.io/badge/version-2.12.42-72528F?color=C15732">
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm version" src="https://img.shields.io/npm/v/zero-slop?color=C15732"></a>
   <a href="https://www.npmjs.com/package/zero-slop"><img alt="npm downloads" src="https://img.shields.io/npm/dm/zero-slop?color=17634F"></a>
   <a href="https://github.com/manavmishra/ZeroSlop/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/manavmishra/ZeroSlop?style=flat&color=C15732"></a>
@@ -188,7 +192,7 @@ python3 scripts/slopscore.py --batch drafts/ --gate 25
 The CLI sends a file to the hosted editor without changing the file on disk:
 
 ```sh
-npx --yes zero-slop@2.12.41 deslop draft.md --genre professional
+npx --yes zero-slop@2.12.42 deslop draft.md --genre professional
 ```
 
 Use `-` for stdin and `--json` for structured output. `--require-approved` prints the result but exits nonzero when review is needed. Requires Node.js 22+; offline `score` also needs Python 3. [CLI options and privacy](docs/cli.md).
